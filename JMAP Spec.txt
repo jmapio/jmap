@@ -1,0 +1,1466 @@
+JSON Mail Access Protocol Specification
+Neil Jenkins :: neilj@fastmail.fm
+v. 2013.10.31
+
+1. Introduction
+===============
+
+Authentication
+--------------
+
+Username/password can be used with simple HTTP Authentication. If authorisation
+fails, a 401 response code with no content will be returned. Implementations
+may also to choose to support OAuth (how this integrates is not defined in this
+spec).
+
+The structure of an exchange
+----------------------------
+
+An API call is made via a POST request to the server. The data in this call
+will be a single JSON object (UTF-8 encoded), which at the top level will be an
+array. Each element in this array will be another array and will constitute a
+method call. The first item in these subarrays is the name of the method being
+called on the server, the second item will be a JSON object containing *named*
+arguments for that method. The third (and optional) item is a client id, to be
+echoed back with the responses emitted by that method call (as we'll see lower
+down, it's not so much RPC as message passing, and a method may return 0, 1 or
+many messages, especially as some methods make implicit calls to other ones).
+
+Example query:
+
+    [
+      ["method1", {"arg1": "arg1data", "arg2": "arg2data"}, "#1"],
+      ["method2", {"arg1": "arg1data"}, "#2"]
+      ["method3", {}, "#3"]
+    ]
+
+The method calls should be processed in array order. Each server query (which
+may contain multiple method calls) receives a single JSON response in exactly
+the same format. The output of the methods must be added to the array in the
+same order in which the methods are processed.
+
+Example response:
+
+    [
+      ["responseFromMethod1", {"arg1": 3, "arg2": "foo"}, "#1"],
+      ["responseFromMethod2", {"isBlah": true}, "#2"],
+      ["anotherResponseFromMethod2", {"data": 10, "yetmoredata": "Hello"}, "#2"]
+    ]
+
+Possible errors are specified in each method description. The output should be
+inserted at the current point in the response and any further method calls
+should then be processed as normal. If an unknown method is called, return an
+unknownMethod error response and continue processing the next method call as
+normal.
+
+As always, be strict (paranoid) about data received from the client. Arguments
+need to be checked for validity; a malicious user could attempt to find an
+exploit through the API. In case of invalid arguments (unknown/insufficient/
+wrong type for data etc.) the server should send an invalidArguments error (see
+the Error section below) and skip to the next method call.
+
+Concurrency
+-----------
+
+The state of the user's email must not change during a single method call (except due to that method call itself), but may change in between method calls. The easiest way to do this is a per-user lock that must be held for the duration of each method call.
+
+The email data model
+--------------------
+
+For compatibility with IMAP, emails are immutable other than flags/labels. Each
+time an email is changed (created, flag change, deleted), it is assigned a new
+modseq (modification sequence) number, an unsigned 64-bit integer. Unlike in
+IMAP, there needs to be a single modseq counter across the whole user, not per
+mailbox (this is, however, completely backwards compatible with IMAP). A method
+that mutates the state (e.g. moving messages between mailboxes) should
+increment the modseq *once* then apply that new modseq to all messages affected
+by the change.
+
+Again, for compatibility with IMAP, it is presumed that messages are assigned a
+32-bit unsigned integer uid on creation within a mailbox, and this follows the
+same semantics as in IMAP. A server may like to make the uid counter per-user
+instead of per-mailbox as well, as this allows getMessageList updates to be
+calculated for cross-folder searches (see below). The need to do a uid validity
+change may happen slightly more frequently, but it is unlikely in practise that
+many users will use up the entire 4,294,967,296 possible values.
+
+Like in IMAP, for each mailbox, the server must also keep track of:
+
+- The highest modseq of a message within that mailbox.
+- The highest uid assigned to a message in that mailbox
+
+Unlike IMAP, there is no \Deleted deletion model. All mailbox related methods
+must act as though messages marked \Deleted do not exist: they must not be
+returned as part of any call and they must not be included in any `total`
+count. If using an IMAP-compatible backing store, the server may choose to
+implement this by adding an implicit 'NOT \Deleted' search term to everything,
+or by expunging immediately anything marked \Deleted or any other method it
+chooses (at FM, we ensure all \Deleted messages are expunged).
+
+Each message is assigned an id that is unique across the whole user. For IMAP
+stores, this may be simply something like `"f${mailboxId}u${uid}"`. But the
+actual string is opaque to the client, so if the server already has a mechanism
+for allocating unique ids to messages, it can use this instead. However, due to
+this model, moving a message to a new mailbox may (but doesn't have to) change
+the id of the message. For servers choosing to use a per-user uid counter, the
+message id can simply be the uid.
+
+A uid validity change must be handled by assigning all affected mailboxes and
+messages new ids (essentially to the client this appears as though they have
+been deleted and new ones have been created, which by chance happen to contain
+the same messages). This will require a lot of data to be resynced, but is
+expected to be rare in practise.
+
+Conversations
+-------------
+
+Related messages are grouped into conversations. When getting a message list
+with conversations enabled, only the first message in the list in a
+conversation (given the current sort order) is returned; all others are treated
+as though they do not exist as far as the message listing is concerned and do
+not count towards the total count for the list.
+
+Suppose a new message arrives that is part of a conversation already listed: if
+it is earlier in the current sort order it is treated as an addition of this
+message and a deletion of the previous from the mailbox. If it is lower in the
+current sort order it is treated as a flag update of the number of other
+messages associated with the current message representing this conversation.
+The algorithms below all follow this model.
+
+Messages in the Trash folder should not be threaded with messages outside the
+trash folder, so that a user can delete a single message out of a conversation.
+This means moving a message to a different mailbox may change its conversation
+id.
+
+#### !Discussion Point:
+
+Should conversation support be optional? Probably, which
+means we probably should have a getCapabilities method.
+
+The Number datatype
+-------------------
+
+The JSON datatypes are very limited and correspond to those found in JavaScript.
+A Number in JavaScript is represented as a signed double (64-bit floating
+point). However, except where explicitly specified, all Numbers used in this API
+may be represented as unsigned 32-bit integers. A server or client may rely on
+this for internal optimisation.
+
+The Date datatype
+-----------------
+
+Where the API specifies a Date as a type, it means a string in ISO 8601 format,
+e.g. `"2013-10-30T14:12:00Z"`.
+
+2. Mailbox/message retrieval methods
+====================================
+
+## getMailboxes
+
+### Arguments:
+- state: String (optional)
+    (An opaque string returned by the server from this call, can be used to
+    omit mailboxList from the response if nothing changed.)
+
+### Description:
+
+Returns a list of all mailbox objects. If a state string is supplied as an
+argument and it is the same as the current state (i.e. nothing has changed),
+the mailboxList argument should be omitted from the response.
+
+In an IMAP server, each mailbox must have a uid validity value. One way to
+produce a state string is to hash all these together using sha1 or some other
+suitable hash function. We can detect whenever any of the uid validities
+change, or a folder is created or destroyed, simply by comparing the single
+value. If making a stateless proxy implementation of the api on top of an IMAP
+server, you could implement mailboxId as Full Mailbox Name + uid validity (e.g.
+"Folder.Subfolder356150234"), however it would be more efficient to create a
+shorter id (e.g. sequential numbering) in the server itself. The id for a
+mailbox must be unique and never reused again for another mailbox of the same
+user.
+
+In GMail, or other systems which have a label-only storage approach, you can
+still return all the labels as mailboxes. The effect of this is described in
+the relevant methods.
+
+The permissions object maps to the IMAP permissions model.
+
+!Discussion point: using the hash of uid validities is a neat trick, but
+doesn't change if permissions are changed. Not a problem for servers that don't
+support shared folders, but for those that do it is. A better state string
+would be just to increment and store the user modseq whenever a folder is
+created, deleted or has a property updated.
+
+### Response name:
+  mailboxes
+
+### Arguments:
+- state: String
+- mailboxList: Mailbox Object list
+    (omitted if no change in state)
+- userModSeq: String
+    (the current global modseq for the user)
+
+Where a Mailbox Object is:
+
+    {
+      mailboxId: String,     // Unique id for identifying this mailbox
+      name: String,          // User-visible name, e.g. "Inbox"
+      parentId: String|null, // Mailbox id for the parent of this folder.
+                             // Has value null if this folder is at the top level.
+      role: String,          // 'inbox'/'drafts'/'sent'/'trash'/'spam'/'archive'/''
+                             // Identifies system folders.
+      isOwn: Boolean         // Does the folder belong to the user?
+      // If a shared folder (property not present otherwise; presume all true).
+      // The permissions map to IMAP ACLs:
+      permissions: {
+        // May get a list of messages in the folder
+        mayRead: Boolean,        // ACLs: (lookup & read)
+        // May set the seen flag on messages in the folder
+        mayUpdateSeen: Boolean,  // ACL: seen.
+        // May set other flags on messages in the folder
+        mayUpdateFlags: Boolean, // ACL: write
+        // May move/copy messages into the folder
+        mayInsert: Boolean,      // ACL: insert
+        // May delete or move messages out of the folder
+        mayDelete: Boolean,      // ACLs: (delete messages & expunge)
+        // May create a sub folder of the folder
+        mayCreateSub: Boolean,   // ACL: create
+        // May rename or delete the folder
+        isDeletable: Boolean,   // ACL: delete
+      }
+    }
+
+Example response where the mailboxes are unchanged:
+
+    [ "mailboxes", { "state": "fea89ab" } ]
+
+--------------------------------------------------------------------------------
+
+## setMailboxes
+
+### Arguments:
+- state: String
+- create: clientId -> Mailbox Object map. (optional)
+- update: clientId -> partial Mailbox Object map. (optional)
+- destroy: clientId -> mailboxId map. (optional)
+
+Example request:
+
+    ["setMailboxes", {
+      state: "4123",
+      create: {
+        '#45': {
+          name: 'My new folder',
+          role: '',
+          parentId: null,
+          isOwn: true,
+          permissions: {
+            mayRead: true,
+            mayUpdateSeen: true,
+            mayUpdateFlags: true,
+            mayInsert: true,
+            mayDelete: true,
+            mayCreateSub: true,
+            isDeletable: true,
+          }
+        }
+      }
+      update: {
+        '#32': {
+          mailboxId: 'f3',
+          name: 'The new name'
+        }
+      }
+    }]
+
+A clientId is an id for the mailbox assigned by the client. To update an object, you only need specify the mailboxId property + any properties which have changed.
+
+### Description:
+
+  If the state does not match the current state, push a
+  mailboxesSet response onto the output, consisting of:
+
+    ["mailboxesSet", {
+      notCreated: Object.keys( args.create ),
+      notUpdated: Object.keys( args.update ),
+      notDestroyed: Object.keys( args.destroy )
+    }]
+
+  Then return a validity error (see errors section at bottom of this document).
+
+  Otherwise, *conceptually*, what is happening is quite straight-forward:
+  1. *create*: For each Mailbox Object in the create map, create a new mailbox
+     with properties taken from the object. Ignore any mailboxId property (and
+     if the server chooses, ignore any role property, otherwise set the role
+     and remove the role from all other folders).
+  2. *update*: For each Mailbox Object in the update map, extract the mailboxId
+     property and look up the corresponding mailbox object. For all other
+     key/value pairs in the Mailbox Object, set the value on the mailbox object
+     (except if the key is uidValidity or role, which are read only). The parent
+     value is also read-only if the mailbox has a role attribute (as system
+     folders must be top level). Reject permanently if an attempt to write to
+     them is made.
+  3. *destroy*: For each mailboxId in the clientId -> mailboxId map, destroy the
+     mailbox with the corresponding Id, permanently deleting all messages
+     contained therein. At the point of destruction, the mailbox should not
+     contain any subfolders; these should all have been destroyed or moved out
+     of the folder first; reject permanently the destroy command if not. The server must also permanently reject any attempt to destroy the role=inbox folder and may also reject any attempt to delete other folders (ideally the client should be informed of this via the permissions)
+
+  If implementing as a proxy to a pure IMAP store, changes to name/parentId
+  mean a rename, and creates/updates/destroys must be ordered correctly to make
+  this work.
+
+  All values must be checked for validity. Folder names may have a number of
+  restrictions that must be checked against.
+
+  Each entry in the create/update/destroy hashes is considered an atomic unit by
+  the client. It is permissible for the server to commit some of the changes but
+  not others, however it is not permissible to only commit part of a change
+  (e.g. update the name but not the parent if both are supplied in the update
+  object).
+
+### Response name:
+  mailboxesSet
+
+### Arguments:
+- created: clientId -> mailboxId map (optional)
+    (Mailbox ids are assigned by the server. For each successfully created
+     mailbox, add an entry mapping its clientId to this new mailboxId)
+- updated: clientId list (optional)
+    (list of the clientIds of all successfully updated mailbox objects)
+- destroyed: clientId list (optional)
+    (list of the clientIds of all successfully destroyed mailbox objects)
+- notCreated: clientId list (optional)
+    (list of all client ids for which the create failed temporarily)
+- notUpdated: clientId list (optional)
+    (list of all client ids for which the update failed temporarily)
+- notDestroyed: clientId list (optional)
+    (list of all client ids for which the destroy failed temporarily)
+- error: clientId list (optional)
+    (list of all client ids for which the create/update/destroy failed
+     permanently, e.g. if an update rename used illegal characters etc.)
+- state: String (optional)
+    (the new validity hash after applying these changes)
+
+All arguments need only be included if they have a non-empty value. The client
+may keep trying to commit changes if the server returns notCreated, notUpdated
+or notDestroyed responses, as these indicate temporary failures (e.g. because
+the validity hash doesn't match, so the client needs to fetch mailbox updates
+first then apply the changes on top of the latest version, resolving any
+conflicts before trying again). If the clientId is returned in the error
+argument however, the client must discard the changes and rollback to the last
+known good (committed) state.
+
+Examples of permanent errors:
+a) Attempt to delete an already deleted folder
+b) Attempt to move a folder inside itself.
+c) Attempt to move a folder into another one which already contains a
+   folder of the same name.
+d) Attempt to use illegal characters in a folder name. etc.
+
+If there were creates in this commit, then *after* adding the mailboxesSet
+response to the output, add the following response, with an entry
+for each successfully created mailbox:
+
+    ["updateMailboxes", {
+      "<mailboxId>": {
+        // If a shared folder, return the next two props.
+        // Otherwise omitted, all permissions presumed true.
+        "isOwn": false,
+        "permissions": {...permissions obj...}
+      },
+      ...
+    }]
+
+### !Discussion points
+- Should "role" be read only?
+- Should the folder name be restricted to only characters allowed in IMAP?
+- Should a folder with a "role" not be allowed to be renamed, or moved inside another folder?
+
+--------------------------------------------------------------------------------
+
+## getMailboxCounts
+
+### Arguments:
+- state: String (optional)
+
+### Description:
+  If state is supplied, find all mailboxes whose unread or total count
+  have changed since this state and return the new total/unread message and
+  conversation counts in each of these mailboxes. Otherwise, return the
+  total/unread counts for all mailboxes.
+
+  A conversation counts as unread if there is any non-draft message in it in any
+  folder which is unread. So if a conversation has a message in Inbox which is
+  unread and another message in Sent which is read, it will contribute 1 to the
+  unread count of both of these folders. Draft messages should be ignored when
+  determining the unread count of a conversation (i.e. if a message has the
+  \Draft flag set it does not count towards the unread total for that
+  conversation, even if it does not have a \Seen flag).
+
+### Response name:
+
+  mailboxCounts
+
+### Arguments:
+- state: String
+    (used by the server to calculate delta in unread count)
+- counts: String (folder id) -> Counts object
+- userModSeq: String
+    (the current global modseq for the user)
+
+where a Counts object is:
+
+    {
+      totalMessages: Number,
+      unreadMessages: Number,
+      totalConversations: Number,
+      unreadConversations: Number
+    }
+
+Example response:
+
+    ['mailboxUnreadCounts', {
+      "state": "ae65333",
+      "counts": {
+        "f23": {
+          "totalMessages": 23,
+          "unreadMessages": 10,
+          "totalConversations": 10,
+          "unreadConversations": 10
+        },
+        "f52": {
+          "totalMessages": 1001,
+          "unreadMessages": 0,
+          "totalConversations": 23,
+          "unreadConversations": 2
+        }
+      }
+    }]
+
+--------------------------------------------------------------------------------
+
+## getMessageList
+
+This method fetches (a section of) the list of message ids in a particular
+mailbox or search.
+
+### Arguments:
+- mailboxId: String|null
+- search: String
+    (The query string to search with.)
+- sort: String
+    (Format: (uid|date|from|to|subject|size)(Descending|Ascending)(Flagged)?
+     If 'Flagged' is on the end, flagged messages should be sorted before
+     non-flagged messages.)
+- useConversations: Boolean
+    (If true, uses conversation mode to fetch the list; see description.)
+- position: Number
+    (position in message list (given sort and filter) for first message,
+     indexed from 0.)
+- limit: Number
+    (the maximum number of messages to retrieve)
+- fetchMessages: Object|null
+    (if not null, getMessages will be called with the messageId list of the
+     result. The object will be passed as the properties argument).
+- fetchPreviews: Boolean
+    (if true, will make a call to getMessagePreviews with the messageId list of
+     the result.)
+
+### Description:
+
+  1. If a mailbox id is given and there is no mailbox with that id, return a mailboxDoesNotExist error and exit the method.
+
+  2. Take the list of messages in the mailbox given (if a mailboxId is supplied)
+     otherwise all messages for the user then remove those that do not match
+     the search terms, if given.
+
+  3. Sort the message list in the direction given as a parameter.
+
+  4. Return the list of message ids for exemplars starting at the index given
+     by the `position` argument, and returning up to `limit` results.
+
+  5. If the fetchHeaders argument is true, call getMessages using the
+     messageIdList from the messageList response as the corresponding argument
+     and the fetchConversations argument set to the useConversations value.
+
+  6. If fetchPreviews is true and search terms are specified, call
+     `getMessagePreviews` with the "search", "mailboxId" and "messageIdList"
+     arguments taken from the searchMessageList response arguments of the same
+     name.
+
+  Notes:
+  - The server may choose to enforce a maximum `limit` argument. This is safe
+    to do since the total is returned, so the client should not be relying on
+    how many results are returned to determine if it has reached the end of the
+    mailbox.
+
+Here is an example algorithm showing how conversations work (minus the parsing of arguments and correct formatting of the response):
+
+    let messageList = args.mailboxId ?
+          mailbox[ args.mailboxId ] : allMessages;
+
+    let sortedList = messageList.sortedBy( args.sort )
+    let useConversations = args.useConversations
+
+    let position = args.position
+    let limit = args.limit
+    let total = 0
+    let messageIdList = [] # NB Max size of array is limit
+
+    let SeenExemplar =  useConversations ? empty set : null
+    let numFound = 0
+
+    # Optimisation for the common case where the total number of results is
+    # already known (e.g. because it's the total number of messages/conversations
+    # in the mailbox).
+    let totalIsKnown = totalIsInCache( mailbox, useConversations )
+
+    foreach msg in sortedList {
+      if !useConversations || !SeenExemplar{ msg.conversationId } {
+
+        total += 1
+
+        if useConversations {
+          SeenExemplar.set( msg.conversationId )
+        }
+
+        if position >= total && numFound < limit {
+          messageIdList.push( msg.id )
+          numFound += 1
+          if numFound == limit && totalIsKnown {
+            break;
+          }
+        }
+      }
+    }
+
+    if totalIsKnown {
+      total = getTotalFromCache( mailbox, useConversations )
+    }
+
+    return [ messageIdList, position, total, state ]
+
+### Response name:
+  messageList
+
+### Arguments:
+- mailboxId: String
+- sort: String
+- search: String
+- useConversations: Boolean
+- position: Number
+    (the position in the full filtered, sorted message list of the first message
+     in the returned list (the rest are presumed sequential from here), indexed
+     from 1)
+- total: Number
+    (total number of messages/conversations in the message list (depending on
+     the useConversations argument))
+- state: String
+    (the current state of the message list. In IMAP servers, it is suggested
+    this is the uidNext & highest modseq for the mailbox (see The email model
+    in the introduction for a discussion). Should a client receive back a
+    response with a different state string to a previous call with the same
+    mailboxId/search parameters, it knows the list may have changed, and must
+    either throw away the previous list and fetch it again (note, this does not
+    require fetching the headers/bodies of the messages again, just the list of
+    ids) or, if the server supports it, the client can call
+    getMessageListUpdates with the state string.)
+- messageIdList: `Array<String>`
+    (a subsection of the full filtered, sorted message list, starting at the
+     position given by the start field and containing the maximum number of
+     available messages up to the limit in the original method call)
+- canCalculateUpdates: Boolean
+    (does the server support calling getMessageListUpdates with these
+    parameters. Note, this does not guarantee that the getMessageListUpdates
+    call will succeed, as it may only be possible for a limited time afterwards
+    due to server internal implementation details).
+- userModSeq: String
+    (the current global modseq for the user)
+
+Note: Message ids are unique across the whole user. Thus, it is not a problem if messages are in multiple mailboxes (ala GMail), as after fetching the list, the client can easily determine if it already has the message header/body cached, and does not need to download it again. At FM, we currently use ids of the format `f${mailboxId}u${uid}`, but the actual structure is irrelevant to (and indeed must not be relied on by) the client.
+
+### !Discussion points
+- At FM, instead of specifying a position, you can also specify the section of
+  the list you want returned by giving it a message id. If this message is in
+  the list, the index of that message is used as the position argument. This is
+  used by the FM webmail to locate where a particular message is in a mailbox
+  when all it has is the ID (for example, when opening a bookmarked message).
+  I've removed this as it seems of little use to most native clients, and over
+  complicates things a bit. Thoughts?
+- By returning a canCalculateUpdates response, different implementations can
+  support delta updates for just mailboxes, mailboxes + some/all searches or not at all, depending on their internal data structures. Does this sound reasonable? At FM, we support it for mailbox listings, but not for searches.
+- GMail doesn't support sorting by anything other than "dateDescending".
+  Perhaps this should be part of a getCapabilities response as well.
+- From the appearance of their web client at least, GMail's search
+  infrastructure does not always know how many results there are (presumably
+  because it doesn't allow sort by anything other than date descending, it has
+  optimised internal data structures for searching just the newest messages
+  until it has enough results). I don't have any great ideas for handling that
+  right now; one of the nice things about this API is that it's the same doing
+  a search as fetching a mailbox.
+- The search in most implementations is expected to use an index; it will not
+  be IMAP-style substring search. TODO: Specify a sane search syntax and
+  flexible semantics.
+
+--------------------------------------------------------------------------------
+
+## getMessageListUpdates
+
+This method allows you to efficiently fetch the changes that have happened to the message list since your current state.
+
+### Arguments:
+- mailboxId: String
+- search: String
+- sort: String
+    (uid|date|from|to|subject|size)(Descending|Ascending)(Flagged)?
+- useConversations: Boolean
+    (if true, uses conversation mode to fetch the updates)
+- state: String
+- uptoMessageId: String|null
+    (The message id of the last message in the message list the client
+    currently knows about; used to optimise updates when the client only has a
+    partial cache of the message list – the server can not bother sending
+    updates which the client doesn't need)
+- maximumChanges: Number
+
+### Example:
+
+    ["getMailboxMessageListUpdates", {
+      "mailboxId": "f12",
+      "search": "",
+      "sort": "dateDescending",
+      "useConversations": true,
+      "state": 'v3123l142m412',
+      "uptoMessageId": 'f12u242'
+    }]
+
+### Description:
+  1. If a mailbox id is given and there is no mailbox with that id, return a
+     mailboxDoesNotExist error and exit the method.
+
+  2. If the update cannot be calculated for the given arguments, for whatever
+     reason, return a "cannotCalculateUpdates" error and exit the method.
+
+  3. Take the list of messages in the mailbox given (if a mailboxId is supplied)
+     otherwise all messages for the user then remove those that do not match
+     the search terms, if given.
+
+  4. Sort the message list in the direction given as a parameter.
+
+  5. Starting from the beginning of the list and continuing up to and including
+     the message given in the uptoMessageId parameter (or if this is not
+     found or not supplied then until the end of the list is reached), find:
+
+     If useConversations == true
+
+     a) the messageIds for messages that no longer represent their
+        conversation (because the message has been deleted or another message
+        with higher precedence in the current sort order has arrived).
+
+     b) the messageIds and indexes of messages that newly represent a
+        conversation in that view.
+
+     c) the messageIds for messages that have had flag changes but not been
+        deleted or appended.
+
+     Else if useConversations == false
+
+     a) messages that have been deleted.
+
+     b) messages have been appended to the mailbox.
+
+     c) messages that have had flag changes but not been deleted or appended.
+
+  6. If the number of messages in the added, removed and changed array combined
+     is greater than the maximumChanges argument given, return a tooManyChanges
+     error; the client can instead wipe its cache and start again. Otherwise
+     return an updateMessageList response as detailed below.
+
+### Response name:
+ updateMessageList
+
+### Arguments:
+- mailboxId: String
+- useConversations: Boolean
+- oldState: String
+   (echoed back from request)
+- newState: String
+   (the new state identifier the message list has been updated to)
+- uptoMessageId: String
+   (echoed back from request)
+- sort: String
+   (echoed back from the request)
+- filter: String
+   (echoed back from the request)
+- removed: `Array<String>`
+   ('removed' array from algorithm below)
+- added: List of two-element [Number, String] lists
+   ('added' array from algorithm below. The number in each tuple is the index of
+    the message in the list, starting from 1)
+- changed: (`Array<String>`)
+   ('changed' array from algorithm below)
+- total: Number
+   (total number of conversations in the mailbox)
+- userModSeq: String
+   (the current global modseq for the user)
+
+Example response:
+
+    ["updateMessageList", {
+      mailboxId: "f12"
+      useConversations: true,
+      oldState: "v3123l142m412",
+      newState: "v3123l145m419",
+      uptoMessageId: "f12u242",
+      sort: 'dateDescending',
+      filter: '',
+      removed: ["f12u53", "f12u125", "f12u136"],
+      added: [[1, "f12u452"],[2, "f12u253"],[22, "f12u454"]],
+      changed: ["c1", "c2", "c4"],
+      total: 25
+    }]
+
+Implementation:
+
+Here is an example algorithm for calculating step 4:
+
+    let index = -1
+    let added = []
+    let removed = []
+    let changed = []
+
+    let useConversations = args.useConversations
+
+    # A mutable search is one that contains a parameter which is mutable (i.e. a
+    # flag). So for example a search for messages which are unread is mutable,
+    # whereas a search for messages with "Joe Bloggs" in the From field is not.
+    # Similarly, a mutable sort is one which sorts by a mutable property, e.g.
+    # sort flagged messages/conversations first.
+    let isMutable = search.isMutable() || sort.isMutable()
+    let totalIsKnown = totalIsInCache( search, useConversations )
+    let uptoHasBeenFound = false
+
+    let SeenExemplar = useConversations ? empty set : null
+    let SeenOldExemplar = useConversations ? empty set : null
+
+    # Mailbox includes expunged messages from the last week.
+    let sortedMailbox = mailbox.sortedBy( args.sort );
+
+    foreach msg in sortedMailbox {
+
+      let isNewExemplar = false
+      let isOldExemplar = false
+      let inSearch = !search || search.matches( msg )
+
+      let isNew = ( msg.uid >= args.uidNext )
+      let isChanged = ( msg.modSeq > args.modSeq )
+      let isDeleted = ( msg.flags & FLAG_EXPUNGED )
+      let wasDeleted = ( isDeleted && !isChanged )
+
+      # Is this message the current exemplar?
+      if !isDeleted && inSearch &&
+          ( !useConversations || !SeenExemplar{ msg.conversationId } ) {
+        isNewExemplar = true
+        index += 1
+        if useConversations {
+          SeenExemplar.set( msg.conversationId )
+        }
+      }
+
+      # Optimisation for when the total is not known but we've hit the 'upto'
+      # message
+      if uptoHasBeenFound {
+        continue
+      }
+
+      # Was this message an old exemplar, or in the case of mutable searches,
+      # possibly an old exemplar?
+      # 1. Must not have arrived after the client's state
+      # 2. Must have been deleted before the client's state
+      # 3. Must match search or search must be mutable (in which case, due to the
+      #    restrictions detailed above, we must either not be grouping by
+      #    conversation, or the mutable properties are conversation-wide
+      #    properties. Either way, the first message we come to is the exemplar
+      #    for that conversation.
+      # 4. Must not have already found the old exemplar
+      if !isNew && !wasDeleted && ( inSearch || search.isMutable() ) &&
+          ( !useConversations || !SeenOldExemplar{ msg.conversationId } ) {
+        isOldExemplar = true
+        if useConversations {
+          SeenOldExemplar.set( msg.conversationId )
+        }
+      }
+
+      if isOldExemplar && !isNewExemplar {
+        removed.push( msg.messageId )
+      }
+      else if !isOldExemplar && isNewExemplar {
+        added.push( [ index, msg.messageId ] )
+      }
+      if !isNew {
+        let modSeq = msg.modSeq
+        # Has the message changed since the last update?
+        if modSeq > args.modSeq {
+          changed.push( msg.messageId )
+          if isMutable && isOldExemplar && isNewExemplar {
+            # We need to remove it from the client view (if there; we don't
+            # know if it used to match the filter) and add it back in if it
+            # now matches the filter. This will also fix mutable sorts, as
+            # it will be added back in at the correct position, effectively
+            # moving it to the correct place.
+            removed.push( msg.messageId )
+            added.push( [ index, msg.messageId ] )
+          }
+        }
+      }
+
+      # If this is the last message the client cares about, we can stop here
+      # and just return what we've calculated so far. However, the 'total'
+      # value returned MUST be correct; this should be possible as the total
+      # values are being kept in a separate DB and updated as needed when
+      # conversations change. If they're not, must continue to end of list (the
+      # index variable + 1 will then be the total), but can still shortcut most
+      # of the loop; only the bit that checks whether to increment index is
+      # required.
+
+      # If not mutable, can't break early either, as messages may have moved
+      # from the region we care about to lower down the list.
+      if !isMutable && msg.uid == args.upto {
+        if totalIsKnown {
+          break
+        }
+        else {
+          uptoHasBeenFound = true
+        }
+      }
+
+    } # End loop
+
+    if totalIsKnown {
+      total = getTotalFromCache( search, useConversations )
+    } else {
+      total = index + 1
+    }
+
+    return [ added, removed, changed, total, state ]
+
+Note! There is one case where this algorithm does not work, which is when
+a) Conversation grouping is on. AND
+b) Either the sort or search is on a mutable message property (i.e. search for
+   messages with flag \X).
+
+   In this situation, any message in the mailbox is then potentially an old
+   exemplar. NB, it's OK if the sort and/or search is on a mutable
+   **conversation** property which has counts stored in the conversations DB
+   (i.e. search for messages within a conversation that has at least one
+   message with flag \X, or sort by flagged conversation).
+
+   The server should reject requests that cannot be calculated, rather
+   than returning bogus results. The canCalculateUpdates response of the
+   original getMessageList call should have been `false` so the client should
+   know it cannot fetch updates for that.
+
+How to apply the updates on the client:
+
+Suppose the client will have a sparse list of messageIds:
+e.g. `[ 'm1u1', 'm1u2', 'm1u3', 'm1u4', -, -, -, 'm1u8', -, ...]`
+
+1. Check the oldState property matches the current state of the list. Also check
+   the sort and filter are the same. If any of these don't match, abort and
+   re-request an update from the actual current state.
+2. If the newState property is the same as the current state of the list,
+   nothing to do, so return.
+3. If there's an uptoMessageId, search for this id. If found, remove
+   anything after it in the list. If not found, abort, reset the list and start
+   again with getMailboxMessageList.
+4. Search for each of the messageIds in the `removed` list and remove them
+   from the client's list (without leaving a gap – this is a splice operation).
+   If any can't be found, keep processing but after finishing, null out anything
+   after the first gap in the list. e.g. referring to the example sparse list
+   above, 'm1u8' would be removed as it's after the first gap.
+5. Iterate through the [ position, messageId ] tuples in the `added` list
+   in order, inserting the messageIds at the positions indicated.
+6. Set the list length to that given in the `total` property.
+
+Note, adding or removing an item to/from the list shifts the position of
+everything around it.
+
+e.g. adding 'm2' in position 2: `[ 'm1', 'm3' ] -> [ 'm1', 'm2', 'm3' ]`
+e.g. removing 'm2': `[ 'm1', 'm2', 'm3' ] -> [ 'm1', 'm3' ]`
+
+### !Discussion points
+- At FM, we support getMessageListUpdates for mailbox listings, but not for searches (as the UID is per-folder, and it would need to be global).
+- To implement this, the server must keep the metadata at least of deleted
+  (expunged) messages for a little while. At FM, we keep them for 1-2 weeks
+  (very useful for restoring accidentally deleted messages as well). At cleanup
+  time (when actually removing the messages), the server must keep track of the
+  highest modseq of a message it has removed in that mailbox (the modseq would
+  have been set at the original delete time); any requests for updates from a
+  state before this must be rejected, as the results may be incorrect.
+- At FM, we have two extra parameters: fetchUpdates and fetchNewIfLessThan.
+  These save a round trip by making implicit calls to getMessages to fetch the
+  flag updates and new message headers for the response. It's a bit convoluted
+  though (and awkward to specify all the necessary arguments), so I've dropped
+  it from this API spec for now.
+
+--------------------------------------------------------------------------------
+
+## getConversationUpdates
+
+### Arguments
+- state: String
+- maximumChanges: Number
+
+### Description
+
+Gets the list of conversation ids for conversations that have changed since the
+given state. If the maximum number exceeds the maximumChanges argument, return
+a "tooManyChanges" error. Otherwise, return the list of changed conversation
+ids (all conversations with a message in them with a higher modseq than the
+given state).
+
+The client can use this to work out which conversations it needs to refetch
+after it detects a change (either by the new modseq being pushed, or by it
+noticing a difference in user-modseq returned with another method).
+
+### Response name:
+  conversationUpdates
+
+### Arguments:
+- oldState: String
+    (echoed back from request)
+- newState: String
+    (the current state)
+- changed: `Array<conversationId>`
+    (array of conversation ids for conversations that have changed)
+- userModSeq: String
+    (the current global modseq for the user)
+
+--------------------------------------------------------------------------------
+
+## getMessagePreviews
+
+### Arguments:
+- search: String
+- mailboxId: String|null
+- messageIdList: `Array<String>`
+
+### Description:
+
+For each id in the messageIdList:
+
+1. Create an empty preview object.
+
+2. Fetch the message. If found:
+
+a) If there is a search, find the section of message body that matches the
+   supplied search terms. If this exists, HTML escape it, then highlight the
+   search terms in it by wrapping them in `<b></b>` tags and add this as the
+   "body" property of the preview object.
+
+   Otherwise, add the first 120(?) characters of the body, HTML escaped.
+
+b) If there is a search and the subject matches the search term, HTML escape
+   it, then highlight the search terms in it by wrapping them in `<b></b>` tags
+   and add this as the "subject" property of the preview object.
+
+3. Add the preview object to the "previews" output object, using the
+   messageId as the key.
+
+### Response name:
+  messagePreviews
+
+### Arguments:
+- search: String
+    (echoed back from request)
+- mailboxId: String|null
+    (echoed back from request)
+- previews: Object
+    (maps each messageId from request to an object with optional "body"
+     and "subject" properties)
+- userModSeq: String
+   (the current global modseq for the user)
+
+Example response:
+
+    [ "messagePreviews", {
+      "search": "bar",
+      "mailboxId": null,
+      "previews": {
+        "f123u456": {
+          "body": "foo <b>bar</b> &lt;one&rt;"
+        },
+        "f654u14": {
+          "body": "... love this <b>bar</b>; let's go tonight.",
+          "subject": "Want to go to the <b>bar</b>?"
+        },
+        "f521u11": {
+          "body": "Hi Jane. What do you say to a jolly old adventure down th"
+        }
+      }
+    }]
+
+--------------------------------------------------------------------------------
+
+## getMessages
+
+### Arguments:
+- messageIdList: `Array<String>`
+    (a list of unique message ids)
+- properties: `Array<String>`
+    (a list of properties to fetch for email message)
+- fetchConversations: Boolean
+
+### Description:
+  For each messageId specified in the messageIdList parameter, the server
+  should fetch the parts/properties of the message requested in the properties
+  parameter.
+
+  If any id in the list corresponds to a message which cannot be found (reasons
+  include the message being deleted, the decoded mailbox no longer existing,
+  the uid being higher than the max uid in the mailbox, etc.) then it should be
+  added to a missing list and the server should skip to the next id.
+
+  The following properties are returned in the format described below:
+
+  - *conversationId*: (String) The conversation id of the message
+  - *mailboxId*: (String) The mailbox id of the mailbox the message is in.
+  - *rawUrl*: (String) A url to download the original RFC8222 message from.
+  - *isUnread*: (Boolean) Is the message read?
+  - *isFlagged*: (Boolean) Is the message flagged/starred?
+  - *isAnswered*: (Boolean) Has the message been replied to?
+  - *isDraft*: (Boolean) Is the message a draft?
+  - *hasAttachment*: (Boolean) Does the message have any attachments?
+  - *labels*: (`Array<String>`) An array of labels/keywords applied to the
+    message.
+  - *from*: (Array|null) An array of name/email objects (see below)
+    representing the parsed From header, if present (otherwise null). Note,
+    although normally of length 1, technically this could be of length 0 or 2+.
+  - *to*: (Array|null) An array of name/email objects (see below) representing
+    the parsed To header, if present (otherwise null).
+  - *cc*: (Array|null) An array of name/email objects (see below) representing
+    the parsed CC header, if present (otherwise null).
+  - *bcc*: (Array|null) An array of name/email objects (see below) representing
+    the parsed BCC header, if present (otherwise null).
+  - *replyTo*: (Array|null) An array of name/email objects (see below)
+    representing the parsed Reply-To header, if present (otherwise null).
+  - *subject*: (String) The subject of the message
+  - *date*: (Date) The date the message was sent (or saved, if a draft).
+  - *size*: (Number) The size in bytes of the whole message.
+  - *textBody*: (String|null) Returns the plain text body part for the message
+    if present
+  - *htmlBody*: (String|null) Returns the html body part for the message if
+    present
+  - *body*: This is special in that there's no property called just "body" on
+    the object returned. Instead, if there is an HTML part, it will return an
+    "htmlBody" response, but if there is only a plain part, it will return a
+    "textBody" response.
+  - *attachments*: (Array|null) An array of attachment objects (see below)
+    describing all the attachments to the message.
+  - *attachedMessages*: (Object|null) Returns an object mapping attachment id
+    (as found in the attachments response) to a message object with all the
+    same properties requested for this message, for every attached message.
+
+  An attachment object looks like this:
+
+    {
+      id: String,
+      url: String,  // A url to download the attachment (requires same authentication mechanism)
+      type: String, // The MIME type of the attachment.
+      name: String, // The full file name, e.g. 'myworddocument.doc'
+      size: Number, // Size in bytes
+      isInline: Boolean, // True if the attachment is referenced by a cid link
+                         // from within the HTML body.
+      width: Number, // (optional) Width (in px) of image.
+      height: Number // (optional) Height (in px) of image.
+    }
+
+  The from/to/cc/bcc/replyTo fields are parsed into an array of objects like so:
+
+    [{name:"Joe Bloggs", email:"joe@bloggs.com"},
+     {name:"John Smith", email:"john@smith.com"}]
+
+  If a name cannot be extracted for an email, the name property of the object
+  should be the empty string.
+
+  Any property asked for that is not in the list above should be interpreted as
+  a request for the header of the same name, and should be returned as a string.
+
+  If fetchConversations is true, after returning the `messages` response, a
+  call should be made to getConversations with the conversationId of each of
+  the returned messages as the conversationIdList argument and
+  includeMessageList set to false.
+
+### Response name:
+  messages
+
+### Arguments:
+- messageList: Object list
+    (a list of message header objects containing the messageId plus the
+     requested properties)
+- missing: `Array<messageId>` (optional)
+- userModSeq: String
+    (the current global modseq for the user)
+
+### Example
+
+Request:
+
+    ["getMessages", {
+      "messageIdList": [ "f123u456", "f123u457" ],
+      "properties": [ "conversationId", "mailboxId", "from", "subject", "date" ]
+    }, "#1"]
+
+Response:
+
+  ["messages", {
+    "messageList": [
+      {
+        messageId: "f123u457",
+        conversationId: "ef1314a",
+        mailboxId: "f123",
+        from: [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
+        subject: "Dinner on Thursday?",
+        date: "2013-10-13T14:12:00Z"
+      }
+    ],
+    missing: [ "f123u456" ]
+  }, "#1"]
+
+### !Discussion points
+- In Cyrus, header data is held in a cache for fast access, so the client will
+  be faster if it just requests the fields it needs to display the mailbox,
+  then fetches the rest (including the body) later, however there's flexibility
+  here for more basic clients to simply fetch everything they want upfront and
+  not do anything complex.
+- Labels in IMAP are very limited (no spaces, short maximum length, no foreign
+  characters) Perhaps we should be returning label ids here, and have separate
+  (get|set)Labels methods to map the ids to names (this makes them possible to
+  rename across all messages as well).
+- In GMail, mailboxes are (mostly) labels, so if a message has more than one label, I think the mailboxId for the message should = the id for the "All mail" mailbox (the only one that isn't a label!).
+- At FM, we have an extra argument called "unreadFlaggedDraftAndNewestOnly",
+  which restricts the set of returned message details to just those which are
+  unread, flagged, a draft or the newest message in the conversation. This is
+  a specific optimisation for not loading messages which will be collapsed when
+  the user opens the conversation in our web UI, so I removed it.
+- At FM, we "defang" the HTML (remove any malicious scripts etc.) at this point
+  before returning it to the client. We also extract out any `<style>` tags in
+  the HTML and return them as a separate property on the object. This seemed
+  all a bit too specific for a general API, so in this spec I think we should
+  return the original HTML from the message.
+- The fetchConversations argument removes a roundtrip required before the
+  mailbox list can be displayed when using conversation mode.
+
+--------------------------------------------------------------------------------
+
+## getConversations
+
+### Arguments:
+- conversationIdList: `Array<String>`
+- includeMessageList: Boolean
+
+Example:
+
+    [ "getConversations", {
+      "conversationIdList": ["f123u4", "f41u44"],
+      "includeMessageList": true
+    }]
+
+### Description:
+  Look up how many messages in the conversation are unread, how many are
+  flagged, how many are drafts, how many have an attachment, the list of
+  participants for each conversation, the total size of all the messages in the
+  conversation and the total number of messages in the conversation.
+
+  If includeMessageList is true, also look up the messageIds for all messages
+  in the conversation, sorted by date, oldest first.
+
+  Any conversation ids that cannot be found should be returned in the optional
+  missing argument.
+
+  Note: Draft messages should be ignored when determining the unread count of
+  a conversation (i.e. if a message has the \Draft flag set it does not count
+  towards the unread total for that conversation, even if it does not have a
+  \Seen flag).
+
+### Response name:
+  conversations
+
+### Arguments:
+- conversations: Conversation Object list
+- missing: conversationId list (optional)
+- userModSeq: String
+    (the current global modseq for the user)
+
+Where a Conversation Object is:
+
+    {
+      conversationId: String,
+      total: Number,
+      drafts: Number,
+      flagged: Number,
+      unread: Number,
+      attachments: Number,
+      senders: `Array<{name: String, email: String}>`,
+      size: Number, // Total size of messages in conversation, in bytes.
+      messageIdList: `Array<Message id>` // If requested
+    }
+
+The senders parameter contains an array of all people who sent messages that are
+part of this conversation. This list should not contain duplicate entries with
+the same email. If a name cannot be extracted, (i.e. the header 'from' field
+includes just an email), the name field should be the empty string.
+
+Example response:
+
+    ['conversations',
+      {
+        conversations: [
+          {
+            conversationId: "48a484a48",
+            total: 3,
+            drafts: 0,
+            flagged: 1,
+            unread: 2,
+            attachments: 0,
+            senders: [
+              {name: "Joe Bloggs", email: "joe@bloggs.com"},
+              {name: "James Smith", email: "james@smith.com"}
+            ],
+            size: 11412321312,
+            messageIdList: [ "f1234u415", "f1234u417", "f413u501" ]
+          },
+          {
+            conversationId: "1037123a1bd",
+            total: 1,
+            drafts: 0,
+            flagged: 0,
+            unread: 0,
+            attachments: 0,
+            senders: [
+              {name: "Sara Bloggs", email: "sara@bloggs.com"}
+            ],
+            size: 66246232341,
+            messageIdList: [ "f1234u516" ]
+          }
+        ]
+      }
+    ]
+
+### !Discussion points
+- The includeMessageList parameter is there because this is considerably more
+  expensive to fetch than the rest of the metadata in our Cyrus implementation,
+  and the rest of the data is needed just for displaying a mailbox listing,
+  whereas the message list is only needed when you open the conversation.
+
+3. Mailbox/conversation action APIs
+===================================
+
+### !Discussion points
+- Since the state of the server mailboxes may be different to the current state
+  in the client, these commands are all optimistic: they execute as best they
+  can then the client is expected to use the getMessageListUpdates method to
+  check the new state. The client may make optimistic UI changes immediately
+  based on the expected result of getMessageListUpdates and then make any
+  necessary changes when the response arrives.
+- At FM, we have an extra parameter to each of these methods:
+  "applyToConversation", which can be one of three values: "yes", "no",
+  "mailbox". This applies the action to respectively: all messages in the same
+  conversation as any of the message ids given, all messages in the same
+  conversation and same mailbox as any of the message ids given, or just the
+  message ids given. This is useful for doing actions on conversations without
+  having to call "getConversations" on everything first, however it makes it a
+  bit more uncertain about what is actually going to happen, so for now I've
+  left it out.
+- We might want to add an option to pass in the userModSeq (returned by the get
+  commands) and have the method optionally refuse to execute if it does not
+  match the user's current state, so a client has the option of guaranteeing
+  the state it is acting upon.
+
+--------------------------------------------------------------------------------
+
+## deleteMessages
+
+### Arguments:
+- messageIdList: `Array<String>`
+
+### Description:
+  For each message referenced in the messageIdList:
+  - If the message doesn't exist, add it to a missing list.
+  - Otherwise, permanently delete the message.
+
+### Response name:
+  messagesDeleted
+
+### Arguments:
+- deleted: `Array<messageId>`
+    (list of messageIds for every message that was deleted)
+- missing: `Array<messageId>` (optional)
+
+Example response:
+
+    [ "messagesDeleted", {
+        "deleted": [ "f123u456", "f312u142" ]
+    }]
+
+--------------------------------------------------------------------------------
+
+## moveMessages
+
+### Arguments:
+- messageIdList: `Array<String>`
+- destinationMailboxId: String
+
+### Description:
+  1. If destinationMailboxId does not correspond to a valid mailbox id, output
+     a "mailboxNotFound" error and exit the method.
+
+  2. For each message referenced in the messageIdList:
+     - If the message doesn't exist, add it to a missing list.
+     - Otherwise, move each message in the list to the mailbox with id
+       destinationMailboxId.
+
+### Response name:
+  messagesMoved
+
+### Arguments:
+- moved: oldMessageId -> newMessageId map
+- missing: `Array<messageId>` (optional)
+
+Note, the new message id may be the same as the old id (in systems using a
+per-user uid system or when you attempt to move a message to the mailbox it's
+already in).
+
+Example response:
+
+    [ "messagesMoved", {
+        "moved": {
+          "f146u456": "f43u41",
+          "f146u51": "f43u42"
+          "f146u67": "f51u512",
+          "f146u95": "f51u513"
+        }
+    }]
+
+### !Discussion point
+- Deletion is a move to the trash folder (there is no \Deleted flag in this API)
+- At FM, we keep track of which folder a message was deleted from, so that we can restore that message to the original folder if the user undeletes it (we have a specific extra API method for this: "restoreMessages"). Is this something we should consider adding to a general API?
+
+--------------------------------------------------------------------------------
+
+## copyMessages
+
+### Arguments:
+- messageIdList: `Array<String>`
+- destinationMailboxId: String
+
+### Description:
+  1. If destinationMailboxId does not correspond to a valid mailbox id, output
+     a "mailboxNotFound" error and exit the method.
+
+  2. For each message referenced in the messageIdList:
+     - If the message doesn't exist, add it to a missing list.
+     - Otherwise, copy each message in the list to the mailbox with id
+       destinationMailboxId.
+
+### Response name:
+  messagesCopied
+
+### Arguments:
+- destinationMailboxId: String
+    (echoed back from request)
+- copied: sourceMessageId -> copiedMessageId map
+    (same as moveMessages response, except old message still exists)
+- missing: `Array<messageId>` (optional)
+
+Note, on some systems (GMail), copying to another mailbox will not copy the
+message, but simply add another label. In this case, the message in the new
+destination will have the same id as the original message; this can be seen tin
+the response.
+
+### Discussion points
+- What to do if copying takes user over quota?
+
+--------------------------------------------------------------------------------
+
+## setMessagesProperty
+
+### Arguments:
+- property: String
+  ('isUnread' or 'isFlagged')
+- value: Boolean
+- messageIdList: `Array<String>`
+
+### Description:
+  For each message referenced in the messageIdList:
+  - If the message doesn't exist, add it to a missing list.
+  - Otherwise set or remove the flag specified by the property argument
+    according to the value argument.
+
+### Response name:
+  messagesPropertySet
+
+### Arguments:
+- property: String
+    (echoed back from request)
+- value: Boolean
+    (echoed back from request)
+- changed: `Array<messageId>`
+    (list of all message whose property changed)
+- missing: `Array<messageId>` (optional)
+
+### !Discussion points
+- This should also set/remove labels as well, but I haven't yet thought about
+  the best way to do this in the API.
+
+--------------------------------------------------------------------------------
+
+## reportMessages
+
+### Arguments:
+- messageIdList: `Array<String>`
+- asSpam: Boolean
+
+### Description:
+  For each message referenced in the messageIdList:
+  - If the message doesn't exist, add it to a missing list.
+  - Otherwise, if register the message as spam/not spam (depending on the
+    asSpam argument) with any appropriate database/feedback service.
+
+### Response name:
+ messagesReported
+
+### Arguments:
+- asSpam: Boolean
+- changed: `Array<messageId>`
+- missing: `Array<messageId>` (optional)
+
+Notes:
+  This doesn't automatically move messages in/out of the Junk folder. This
+  method will therefore almost always be immediately followed by a moveMessages
+  call.
+
+Errors
+======
+
+If an error response is specified in the spec, it is to be added to the response
+instead of any other output from that method (so no half output + an error). An error response, is a message called "error", with arguments, "method" (the method that was called), "arguments" (the arguments that were given) and type (the error type, as specified in the methods above).
+
+Example:
+
+    ["error", {
+      "type": "tooManyChanges",
+      "method": "getMessageListUpdates",
+      "arguments": {
+        "mailboxId": "f12",
+        "search": "",
+        "sort": "dateDescending",
+        "useConversations": true,
+        "state": 'v3123l142m412',
+        "uptoMessageId": 'f12u242',
+        "fetchUpdates": true,
+        "fetchNewIfLessThan": 10
+      }
+    }, "#1"]
