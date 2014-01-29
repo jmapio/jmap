@@ -25,7 +25,7 @@ spec).
 The structure of an exchange
 ----------------------------
 
-An API call is made via a `POST` request to the server. The data in this call will be (UTF-8 encoded or course) array. Each element in this array will be another array and will constitute a method call. The first item in these subarrays is the name of the method being called on the server, the second item will be a JSON object containing *named* arguments for that method. The third (and optional) item is a client id, to be echoed back with the responses emitted by that method call (as we'll see lower down, it's not so much RPC as message passing, and a method may return 0, 1 or many messages, especially as some methods make implicit calls to other ones).
+An API call is made via a `POST` request to the server. The data in this call will be a (UTF-8 encoded of course) JSON array. Each element in this array will be another array and will constitute a method call. The first item in these subarrays is the name of the method being called on the server, the second item will be a JSON object containing *named* arguments for that method. The third (and optional) item is a client id, to be echoed back with the responses emitted by that method call (as we'll see lower down, it's not so much RPC as message passing, and a method may return 0, 1 or many messages, especially as some methods make implicit calls to other ones).
 
 Example query:
 
@@ -35,7 +35,7 @@ Example query:
       ["method3", {}, "#3"]
     ]
 
-The method calls should be processed in array order. Each server query (which
+The method calls should be processed in order. Each API call (which, as we showed,
 may contain multiple method calls) receives a single JSON response in exactly
 the same format. The output of the methods must be added to the array in the
 same order in which the methods are processed.
@@ -48,7 +48,7 @@ Example response:
       ["anotherResponseFromMethod2", {"data": 10, "yetmoredata": "Hello"}, "#2"]
     ]
 
-Possible errors are specified in each method description. The output should be
+Possible errors are specified in each method description. Any errors must be
 inserted at the current point in the response and any further method calls
 should then be processed as normal. If an unknown method is called, return an
 `unknownMethod` error response and continue processing the next method call as
