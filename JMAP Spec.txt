@@ -1,9 +1,18 @@
-JSON Mail Access Protocol Specification
-Neil Jenkins :: neilj@fastmail.fm
-v. 2013.10.31
+##### JSON Mail Access Protocol Specification (JMAP) #####
+
+<div class="author">v. 2014.01.29 :: Editor – <a href="mailto:editor@jmap.io">Neil Jenkins</a></div>
+
+<a href="https://https://github.com/neilj/jmap"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
 
 1. Introduction
 ===============
+
+What is JMAP?
+--------------
+
+JMAP is a new JSON-based API for synchronising a mail client with a mail server. It is intended as a replacement for IMAP. The specification is based on the API currently used by [FastMail](https://www.fastmail.fm)'s web app.  It aims to be compatible with the IMAP data model, so that it can be easily implemented on a server that currently supports IMAP, but allows for reduced data usage and more efficient synchronisation, bundling of requests for latency mitigation and is generally much easier to work with than IMAP.
+
+This is not a final version. Parts are imprecise, incomplete, or could simply be done better in another way. Please [send feedback](mailto:editor@jmap.io) with any suggestions, corrections or other comments. In particular, please see the sections marked "Discussion points" below, for areas I am interested in feedback on.
 
 Authentication
 --------------
@@ -16,15 +25,7 @@ spec).
 The structure of an exchange
 ----------------------------
 
-An API call is made via a POST request to the server. The data in this call
-will be a single JSON object (UTF-8 encoded), which at the top level will be an
-array. Each element in this array will be another array and will constitute a
-method call. The first item in these subarrays is the name of the method being
-called on the server, the second item will be a JSON object containing *named*
-arguments for that method. The third (and optional) item is a client id, to be
-echoed back with the responses emitted by that method call (as we'll see lower
-down, it's not so much RPC as message passing, and a method may return 0, 1 or
-many messages, especially as some methods make implicit calls to other ones).
+An API call is made via a `POST` request to the server. The data in this call will be (UTF-8 encoded or course) array. Each element in this array will be another array and will constitute a method call. The first item in these subarrays is the name of the method being called on the server, the second item will be a JSON object containing *named* arguments for that method. The third (and optional) item is a client id, to be echoed back with the responses emitted by that method call (as we'll see lower down, it's not so much RPC as message passing, and a method may return 0, 1 or many messages, especially as some methods make implicit calls to other ones).
 
 Example query:
 
@@ -50,7 +51,7 @@ Example response:
 Possible errors are specified in each method description. The output should be
 inserted at the current point in the response and any further method calls
 should then be processed as normal. If an unknown method is called, return an
-unknownMethod error response and continue processing the next method call as
+`unknownMethod` error response and continue processing the next method call as
 normal.
 
 As always, be strict (paranoid) about data received from the client. Arguments
@@ -62,21 +63,24 @@ the Error section below) and skip to the next method call.
 Concurrency
 -----------
 
-The state of the user's email must not change during a single method call (except due to that method call itself), but may change in between method calls. The easiest way to do this is a per-user lock that must be held for the duration of each method call.
+The state of the user's email must not change during a single method call
+(except due to that method call itself), but may change in between method calls.
+The easiest way to do this is a per-user lock that must be held for the
+duration of each method call.
 
 The email data model
 --------------------
 
 For compatibility with IMAP, emails are immutable other than flags/labels. Each
 time an email is changed (created, flag change, deleted), it is assigned a new
-modseq (modification sequence) number, an unsigned 64-bit integer. Unlike in
+modseq (modification sequence) number, an unsigned 63-bit integer. Unlike in
 IMAP, there needs to be a single modseq counter across the whole user, not per
 mailbox (this is, however, completely backwards compatible with IMAP). A method
-that mutates the state (e.g. moving messages between mailboxes) should
-increment the modseq *once* then apply that new modseq to all messages affected
-by the change.
+that mutates the state (e.g. moving messages between mailboxes) may increment
+the modseq once then apply that new modseq to all messages affected by the
+change, or may increase multiple times; this is implementation-dependent.
 
-Again, for compatibility with IMAP, it is presumed that messages are assigned a
+Again for compatibility with IMAP, it is presumed that messages are assigned a
 32-bit unsigned integer uid on creation within a mailbox, and this follows the
 same semantics as in IMAP. A server may like to make the uid counter per-user
 instead of per-mailbox as well, as this allows getMessageList updates to be
@@ -470,7 +474,8 @@ mailbox or search.
 
 ### Description:
 
-  1. If a mailbox id is given and there is no mailbox with that id, return a mailboxDoesNotExist error and exit the method.
+  1. If a mailbox id is given and there is no mailbox with that id, return a
+     mailboxDoesNotExist error and exit the method.
 
   2. Take the list of messages in the mailbox given (if a mailboxId is supplied)
      otherwise all messages for the user then remove those that do not match
@@ -481,14 +486,16 @@ mailbox or search.
   4. Return the list of message ids for exemplars starting at the index given
      by the `position` argument, and returning up to `limit` results.
 
-  5. If the fetchHeaders argument is true, call getMessages using the
-     messageIdList from the messageList response as the corresponding argument
-     and the fetchConversations argument set to the useConversations value.
+  5. If the fetchMessages argument is not null, call getMessages using the
+     following arguments:
+
+     - properties: The fetchMessages argument from this call.
+     - messageIdList: the messageIdList response from this call.
+     - fetchConversations: The useConversations argument from this call.
 
   6. If fetchPreviews is true and search terms are specified, call
      `getMessagePreviews` with the "search", "mailboxId" and "messageIdList"
-     arguments taken from the searchMessageList response arguments of the same
-     name.
+     arguments taken from the messageList response arguments of the same name.
 
   Notes:
   - The server may choose to enforce a maximum `limit` argument. This is safe
@@ -590,7 +597,9 @@ Note: Message ids are unique across the whole user. Thus, it is not a problem if
   I've removed this as it seems of little use to most native clients, and over
   complicates things a bit. Thoughts?
 - By returning a canCalculateUpdates response, different implementations can
-  support delta updates for just mailboxes, mailboxes + some/all searches or not at all, depending on their internal data structures. Does this sound reasonable? At FM, we support it for mailbox listings, but not for searches.
+  support delta updates for just mailboxes, mailboxes + some/all searches or not
+  at all, depending on their internal data structures. Does this sound
+  reasonable? At FM, we support it for mailbox listings, but not for searches.
 - GMail doesn't support sorting by anything other than "dateDescending".
   Perhaps this should be part of a getCapabilities response as well.
 - From the appearance of their web client at least, GMail's search
@@ -608,7 +617,8 @@ Note: Message ids are unique across the whole user. Thus, it is not a problem if
 
 ## getMessageListUpdates
 
-This method allows you to efficiently fetch the changes that have happened to the message list since your current state.
+This method allows you to efficiently fetch the changes that have happened to
+the message list since your current state.
 
 ### Arguments:
 - mailboxId: String
@@ -1090,8 +1100,7 @@ Example response:
 
   If fetchConversations is true, after returning the `messages` response, a
   call should be made to getConversations with the conversationId of each of
-  the returned messages as the conversationIdList argument and
-  includeMessageList set to false.
+  the returned messages as the conversationIdList argument.
 
 ### Response name:
   messages
@@ -1159,23 +1168,18 @@ Response:
 
 ### Arguments:
 - conversationIdList: `Array<String>`
-- includeMessageList: Boolean
 
 Example:
 
     [ "getConversations", {
-      "conversationIdList": ["f123u4", "f41u44"],
-      "includeMessageList": true
+      "conversationIdList": ["f123u4", "f41u44"]
     }]
 
 ### Description:
-  Look up how many messages in the conversation are unread, how many are
-  flagged, how many are drafts, how many have an attachment, the list of
-  participants for each conversation, the total size of all the messages in the
-  conversation and the total number of messages in the conversation.
-
-  If includeMessageList is true, also look up the messageIds for all messages
-  in the conversation, sorted by date, oldest first.
+  Look up the list of messages in the conversation, sorted oldest first, how
+  many messages in the conversation are unread, how many are flagged, how many
+  are drafts, how many have an attachment, the list of participants for each
+  conversation and the total size of all the messages in the conversation.
 
   Any conversation ids that cannot be found should be returned in the optional
   missing argument.
@@ -1198,62 +1202,24 @@ Where a Conversation Object is:
 
     {
       conversationId: String,
-      total: Number,
-      drafts: Number,
-      flagged: Number,
-      unread: Number,
-      attachments: Number,
       senders: `Array<{name: String, email: String}>`,
-      size: Number, // Total size of messages in conversation, in bytes.
-      messageIdList: `Array<Message id>` // If requested
+      messages: [
+        {
+          messageId: String,
+          isUnread: Boolean,
+          isFlagged: Boolean,
+          isAnswered: Boolean,
+          isDraft: Boolean,
+          hasAttachment: Boolean
+        }
+      ],
+      size: Number // Total size of messages in conversation, in bytes.
     }
 
 The senders parameter contains an array of all people who sent messages that are
 part of this conversation. This list should not contain duplicate entries with
 the same email. If a name cannot be extracted, (i.e. the header 'from' field
 includes just an email), the name field should be the empty string.
-
-Example response:
-
-    ['conversations',
-      {
-        conversations: [
-          {
-            conversationId: "48a484a48",
-            total: 3,
-            drafts: 0,
-            flagged: 1,
-            unread: 2,
-            attachments: 0,
-            senders: [
-              {name: "Joe Bloggs", email: "joe@bloggs.com"},
-              {name: "James Smith", email: "james@smith.com"}
-            ],
-            size: 11412321312,
-            messageIdList: [ "f1234u415", "f1234u417", "f413u501" ]
-          },
-          {
-            conversationId: "1037123a1bd",
-            total: 1,
-            drafts: 0,
-            flagged: 0,
-            unread: 0,
-            attachments: 0,
-            senders: [
-              {name: "Sara Bloggs", email: "sara@bloggs.com"}
-            ],
-            size: 66246232341,
-            messageIdList: [ "f1234u516" ]
-          }
-        ]
-      }
-    ]
-
-### !Discussion points
-- The includeMessageList parameter is there because this is considerably more
-  expensive to fetch than the rest of the metadata in our Cyrus implementation,
-  and the rest of the data is needed just for displaying a mailbox listing,
-  whereas the message list is only needed when you open the conversation.
 
 3. Mailbox/conversation action APIs
 ===================================
