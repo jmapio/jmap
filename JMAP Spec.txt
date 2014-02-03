@@ -1,6 +1,6 @@
 ##### JSON Mail Access Protocol Specification (JMAP) #####
 
-<div class="author">v. 2014.01.29 :: Editor – <a href="mailto:editor@jmap.io">Neil Jenkins</a></div>
+<div class="author">v. 2014.02.03 :: Editor – <a href="mailto:editor@jmap.io">Neil Jenkins</a></div>
 
 <a href="https://github.com/neilj/jmap"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
 
@@ -10,35 +10,87 @@
 What is JMAP?
 --------------
 
-JMAP is a new JSON-based API for synchronising a mail client with a mail server. It is intended as a replacement for IMAP. The specification is based on the API currently used by [FastMail](https://www.fastmail.fm)'s web app.  It aims to be compatible with the IMAP data model, so that it can be easily implemented on a server that currently supports IMAP, but allows for reduced data usage and more efficient synchronisation, bundling of requests for latency mitigation and is generally much easier to work with than IMAP.
+JMAP is a new JSON-based API for synchronising a mail client with a mail server.
+It is intended as a replacement for IMAP. The specification is based on the API
+currently used by [FastMail](https://www.fastmail.fm)'s web app.  It aims to be
+compatible with the IMAP data model, so that it can be easily implemented on a
+server that currently supports IMAP, but allows for reduced data usage and more
+efficient synchronisation, bundling of requests for latency mitigation and is
+generally much easier to work with than IMAP.
 
-This is not a final version. Parts are imprecise, incomplete, or could simply be done better in another way. Please [send feedback](mailto:editor@jmap.io) with any suggestions, corrections or other comments. In particular, please see the sections marked "Discussion points" below, for areas I am interested in feedback on.
+This is not a final version. Parts are imprecise, incomplete, or could simply be
+done better in another way. Please [send feedback](mailto:editor@jmap.io) with
+any suggestions, corrections or other comments. In particular, please see the
+sections marked "Discussion points" below, for areas I am interested in feedback
+on.
 
-Authentication
---------------
+### Why is it not REST based?
 
-Username/password can be used with simple HTTP Authentication. If authorisation
-fails, a 401 response code with no content will be returned. Implementations
-may also to choose to support OAuth (how this integrates is not defined in this
-spec).
+In one word, speed. When you have a high latency connection (such as on a mobile
+phone, or even wired connections from the other side of the world), the extra
+round trips required for a REST-based protocol can make a huge impact. This is
+espcially an issue when you have an order-dependency in your API calls and you
+need to make sure one has finished before the other can be run (for example when
+you mutate the state of a message then want to fetch the changes to a mailbox
+containing the message). In the JMAP format described below, this can be done in
+a single round trip. A REST-based version would require two full round trips for
+the same operation.
+
+### Why is it not a binary protocol?
+
+A binary protocol would be arguably more compact and faster to encode/parse.
+However, history has shown text-based protocols are much easier to debug, and by
+using an existing widely-used encoding format (JSON) we make it much easier for
+developers to use this protocol. No need to write new custom, error-prone
+parsers. The difference in speed is likely to be minimal, especially if you GZIP
+the exchange and use WebSockets instead of HTTP.
+
+Transport and Authentication
+----------------------------
+
+The JSON may be exchanged between client and server over either HTTP or the
+[WebSocket](http://tools.ietf.org/html/rfc6455) protocol. In both cases SSL
+should be used.
+
+For HTTP access, an email/password can be used with simple HTTP Authentication.
+If authorisation fails, a 401 response code with no content will be returned.
+
+Implementations may also to choose to support OAuth (how this integrates is not
+defined in this spec).
+
+#### !Todo:
+
+* There should be a way to lookup which protocols are supported and at what URL
+  they can be accessed for a domain using DNS, to allow clients to set
+  themselves up with just an email address and password.
+* SSL support should be mandated?
+* HTTP support should probably be mandatory, WebSocket support optional?
+* The authentication mechanism for WebSocket needs to be defined.
 
 The structure of an exchange
 ----------------------------
 
-An API call is made via a `POST` request to the server. The data in this call will be a (UTF-8 encoded of course) JSON array. Each element in this array will be another array and will constitute a method call. The first item in these subarrays is the name of the method being called on the server, the second item will be a JSON object containing *named* arguments for that method. The third (and optional) item is a client id, to be echoed back with the responses emitted by that method call (as we'll see lower down, it's not so much RPC as message passing, and a method may return 0, 1 or many messages, especially as some methods make implicit calls to other ones).
+An API call consists of a (UTF-8 encoded of course) JSON array. Each element in
+this array will be another array and will constitute a method call. The first
+item in these subarrays is the name of the method being called on the server,
+the second item is a JSON object containing *named* arguments for that method.
+The third (and optional) item is a client id, to be echoed back with the
+responses emitted by that method call (as we'll see lower down, it's not so
+much RPC as message passing, and a method may return 0, 1 or many messages,
+especially as some methods make implicit calls to other ones).
 
 Example query:
 
     [
       ["method1", {"arg1": "arg1data", "arg2": "arg2data"}, "#1"],
-      ["method2", {"arg1": "arg1data"}, "#2"]
+      ["method2", {"arg1": "arg1data"}, "#2"],
       ["method3", {}, "#3"]
     ]
 
-The method calls should be processed in order. Each API call (which, as we showed,
-may contain multiple method calls) receives a single JSON response in exactly
-the same format. The output of the methods must be added to the array in the
-same order in which the methods are processed.
+The method calls must be processed in order. Each API call (which, as we
+showed, may contain multiple method calls) receives a single JSON response in
+exactly the same format. The output of the methods must be added to the array in
+the same order in which the methods are processed.
 
 Example response:
 
@@ -65,55 +117,45 @@ Concurrency
 
 The state of the user's email must not change during a single method call
 (except due to that method call itself), but may change in between method calls.
-The easiest way to do this is a per-user lock that must be held for the
-duration of each method call.
+This is to ensure the client always sees a consistent view of the data. The
+easiest way to do this is a per-user lock that must be held for the duration of
+each method call.
 
 The email data model
 --------------------
 
 For compatibility with IMAP, emails are immutable other than flags/labels. Each
 time an email is changed (created, flag change, deleted), it is assigned a new
-modseq (modification sequence) number, an unsigned 63-bit integer. Unlike in
-IMAP, there needs to be a single modseq counter across the whole user, not per
-mailbox (this is, however, completely backwards compatible with IMAP). A method
-that mutates the state (e.g. moving messages between mailboxes) may increment
-the modseq once then apply that new modseq to all messages affected by the
-change, or may increase multiple times; this is implementation-dependent.
+modseq (modification sequence) number, an unsigned 63-bit integer. If the
+server supports conversations then, unlike in IMAP, there needs to be a single
+modseq counter across the whole user, not per mailbox (this is, however,
+completely backwards compatible with IMAP). A method that mutates the state
+(e.g. changing the unread status of a message) must increment the modseq once
+for **each message** affected by the change.
 
-Again for compatibility with IMAP, it is presumed that messages are assigned a
-32-bit unsigned integer uid on creation within a mailbox, and this follows the
-same semantics as in IMAP. A server may like to make the uid counter per-user
-instead of per-mailbox as well, as this allows getMessageList updates to be
-calculated for cross-folder searches (see below). The need to do a uid validity
-change may happen slightly more frequently, but it is unlikely in practise that
-many users will use up the entire 4,294,967,296 possible values.
+Each message is assigned an id that is unique across the whole user. IMAP-
+compatible backends will assign a 32-bit unsigned integer uid on creation
+within a mailbox and may choose to use an id of the format
+`"f${mailboxId}u${uid}"`. However, the actual string is opaque to the client,
+so if the server already has a different mechanism for allocating unique ids to
+messages, it can use this instead.
 
-Like in IMAP, for each mailbox, the server must also keep track of:
-
-- The highest modseq of a message within that mailbox.
-- The highest uid assigned to a message in that mailbox
-
-Unlike IMAP, there is no \Deleted deletion model. All mailbox related methods
-must act as though messages marked \Deleted do not exist: they must not be
-returned as part of any call and they must not be included in any `total`
-count. If using an IMAP-compatible backing store, the server may choose to
-implement this by adding an implicit 'NOT \Deleted' search term to everything,
-or by expunging immediately anything marked \Deleted or any other method it
-chooses (at FM, we ensure all \Deleted messages are expunged).
-
-Each message is assigned an id that is unique across the whole user. For IMAP
-stores, this may be simply something like `"f${mailboxId}u${uid}"`. But the
-actual string is opaque to the client, so if the server already has a mechanism
-for allocating unique ids to messages, it can use this instead. However, due to
-this model, moving a message to a new mailbox may (but doesn't have to) change
-the id of the message. For servers choosing to use a per-user uid counter, the
-message id can simply be the uid.
+For compatibility with the IMAP model, moving a message to a new mailbox may
+(but doesn't have to) change the id of the message.
 
 A uid validity change must be handled by assigning all affected mailboxes and
 messages new ids (essentially to the client this appears as though they have
 been deleted and new ones have been created, which by chance happen to contain
 the same messages). This will require a lot of data to be resynced, but is
-expected to be rare in practise.
+expected to be rare in practice.
+
+Unlike IMAP, there is no \Deleted deletion model. All mailbox related methods
+must act as though messages marked \Deleted do not exist: they must not be
+returned as part of any call and they must not be included in any `total`
+count. If using an IMAP-compatible backing store, the server may choose to
+implement this by adding an implicit `NOT \Deleted` search term to everything,
+or by expunging immediately anything marked \Deleted or any other method it
+chooses (at FM, we ensure all \Deleted messages are expunged).
 
 Conversations
 -------------
@@ -153,8 +195,9 @@ this for internal optimisation.
 The Date datatype
 -----------------
 
-Where the API specifies a Date as a type, it means a string in ISO 8601 format,
-e.g. `"2013-10-30T14:12:00Z"`.
+Where the API specifies a Date as a type, it means a string in the following
+format: `YYYY-MM-DDThh:mm:ssZ`, e.g. `"2013-10-30T14:12:00Z"`. All dates are
+expected to be in UTC time.
 
 2. Mailbox/message retrieval methods
 ====================================
@@ -164,7 +207,7 @@ e.g. `"2013-10-30T14:12:00Z"`.
 ### Arguments:
 - state: String (optional)
     (An opaque string returned by the server from this call, can be used to
-    omit mailboxList from the response if nothing changed.)
+    omit mailboxList from the response if nothing has changed.)
 
 ### Description:
 
@@ -237,7 +280,7 @@ Where a Mailbox Object is:
 
 Example response where the mailboxes are unchanged:
 
-    [ "mailboxes", { "state": "fea89ab" } ]
+    [ "mailboxes", { "state": "fea89ab", userModSeq: "1341251234" } ]
 
 --------------------------------------------------------------------------------
 
@@ -294,6 +337,7 @@ A clientId is an id for the mailbox assigned by the client. To update an object,
   Then return a validity error (see errors section at bottom of this document).
 
   Otherwise, *conceptually*, what is happening is quite straight-forward:
+  
   1. *create*: For each Mailbox Object in the create map, create a new mailbox
      with properties taken from the object. Ignore any mailboxId property (and
      if the server chooses, ignore any role property, otherwise set the role
@@ -301,15 +345,17 @@ A clientId is an id for the mailbox assigned by the client. To update an object,
   2. *update*: For each Mailbox Object in the update map, extract the mailboxId
      property and look up the corresponding mailbox object. For all other
      key/value pairs in the Mailbox Object, set the value on the mailbox object
-     (except if the key is uidValidity or role, which are read only). The parent
-     value is also read-only if the mailbox has a role attribute (as system
-     folders must be top level). Reject permanently if an attempt to write to
-     them is made.
+     (except if the key role, which is read only). The parentId value is also
+     read-only if the mailbox has a role attribute (as system folders must be
+     top level). Reject permanently if an attempt to write to them is made.
   3. *destroy*: For each mailboxId in the clientId -> mailboxId map, destroy the
      mailbox with the corresponding Id, permanently deleting all messages
      contained therein. At the point of destruction, the mailbox should not
      contain any subfolders; these should all have been destroyed or moved out
-     of the folder first; reject permanently the destroy command if not. The server must also permanently reject any attempt to destroy the role=inbox folder and may also reject any attempt to delete other folders (ideally the client should be informed of this via the permissions)
+     of the folder first; reject permanently the destroy command if not. The
+     server must also permanently reject any attempt to destroy the role=inbox
+     folder and may also reject any attempt to delete other folders (ideally
+     the client should be informed of this via the permissions).
 
   If implementing as a proxy to a pure IMAP store, changes to name/parentId
   mean a rename, and creates/updates/destroys must be ordered correctly to make
@@ -1038,7 +1084,7 @@ Example response:
   - *conversationId*: (String) The conversation id of the message
   - *mailboxId*: (String) The mailbox id of the mailbox the message is in.
   - *rawUrl*: (String) A url to download the original RFC8222 message from.
-  - *isUnread*: (Boolean) Is the message read?
+  - *isUnread*: (Boolean) Is the message unread?
   - *isFlagged*: (Boolean) Is the message flagged/starred?
   - *isAnswered*: (Boolean) Has the message been replied to?
   - *isDraft*: (Boolean) Is the message a draft?
@@ -1124,19 +1170,19 @@ Request:
 
 Response:
 
-  ["messages", {
-    "messageList": [
-      {
-        messageId: "f123u457",
-        conversationId: "ef1314a",
-        mailboxId: "f123",
-        from: [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
-        subject: "Dinner on Thursday?",
-        date: "2013-10-13T14:12:00Z"
-      }
-    ],
-    missing: [ "f123u456" ]
-  }, "#1"]
+    ["messages", {
+      "messageList": [
+        {
+          messageId: "f123u457",
+          conversationId: "ef1314a",
+          mailboxId: "f123",
+          from: [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
+          subject: "Dinner on Thursday?",
+          date: "2013-10-13T14:12:00Z"
+        }
+      ],
+      missing: [ "f123u456" ]
+    }, "#1"]
 
 ### !Discussion points
 - In Cyrus, header data is held in a cache for fast access, so the client will
@@ -1148,7 +1194,9 @@ Response:
   characters) Perhaps we should be returning label ids here, and have separate
   (get|set)Labels methods to map the ids to names (this makes them possible to
   rename across all messages as well).
-- In GMail, mailboxes are (mostly) labels, so if a message has more than one label, I think the mailboxId for the message should = the id for the "All mail" mailbox (the only one that isn't a label!).
+- In GMail, mailboxes are (mostly) labels, so if a message has more than one
+  label, I think the mailboxId for the message should = the id for the "All
+  mail" mailbox (the only one that isn't a label!).
 - At FM, we have an extra argument called "unreadFlaggedDraftAndNewestOnly",
   which restricts the set of returned message details to just those which are
   unread, flagged, a draft or the newest message in the conversation. This is
