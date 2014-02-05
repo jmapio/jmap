@@ -158,131 +158,47 @@ sup {
 <body>
 <h5>JSON Mail Access Protocol Specification (JMAP)</h5>
 
-<div class=author>v. 2014.02.03 :: Editor – <a href=mailto:editor@jmap.io>Neil Jenkins</a></div>
+<div class=author>v. 2014.02.05 :: Editor – <a href=mailto:editor@jmap.io>Neil Jenkins</a>, <a href=https://www.fastmail.fm>FastMail</a></div>
 
-<p><a href=https://github.com/neilj/jmap><img style="position: absolute; top: 0; right: 0; border: 0;" src=https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png alt="Fork me on GitHub"></a></p>
+
+<p><a href=https://github.com/neilj/jmap><img alt="Fork me on GitHub" src=https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png style="position: absolute; top: 0; right: 0; border: 0;"></a></p>
 
 <div id=tocwrapper>
 <!--begin-toc-->
 <ol class=toc>
- <li><a href=#what-is-jmap><span class=secno>1 </span>What is JMAP?</a>
-  <ol>
-   <li><a href=#why-is-it-not-rest-based><span class=secno>1.1 </span>Why is it not REST based?</a></li>
-   <li><a href=#why-is-it-not-a-binary-protocol><span class=secno>1.2 </span>Why is it not a binary protocol?</a></li></ol></li>
- <li><a href=#transport-and-authentication><span class=secno>2 </span>Transport and Authentication</a>
-  <ol>
-   <li><a href=#!todo:><span class=secno>2.1 </span>!Todo:</a></li></ol></li>
+ <li><a href=#what-is-jmap?><span class=secno>1 </span>What is JMAP?</a></li>
+ <li><a href=#transport-and-authentication><span class=secno>2 </span>Transport and Authentication</a></li>
  <li><a href=#the-structure-of-an-exchange><span class=secno>3 </span>The structure of an exchange</a></li>
  <li><a href=#concurrency><span class=secno>4 </span>Concurrency</a></li>
  <li><a href=#the-email-data-model><span class=secno>5 </span>The email data model</a></li>
- <li><a href=#conversations><span class=secno>6 </span>Conversations</a>
-  <ol>
-   <li><a href=#!discussion-point:><span class=secno>6.1 </span>!Discussion Point:</a></li></ol></li>
+ <li><a href=#conversations><span class=secno>6 </span>Conversations</a></li>
  <li><a href=#the-number-datatype><span class=secno>7 </span>The Number datatype</a></li>
  <li><a href=#the-date-datatype><span class=secno>8 </span>The Date datatype</a></li>
- <li><a href=#getmailboxes><span class=secno>9 </span>getMailboxes</a>
-  <ol>
-   <li><a href=#arguments:><span class=secno>9.1 </span>Arguments:</a></li>
-   <li><a href=#description:><span class=secno>9.2 </span>Description:</a></li>
-   <li><a href=#response-name:><span class=secno>9.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-0><span class=secno>9.4 </span>Arguments:</a></li></ol></li>
- <li><a href=#setmailboxes><span class=secno>10 </span>setMailboxes</a>
-  <ol>
-   <li><a href=#arguments:-1><span class=secno>10.1 </span>Arguments:</a></li>
-   <li><a href=#description:-0><span class=secno>10.2 </span>Description:</a></li>
-   <li><a href=#response-name:-0><span class=secno>10.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-2><span class=secno>10.4 </span>Arguments:</a></li>
-   <li><a href=#!discussion-points><span class=secno>10.5 </span>!Discussion points</a></li></ol></li>
- <li><a href=#getmailboxcounts><span class=secno>11 </span>getMailboxCounts</a>
-  <ol>
-   <li><a href=#arguments:-3><span class=secno>11.1 </span>Arguments:</a></li>
-   <li><a href=#description:-1><span class=secno>11.2 </span>Description:</a></li>
-   <li><a href=#response-name:-1><span class=secno>11.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-4><span class=secno>11.4 </span>Arguments:</a></li></ol></li>
- <li><a href=#getmessagelist><span class=secno>12 </span>getMessageList</a>
-  <ol>
-   <li><a href=#arguments:-5><span class=secno>12.1 </span>Arguments:</a></li>
-   <li><a href=#description:-2><span class=secno>12.2 </span>Description:</a></li>
-   <li><a href=#response-name:-2><span class=secno>12.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-6><span class=secno>12.4 </span>Arguments:</a></li>
-   <li><a href=#!discussion-points-0><span class=secno>12.5 </span>!Discussion points</a></li></ol></li>
- <li><a href=#getmessagelistupdates><span class=secno>13 </span>getMessageListUpdates</a>
-  <ol>
-   <li><a href=#arguments:-7><span class=secno>13.1 </span>Arguments:</a></li>
-   <li><a href=#example:><span class=secno>13.2 </span>Example:</a></li>
-   <li><a href=#description:-3><span class=secno>13.3 </span>Description:</a></li>
-   <li><a href=#response-name:-3><span class=secno>13.4 </span>Response name:</a></li>
-   <li><a href=#arguments:-8><span class=secno>13.5 </span>Arguments:</a></li>
-   <li><a href=#!discussion-points-1><span class=secno>13.6 </span>!Discussion points</a></li></ol></li>
- <li><a href=#getconversationupdates><span class=secno>14 </span>getConversationUpdates</a>
-  <ol>
-   <li><a href=#arguments><span class=secno>14.1 </span>Arguments</a></li>
-   <li><a href=#description><span class=secno>14.2 </span>Description</a></li>
-   <li><a href=#response-name:-4><span class=secno>14.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-9><span class=secno>14.4 </span>Arguments:</a></li></ol></li>
- <li><a href=#getmessagepreviews><span class=secno>15 </span>getMessagePreviews</a>
-  <ol>
-   <li><a href=#arguments:-10><span class=secno>15.1 </span>Arguments:</a></li>
-   <li><a href=#description:-4><span class=secno>15.2 </span>Description:</a></li>
-   <li><a href=#response-name:-5><span class=secno>15.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-11><span class=secno>15.4 </span>Arguments:</a></li></ol></li>
- <li><a href=#getmessages><span class=secno>16 </span>getMessages</a>
-  <ol>
-   <li><a href=#arguments:-12><span class=secno>16.1 </span>Arguments:</a></li>
-   <li><a href=#description:-5><span class=secno>16.2 </span>Description:</a></li>
-   <li><a href=#response-name:-6><span class=secno>16.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-13><span class=secno>16.4 </span>Arguments:</a></li>
-   <li><a href=#example><span class=secno>16.5 </span>Example</a></li>
-   <li><a href=#!discussion-points-2><span class=secno>16.6 </span>!Discussion points</a></li></ol></li>
- <li><a href=#getconversations><span class=secno>17 </span>getConversations</a>
-  <ol>
-   <li><a href=#arguments:-14><span class=secno>17.1 </span>Arguments:</a></li>
-   <li><a href=#description:-6><span class=secno>17.2 </span>Description:</a></li>
-   <li><a href=#response-name:-7><span class=secno>17.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-15><span class=secno>17.4 </span>Arguments:</a></li></ol></li>
- <li><a href=#!discussion-points-3><span class=secno>18 </span>!Discussion points</a></li>
- <li><a href=#deletemessages><span class=secno>19 </span>deleteMessages</a>
-  <ol>
-   <li><a href=#arguments:-16><span class=secno>19.1 </span>Arguments:</a></li>
-   <li><a href=#description:-7><span class=secno>19.2 </span>Description:</a></li>
-   <li><a href=#response-name:-8><span class=secno>19.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-17><span class=secno>19.4 </span>Arguments:</a></li></ol></li>
- <li><a href=#movemessages><span class=secno>20 </span>moveMessages</a>
-  <ol>
-   <li><a href=#arguments:-18><span class=secno>20.1 </span>Arguments:</a></li>
-   <li><a href=#description:-8><span class=secno>20.2 </span>Description:</a></li>
-   <li><a href=#response-name:-9><span class=secno>20.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-19><span class=secno>20.4 </span>Arguments:</a></li>
-   <li><a href=#!discussion-point><span class=secno>20.5 </span>!Discussion point</a></li></ol></li>
- <li><a href=#copymessages><span class=secno>21 </span>copyMessages</a>
-  <ol>
-   <li><a href=#arguments:-20><span class=secno>21.1 </span>Arguments:</a></li>
-   <li><a href=#description:-9><span class=secno>21.2 </span>Description:</a></li>
-   <li><a href=#response-name:-10><span class=secno>21.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-21><span class=secno>21.4 </span>Arguments:</a></li>
-   <li><a href=#discussion-points><span class=secno>21.5 </span>Discussion points</a></li></ol></li>
- <li><a href=#setmessagesproperty><span class=secno>22 </span>setMessagesProperty</a>
-  <ol>
-   <li><a href=#arguments:-22><span class=secno>22.1 </span>Arguments:</a></li>
-   <li><a href=#description:-10><span class=secno>22.2 </span>Description:</a></li>
-   <li><a href=#response-name:-11><span class=secno>22.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-23><span class=secno>22.4 </span>Arguments:</a></li>
-   <li><a href=#!discussion-points-4><span class=secno>22.5 </span>!Discussion points</a></li></ol></li>
- <li><a href=#reportmessages><span class=secno>23 </span>reportMessages</a>
-  <ol>
-   <li><a href=#arguments:-24><span class=secno>23.1 </span>Arguments:</a></li>
-   <li><a href=#description:-11><span class=secno>23.2 </span>Description:</a></li>
-   <li><a href=#response-name:-12><span class=secno>23.3 </span>Response name:</a></li>
-   <li><a href=#arguments:-25><span class=secno>23.4 </span>Arguments:</a></li></ol></li></ol>
+ <li><a href=#getmailboxes><span class=secno>9 </span>getMailboxes</a></li>
+ <li><a href=#getmailboxcounts><span class=secno>10 </span>getMailboxCounts</a></li>
+ <li><a href=#setmailboxes><span class=secno>11 </span>setMailboxes</a></li>
+ <li><a href=#getmessagelist><span class=secno>12 </span>getMessageList</a></li>
+ <li><a href=#getmessagelistupdates><span class=secno>13 </span>getMessageListUpdates</a></li>
+ <li><a href=#getmessages><span class=secno>14 </span>getMessages</a></li>
+ <li><a href=#getconversations><span class=secno>15 </span>getConversations</a></li>
+ <li><a href=#getmessageupdates><span class=secno>16 </span>getMessageUpdates</a></li>
+ <li><a href=#getsearchmessagepreviews><span class=secno>17 </span>getSearchMessagePreviews</a></li>
+ <li><a href=#!discussion-points><span class=secno>18 </span>!Discussion points</a></li>
+ <li><a href=#deletemessages><span class=secno>19 </span>deleteMessages</a></li>
+ <li><a href=#movemessages><span class=secno>20 </span>moveMessages</a></li>
+ <li><a href=#copymessages><span class=secno>21 </span>copyMessages</a></li>
+ <li><a href=#setmessagesproperty><span class=secno>22 </span>setMessagesProperty</a></li>
+ <li><a href=#reportmessages><span class=secno>23 </span>reportMessages</a></li></ol>
 <!--end-toc--></div>
+
 
 <h1>1. Introduction</h1>
 
-<h2 id=what-is-jmap><span class=secno>1 </span>What is JMAP?</h2>
+<h2 id=what-is-jmap?><span class=secno>1 </span>What is JMAP?</h2>
 
 <p>JMAP is a new JSON-based API for synchronising a mail client with a mail server.
 It is intended as a replacement for IMAP. The specification is based on the API
-currently used by <a href=https://www.fastmail.fm>FastMail</a>'s web app.  It aims to be
+currently used by <a href=https://www.fastmail.fm>FastMail</a>’s web app.  It aims to be
 compatible with the IMAP data model, so that it can be easily implemented on a
 server that currently supports IMAP, but allows for reduced data usage and more
 efficient synchronisation, bundling of requests for latency mitigation and is
@@ -291,10 +207,10 @@ generally much easier to work with than IMAP.</p>
 <p>This is not a final version. Parts are imprecise, incomplete, or could simply be
 done better in another way. Please <a href=mailto:editor@jmap.io>send feedback</a> with
 any suggestions, corrections or other comments. In particular, please see the
-sections marked "Discussion points" below, for areas I am interested in feedback
+sections marked “Discussion points” below, for areas I am interested in feedback
 on.</p>
 
-<h3 id=why-is-it-not-rest-based><span class=secno>1.1 </span>Why is it not REST based?</h3>
+<h3>Why is it not REST based?</h3>
 
 <p>In one word, speed. When you have a high latency connection (such as on a mobile
 phone, or even wired connections from the other side of the world), the extra
@@ -306,7 +222,7 @@ containing the message). In the JMAP format described below, this can be done in
 a single round trip. A REST-based version would require two full round trips for
 the same operation.</p>
 
-<h3 id=why-is-it-not-a-binary-protocol><span class=secno>1.2 </span>Why is it not a binary protocol?</h3>
+<h3>Why is it not a binary protocol?</h3>
 
 <p>A binary protocol would be arguably more compact and faster to encode/parse.
 However, history has shown text-based protocols are much easier to debug, and by
@@ -327,7 +243,7 @@ If authorisation fails, a 401 response code with no content will be returned.</p
 <p>Implementations may also to choose to support OAuth (how this integrates is not
 defined in this spec).</p>
 
-<h4 id=!todo:><span class=secno>2.1 </span>!Todo:</h4>
+<h4>!Todo:</h4>
 
 <ul>
 <li>There should be a way to lookup which protocols are supported and at what URL
@@ -338,6 +254,7 @@ themselves up with just an email address and password.</li>
 <li>The authentication mechanism for WebSocket needs to be defined.</li>
 </ul>
 
+
 <h2 id=the-structure-of-an-exchange><span class=secno>3 </span>The structure of an exchange</h2>
 
 <p>An API call consists of a (UTF-8 encoded of course) JSON array. Each element in
@@ -345,7 +262,7 @@ this array will be another array and will constitute a method call. The first
 item in these subarrays is the name of the method being called on the server,
 the second item is a JSON object containing <em>named</em> arguments for that method.
 The third (and optional) item is a client id, to be echoed back with the
-responses emitted by that method call (as we'll see lower down, it's not so
+responses emitted by that method call (as we’ll see lower down, it’s not so
 much RPC as message passing, and a method may return 0, 1 or many messages,
 especially as some methods make implicit calls to other ones).</p>
 
@@ -386,7 +303,7 @@ the Error section below) and skip to the next method call.</p>
 
 <h2 id=concurrency><span class=secno>4 </span>Concurrency</h2>
 
-<p>The state of the user's email must not change during a single method call
+<p>The state of the user’s email must not change during a single method call
 (except due to that method call itself), but may change in between method calls.
 This is to ensure the client always sees a consistent view of the data. The
 easiest way to do this is a per-user lock that must be held for the duration of
@@ -394,30 +311,48 @@ each method call.</p>
 
 <h2 id=the-email-data-model><span class=secno>5 </span>The email data model</h2>
 
-<p>For compatibility with IMAP, emails are immutable other than flags/labels. Each
-time an email is changed (created, flag change, deleted), it is assigned a new
-modseq (modification sequence) number, an unsigned 63-bit integer. If the
+<p>A mailbox is a named set of emails. In an IMAP-backed system, a message must
+always belong to one, and only one, mailbox at a time – mailboxes correspond to
+folders. In JMAP, however, the only requirement is that the message appears in
+<strong>at least one</strong> mailbox. Thus, in label-based systems such as GMail, the same
+message may appear in more than one mailbox.</p>
+
+<p>Each email must therefore have an id which is unique for all messages the user
+may be able to access (thus, it must be unique across users with shared
+folders, but if no  sharing is allowed may be only unique to the user).
+IMAP-compatible backends will assign a 32-bit unsigned integer uid on creation
+within a mailbox and may choose to use a message id of the format
+<code>"f${mailboxId}u${uid}"</code>. However, the actual string is opaque to the client,
+so if the server already has a different mechanism for allocating unique ids to
+messages, it can use this instead. There is no requirement for implementing a
+sequential UID numbering system.</p>
+
+<p>Each message has 4 mutable boolean “flags” stored with it, each with a direct
+equivalent in IMAP. In JMAP these flags are called:</p>
+
+<ul>
+<li><strong>isUnread</strong>: Has the email not yet been read (seen)?</li>
+<li><strong>isFlagged</strong>: Has the email been flagged (starred, or pinned)?</li>
+<li><strong>isDraft</strong>: Is the email a draft?</li>
+<li><strong>isAnswered</strong>: Has the email been answered (replied to)?</li>
+</ul>
+
+
+<p>A number of custom labels may also be associated with the email.</p>
+
+<p>For compatibility with IMAP, emails are immutable other than flags/labels. To
+change anything else, the email must be deleted and a new one created (which
+will get a different message id). Also for compatibility with IMAP, moving a
+message to a new mailbox may (but doesn’t have to) change the id of the message.</p>
+
+<p>Each time an email is changed (created, flag change, deleted), it is assigned a
+new modseq (modification sequence) number, an unsigned 63-bit integer. If the
 server supports conversations then, unlike in IMAP, there needs to be a single
 modseq counter across the whole user, not per mailbox (this is, however,
 completely backwards compatible with IMAP). A method that mutates the state
-(e.g. changing the unread status of a message) must increment the modseq once
-for <strong>each message</strong> affected by the change.</p>
-
-<p>Each message is assigned an id that is unique across the whole user. IMAP-
-compatible backends will assign a 32-bit unsigned integer uid on creation
-within a mailbox and may choose to use an id of the format
-<code>"f${mailboxId}u${uid}"</code>. However, the actual string is opaque to the client,
-so if the server already has a different mechanism for allocating unique ids to
-messages, it can use this instead.</p>
-
-<p>For compatibility with the IMAP model, moving a message to a new mailbox may
-(but doesn't have to) change the id of the message.</p>
-
-<p>A uid validity change must be handled by assigning all affected mailboxes and
-messages new ids (essentially to the client this appears as though they have
-been deleted and new ones have been created, which by chance happen to contain
-the same messages). This will require a lot of data to be resynced, but is
-expected to be rare in practice.</p>
+(e.g. changing the unread status of a message) may increment the modseq once
+then apply that new modseq to all messages affected by the change, or may
+increase multiple times; this is implementation-dependent.</p>
 
 <p>Unlike IMAP, there is no \Deleted deletion model. All mailbox related methods
 must act as though messages marked \Deleted do not exist: they must not be
@@ -426,6 +361,13 @@ count. If using an IMAP-compatible backing store, the server may choose to
 implement this by adding an implicit <code>NOT \Deleted</code> search term to everything,
 or by expunging immediately anything marked \Deleted or any other method it
 chooses (at FM, we ensure all \Deleted messages are expunged).</p>
+
+<p>Servers implementing an IMAP-style UID system, and using that UID as part of
+the message ID, must be able to handle a uid validity change by assigning all
+affected mailboxes and messages new ids (essentially to the client this appears
+as though they have been deleted and new ones have been created, which by
+chance happen to contain the same messages). This will require a lot of data to
+be resynced, but is expected to be rare in practice.</p>
 
 <h2 id=conversations><span class=secno>6 </span>Conversations</h2>
 
@@ -447,7 +389,7 @@ trash folder, so that a user can delete a single message out of a conversation.
 This means moving a message to a different mailbox may change its conversation
 id.</p>
 
-<h4 id=!discussion-point:><span class=secno>6.1 </span>!Discussion Point:</h4>
+<h4>!Discussion Point:</h4>
 
 <p>Should conversation support be optional? Probably, which
 means we probably should have a getCapabilities method.</p>
@@ -455,30 +397,31 @@ means we probably should have a getCapabilities method.</p>
 <h2 id=the-number-datatype><span class=secno>7 </span>The Number datatype</h2>
 
 <p>The JSON datatypes are very limited and correspond to those found in JavaScript.
-A Number in JavaScript is represented as a signed double (64-bit floating
-point). However, except where explicitly specified, all Numbers used in this API
-may be represented as unsigned 32-bit integers. A server or client may rely on
-this for internal optimisation.</p>
+A <code>Number</code> in JavaScript is represented as a signed double (64-bit floating
+point). However, except where explicitly specified, all <code>Number</code>s used in this
+API may be represented as unsigned 32-bit integers. A server or client may rely
+on this for internal optimisation.</p>
 
 <h2 id=the-date-datatype><span class=secno>8 </span>The Date datatype</h2>
 
 <p>Where the API specifies a Date as a type, it means a string in the following
-format: <code>YYYY-MM-DDThh:mm:ssZ</code>, e.g. <code>"2013-10-30T14:12:00Z"</code>. All dates are
-expected to be in UTC time.</p>
+format: <code>YYYY-MM-DDThh:mm:ssZ</code>, e.g. <code>"2013-10-30T14:12:00Z"</code>. All dates must
+be in UTC time.</p>
 
 <h1>2. Mailbox/message retrieval methods</h1>
 
 <h2 id=getmailboxes><span class=secno>9 </span>getMailboxes</h2>
 
-<h3 id=arguments:><span class=secno>9.1 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
 <li>state: String (optional)
-(An opaque string returned by the server from this call, can be used to
-omit mailboxList from the response if nothing has changed.)</li>
+  (An opaque string returned by the server from this call, can be used to
+  omit mailboxList from the response if nothing has changed.)</li>
 </ul>
 
-<h3 id=description:><span class=secno>9.2 </span>Description:</h3>
+
+<h3>Description:</h3>
 
 <p>Returns a list of all mailbox objects. If a state string is supplied as an
 argument and it is the same as the current state (i.e. nothing has changed),
@@ -487,50 +430,49 @@ the mailboxList argument should be omitted from the response.</p>
 <p>In an IMAP server, each mailbox must have a uid validity value. One way to
 produce a state string is to hash all these together using sha1 or some other
 suitable hash function. We can detect whenever any of the uid validities
-change, or a folder is created or destroyed, simply by comparing the single
+change, or a mailbox is created or destroyed, simply by comparing the single
 value. If making a stateless proxy implementation of the api on top of an IMAP
 server, you could implement mailboxId as Full Mailbox Name + uid validity (e.g.
-"Folder.Subfolder356150234"), however it would be more efficient to create a
+“Folder.Subfolder356150234”), however it would be more efficient to create a
 shorter id (e.g. sequential numbering) in the server itself. The id for a
 mailbox must be unique and never reused again for another mailbox of the same
-user.</p>
+user (or that might be visible to the user, if shared mailboxes are supported).</p>
+
+<p>If not constrained to just proxying a pure IMAP server, a better state string
+than a hash of the UID validities would be to increment and store the user
+modseq whenever a mailbox is created, deleted or has a property updated.</p>
 
 <p>In GMail, or other systems which have a label-only storage approach, you can
-still return all the labels as mailboxes. The effect of this is described in
-the relevant methods.</p>
+still return all the labels as mailboxes (plus an “All mail” mailbox). The
+effect of this is described in the relevant methods.</p>
 
 <p>The permissions object maps to the IMAP permissions model.</p>
 
-<p>!Discussion point: using the hash of uid validities is a neat trick, but
-doesn't change if permissions are changed. Not a problem for servers that don't
-support shared folders, but for those that do it is. A better state string
-would be just to increment and store the user modseq whenever a folder is
-created, deleted or has a property updated.</p>
-
-<h3 id=response-name:><span class=secno>9.3 </span>Response name:</h3>
+<h3>Response name:</h3>
 
 <p>mailboxes</p>
 
-<h3 id=arguments:-0><span class=secno>9.4 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>state: String</li>
-<li>mailboxList: Mailbox Object list
-(omitted if no change in state)</li>
-<li>userModSeq: String
-(the current global modseq for the user)</li>
+<li>state: <code>String</code></li>
+<li>list: <code>Array</code> of <code>Mailbox Object</code>s
+  (omitted if no change in state)</li>
 </ul>
 
-<p>Where a Mailbox Object is:</p>
+
+<p>Where a <code>Mailbox Object</code> is:</p>
 
 <pre><code>{
-  mailboxId: String,     // Unique id for identifying this mailbox
+  id: String,            // Unique id for identifying this mailbox
   name: String,          // User-visible name, e.g. "Inbox"
-  parentId: String|null, // Mailbox id for the parent of this folder.
-                         // Has value null if this folder is at the top level.
-  role: String,          // 'inbox'/'drafts'/'sent'/'trash'/'spam'/'archive'/''
-                         // Identifies system folders.
-  isOwn: Boolean         // Does the folder belong to the user?
+  parentId: String|null, // Mailbox id for the parent of this mailbox.
+                         // Has value null if this mailbox is at the top
+                         // level.
+  role: String,          // Identifies system mailboxes. Allowed values are:
+                         // 'inbox'/'drafts'/'sent'/'trash'/'spam'/'archive'
+                         // or '' (the empty string) for user-defined ones.
+  isOwn: Boolean,        // Does the folder belong to the user?
   // If a shared folder (property not present otherwise; presume all true).
   // The permissions map to IMAP ACLs:
   permissions: {
@@ -547,195 +489,35 @@ created, deleted or has a property updated.</p>
     // May create a sub folder of the folder
     mayCreateSub: Boolean,   // ACL: create
     // May rename or delete the folder
-    isDeletable: Boolean,   // ACL: delete
+    isDeletable: Boolean     // ACL: delete
   }
 }
 </code></pre>
 
 <p>Example response where the mailboxes are unchanged:</p>
 
-<pre><code>[ "mailboxes", { "state": "fea89ab", userModSeq: "1341251234" } ]
+<pre><code>[ "mailboxes", { "state": "fea89ab" } ]
 </code></pre>
 
 <hr>
 
-<h2 id=setmailboxes><span class=secno>10 </span>setMailboxes</h2>
+<h2 id=getmailboxcounts><span class=secno>10 </span>getMailboxCounts</h2>
 
-<h3 id=arguments:-1><span class=secno>10.1 </span>Arguments:</h3>
-
-<ul>
-<li>state: String</li>
-<li>create: clientId -&gt; Mailbox Object map. (optional)</li>
-<li>update: clientId -&gt; partial Mailbox Object map. (optional)</li>
-<li>destroy: clientId -&gt; mailboxId map. (optional)</li>
-</ul>
-
-<p>Example request:</p>
-
-<pre><code>["setMailboxes", {
-  state: "4123",
-  create: {
-    '#45': {
-      name: 'My new folder',
-      role: '',
-      parentId: null,
-      isOwn: true,
-      permissions: {
-        mayRead: true,
-        mayUpdateSeen: true,
-        mayUpdateFlags: true,
-        mayInsert: true,
-        mayDelete: true,
-        mayCreateSub: true,
-        isDeletable: true,
-      }
-    }
-  }
-  update: {
-    '#32': {
-      mailboxId: 'f3',
-      name: 'The new name'
-    }
-  }
-}]
-</code></pre>
-
-<p>A clientId is an id for the mailbox assigned by the client. To update an object, you only need specify the mailboxId property + any properties which have changed.</p>
-
-<h3 id=description:-0><span class=secno>10.2 </span>Description:</h3>
-
-<p>If the state does not match the current state, push a
-  mailboxesSet response onto the output, consisting of:</p>
-
-<pre><code>["mailboxesSet", {
-  notCreated: Object.keys( args.create ),
-  notUpdated: Object.keys( args.update ),
-  notDestroyed: Object.keys( args.destroy )
-}]
-</code></pre>
-
-<p>Then return a validity error (see errors section at bottom of this document).</p>
-
-<p>Otherwise, <em>conceptually</em>, what is happening is quite straight-forward:</p>
-
-<ol>
-<li><em>create</em>: For each Mailbox Object in the create map, create a new mailbox
- with properties taken from the object. Ignore any mailboxId property (and
- if the server chooses, ignore any role property, otherwise set the role
- and remove the role from all other folders).</li>
-<li><em>update</em>: For each Mailbox Object in the update map, extract the mailboxId
- property and look up the corresponding mailbox object. For all other
- key/value pairs in the Mailbox Object, set the value on the mailbox object
- (except if the key role, which is read only). The parentId value is also
- read-only if the mailbox has a role attribute (as system folders must be
- top level). Reject permanently if an attempt to write to them is made.</li>
-<li><p><em>destroy</em>: For each mailboxId in the clientId -&gt; mailboxId map, destroy the
- mailbox with the corresponding Id, permanently deleting all messages
- contained therein. At the point of destruction, the mailbox should not
- contain any subfolders; these should all have been destroyed or moved out
- of the folder first; reject permanently the destroy command if not. The
- server must also permanently reject any attempt to destroy the role=inbox
- folder and may also reject any attempt to delete other folders (ideally
- the client should be informed of this via the permissions).</p>
-
-<p>If implementing as a proxy to a pure IMAP store, changes to name/parentId
-mean a rename, and creates/updates/destroys must be ordered correctly to make
-this work.</p>
-
-<p>All values must be checked for validity. Folder names may have a number of
-restrictions that must be checked against.</p>
-
-<p>Each entry in the create/update/destroy hashes is considered an atomic unit by
-the client. It is permissible for the server to commit some of the changes but
-not others, however it is not permissible to only commit part of a change
-(e.g. update the name but not the parent if both are supplied in the update
-object).</p></li>
-</ol>
-
-<h3 id=response-name:-0><span class=secno>10.3 </span>Response name:</h3>
-
-<p>mailboxesSet</p>
-
-<h3 id=arguments:-2><span class=secno>10.4 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>created: clientId -&gt; mailboxId map (optional)
-(Mailbox ids are assigned by the server. For each successfully created
- mailbox, add an entry mapping its clientId to this new mailboxId)</li>
-<li>updated: clientId list (optional)
-(list of the clientIds of all successfully updated mailbox objects)</li>
-<li>destroyed: clientId list (optional)
-(list of the clientIds of all successfully destroyed mailbox objects)</li>
-<li>notCreated: clientId list (optional)
-(list of all client ids for which the create failed temporarily)</li>
-<li>notUpdated: clientId list (optional)
-(list of all client ids for which the update failed temporarily)</li>
-<li>notDestroyed: clientId list (optional)
-(list of all client ids for which the destroy failed temporarily)</li>
-<li>error: clientId list (optional)
-(list of all client ids for which the create/update/destroy failed
- permanently, e.g. if an update rename used illegal characters etc.)</li>
-<li>state: String (optional)
-(the new validity hash after applying these changes)</li>
+<li>state: <code>String</code> (optional)</li>
 </ul>
 
-<p>All arguments need only be included if they have a non-empty value. The client
-may keep trying to commit changes if the server returns notCreated, notUpdated
-or notDestroyed responses, as these indicate temporary failures (e.g. because
-the validity hash doesn't match, so the client needs to fetch mailbox updates
-first then apply the changes on top of the latest version, resolving any
-conflicts before trying again). If the clientId is returned in the error
-argument however, the client must discard the changes and rollback to the last
-known good (committed) state.</p>
 
-<p>Examples of permanent errors:
-a) Attempt to delete an already deleted folder
-b) Attempt to move a folder inside itself.
-c) Attempt to move a folder into another one which already contains a
-   folder of the same name.
-d) Attempt to use illegal characters in a folder name. etc.</p>
+<h3>Description:</h3>
 
-<p>If there were creates in this commit, then <em>after</em> adding the mailboxesSet
-response to the output, add the following response, with an entry
-for each successfully created mailbox:</p>
-
-<pre><code>["updateMailboxes", {
-  "&lt;mailboxId&gt;": {
-    // If a shared folder, return the next two props.
-    // Otherwise omitted, all permissions presumed true.
-    "isOwn": false,
-    "permissions": {...permissions obj...}
-  },
-  ...
-}]
-</code></pre>
-
-<h3 id=!discussion-points><span class=secno>10.5 </span>!Discussion points</h3>
-
-<ul>
-<li>Should "role" be read only?</li>
-<li>Should the folder name be restricted to only characters allowed in IMAP?</li>
-<li>Should a folder with a "role" not be allowed to be renamed, or moved inside another folder?</li>
-</ul>
-
-<hr>
-
-<h2 id=getmailboxcounts><span class=secno>11 </span>getMailboxCounts</h2>
-
-<h3 id=arguments:-3><span class=secno>11.1 </span>Arguments:</h3>
-
-<ul>
-<li>state: String (optional)</li>
-</ul>
-
-<h3 id=description:-1><span class=secno>11.2 </span>Description:</h3>
-
-<p>If state is supplied, find all mailboxes whose unread or total count
+<p>  If state is supplied, find all mailboxes whose unread or total count
   have changed since this state and return the new total/unread message and
   conversation counts in each of these mailboxes. Otherwise, return the
   total/unread counts for all mailboxes.</p>
 
-<p>A conversation counts as unread if there is any non-draft message in it in any
+<p>  A conversation counts as unread if there is any non-draft message in it in any
   folder which is unread. So if a conversation has a message in Inbox which is
   unread and another message in Sent which is read, it will contribute 1 to the
   unread count of both of these folders. Draft messages should be ignored when
@@ -743,21 +525,20 @@ for each successfully created mailbox:</p>
   \Draft flag set it does not count towards the unread total for that
   conversation, even if it does not have a \Seen flag).</p>
 
-<h3 id=response-name:-1><span class=secno>11.3 </span>Response name:</h3>
+<h3>Response name:</h3>
 
-<p>mailboxCounts</p>
+<p>  mailboxCounts</p>
 
-<h3 id=arguments:-4><span class=secno>11.4 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>state: String
-(used by the server to calculate delta in unread count)</li>
-<li>counts: String (folder id) -&gt; Counts object</li>
-<li>userModSeq: String
-(the current global modseq for the user)</li>
+<li>state: <code>String</code>
+  (used by the server to calculate delta in unread count)</li>
+<li>counts: <code>Object</code> of <code>String</code> (folder id) -&gt; <code>Counts Object</code></li>
 </ul>
 
-<p>where a Counts object is:</p>
+
+<p>where a Counts Object is:</p>
 
 <pre><code>{
   totalMessages: Number,
@@ -788,6 +569,189 @@ for each successfully created mailbox:</p>
 }]
 </code></pre>
 
+<h3>!Discussion points</h3>
+
+<ul>
+<li>Should the getMailboxCounts method be separate, or should the counts be
+returned as part of getMailboxes? If so, do we add a <code>propertes</code> argument
+like in getMessages?</li>
+</ul>
+
+
+<hr>
+
+<h2 id=setmailboxes><span class=secno>11 </span>setMailboxes</h2>
+
+<h3>Arguments:</h3>
+
+<ul>
+<li>state: <code>String</code></li>
+<li>create: clientId -&gt; Mailbox Object map. (optional)</li>
+<li>update: clientId -&gt; partial Mailbox Object map. (optional)</li>
+<li>destroy: clientId -&gt; mailbox id map. (optional)</li>
+</ul>
+
+
+<p>Example request:</p>
+
+<pre><code>["setMailboxes", {
+  state: "4123",
+  create: {
+    '#45': {
+      name: 'My new folder',
+      role: '',
+      parentId: null,
+      isOwn: true,
+      permissions: {
+        mayRead: true,
+        mayUpdateSeen: true,
+        mayUpdateFlags: true,
+        mayInsert: true,
+        mayDelete: true,
+        mayCreateSub: true,
+        isDeletable: true,
+      }
+    }
+  }
+  update: {
+    '#32': {
+      id: 'f3',
+      name: 'The new name'
+    }
+  }
+}]
+</code></pre>
+
+<p>A clientId is an id for the mailbox assigned by the client. To update an
+object, you only need specify the id property + any properties which have
+changed.</p>
+
+<h3>Description:</h3>
+
+<p>If the state does not match the current state, push a
+mailboxesSet response onto the output, consisting of:</p>
+
+<pre><code>["mailboxesSet", {
+  notCreated: Object.keys( args.create ),
+  notUpdated: Object.keys( args.update ),
+  notDestroyed: Object.keys( args.destroy )
+}]
+</code></pre>
+
+<p>Then return a validity error (see errors section at bottom of this document).</p>
+
+<p>Otherwise, <em>conceptually</em>, what is happening is quite straight-forward:</p>
+
+<ol>
+<li><em>create</em>: For each Mailbox Object in the create map, create a new mailbox
+with properties taken from the object. Ignore any mailboxId property (and
+if the server chooses, ignore any role property, otherwise set the role
+and remove the role from all other folders).</li>
+<li><em>update</em>: For each Mailbox Object in the update map, extract the mailboxId
+property and look up the corresponding mailbox object. For all other
+key/value pairs in the Mailbox Object, set the value on the mailbox object
+(except if the key role, which is read only). The parentId value is also
+read-only if the mailbox has a role attribute (as system folders must be
+top level). Reject permanently if an attempt to write to them is made.</li>
+<li><em>destroy</em>: For each mailboxId in the clientId -&gt; mailboxId map, destroy the
+mailbox with the corresponding Id, permanently deleting all messages
+contained therein. At the point of destruction, the mailbox should not
+contain any subfolders; these should all have been destroyed or moved out
+of the folder first; reject permanently the destroy command if not. The
+server must also permanently reject any attempt to destroy the role=inbox
+folder and may also reject any attempt to delete other folders (ideally
+the client should be informed of this via the permissions).</li>
+</ol>
+
+
+<p>If implementing as a proxy to a pure IMAP store, changes to name/parentId
+mean a rename, and creates/updates/destroys must be ordered correctly to make
+this work.</p>
+
+<p>All values must be checked for validity. Folder names may have a number of
+restrictions that must be checked against.</p>
+
+<p>Each entry in the create/update/destroy hashes is considered an atomic unit by
+the client. It is permissible for the server to commit some of the changes but
+not others, however it is not permissible to only commit part of a change
+(e.g. update the name but not the parent if both are supplied in the update
+object).</p>
+
+<p>The server must ensure, that after committing all of the changes the tree of
+mailboxes is consistent (no circular references or references to
+destroyed/non-existent mailboxes).</p>
+
+<h3>Response name:</h3>
+
+<p>mailboxesSet</p>
+
+<h3>Arguments:</h3>
+
+<ul>
+<li>created: clientId -&gt; mailboxId map (optional)
+  (Mailbox ids are assigned by the server. For each successfully created
+   mailbox, add an entry mapping its clientId to this new mailboxId)</li>
+<li>updated: clientId list (optional)
+  (list of the clientIds of all successfully updated mailbox objects)</li>
+<li>destroyed: clientId list (optional)
+  (list of the clientIds of all successfully destroyed mailbox objects)</li>
+<li>notCreated: clientId list (optional)
+  (list of all client ids for which the create failed temporarily)</li>
+<li>notUpdated: clientId list (optional)
+  (list of all client ids for which the update failed temporarily)</li>
+<li>notDestroyed: clientId list (optional)
+  (list of all client ids for which the destroy failed temporarily)</li>
+<li>error: clientId list (optional)
+  (list of all client ids for which the create/update/destroy failed
+   permanently, e.g. if an update rename used illegal characters etc.)</li>
+<li>oldState: <code>String</code>
+  (this should be identical to the <code>state</code> argument supplied)</li>
+<li>newState: <code>String</code>
+  (the new state after applying the changes)</li>
+</ul>
+
+
+<p>All arguments need only be included if they have a non-empty value. The client
+may keep trying to commit changes if the server returns notCreated, notUpdated
+or notDestroyed responses, as these indicate temporary failures (e.g. because
+the state doesn’t match, so the client needs to fetch mailbox updates first
+then apply the changes on top of the latest version, resolving any conflicts
+before trying again). If the clientId is returned in the error argument
+however, the client must discard the changes and rollback to the last known
+good (committed) state.</p>
+
+<p>Examples of permanent errors:</p>
+
+<p>a) Attempt to delete an already deleted folder
+b) Attempt to move a folder inside itself.
+c) Attempt to move a folder into another one which already contains a
+   folder of the same name.
+d) Attempt to use illegal characters in a folder name. etc.</p>
+
+<p>If there were creates in this commit, then <em>after</em> adding the mailboxesSet
+response to the output, add the following response, with an entry
+for each successfully created mailbox:</p>
+
+<pre><code>["updateMailboxes", {
+  "&lt;mailboxId&gt;": {
+    // If a shared folder, return the next two props.
+    // Otherwise omitted, all permissions presumed true.
+    "isOwn": false,
+    "permissions": {...permissions obj...}
+  },
+  ...
+}]
+</code></pre>
+
+<h3>!Discussion points:</h3>
+
+<ul>
+<li>Should “role” be read only?</li>
+<li>Should the folder name be restricted to only characters allowed in IMAP?</li>
+<li>Should a folder with a “role” not be allowed to be renamed, or moved inside another folder?</li>
+</ul>
+
+
 <hr>
 
 <h2 id=getmessagelist><span class=secno>12 </span>getMessageList</h2>
@@ -795,62 +759,66 @@ for each successfully created mailbox:</p>
 <p>This method fetches (a section of) the list of message ids in a particular
 mailbox or search.</p>
 
-<h3 id=arguments:-5><span class=secno>12.1 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>mailboxId: String|null</li>
-<li>search: String
-(The query string to search with.)</li>
-<li>sort: String
-(Format: (uid|date|from|to|subject|size)(Descending|Ascending)(Flagged)?
- If 'Flagged' is on the end, flagged messages should be sorted before
- non-flagged messages.)</li>
-<li>useConversations: Boolean
-(If true, uses conversation mode to fetch the list; see description.)</li>
-<li>position: Number
-(position in message list (given sort and filter) for first message,
- indexed from 0.)</li>
-<li>limit: Number
-(the maximum number of messages to retrieve)</li>
-<li>fetchMessages: Object|null
-(if not null, getMessages will be called with the messageId list of the
- result. The object will be passed as the properties argument).</li>
-<li>fetchPreviews: Boolean
-(if true, will make a call to getMessagePreviews with the messageId list of
- the result.)</li>
+<li>mailboxId: <code>String</code>|<code>null</code></li>
+<li>search: <code>String</code>
+  (The query <code>String</code> to search with.)</li>
+<li>sort: <code>String</code>
+  (Format: (uid|date|from|to|subject|size)(Descending|Ascending)(Flagged)?
+   If ‘Flagged’ is on the end, flagged messages should be sorted before
+   non-flagged messages.)</li>
+<li>useConversations: <code>Boolean</code>
+  (If true, uses conversation mode to fetch the list; see description.)</li>
+<li>position: <code>Number</code>
+  (position in message list (given sort and search) for first message,
+   indexed from 0.)</li>
+<li>limit: <code>Number</code>
+  (the maximum number of messages to retrieve)</li>
+<li>fetchMessages: <code>Array</code>|<code>null</code>
+  (if not <code>null</code>, getMessages will be called with the message id list of the
+   result. The array will be passed as the properties argument).</li>
+<li>fetchSearchPreviews: <code>Boolean</code>
+  (if true, will make a call to getSearchMessagePreviews with the messageId
+   list of the result.)</li>
 </ul>
 
-<h3 id=description:-2><span class=secno>12.2 </span>Description:</h3>
+
+<h3>Description:</h3>
 
 <ol>
 <li><p>If a mailbox id is given and there is no mailbox with that id, return a
- mailboxDoesNotExist error and exit the method.</p></li>
+mailboxDoesNotExist error and exit the method.</p></li>
 <li><p>Take the list of messages in the mailbox given (if a mailboxId is supplied)
- otherwise all messages for the user then remove those that do not match
- the search terms, if given.</p></li>
+otherwise all messages for the user then remove those that do not match
+the search terms, if given.</p></li>
 <li><p>Sort the message list in the direction given as a parameter.</p></li>
 <li><p>Return the list of message ids for exemplars starting at the index given
- by the <code>position</code> argument, and returning up to <code>limit</code> results.</p></li>
-<li><p>If the fetchMessages argument is not null, call getMessages using the
- following arguments:</p>
+by the <code>position</code> argument, and returning up to <code>limit</code> results.</p></li>
+<li><p>If the fetchMessages argument is not <code>null</code>, call getMessages using the
+following arguments:</p>
 
 <ul>
 <li>properties: The fetchMessages argument from this call.</li>
-<li>messageIdList: the messageIdList response from this call.</li>
+<li>ids: the messageIds response from this call.</li>
 <li>fetchConversations: The useConversations argument from this call.</li>
-</ul></li>
-<li><p>If fetchPreviews is true and search terms are specified, call
- <code>getMessagePreviews</code> with the "search", "mailboxId" and "messageIdList"
- arguments taken from the messageList response arguments of the same name.</p>
-
-<p>Notes:</p></li>
-<li>The server may choose to enforce a maximum <code>limit</code> argument. This is safe
-to do since the total is returned, so the client should not be relying on
-how many results are returned to determine if it has reached the end of the
-mailbox.</li>
+</ul>
+</li>
+<li><p>If fetchSearchPreviews is true and search terms are specified, call
+<code>getSearchMessagePreviews</code> with the “search”, “mailboxId” and “messageIds”
+arguments taken from the messageList response arguments of the same name.</p></li>
 </ol>
 
-<p>Here is an example algorithm showing how conversations work (minus the parsing of arguments and correct formatting of the response):</p>
+
+<p>Notes:
+- The server may choose to enforce a maximum <code>limit</code> argument. This is safe
+  to do since the total is returned, so the client should not be relying on
+  how many results are returned to determine if it has reached the end of the
+  mailbox.</p>
+
+<p>Here is an example algorithm showing how conversations work (minus the parsing
+of arguments and correct formatting of the response):</p>
 
 <pre><code>let messageList = args.mailboxId ?
       mailbox[ args.mailboxId ] : allMessages;
@@ -861,7 +829,7 @@ let useConversations = args.useConversations
 let position = args.position
 let limit = args.limit
 let total = 0
-let messageIdList = [] # NB Max size of array is limit
+let messageIds = [] # NB Max size of array is limit
 
 let SeenExemplar =  useConversations ? empty set : null
 let numFound = 0
@@ -881,7 +849,7 @@ foreach msg in sortedList {
     }
 
     if position &gt;= total &amp;&amp; numFound &lt; limit {
-      messageIdList.push( msg.id )
+      messageIds.push( msg.id )
       numFound += 1
       if numFound == limit &amp;&amp; totalIsKnown {
         break;
@@ -894,53 +862,52 @@ if totalIsKnown {
   total = getTotalFromCache( mailbox, useConversations )
 }
 
-return [ messageIdList, position, total, state ]
+return [ messageIds, position, total, state ]
 </code></pre>
 
-<h3 id=response-name:-2><span class=secno>12.3 </span>Response name:</h3>
+<h3>Response name:</h3>
 
 <p>messageList</p>
 
-<h3 id=arguments:-6><span class=secno>12.4 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>mailboxId: String</li>
-<li>sort: String</li>
-<li>search: String</li>
-<li>useConversations: Boolean</li>
-<li>position: Number
-(the position in the full filtered, sorted message list of the first message
- in the returned list (the rest are presumed sequential from here), indexed
- from 1)</li>
-<li>total: Number
-(total number of messages/conversations in the message list (depending on
- the useConversations argument))</li>
-<li>state: String
-(the current state of the message list. In IMAP servers, it is suggested
-this is the uidNext &amp; highest modseq for the mailbox (see The email model
-in the introduction for a discussion). Should a client receive back a
-response with a different state string to a previous call with the same
-mailboxId/search parameters, it knows the list may have changed, and must
-either throw away the previous list and fetch it again (note, this does not
-require fetching the headers/bodies of the messages again, just the list of
-ids) or, if the server supports it, the client can call
-getMessageListUpdates with the state string.)</li>
-<li>messageIdList: <code>Array&lt;String&gt;</code>
-(a subsection of the full filtered, sorted message list, starting at the
- position given by the start field and containing the maximum number of
- available messages up to the limit in the original method call)</li>
-<li>canCalculateUpdates: Boolean
-(does the server support calling getMessageListUpdates with these
-parameters. Note, this does not guarantee that the getMessageListUpdates
-call will succeed, as it may only be possible for a limited time afterwards
-due to server internal implementation details).</li>
-<li>userModSeq: String
-(the current global modseq for the user)</li>
+<li>mailboxId: <code>String</code></li>
+<li>sort: <code>String</code></li>
+<li>search: <code>String</code></li>
+<li>useConversations: <code>Boolean</code></li>
+<li>position: <code>Number</code>
+  (the position in the full filtered, sorted message list of the first message
+   in the returned list (the rest are presumed sequential from here), indexed
+   from 1)</li>
+<li>total: <code>Number</code>
+  (total number of messages/conversations in the message list (depending on
+   the useConversations argument))</li>
+<li>state: <code>String</code>
+  (the current state of the message list. In IMAP servers, it is suggested
+  this is the uidNext &amp; highest modseq for the mailbox (see The email model
+  in the introduction for a discussion). Should a client receive back a
+  response with a different state string to a previous call with the same
+  mailboxId/search parameters, it knows the list may have changed, and must
+  either throw away the previous list and fetch it again (note, this does not
+  require fetching the headers/bodies of the messages again, just the list of
+  ids) or, if the server supports it, the client can call
+  getMessageListUpdates with the state string.)</li>
+<li>messageIds: <code>Array&lt;String&gt;</code>
+  (a subsection of the full filtered, sorted message list, starting at the
+   position given by the start field and containing the maximum number of
+   available messages up to the limit in the original method call)</li>
+<li>canCalculateUpdates: <code>Boolean</code>
+  (does the server support calling getMessageListUpdates with these
+  parameters. Note, this does not guarantee that the getMessageListUpdates
+  call will succeed, as it may only be possible for a limited time afterwards
+  due to server internal implementation details).</li>
 </ul>
+
 
 <p>Note: Message ids are unique across the whole user. Thus, it is not a problem if messages are in multiple mailboxes (ala GMail), as after fetching the list, the client can easily determine if it already has the message header/body cached, and does not need to download it again. At FM, we currently use ids of the format <code>f${mailboxId}u${uid}</code>, but the actual structure is irrelevant to (and indeed must not be relied on by) the client.</p>
 
-<h3 id=!discussion-points-0><span class=secno>12.5 </span>!Discussion points</h3>
+<h3>!Discussion points</h3>
 
 <ul>
 <li>At FM, instead of specifying a position, you can also specify the section of
@@ -948,25 +915,26 @@ the list you want returned by giving it a message id. If this message is in
 the list, the index of that message is used as the position argument. This is
 used by the FM webmail to locate where a particular message is in a mailbox
 when all it has is the ID (for example, when opening a bookmarked message).
-I've removed this as it seems of little use to most native clients, and over
+I’ve removed this as it seems of little use to most native clients, and over
 complicates things a bit. Thoughts?</li>
 <li>By returning a canCalculateUpdates response, different implementations can
 support delta updates for just mailboxes, mailboxes + some/all searches or not
 at all, depending on their internal data structures. Does this sound
 reasonable? At FM, we support it for mailbox listings, but not for searches.</li>
-<li>GMail doesn't support sorting by anything other than "dateDescending".
+<li>GMail doesn’t support sorting by anything other than “dateDescending”.
 Perhaps this should be part of a getCapabilities response as well.</li>
-<li>From the appearance of their web client at least, GMail's search
+<li>From the appearance of their web client at least, GMail’s search
 infrastructure does not always know how many results there are (presumably
-because it doesn't allow sort by anything other than date descending, it has
+because it doesn’t allow sort by anything other than date descending, it has
 optimised internal data structures for searching just the newest messages
-until it has enough results). I don't have any great ideas for handling that
-right now; one of the nice things about this API is that it's the same doing
+until it has enough results). I don’t have any great ideas for handling that
+right now; one of the nice things about this API is that it’s the same doing
 a search as fetching a mailbox.</li>
 <li>The search in most implementations is expected to use an index; it will not
 be IMAP-style substring search. TODO: Specify a sane search syntax and
 flexible semantics.</li>
 </ul>
+
 
 <hr>
 
@@ -975,27 +943,28 @@ flexible semantics.</li>
 <p>This method allows you to efficiently fetch the changes that have happened to
 the message list since your current state.</p>
 
-<h3 id=arguments:-7><span class=secno>13.1 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>mailboxId: String</li>
-<li>search: String</li>
-<li>sort: String
-(uid|date|from|to|subject|size)(Descending|Ascending)(Flagged)?</li>
-<li>useConversations: Boolean
-(if true, uses conversation mode to fetch the updates)</li>
-<li>state: String</li>
-<li>uptoMessageId: String|null
-(The message id of the last message in the message list the client
-currently knows about; used to optimise updates when the client only has a
-partial cache of the message list – the server can not bother sending
-updates which the client doesn't need)</li>
-<li>maximumChanges: Number</li>
+<li>mailboxId: <code>String</code></li>
+<li>search: <code>String</code></li>
+<li>sort: <code>String</code>
+  (uid|date|from|to|subject|size)(Descending|Ascending)(Flagged)?</li>
+<li>useConversations: <code>Boolean</code>
+  (if true, uses conversation mode to fetch the updates)</li>
+<li>state: <code>String</code></li>
+<li>uptoMessageId: <code>String</code>|<code>null</code>
+  (The message id of the last message in the message list the client
+  currently knows about; used to optimise updates when the client only has a
+  partial cache of the message list – the server can not bother sending
+  updates which the client doesn’t need)</li>
+<li>maximumChanges: <code>Number</code></li>
 </ul>
 
-<h3 id=example:><span class=secno>13.2 </span>Example:</h3>
 
-<pre><code>["getMailboxMessageListUpdates", {
+<h3>Example:</h3>
+
+<pre><code>["getMessageListUpdates", {
   "mailboxId": "f12",
   "search": "",
   "sort": "dateDescending",
@@ -1005,77 +974,72 @@ updates which the client doesn't need)</li>
 }]
 </code></pre>
 
-<h3 id=description:-3><span class=secno>13.3 </span>Description:</h3>
+<h3>Description:</h3>
 
 <ol>
 <li><p>If a mailbox id is given and there is no mailbox with that id, return a
- mailboxDoesNotExist error and exit the method.</p></li>
+“mailboxDoesNotExist” error and exit the method.</p></li>
 <li><p>If the update cannot be calculated for the given arguments, for whatever
- reason, return a "cannotCalculateUpdates" error and exit the method.</p></li>
+reason, return a “cannotCalculateUpdates” error and exit the method.</p></li>
 <li><p>Take the list of messages in the mailbox given (if a mailboxId is supplied)
- otherwise all messages for the user then remove those that do not match
- the search terms, if given.</p></li>
+otherwise all messages for the user then remove those that do not match
+the search terms, if given.</p></li>
 <li><p>Sort the message list in the direction given as a parameter.</p></li>
 <li><p>Starting from the beginning of the list and continuing up to and including
- the message given in the uptoMessageId parameter (or if this is not
- found or not supplied then until the end of the list is reached), find:</p>
+the message given in the uptoMessageId parameter (or if this is not
+found or not supplied then until the end of the list is reached), find:</p>
 
 <p>If useConversations == true</p>
 
 <p>a) the messageIds for messages that no longer represent their
-    conversation (because the message has been deleted or another message
-    with higher precedence in the current sort order has arrived).</p>
+   conversation (because the message has been deleted or another message
+   with higher precedence in the current sort order has arrived).</p>
 
 <p>b) the messageIds and indexes of messages that newly represent a
-    conversation in that view.</p>
-
-<p>c) the messageIds for messages that have had flag changes but not been
-    deleted or appended.</p>
+   conversation in that view.</p>
 
 <p>Else if useConversations == false</p>
 
 <p>a) messages that have been deleted.</p>
 
-<p>b) messages have been appended to the mailbox.</p>
-
-<p>c) messages that have had flag changes but not been deleted or appended.</p></li>
-<li><p>If the number of messages in the added, removed and changed array combined
- is greater than the maximumChanges argument given, return a tooManyChanges
- error; the client can instead wipe its cache and start again. Otherwise
- return an updateMessageList response as detailed below.</p></li>
+<p>b) messages have been appended to the mailbox.</p></li>
+<li><p>If the number of messages in the added and removed arrays combined
+is greater than the maximumChanges argument given, return a tooManyChanges
+error; the client can instead wipe its cache and start again. Otherwise
+return an updateMessageList response as detailed below.</p></li>
 </ol>
 
-<h3 id=response-name:-3><span class=secno>13.4 </span>Response name:</h3>
+
+<h3>Response name:</h3>
 
 <p>updateMessageList</p>
 
-<h3 id=arguments:-8><span class=secno>13.5 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>mailboxId: String</li>
-<li>useConversations: Boolean</li>
-<li>oldState: String
-(echoed back from request)</li>
-<li>newState: String
-(the new state identifier the message list has been updated to)</li>
-<li>uptoMessageId: String
-(echoed back from request)</li>
-<li>sort: String
-(echoed back from the request)</li>
-<li>filter: String
-(echoed back from the request)</li>
+<li>mailboxId: <code>String</code></li>
+<li>useConversations: <code>Boolean</code></li>
+<li>oldState: <code>String</code>
+ (echoed back from request)</li>
+<li>newState: <code>String</code>
+ (the new state identifier the message list has been updated to)</li>
+<li>uptoMessageId: <code>String</code>
+ (echoed back from request)</li>
+<li>sort: <code>String</code>
+ (echoed back from the request)</li>
+<li>search: <code>String</code>
+ (echoed back from the request)</li>
 <li>removed: <code>Array&lt;String&gt;</code>
-('removed' array from algorithm below)</li>
-<li>added: List of two-element [Number, String] lists
-('added' array from algorithm below. The number in each tuple is the index of
-the message in the list, starting from 1)</li>
-<li>changed: (<code>Array&lt;String&gt;</code>)
-('changed' array from algorithm below)</li>
-<li>total: Number
-(total number of conversations in the mailbox)</li>
-<li>userModSeq: String
-(the current global modseq for the user)</li>
+ (‘removed’ array from algorithm below)</li>
+<li>added: List of two-element [<code>Number</code>, <code>String</code>] lists
+ (‘added’ array from algorithm below. The number in each tuple is the index of
+  the message in the list, starting from 0)</li>
+<li>total: <code>Number</code>
+ (total number of conversations in the mailbox)</li>
+<li>userModSeq: <code>String</code>
+ (the current global modseq for the user)</li>
 </ul>
+
 
 <p>Example response:</p>
 
@@ -1086,9 +1050,9 @@ the message in the list, starting from 1)</li>
   newState: "v3123l145m419",
   uptoMessageId: "f12u242",
   sort: 'dateDescending',
-  filter: '',
+  search: '',
   removed: ["f12u53", "f12u125", "f12u136"],
-  added: [[1, "f12u452"],[2, "f12u253"],[22, "f12u454"]],
+  added: [[0, "f12u452"],[2, "f12u253"],[22, "f12u454"]],
   changed: ["c1", "c2", "c4"],
   total: 25
 }]
@@ -1111,7 +1075,7 @@ let useConversations = args.useConversations
 # Similarly, a mutable sort is one which sorts by a mutable property, e.g.
 # sort flagged messages/conversations first.
 let isMutable = search.isMutable() || sort.isMutable()
-let totalIsKnown = totalIsInCache( search, useConversations )
+let totalIsKnown = totalIsInCache( mailbox, search, useConversations )
 let uptoHasBeenFound = false
 
 let SeenExemplar = useConversations ? empty set : null
@@ -1175,7 +1139,6 @@ foreach msg in sortedMailbox {
     let modSeq = msg.modSeq
     # Has the message changed since the last update?
     if modSeq &gt; args.modSeq {
-      changed.push( msg.messageId )
       if isMutable &amp;&amp; isOldExemplar &amp;&amp; isNewExemplar {
         # We need to remove it from the client view (if there; we don't
         # know if it used to match the filter) and add it back in if it
@@ -1216,7 +1179,7 @@ if totalIsKnown {
   total = index + 1
 }
 
-return [ added, removed, changed, total, state ]
+return [ added, removed, total, state ]
 </code></pre>
 
 <p>Note! There is one case where this algorithm does not work, which is when
@@ -1225,50 +1188,53 @@ b) Either the sort or search is on a mutable message property (i.e. search for
    messages with flag \X).</p>
 
 <p>In this situation, any message in the mailbox is then potentially an old
-   exemplar. NB, it's OK if the sort and/or search is on a mutable
-   <strong>conversation</strong> property which has counts stored in the conversations DB
-   (i.e. search for messages within a conversation that has at least one
-   message with flag \X, or sort by flagged conversation).</p>
+exemplar. NB, it’s OK if the sort and/or search is on a mutable
+<strong>conversation</strong> property which has counts stored in the conversations DB
+(i.e. search for messages within a conversation that has at least one
+message with flag \X, or sort by flagged conversation).</p>
 
 <p>The server should reject requests that cannot be calculated, rather
-   than returning bogus results. The canCalculateUpdates response of the
-   original getMessageList call should have been <code>false</code> so the client should
-   know it cannot fetch updates for that.</p>
+than returning bogus results. The canCalculateUpdates response of the
+original getMessageList call should have been <code>false</code> so the client should
+know it cannot fetch updates for that.</p>
 
-<p>How to apply the updates on the client:</p>
+<h3>How to apply the updates on the client:</h3>
 
 <p>Suppose the client will have a sparse list of messageIds:
 e.g. <code>[ 'm1u1', 'm1u2', 'm1u3', 'm1u4', -, -, -, 'm1u8', -, ...]</code></p>
 
 <ol>
 <li>Check the oldState property matches the current state of the list. Also check
-the sort and filter are the same. If any of these don't match, abort and
+the sort and search are the same. If any of these don’t match, abort and
 re-request an update from the actual current state.</li>
 <li>If the newState property is the same as the current state of the list,
 nothing to do, so return.</li>
-<li>If there's an uptoMessageId, search for this id. If found, remove
+<li>If there’s an uptoMessageId, search for this id. If found, remove
 anything after it in the list. If not found, abort, reset the list and start
 again with getMailboxMessageList.</li>
 <li>Search for each of the messageIds in the <code>removed</code> list and remove them
-from the client's list (without leaving a gap – this is a splice operation).
-If any can't be found, keep processing but after finishing, null out anything
+from the client’s list (without leaving a gap – this is a splice operation).
+If any can’t be found, keep processing but after finishing, null out anything
 after the first gap in the list. e.g. referring to the example sparse list
-above, 'm1u8' would be removed as it's after the first gap.</li>
+above, ‘m1u8’ would be removed as it’s after the first gap.</li>
 <li>Iterate through the [ position, messageId ] tuples in the <code>added</code> list
 in order, inserting the messageIds at the positions indicated.</li>
 <li>Set the list length to that given in the <code>total</code> property.</li>
 </ol>
 
+
 <p>Note, adding or removing an item to/from the list shifts the position of
 everything around it.</p>
 
-<p>e.g. adding 'm2' in position 2: <code>[ 'm1', 'm3' ] -&gt; [ 'm1', 'm2', 'm3' ]</code>
-e.g. removing 'm2': <code>[ 'm1', 'm2', 'm3' ] -&gt; [ 'm1', 'm3' ]</code></p>
+<p>e.g. adding ‘m2’ in position 2: <code>[ 'm1', 'm3' ] -&gt; [ 'm1', 'm2', 'm3' ]</code></p>
 
-<h3 id=!discussion-points-1><span class=secno>13.6 </span>!Discussion points</h3>
+<p>e.g. removing ‘m2’: <code>[ 'm1', 'm2', 'm3' ] -&gt; [ 'm1', 'm3' ]</code></p>
+
+<h3>!Discussion points</h3>
 
 <ul>
-<li>At FM, we support getMessageListUpdates for mailbox listings, but not for searches (as the UID is per-folder, and it would need to be global).</li>
+<li>At FM, we support getMessageListUpdates for mailbox listings, but not for
+searches (as the UID is per-folder, and it would need to be global).</li>
 <li>To implement this, the server must keep the metadata at least of deleted
 (expunged) messages for a little while. At FM, we keep them for 1-2 weeks
 (very useful for restoring accidentally deleted messages as well). At cleanup
@@ -1276,107 +1242,372 @@ time (when actually removing the messages), the server must keep track of the
 highest modseq of a message it has removed in that mailbox (the modseq would
 have been set at the original delete time); any requests for updates from a
 state before this must be rejected, as the results may be incorrect.</li>
-<li>At FM, we have two extra parameters: fetchUpdates and fetchNewIfLessThan.
-These save a round trip by making implicit calls to getMessages to fetch the
-flag updates and new message headers for the response. It's a bit convoluted
-though (and awkward to specify all the necessary arguments), so I've dropped
-it from this API spec for now.</li>
+<li>At FM, we have an extra parameter: fetchNewIfLessThan. These save a round
+trip by making an implicit call to getMessages to fetch the new message
+headers for the response. It’s a bit convoluted though (and awkward to
+specify all the necessary arguments), so I’ve dropped it from this API spec
+for now.</li>
 </ul>
+
 
 <hr>
 
-<h2 id=getconversationupdates><span class=secno>14 </span>getConversationUpdates</h2>
+<h2 id=getmessages><span class=secno>14 </span>getMessages</h2>
 
-<h3 id=arguments><span class=secno>14.1 </span>Arguments</h3>
-
-<ul>
-<li>state: String</li>
-<li>maximumChanges: Number</li>
-</ul>
-
-<h3 id=description><span class=secno>14.2 </span>Description</h3>
-
-<p>Gets the list of conversation ids for conversations that have changed since the
-given state. If the maximum number exceeds the maximumChanges argument, return
-a "tooManyChanges" error. Otherwise, return the list of changed conversation
-ids (all conversations with a message in them with a higher modseq than the
-given state).</p>
-
-<p>The client can use this to work out which conversations it needs to refetch
-after it detects a change (either by the new modseq being pushed, or by it
-noticing a difference in user-modseq returned with another method).</p>
-
-<h3 id=response-name:-4><span class=secno>14.3 </span>Response name:</h3>
-
-<p>conversationUpdates</p>
-
-<h3 id=arguments:-9><span class=secno>14.4 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>oldState: String
-(echoed back from request)</li>
-<li>newState: String
-(the current state)</li>
-<li>changed: <code>Array&lt;conversationId&gt;</code>
-(array of conversation ids for conversations that have changed)</li>
-<li>userModSeq: String
-(the current global modseq for the user)</li>
+<li>ids: <code>Array&lt;String&gt;</code>
+  (a list of unique message ids)</li>
+<li>properties: <code>Array&lt;String&gt;</code>
+  (a list of properties to fetch for email message)</li>
+<li>fetchConversations: <code>Boolean</code></li>
 </ul>
+
+
+<h3>Description:</h3>
+
+<p>For each message id specified in the ids parameter, the server should fetch
+the parts/properties of the message requested in the properties parameter.</p>
+
+<p>If any id in the list corresponds to a message which cannot be found (reasons
+like the message being deleted, the decoded mailbox no longer existing,
+the uid being higher than the max uid in the mailbox, etc.) then it should be
+added to a missing list and the server should skip to the next id.</p>
+
+<p>The following properties are returned in the format described below:</p>
+
+<ul>
+<li><em>conversationId</em>: (<code>String</code>) The conversation id of the message</li>
+<li><em>mailboxId</em>: (<code>String</code>) The mailbox id of the mailbox the message is in.</li>
+<li><em>rawUrl</em>: (<code>String</code>) A url to download the original RFC8222 message from.</li>
+<li><em>isUnread</em>: (<code>Boolean</code>) Is the message unread?</li>
+<li><em>isFlagged</em>: (<code>Boolean</code>) Is the message flagged/starred?</li>
+<li><em>isAnswered</em>: (<code>Boolean</code>) Has the message been replied to?</li>
+<li><em>isDraft</em>: (<code>Boolean</code>) Is the message a draft?</li>
+<li><em>hasAttachment</em>: (<code>Boolean</code>) Does the message have any attachments?</li>
+<li><em>labels</em>: (<code>Array&lt;String&gt;</code>) An array of labels/keywords applied to the
+message.</li>
+<li><em>from</em>: (<code>Array</code>|<code>null</code>) An array of name/email objects (see below)
+representing the parsed From header, if present (otherwise <code>null</code>). Note,
+although normally of length 1, technically this could be of length 0 or 2+.</li>
+<li><em>to</em>: (<code>Array</code>|<code>null</code>) An array of name/email objects (see below) representing
+the parsed To header, if present (otherwise <code>null</code>).</li>
+<li><em>cc</em>: (<code>Array</code>|<code>null</code>) An array of name/email objects (see below) representing
+the parsed CC header, if present (otherwise <code>null</code>).</li>
+<li><em>bcc</em>: (<code>Array</code>|<code>null</code>) An array of name/email objects (see below)
+representing the parsed BCC header, if present (otherwise <code>null</code>).</li>
+<li><em>replyTo</em>: (<code>Array</code>|<code>null</code>) An array of name/email objects (see below)
+representing the parsed Reply-To header, if present (otherwise <code>null</code>).</li>
+<li><em>subject</em>: (<code>String</code>) The subject of the message</li>
+<li><em>date</em>: (Date) The date the message was sent (or saved, if a draft).</li>
+<li><em>size</em>: (<code>Number</code>) The size in bytes of the whole message.</li>
+<li><em>preview</em>: (<code>String</code>) The first 120 characters of a plain text version of the
+body. This is intended to be shown as a preview line on a mailbox listing,
+and the server may choose to skip quoted sections or salutations to return
+a more useful preview.</li>
+<li><em>textBody</em>: (<code>String</code>|<code>null</code>) Returns the plain text body part for the message
+if present</li>
+<li><em>htmlBody</em>: (<code>String</code>|<code>null</code>) Returns the html body part for the message if
+present</li>
+<li><em>body</em>: This is special in that there’s no property called just “body” on
+the object returned. Instead, if there is an HTML part, it will return an
+“htmlBody” response, but if there is only a plain part, it will return a
+“textBody” response.</li>
+<li><em>attachments</em>: (<code>Array</code>|<code>null</code>) An array of attachment objects (see below)
+describing all the attachments to the message.</li>
+<li><em>attachedMessages</em>: (<code>Object</code>|<code>null</code>) Returns an object mapping attachment id
+(as found in the attachments response) to a message object with all the
+same properties requested for this message, for every attached message
+(flag properties are ignored).</li>
+</ul>
+
+
+<p>An attachment object looks like this:</p>
+
+<pre><code>{
+  id: String,
+  url: String,  // A url to download the attachment
+                // (requires same authentication mechanism)
+  type: String, // The MIME type of the attachment.
+  name: String, // The full file name, e.g. 'myworddocument.doc'
+  size: Number, // Size in bytes
+  isInline: Boolean, // True if the attachment is referenced by a cid link
+                     // from within the HTML body.
+  width: Number, // (optional) Width (in px) of image.
+  height: Number // (optional) Height (in px) of image.
+}
+</code></pre>
+
+<p>The from/to/cc/bcc/replyTo fields are parsed into an array of objects like so:</p>
+
+<pre><code>[{name:"Joe Bloggs", email:"joe@bloggs.com"},
+ {name:"John Smith", email:"john@smith.com"}]
+</code></pre>
+
+<p>If a name cannot be extracted for an email, the name property of the object
+should be the empty string.</p>
+
+<p>Any property asked for that is not in the list above should be interpreted as
+a request for the header of the same name, and should be returned as a string.
+Note, this is case-sensitive, thus requesting “To” would return the raw To header, whereas requesting “to”, returns the parsed version as specified
+above.</p>
+
+<p>If fetchConversations is true, after returning the <code>messages</code> response, a
+call should be made to getConversations with the conversationId of each of
+the returned messages as the ids argument.</p>
+
+<h3>Response name:</h3>
+
+<p>messages</p>
+
+<h3>Arguments:</h3>
+
+<ul>
+<li>state: <code>String</code>
+  (this string will change whenever any message is added/removed/changed
+   for the user. It can be passed to getMessageUpdates.)</li>
+<li>list: <code>Array</code> of <code>Message Object</code>s
+  (an array of message objects containing the messageId plus the requested
+   properties)</li>
+<li>missing: <code>Array</code> of <code>String</code> (optional)
+  (a list of message ids which were requested, but could not be found)</li>
+</ul>
+
+
+<h3>Example</h3>
+
+<p>Request:</p>
+
+<pre><code>["getMessages", {
+  "ids": [ "f123u456", "f123u457" ],
+  "properties": [ "conversationId", "mailboxId", "from", "subject", "date" ]
+}, "#1"]
+</code></pre>
+
+<p>Response:</p>
+
+<pre><code>["messages", {
+  "state": "41234123231",
+  "list": [
+    {
+      messageId: "f123u457",
+      conversationId: "ef1314a",
+      mailboxId: "f123",
+      from: [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
+      subject: "Dinner on Thursday?",
+      date: "2013-10-13T14:12:00Z"
+    }
+  ],
+  missing: [ "f123u456" ]
+}, "#1"]
+</code></pre>
+
+<h3>!Discussion points</h3>
+
+<ul>
+<li>In Cyrus, header data is held in a cache for fast access, so the client will
+be faster if it just requests the fields it needs to display the mailbox,
+then fetches the rest (including the body) later, however there’s flexibility
+here for more basic clients to simply fetch everything they want upfront and
+not do anything complex.</li>
+<li>Labels in IMAP are very limited (no spaces, short maximum length, no foreign
+characters) Perhaps we should be returning label ids here, and have separate
+(get|set)Labels methods to map the ids to names (this makes them possible to
+rename across all messages as well).</li>
+<li>In GMail, mailboxes are (mostly) labels, so if a message has more than one
+label, I think the mailboxId for the message should = the id for the “All
+mail” mailbox (the only one that isn’t a label!).</li>
+<li>At FM, we have an extra argument called “unreadFlaggedDraftAndNewestOnly”,
+which restricts the set of returned message details to just those which are
+unread, flagged, a draft or the newest message in the conversation. This is
+a specific optimisation for not loading messages which will be collapsed when
+the user opens the conversation in our web UI, so I removed it.</li>
+<li>At FM, we “defang” the HTML (remove any malicious scripts etc.) at this point
+before returning it to the client. We also extract out any <code>&lt;style&gt;</code> tags in
+the HTML and return them as a separate property on the object. This seemed
+all a bit too specific for a general API, so in this spec I think we should
+return the original HTML from the message.</li>
+<li>The fetchConversations argument removes a roundtrip required before the
+mailbox list can be displayed when using conversation mode.</li>
+</ul>
+
 
 <hr>
 
-<h2 id=getmessagepreviews><span class=secno>15 </span>getMessagePreviews</h2>
+<h2 id=getconversations><span class=secno>15 </span>getConversations</h2>
 
-<h3 id=arguments:-10><span class=secno>15.1 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>search: String</li>
-<li>mailboxId: String|null</li>
-<li>messageIdList: <code>Array&lt;String&gt;</code></li>
+<li>ids: <code>Array&lt;String&gt;</code> // Array of conversation ids</li>
 </ul>
 
-<h3 id=description:-4><span class=secno>15.2 </span>Description:</h3>
 
-<p>For each id in the messageIdList:</p>
+<p>Example:</p>
+
+<pre><code>[ "getConversations", {
+  "ids": ["f123u4", "f41u44"]
+}]
+</code></pre>
+
+<h3>Description:</h3>
+
+<p>Look up the list of messages in the conversation, sorted oldest first, the
+from address of each message in the conversation, and the flags that are set
+on each message in the conversation.</p>
+
+<p>Any conversation ids that cannot be found should be returned in the optional
+missing argument.</p>
+
+<h3>Response name:</h3>
+
+<p>conversations</p>
+
+<h3>Arguments:</h3>
+
+<ul>
+<li>state: <code>String</code>
+  (this string will change whenever any message is added/removed/changed
+   for the user. It can be passed to getMessageUpdates.)</li>
+<li>list: <code>Array</code> of <code>Conversation Object</code>s</li>
+<li>missing: <code>Array</code> of `String (optional)
+  (the conversation ids requested which cannot be found)</li>
+</ul>
+
+
+<p>Where a Conversation Object is:</p>
+
+<pre><code>{
+  conversationId: String,
+  messages: [
+    {
+      messageId: String,
+      isUnread: Boolean,
+      isFlagged: Boolean,
+      isAnswered: Boolean,
+      isDraft: Boolean,
+      hasAttachment: Boolean,
+      from: Array // { name: String, email: String }
+    },
+    …
+  ],
+  size: Number // Total size of messages in conversation, in bytes.
+}
+</code></pre>
+
+<hr>
+
+<h2 id=getmessageupdates><span class=secno>16 </span>getMessageUpdates</h2>
+
+<h3>Arguments</h3>
+
+<ul>
+<li>state: <code>String</code></li>
+<li>maximumChanges: <code>Number</code></li>
+</ul>
+
+
+<h3>Description</h3>
+
+<p>This fetches the following:</p>
+
+<ol>
+<li>The list of all message ids for message which have been modified.</li>
+<li>The list of all conversation ids for messages which have been modified.</li>
+<li>The list of all mailbox ids containing messages which have been modified.</li>
+</ol>
+
+
+<p>If the number of message ids exceeds the maximumChanges argument, return
+a “tooManyChanges” error, otherwise return the lists of ids.</p>
+
+<p>The client can use this to work out which messages/conversations it needs to
+refetch after it detects a change (either by the new modseq being pushed, or by
+it noticing a difference in user-modseq returned with another method), and
+which mailbox message lists it needs to refresh.</p>
+
+<h3>Response name:</h3>
+
+<p>  messageUpdates</p>
+
+<h3>Arguments:</h3>
+
+<ul>
+<li>oldState: <code>String</code>
+  (echoed back from request)</li>
+<li>newState: <code>String</code>
+  (the current state)</li>
+<li>messageIds: <code>Array&lt;conversationId&gt;</code>
+  (array of message ids for messages that have changed)</li>
+<li>conversationIds: <code>Array&lt;conversationId&gt;</code>
+  (array of conversation ids for conversations containing changed messages)</li>
+<li>mailboxIds: <code>Array&lt;conversationId&gt;</code>
+  (array of mailbox ids for mailboxes containing changed messages)</li>
+</ul>
+
+
+<hr>
+
+<h2 id=getsearchmessagepreviews><span class=secno>17 </span>getSearchMessagePreviews</h2>
+
+<h3>Arguments:</h3>
+
+<ul>
+<li>ids: <code>Array&lt;String&gt;</code></li>
+<li>search: <code>String</code></li>
+<li>mailboxId: <code>String</code>|<code>null</code></li>
+</ul>
+
+
+<h3>Description:</h3>
+
+<p>This method fetches previews of messages when a search is in progress, with
+relevent parts of the preview highlighted.</p>
+
+<p>For each id in the messageIds:</p>
 
 <ol>
 <li><p>Create an empty preview object.</p></li>
 <li><p>Fetch the message. If found:</p></li>
 </ol>
 
+
 <p>a) If there is a search, find the section of message body that matches the
    supplied search terms. If this exists, HTML escape it, then highlight the
    search terms in it by wrapping them in <code>&lt;b&gt;&lt;/b&gt;</code> tags and add this as the
-   "body" property of the preview object.</p>
+   “body” property of the preview object.</p>
 
-<p>Otherwise, add the first 120(?) characters of the body, HTML escaped.</p>
+<p>   Otherwise, add the first 120(?) characters of the body, HTML escaped.</p>
 
 <p>b) If there is a search and the subject matches the search term, HTML escape
    it, then highlight the search terms in it by wrapping them in <code>&lt;b&gt;&lt;/b&gt;</code> tags
-   and add this as the "subject" property of the preview object.</p>
+   and add this as the “subject” property of the preview object.</p>
 
 <ol>
-<li>Add the preview object to the "previews" output object, using the
+<li>Add the preview object to the “previews” output object, using the
 messageId as the key.</li>
 </ol>
 
-<h3 id=response-name:-5><span class=secno>15.3 </span>Response name:</h3>
 
-<p>messagePreviews</p>
+<h3>Response name:</h3>
 
-<h3 id=arguments:-11><span class=secno>15.4 </span>Arguments:</h3>
+<p>  messagePreviews</p>
+
+<h3>Arguments:</h3>
 
 <ul>
-<li>search: String
-(echoed back from request)</li>
-<li>mailboxId: String|null
-(echoed back from request)</li>
+<li>search: <code>String</code>
+  (echoed back from request)</li>
+<li>mailboxId: <code>String</code>|<code>null</code>
+  (echoed back from request)</li>
 <li>previews: Object
-(maps each messageId from request to an object with optional "body"
- and "subject" properties)</li>
-<li>userModSeq: String
-(the current global modseq for the user)</li>
+  (maps each messageId from request to an object with optional “body”
+   and “subject” properties)</li>
+<li>userModSeq: <code>String</code>
+ (the current global modseq for the user)</li>
 </ul>
+
 
 <p>Example response:</p>
 
@@ -1398,245 +1629,9 @@ messageId as the key.</li>
 }]
 </code></pre>
 
-<hr>
-
-<h2 id=getmessages><span class=secno>16 </span>getMessages</h2>
-
-<h3 id=arguments:-12><span class=secno>16.1 </span>Arguments:</h3>
-
-<ul>
-<li>messageIdList: <code>Array&lt;String&gt;</code>
-(a list of unique message ids)</li>
-<li>properties: <code>Array&lt;String&gt;</code>
-(a list of properties to fetch for email message)</li>
-<li>fetchConversations: Boolean</li>
-</ul>
-
-<h3 id=description:-5><span class=secno>16.2 </span>Description:</h3>
-
-<p>For each messageId specified in the messageIdList parameter, the server
-  should fetch the parts/properties of the message requested in the properties
-  parameter.</p>
-
-<p>If any id in the list corresponds to a message which cannot be found (reasons
-  include the message being deleted, the decoded mailbox no longer existing,
-  the uid being higher than the max uid in the mailbox, etc.) then it should be
-  added to a missing list and the server should skip to the next id.</p>
-
-<p>The following properties are returned in the format described below:</p>
-
-<ul>
-<li><em>conversationId</em>: (String) The conversation id of the message</li>
-<li><em>mailboxId</em>: (String) The mailbox id of the mailbox the message is in.</li>
-<li><em>rawUrl</em>: (String) A url to download the original RFC8222 message from.</li>
-<li><em>isUnread</em>: (Boolean) Is the message unread?</li>
-<li><em>isFlagged</em>: (Boolean) Is the message flagged/starred?</li>
-<li><em>isAnswered</em>: (Boolean) Has the message been replied to?</li>
-<li><em>isDraft</em>: (Boolean) Is the message a draft?</li>
-<li><em>hasAttachment</em>: (Boolean) Does the message have any attachments?</li>
-<li><em>labels</em>: (<code>Array&lt;String&gt;</code>) An array of labels/keywords applied to the
-message.</li>
-<li><em>from</em>: (Array|null) An array of name/email objects (see below)
-representing the parsed From header, if present (otherwise null). Note,
-although normally of length 1, technically this could be of length 0 or 2+.</li>
-<li><em>to</em>: (Array|null) An array of name/email objects (see below) representing
-the parsed To header, if present (otherwise null).</li>
-<li><em>cc</em>: (Array|null) An array of name/email objects (see below) representing
-the parsed CC header, if present (otherwise null).</li>
-<li><em>bcc</em>: (Array|null) An array of name/email objects (see below) representing
-the parsed BCC header, if present (otherwise null).</li>
-<li><em>replyTo</em>: (Array|null) An array of name/email objects (see below)
-representing the parsed Reply-To header, if present (otherwise null).</li>
-<li><em>subject</em>: (String) The subject of the message</li>
-<li><em>date</em>: (Date) The date the message was sent (or saved, if a draft).</li>
-<li><em>size</em>: (Number) The size in bytes of the whole message.</li>
-<li><em>textBody</em>: (String|null) Returns the plain text body part for the message
-if present</li>
-<li><em>htmlBody</em>: (String|null) Returns the html body part for the message if
-present</li>
-<li><em>body</em>: This is special in that there's no property called just "body" on
-the object returned. Instead, if there is an HTML part, it will return an
-"htmlBody" response, but if there is only a plain part, it will return a
-"textBody" response.</li>
-<li><em>attachments</em>: (Array|null) An array of attachment objects (see below)
-describing all the attachments to the message.</li>
-<li><p><em>attachedMessages</em>: (Object|null) Returns an object mapping attachment id
-(as found in the attachments response) to a message object with all the
-same properties requested for this message, for every attached message.</p>
-
-<p>An attachment object looks like this:</p>
-
-<p>{
-  id: String,
-  url: String,  // A url to download the attachment (requires same authentication mechanism)
-  type: String, // The MIME type of the attachment.
-  name: String, // The full file name, e.g. 'myworddocument.doc'
-  size: Number, // Size in bytes
-  isInline: Boolean, // True if the attachment is referenced by a cid link
-                     // from within the HTML body.
-  width: Number, // (optional) Width (in px) of image.
-  height: Number // (optional) Height (in px) of image.
-}</p>
-
-<p>The from/to/cc/bcc/replyTo fields are parsed into an array of objects like so:</p>
-
-<p>[{name:"Joe Bloggs", email:"joe@bloggs.com"},
- {name:"John Smith", email:"john@smith.com"}]</p>
-
-<p>If a name cannot be extracted for an email, the name property of the object
-should be the empty string.</p>
-
-<p>Any property asked for that is not in the list above should be interpreted as
-a request for the header of the same name, and should be returned as a string.</p>
-
-<p>If fetchConversations is true, after returning the <code>messages</code> response, a
-call should be made to getConversations with the conversationId of each of
-the returned messages as the conversationIdList argument.</p></li>
-</ul>
-
-<h3 id=response-name:-6><span class=secno>16.3 </span>Response name:</h3>
-
-<p>messages</p>
-
-<h3 id=arguments:-13><span class=secno>16.4 </span>Arguments:</h3>
-
-<ul>
-<li>messageList: Object list
-(a list of message header objects containing the messageId plus the
- requested properties)</li>
-<li>missing: <code>Array&lt;messageId&gt;</code> (optional)</li>
-<li>userModSeq: String
-(the current global modseq for the user)</li>
-</ul>
-
-<h3 id=example><span class=secno>16.5 </span>Example</h3>
-
-<p>Request:</p>
-
-<pre><code>["getMessages", {
-  "messageIdList": [ "f123u456", "f123u457" ],
-  "properties": [ "conversationId", "mailboxId", "from", "subject", "date" ]
-}, "#1"]
-</code></pre>
-
-<p>Response:</p>
-
-<pre><code>["messages", {
-  "messageList": [
-    {
-      messageId: "f123u457",
-      conversationId: "ef1314a",
-      mailboxId: "f123",
-      from: [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
-      subject: "Dinner on Thursday?",
-      date: "2013-10-13T14:12:00Z"
-    }
-  ],
-  missing: [ "f123u456" ]
-}, "#1"]
-</code></pre>
-
-<h3 id=!discussion-points-2><span class=secno>16.6 </span>!Discussion points</h3>
-
-<ul>
-<li>In Cyrus, header data is held in a cache for fast access, so the client will
-be faster if it just requests the fields it needs to display the mailbox,
-then fetches the rest (including the body) later, however there's flexibility
-here for more basic clients to simply fetch everything they want upfront and
-not do anything complex.</li>
-<li>Labels in IMAP are very limited (no spaces, short maximum length, no foreign
-characters) Perhaps we should be returning label ids here, and have separate
-(get|set)Labels methods to map the ids to names (this makes them possible to
-rename across all messages as well).</li>
-<li>In GMail, mailboxes are (mostly) labels, so if a message has more than one
-label, I think the mailboxId for the message should = the id for the "All
-mail" mailbox (the only one that isn't a label!).</li>
-<li>At FM, we have an extra argument called "unreadFlaggedDraftAndNewestOnly",
-which restricts the set of returned message details to just those which are
-unread, flagged, a draft or the newest message in the conversation. This is
-a specific optimisation for not loading messages which will be collapsed when
-the user opens the conversation in our web UI, so I removed it.</li>
-<li>At FM, we "defang" the HTML (remove any malicious scripts etc.) at this point
-before returning it to the client. We also extract out any <code>&lt;style&gt;</code> tags in
-the HTML and return them as a separate property on the object. This seemed
-all a bit too specific for a general API, so in this spec I think we should
-return the original HTML from the message.</li>
-<li>The fetchConversations argument removes a roundtrip required before the
-mailbox list can be displayed when using conversation mode.</li>
-</ul>
-
-<hr>
-
-<h2 id=getconversations><span class=secno>17 </span>getConversations</h2>
-
-<h3 id=arguments:-14><span class=secno>17.1 </span>Arguments:</h3>
-
-<ul>
-<li>conversationIdList: <code>Array&lt;String&gt;</code></li>
-</ul>
-
-<p>Example:</p>
-
-<pre><code>[ "getConversations", {
-  "conversationIdList": ["f123u4", "f41u44"]
-}]
-</code></pre>
-
-<h3 id=description:-6><span class=secno>17.2 </span>Description:</h3>
-
-<p>Look up the list of messages in the conversation, sorted oldest first, how
-  many messages in the conversation are unread, how many are flagged, how many
-  are drafts, how many have an attachment, the list of participants for each
-  conversation and the total size of all the messages in the conversation.</p>
-
-<p>Any conversation ids that cannot be found should be returned in the optional
-  missing argument.</p>
-
-<p>Note: Draft messages should be ignored when determining the unread count of
-  a conversation (i.e. if a message has the \Draft flag set it does not count
-  towards the unread total for that conversation, even if it does not have a
-  \Seen flag).</p>
-
-<h3 id=response-name:-7><span class=secno>17.3 </span>Response name:</h3>
-
-<p>conversations</p>
-
-<h3 id=arguments:-15><span class=secno>17.4 </span>Arguments:</h3>
-
-<ul>
-<li>conversations: Conversation Object list</li>
-<li>missing: conversationId list (optional)</li>
-<li>userModSeq: String
-(the current global modseq for the user)</li>
-</ul>
-
-<p>Where a Conversation Object is:</p>
-
-<pre><code>{
-  conversationId: String,
-  senders: `Array&lt;{name: String, email: String}&gt;`,
-  messages: [
-    {
-      messageId: String,
-      isUnread: Boolean,
-      isFlagged: Boolean,
-      isAnswered: Boolean,
-      isDraft: Boolean,
-      hasAttachment: Boolean
-    }
-  ],
-  size: Number // Total size of messages in conversation, in bytes.
-}
-</code></pre>
-
-<p>The senders parameter contains an array of all people who sent messages that are
-part of this conversation. This list should not contain duplicate entries with
-the same email. If a name cannot be extracted, (i.e. the header 'from' field
-includes just an email), the name field should be the empty string.</p>
-
 <h1>3. Mailbox/conversation action APIs</h1>
 
-<h3 id=!discussion-points-3><span class=secno>18 </span>!Discussion points</h3>
+<h3 id=!discussion-points><span class=secno>18 </span>!Discussion points</h3>
 
 <ul>
 <li>Since the state of the server mailboxes may be different to the current state
@@ -1646,47 +1641,50 @@ check the new state. The client may make optimistic UI changes immediately
 based on the expected result of getMessageListUpdates and then make any
 necessary changes when the response arrives.</li>
 <li>At FM, we have an extra parameter to each of these methods:
-"applyToConversation", which can be one of three values: "yes", "no",
-"mailbox". This applies the action to respectively: all messages in the same
+“applyToConversation”, which can be one of three values: “yes”, “no”,
+“mailbox”. This applies the action to respectively: all messages in the same
 conversation as any of the message ids given, all messages in the same
 conversation and same mailbox as any of the message ids given, or just the
 message ids given. This is useful for doing actions on conversations without
-having to call "getConversations" on everything first, however it makes it a
-bit more uncertain about what is actually going to happen, so for now I've
+having to call “getConversations” on everything first, however it makes it a
+bit more uncertain about what is actually going to happen, so for now I’ve
 left it out.</li>
 <li>We might want to add an option to pass in the userModSeq (returned by the get
 commands) and have the method optionally refuse to execute if it does not
-match the user's current state, so a client has the option of guaranteeing
+match the user’s current state, so a client has the option of guaranteeing
 the state it is acting upon.</li>
 </ul>
+
 
 <hr>
 
 <h2 id=deletemessages><span class=secno>19 </span>deleteMessages</h2>
 
-<h3 id=arguments:-16><span class=secno>19.1 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>messageIdList: <code>Array&lt;String&gt;</code></li>
+<li>messageIds: <code>Array&lt;String&gt;</code></li>
 </ul>
 
-<h3 id=description:-7><span class=secno>19.2 </span>Description:</h3>
 
-<p>For each message referenced in the messageIdList:
-  - If the message doesn't exist, add it to a missing list.
+<h3>Description:</h3>
+
+<p>  For each message referenced in messageIds:
+  - If the message doesn’t exist, add it to a missing list.
   - Otherwise, permanently delete the message.</p>
 
-<h3 id=response-name:-8><span class=secno>19.3 </span>Response name:</h3>
+<h3>Response name:</h3>
 
-<p>messagesDeleted</p>
+<p>  messagesDeleted</p>
 
-<h3 id=arguments:-17><span class=secno>19.4 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
 <li>deleted: <code>Array&lt;messageId&gt;</code>
-(list of messageIds for every message that was deleted)</li>
+  (list of messageIds for every message that was deleted)</li>
 <li>missing: <code>Array&lt;messageId&gt;</code> (optional)</li>
 </ul>
+
 
 <p>Example response:</p>
 
@@ -1699,40 +1697,44 @@ the state it is acting upon.</li>
 
 <h2 id=movemessages><span class=secno>20 </span>moveMessages</h2>
 
-<h3 id=arguments:-18><span class=secno>20.1 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>messageIdList: <code>Array&lt;String&gt;</code></li>
-<li>destinationMailboxId: String</li>
+<li>messageIds: <code>Array&lt;String&gt;</code></li>
+<li>destinationMailboxId: <code>String</code></li>
 </ul>
 
-<h3 id=description:-8><span class=secno>20.2 </span>Description:</h3>
+
+<h3>Description:</h3>
 
 <ol>
-<li><p>If destinationMailboxId does not correspond to a valid mailbox id, output
- a "mailboxNotFound" error and exit the method.</p></li>
-<li><p>For each message referenced in the messageIdList:</p>
+<li><p> If destinationMailboxId does not correspond to a valid mailbox id, output
+ a “mailboxNotFound” error and exit the method.</p></li>
+<li><p> For each message referenced in messageIds:</p>
 
 <ul>
-<li>If the message doesn't exist, add it to a missing list.</li>
+<li>If the message doesn’t exist, add it to a missing list.</li>
 <li>Otherwise, move each message in the list to the mailbox with id
 destinationMailboxId.</li>
-</ul></li>
+</ul>
+</li>
 </ol>
 
-<h3 id=response-name:-9><span class=secno>20.3 </span>Response name:</h3>
 
-<p>messagesMoved</p>
+<h3>Response name:</h3>
 
-<h3 id=arguments:-19><span class=secno>20.4 </span>Arguments:</h3>
+<p>  messagesMoved</p>
+
+<h3>Arguments:</h3>
 
 <ul>
 <li>moved: oldMessageId -&gt; newMessageId map</li>
 <li>missing: <code>Array&lt;messageId&gt;</code> (optional)</li>
 </ul>
 
+
 <p>Note, the new message id may be the same as the old id (in systems using a
-per-user uid system or when you attempt to move a message to the mailbox it's
+per-user uid system or when you attempt to move a message to the mailbox it’s
 already in).</p>
 
 <p>Example response:</p>
@@ -1747,145 +1749,156 @@ already in).</p>
 }]
 </code></pre>
 
-<h3 id=!discussion-point><span class=secno>20.5 </span>!Discussion point</h3>
+<h3>!Discussion point</h3>
 
 <ul>
 <li>Deletion is a move to the trash folder (there is no \Deleted flag in this API)</li>
-<li>At FM, we keep track of which folder a message was deleted from, so that we can restore that message to the original folder if the user undeletes it (we have a specific extra API method for this: "restoreMessages"). Is this something we should consider adding to a general API?</li>
+<li>At FM, we keep track of which folder a message was deleted from, so that we can restore that message to the original folder if the user undeletes it (we have a specific extra API method for this: “restoreMessages”). Is this something we should consider adding to a general API?</li>
 </ul>
+
 
 <hr>
 
 <h2 id=copymessages><span class=secno>21 </span>copyMessages</h2>
 
-<h3 id=arguments:-20><span class=secno>21.1 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>messageIdList: <code>Array&lt;String&gt;</code></li>
-<li>destinationMailboxId: String</li>
+<li>messageIds: <code>Array&lt;String&gt;</code></li>
+<li>destinationMailboxId: <code>String</code></li>
 </ul>
 
-<h3 id=description:-9><span class=secno>21.2 </span>Description:</h3>
+
+<h3>Description:</h3>
 
 <ol>
-<li><p>If destinationMailboxId does not correspond to a valid mailbox id, output
- a "mailboxNotFound" error and exit the method.</p></li>
-<li><p>For each message referenced in the messageIdList:</p>
+<li><p> If destinationMailboxId does not correspond to a valid mailbox id, output
+ a “mailboxNotFound” error and exit the method.</p></li>
+<li><p> For each message referenced in messageIds:</p>
 
 <ul>
-<li>If the message doesn't exist, add it to a missing list.</li>
+<li>If the message doesn’t exist, add it to a missing list.</li>
 <li>Otherwise, copy each message in the list to the mailbox with id
 destinationMailboxId.</li>
-</ul></li>
+</ul>
+</li>
 </ol>
 
-<h3 id=response-name:-10><span class=secno>21.3 </span>Response name:</h3>
 
-<p>messagesCopied</p>
+<h3>Response name:</h3>
 
-<h3 id=arguments:-21><span class=secno>21.4 </span>Arguments:</h3>
+<p>  messagesCopied</p>
+
+<h3>Arguments:</h3>
 
 <ul>
-<li>destinationMailboxId: String
-(echoed back from request)</li>
+<li>destinationMailboxId: <code>String</code>
+  (echoed back from request)</li>
 <li>copied: sourceMessageId -&gt; copiedMessageId map
-(same as moveMessages response, except old message still exists)</li>
+  (same as moveMessages response, except old message still exists)</li>
 <li>missing: <code>Array&lt;messageId&gt;</code> (optional)</li>
 </ul>
+
 
 <p>Note, on some systems (GMail), copying to another mailbox will not copy the
 message, but simply add another label. In this case, the message in the new
 destination will have the same id as the original message; this can be seen tin
 the response.</p>
 
-<h3 id=discussion-points><span class=secno>21.5 </span>Discussion points</h3>
+<h3>Discussion points</h3>
 
 <ul>
 <li>What to do if copying takes user over quota?</li>
 </ul>
 
+
 <hr>
 
 <h2 id=setmessagesproperty><span class=secno>22 </span>setMessagesProperty</h2>
 
-<h3 id=arguments:-22><span class=secno>22.1 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>property: String
-('isUnread' or 'isFlagged')</li>
-<li>value: Boolean</li>
-<li>messageIdList: <code>Array&lt;String&gt;</code></li>
+<li>property: <code>String</code>
+(‘isUnread’ or ‘isFlagged’)</li>
+<li>value: <code>Boolean</code></li>
+<li>messageIds: <code>Array&lt;String&gt;</code></li>
 </ul>
 
-<h3 id=description:-10><span class=secno>22.2 </span>Description:</h3>
 
-<p>For each message referenced in the messageIdList:
-  - If the message doesn't exist, add it to a missing list.
+<h3>Description:</h3>
+
+<p>  For each message referenced in messageIds:
+  - If the message doesn’t exist, add it to a missing list.
   - Otherwise set or remove the flag specified by the property argument
     according to the value argument.</p>
 
-<h3 id=response-name:-11><span class=secno>22.3 </span>Response name:</h3>
+<h3>Response name:</h3>
 
-<p>messagesPropertySet</p>
+<p>  messagesPropertySet</p>
 
-<h3 id=arguments:-23><span class=secno>22.4 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>property: String
-(echoed back from request)</li>
-<li>value: Boolean
-(echoed back from request)</li>
+<li>property: <code>String</code>
+  (echoed back from request)</li>
+<li>value: <code>Boolean</code>
+  (echoed back from request)</li>
 <li>changed: <code>Array&lt;messageId&gt;</code>
-(list of all message whose property changed)</li>
+  (list of all message whose property changed)</li>
 <li>missing: <code>Array&lt;messageId&gt;</code> (optional)</li>
 </ul>
 
-<h3 id=!discussion-points-4><span class=secno>22.5 </span>!Discussion points</h3>
+
+<h3>!Discussion points</h3>
 
 <ul>
-<li>This should also set/remove labels as well, but I haven't yet thought about
+<li>This should also set/remove labels as well, but I haven’t yet thought about
 the best way to do this in the API.</li>
 </ul>
+
 
 <hr>
 
 <h2 id=reportmessages><span class=secno>23 </span>reportMessages</h2>
 
-<h3 id=arguments:-24><span class=secno>23.1 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>messageIdList: <code>Array&lt;String&gt;</code></li>
-<li>asSpam: Boolean</li>
+<li>messageIds: <code>Array&lt;String&gt;</code></li>
+<li>asSpam: <code>Boolean</code></li>
 </ul>
 
-<h3 id=description:-11><span class=secno>23.2 </span>Description:</h3>
 
-<p>For each message referenced in the messageIdList:
-  - If the message doesn't exist, add it to a missing list.
+<h3>Description:</h3>
+
+<p>  For each message referenced in messageIds:
+  - If the message doesn’t exist, add it to a missing list.
   - Otherwise, if register the message as spam/not spam (depending on the
     asSpam argument) with any appropriate database/feedback service.</p>
 
-<h3 id=response-name:-12><span class=secno>23.3 </span>Response name:</h3>
+<h3>Response name:</h3>
 
-<p>messagesReported</p>
+<p> messagesReported</p>
 
-<h3 id=arguments:-25><span class=secno>23.4 </span>Arguments:</h3>
+<h3>Arguments:</h3>
 
 <ul>
-<li>asSpam: Boolean</li>
+<li>asSpam: <code>Boolean</code></li>
 <li>changed: <code>Array&lt;messageId&gt;</code></li>
 <li>missing: <code>Array&lt;messageId&gt;</code> (optional)</li>
 </ul>
 
+
 <p>Notes:
-  This doesn't automatically move messages in/out of the Junk folder. This
+  This doesn’t automatically move messages in/out of the Junk folder. This
   method will therefore almost always be immediately followed by a moveMessages
   call.</p>
 
 <h1>Errors</h1>
 
 <p>If an error response is specified in the spec, it is to be added to the response
-instead of any other output from that method (so no half output + an error). An error response, is a message called "error", with arguments, "method" (the method that was called), "arguments" (the arguments that were given) and type (the error type, as specified in the methods above).</p>
+instead of any other output from that method (so no half output + an error). An error response, is a message called “error”, with arguments, “method” (the method that was called), “arguments” (the arguments that were given) and type (the error type, as specified in the methods above).</p>
 
 <p>Example:</p>
 
