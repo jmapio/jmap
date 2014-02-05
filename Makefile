@@ -3,7 +3,7 @@ TEMP:= $(shell mktemp -u /tmp/jmap.XXXXXX)
 index.html: jmap-spec.mdwn header.inc
 	@cat header.inc >> $(TEMP)
 	@markdown $< >> $(TEMP)
-	anolis $(TEMP) > $@
+	anolis --max-depth 2 $(TEMP) > $@
 	rm -f $(TEMP)
 
 clean:
