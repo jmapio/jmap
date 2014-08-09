@@ -1,0 +1,487 @@
+## Messages
+
+Just like in IMAP, a message is immutable except for the boolean `isXXX` status properties and the set of mailboxes it is in. This allows for more efficient caching of messages, and gives easier backwards compatibility for servers implementing an IMAP interface to the same data.
+
+JMAP completely hides the complexities of MIME. All special encodings of either headers or the body, such as base64, or RFC2047 encoding of non-ASCII characters, MUST be fully decoded into standard UTF-8.
+
+A **Message** object has the following properties:
+
+- **id**: `String`
+  The id of the message.
+- **threadId**: `String`
+  The id of the thread to which this message belongs.
+- **mailboxIds**: `String[]` (Mutable)
+  The ids of the mailboxes the message is in. A message MUST belong to one or more mailboxes at all times (until it is deleted).
+- **inReplyToMessageId**: `String|null`
+  The id of the Message this message is a reply to. This is primarily for drafts, but the server MAY support this for received messages as well by looking up the RFC2822 Message-Id referenced in the `In-Reply-To` header and searching for this message in the user's mail.
+- **isUnread**: `Boolean` (Mutable)
+  Has the message not yet been read? This corresponds to the **opposite** of the `\Seen` system flag in IMAP.
+- **isFlagged**: `Boolean` (Mutable)
+  Is the message flagged? This corresponds to the `\Flagged` system flag in IMAP.
+- **isAnswered**: `Boolean` (Mutable)
+  Has the message been replied to? This corresponds to the `\Answered` system flag in IMAP.
+- **isDraft**: `Boolean` (Mutable by the server only)
+  Is the message a draft? This corresponds to the `\Draft` system flag in IMAP.
+- **hasAttachment**: `Boolean`
+  Does the message have any attachments?
+- **rawUrl**: `String`
+  A url to download the original RFC2822 message from. See the JMAP over HTTP specification for details of the authentication required when accessing this URL.
+- **headers**: `String[String]`
+  A map of header name to (decoded) header value for all headers in the message. For headers that occur multiple times (e.g. `Received`), the values are concatenated with a single new line (`\n`) character in between each one.
+- **from**: `Emailer|null`
+  An Emailer object (see below) containing the name/email from the parsed `From` header of the email. If the email doesn't have a `From` header, this is `null`.
+- **to**:  `Emailer[]|null`
+  An array of name/email objects (see below) representing the parsed `To` header of the email, in the same order as they appear in the header. If the email doesn't have a `To` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
+- **cc**:  `Emailer[]|null`
+  An array of name/email objects (see below) representing the parsed `Cc` header of the email, in the same order as they appear in the header. If the email doesn't have a `Cc` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
+- **bcc**:  `Emailer[]|null`
+  An array of name/email objects (see below) representing the parsed `Bcc` header of the email. If the email doesn't have a `Bcc` header (which will be true for most emails outside of the Sent mailbox), this is `null`. If the header exists but does not have any content, the response is an array of zero length.
+- **replyTo**: `Emailer|null`
+  An Emailer object (see below) containing the name/email from the parsed `Reply-To` header of the email. If the email doesn't have a `Reply-To` header, this is `null`.
+- **subject**: `String`
+  The subject of the message.
+- **date**: `Date`
+  The date the message was sent (or saved, if the message is a draft).
+- **size**: `Number`
+  The size in bytes of the whole message as counted by the server towards the user's quota.
+- **preview**: `String`
+  Up to 256 characters of the beginning of a plain text version of the message body. This is intended to be shown as a preview line on a mailbox listing, and the server may choose to skip quoted sections or salutations to return a more useful preview.
+- **textBody**: `String|null`
+  The plain text body part for the message. If there is only an HTML version of the body, a plain text version will be generated from this.
+- **htmlBody**: `String|null`
+  The HTML body part for the message if present. If there is only a plain text version of the body, an HTML version will be generated from this. Any scripting content, or references to external plugins, MUST be stripped from the HTML by the server.
+- **attachments**: `Attachment[]|null`
+  An array of attachment objects (see below) detailing all the attachments to the message.
+- **attachedMessages**: `String[Message]|null`
+  An object mapping attachment id (as found in the `attachments` property) to a **Message** object with the following properties:
+  * headers
+  * from
+  * to
+  * cc
+  * bcc
+  * replyTo
+  * subject
+  * date
+  * textBody
+  * htmlBody
+  * attachments
+  * attachedMessage
+
+TODO:Custom props: 'x-propName'.Signature validity and detail.Per-message action metadata (ala Gmail Actions in the Inbox).
+
+An **Emailer** object has the following properties:
+
+- **name**: `String`
+  The name of the sender/recipient. If a name cannot be extracted for an email, this property should be the empty string.
+- **email**: `String`
+  The email address of the sender/recipient.
+
+Example Emailer object:
+
+    [
+        {name:"Joe Bloggs", email:"joeb@example.com"},
+        {name:"", email:"john@example.com"}
+    ]
+
+An **Attachment** object has the following properties:
+
+- **id**: `String`
+  The attachment id. This is only unique when paired with the message id, and has no meaning without reference to that.
+- **url**: `String`
+  A url to download the attachment. See the JMAP over HTTP specification for details of the authentication required when accessing this URL.
+- **type**: `String`
+  The content-type of the attachment.
+- **name**: `String`
+  The full file name, e.g. "myworddocument.doc"
+- **size**: `Number`
+  The size, in bytes, of the attachment when fully decoded (i.e. the number of bytes in the file the user would download).
+- **isInline**: `Boolean`
+  True if the attachment is referenced by a `cid:` link from within the HTML body of the message.
+- **width**: `Number` (optional)
+  The width (in px) of the image, if the attachment is an image.
+- **height**: `Number` (optional)
+  The height (in px) of the image, if the attachment is an image.
+
+### getMessages
+
+Messages can only be fetched explicitly by id. To fetch messages, make a call to `getMessages`. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If not given, defaults to the primary account.
+- **ids**: `String[]`
+  An array of ids for the messages to fetch.
+- **properties**: `String[]`
+  A list of properties to fetch for each message.
+
+The `id` property is always returned, regardless of whether it is in the list of requested properties. The possible values for `properties` can be found above in the description of the Message object. In addition to this, the client may request the following special values:
+
+- **body**: If `"body"` is included in the list of requested properties, it will be interpreted by the server as a request for `"htmlBody"` if the message has an HTML part, or `"textBody"` otherwise.
+- **headers.property**: Instead of requesting all the headers (by requesting the `"headers"` property, the client may specify the particular headers it wants using the `headers.property-name` syntax, e.g. `"headers.X-Spam-Score", "headers.X-Spam-Hits"`). The server will return a *headers* property but with just the requested headers in the object rather than all headers. If `"headers"` is requested, the server MUST ignore the individual header requests and just return all headers. If a requested header is not present in the message, it MUST not be present in the *headers* object. Header names are case-insensitive.
+
+The response to *getMessages* is called *messages*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **state**: `String`
+  A string encoding the current state on the server. This string will change
+  if any messages change (that is, a new messages arrives, a change is made to one of the mutable properties, or a message is deleted). It can be passed to *getMessageUpdates* to efficiently get the list of changes from the previous state.
+- **list**: `Message[]`
+  An array of Message objects for the requested message ids. This may not be in the same order as the ids were in the request.
+- **notFound**: `String[]|null`
+  An array of message ids requested which could not be found, or `null` if all
+  ids were found.
+
+The following errors may be returned instead of the *messages* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+Example request:
+
+    ["getMessages", {
+      "ids": [ "f123u456", "f123u457" ],
+      "properties": [ "threadId", "mailboxIds", "from", "subject", "date" ]
+    }, "#1"]
+
+and response:
+
+    ["messages", {
+      "state": "41234123231",
+      "list": [
+        {
+          messageId: "f123u457",
+          threadId: "ef1314a",
+          mailboxIds: [ "f123" ],
+          from: [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
+          subject: "Dinner on Thursday?",
+          date: "2013-10-13T14:12:00Z"
+        }
+      ],
+      notFound: [ "f123u456" ]
+    }, "#1"]
+
+
+### getMessageUpdates
+
+If a call to *getMessages* returns with a different *state* string in the response to a previous call, the state of the messages has changed on the server. For example, a new message may have been delivered, or an existing message may have changed mailboxes.
+
+The *getMessageUpdates* call allows a client to efficiently update the state of any cached messages to match the new state on the server. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If not given, defaults to the primary account.
+- **sinceState**: `String`
+  The current state of the client. This is the string that was returned as the *state* argument in the *messages* response. The server will return the changes made since this state.
+- **maxChanges**: `Number` (optional)
+  The maximum number of changed messages to return in the response. See below for a more detailed description.
+- **fetchMessages**: `Boolean`
+  If true, after outputting a *messageUpdates* response, an implicit call will be made to *getMessages* with a list of all message ids in the *changed* argument of the response as the *ids* argument, and the *fetchMessageProperties* argument as the *properties* argument.
+- **fetchMessageProperties**: `String[]|null`
+  The list of properties to fetch on any fetched messages. See *getMessages* for a full description.
+
+The response to *getMessageUpdates* is called *messageUpdates*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **oldState**: `String`
+  This is the *sinceState* argument echoed back; the state from which the server is returning changes.
+- **newState**: `String`
+  This is the state the client will be in after applying the set of changes to the old state.
+- **changed**: `String[]`
+  An array of message ids for messages that have either been created or had their state change, and are not currently deleted.
+- **removed**: `String[]`
+  An array of message ids for messages that have been deleted since the oldState.
+- **hasMoreUpdates**: `Boolean`
+  Indicates that *newState* is not the current server state and the client may fetch more changes by calling *getMessageUpdates* again.
+
+If a message has been modified AND deleted since the oldState, the server should just return the id in the *removed* response, but MAY return it in the changed response as well. If a message has been created AND deleted since the oldState, the server should remove the message id from the response entirely, but MAY include it in the *removed* response, and (if in the *removed* response) MAY included it in the *changed* response as well.
+
+The following errors may be returned instead of the *messageUpdates* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument, and the server is unable to return an update to an intermediate state. The client MAY retry with a higher max changes, (but with `fetchMessages:false` perhaps to limit the data transfer). Alternatively, the client can invalidate its Message cache.
+
+`cannotGetChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST not try to call *getMessageUpdates* again with the same *oldState*, and instead MUST invalidate its Message cache.
+
+### setMessages
+
+The *setMessages* method encompasses:
+
+- Creating a draft message
+- Sending a message
+- Changing the flags of a message (unread/flagged status)
+- Adding/removing a message to/from mailboxes (moving a message)
+- Deleting messages
+
+It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If not given, defaults to the primary account.
+- **ifInState**: `String` (optional)
+  This is a state string as returned by the *getMessages* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
+- **create**: `String[Message]` (optional)
+  A map of *creation id* (an arbitrary string set by the client) to Message objects (see below for a detailed description).
+- **update**: `String[Message]` (optional)
+  A map of id to a an object containing the properties to update for that Message.
+- **destroy**: `String[]` (optional)
+  A list of ids for Message objects to permanently delete.
+
+Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update the *isFlagged* field but not the *mailboxIds* field, if both are supplied in the update object for a message).
+
+If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+
+#### Saving a draft
+
+Creating messages via the *setMessages* method is only for creating draft messages and sending them. For delivering/importing a complete RFC2822 message, use the `importMessages` method.
+
+The properties of the Message object submitted for creation MUST conform to the following conditions:
+
+- **id**: This property MUST NOT be included. It is set by the server upon creation.
+- **threadId**: This property MUST NOT be included. It is set by the server upon creation.
+- **mailboxIds**: This property MUST be included. The value MUST include the id of either the mailbox with `role == "drafts"` (to save a draft) or the mailbox with `role == "outbox"` (to send the message). If this mailbox does not have `mustBeOnlyMailbox == true`, others may be included too.
+- **inReplyToMessageId**: Optional. If included, the server will look up this message and if found set appropriate `References` and `In-Reply-To` headers. These will override any such headers supplied in the *headers* property. If not found, the creation MUST be rejected with an `inReplyToNotFound` error.
+- **isUnread**: Optional, defaults to `false`. If included this MUST be `false`.
+- **isFlagged**: Optional, defaults to `false`.
+- **isAnswered**: Optional, defaults to `false`. If included this MUST be `false`.
+- **isDraft**: Optional, defaults to `true`. If included this MUST be `true`.
+- **hasAttachment**: This property MUST NOT be included. It is set by the server upon creation based on the attachments property.
+- **rawUrl**: This property MUST NOT be included. It is set by the server upon creation.
+- **headers**: Optional. The keys MUST only contain the characters A-Z, a-z, 0-9 and hyphens. 
+- **from**: Optional. Overrides a "From" in the *headers*.
+- **to**: Optional. Overrides a "To" in the *headers*.
+- **cc**: Optional. Overrides a "Cc" in the *headers*.
+- **bcc**:  Optional. Overrides a "Bcc" in the *headers*.
+- **replyTo**: Optional. Overrides a "Reply-To" in the *headers*.
+- **subject**: Optional. Defaults to the empty string (`""`).
+- **date**: Optional. If included... TODO(delayed send).
+- **size**: This MUST NOT be included. It is set by the server upon creation.
+- **preview**: This MUST NOT be included. It is set by the server upon creation.
+- **textBody**: Optional. If not supplied and an htmlBody is, the server SHOULD generate a text version for the message from this.
+- **htmlBody**: Optional. If this contains internal links (cid:) the cid value should be the attacment id.
+- **attachments**: Optional. An array of Attachment objects detailing all the attachments to the message. To add an attachment, the file must first be uploaded using the standard upload mechanism; this will give the client a URL that may be used to identify the file. The `id` property may be assigned by the client, and is solely used for matching up with `cid:<id>` links inside the `htmlBody`. The server MAY (and probably will) change the ids upon sending.
+ 
+  If one of the attachments is not found, the creation MUST be rejected with an `invalidProperties` error. An extra property SHOULD be included in the error object called `attachmentsNotFound`, of type `String[]`, which should be an array of the ids of any attachments that could not be found on the server.
+- **attachedMessages**: This MUST NOT be included.
+
+All optional properties default to `null` unless otherwise stated. Where included, properties MUST conform to the type given in the Message object definition. For compatibility with possible future extensions, the server MUST ignore any unknown properties in the object.
+
+If any of the properties are invalid, the server MUST reject the create with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+
+Other than making sure it conforms to the correct type, the server MUST NOT attempt to validate from/to/cc/bcc when saved as a draft. This is to ensure messages can be saved at any point. Validation occurs when the user tries to send a message.
+
+If a draft cannot be saved due to the user reaching their maximum mail storage quota, the creation MUST be rejected with a `maxQuotaReached` error.
+
+#### Updating messages
+
+Messages are mainly immutable, so to update a draft you have to create a new message and delete the old one. This ensures that if the draft is also being edited elsewhere, the two will split into two different drafts to avoid data loss.
+
+Only the following properties may be modified:
+
+- **mailboxIds**: The server MUST reject any attempt to add a message with `isDraft == false` to the outbox. The server MAY reject attempts to add a draft message to a mailbox that does not have a role of `drafts`, `outbox` or `templates`.
+- **isFlagged**
+- **isUnread**
+- **isAnswered**
+
+Note, a mailbox id may be a *creation id* (see `setFoos` for a description of how this works).
+
+If any of the properties in the update are invalid (immutable, wrong type, invalid value for the property – like a mailbox id for non-existant mailbox), the server MUST reject the update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+
+If the *id* given does not correspond to a Message in the given account, reject the update with a `notFound` error.
+
+To **delete a message** to trash, simply change the `mailboxIds` property so it is now in the mailbox with `role == "trash"`. If the mailbox has the property `mustBeOnlyMailbox == true`, it must be removed from all other mailboxes. Otherwise, leave it in those mailboxes so that it will be restored to its previous state if undeleted.
+
+#### Sending messages
+
+To send a message, either create a new message directly into the mailbox with `role == "outbox"` or move an existing draft into this mailbox. At this point the server will check that it has everything it needs for a valid message. In particular, that it has a valid "From" address, it has at least one address to send to, and all addresses in To/Cc/Bcc are valid email addresses. If it cannot send, it will reject the creation/update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object SHOULD also contain a *description* property of type `String` with a user-friendly description of the problems to present to the user.
+
+If the message is accepted, the server should **asynchronously** schedule the message to be sent **after** this method call is complete (note, this MAY occur before the next method in the same API request or after the whole API request is complete). This means that the `newState` string in the response represents a state where the message is still in the outbox. When the message is sent, the server MUST delete the message from the **outbox** and SHOULD create a **new** copy of the sent message (with a new id) in the **sent** mailbox, unless the user has indicated another preference. If `inReplyToMessageId` was set, the server SHOULD mark this message as `isAnswered: true` at this point, if found.
+
+#### Cancelling a send
+
+A message may be moved out of the **outbox** and back to the **drafts** mailbox using the standard update message mechanism, if it has not yet been sent at the time the method is called. This MUST cancel the queued send. If the message has already been sent then it will have been deleted from the outbox, so the update will fail with a standard `notFound` error.
+
+#### Destroying messages
+
+If the *id* given does not correspond to a Message in the given account, the server MUST reject the destruction with a `notFound` error.
+
+Destroying a message removes it from all mailboxes to which it belonged.
+
+#### Response
+
+The response to *setMessages* is called *messagesSet*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **oldState**: `String`
+  The state string that would have been returned by *getMessages* before making the requested changes.
+- **newState**: `String`
+  The state string that will now be returned by *getMessages*.
+- **created**: `String[Message]` (optional)
+  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully created Message, omitted if none.
+- **updated**: `String[]` (optional)
+  A list of Message ids for Messages that were successfully updated, omitted if none.
+- **destroyed**: `String[]` (optional)
+  A list of Message ids for Messages that were successfully destroyed, omitted if none.
+- **notCreated**: `String[SetError]` (optional)
+  A map of creation id to a SetError object for each Message that failed to be created, omitted if none. The possible errors are defined above.
+- **notUpdated**: `String[SetError]` (optional)
+  A map of Message id to a SetError object for each Message that failed to be updated, omitted if none. The possible errors are defined above.
+- **notDestroyed**: `String[SetError]` (optional)
+  A map of Message id to a SetError object for each Message that failed to be destroyed, omitted if none. The possible errors are defined above.
+
+The following errors may be returned instead of the *messagesSet* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+
+`accountReadOnly`: Returned if the account has `isReadOnly == true`.
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`stateMismatch`: Returned if an *ifInState* argument was supplied and it does not match the current state.
+
+### importMessage
+
+To *importMessage* method adds an RFC2822 message to a user's set of messages. The message must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If not given, defaults to the primary account.
+- **file**: `String`
+  The URL of the uploaded file (see the file upload section).
+- **mailboxIds** `String[]`
+  The ids of the mailbox(es) to assign this message to.
+- **isUnread**: `Boolean`
+- **isFlagged**: `Boolean`
+- **isAnswered**: `Boolean`
+- **isDraft**: `Boolean`
+
+If `isDraft == true`, the mailboxes MUST include the drafts or outbox mailbox. Adding to the outbox will send the message, as described in the *setMessages* section (it will NOT automatically mark any other message as *isAnswered*).
+
+The response to *importMessage* is called *messageImported*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for this call.
+- **messageId**: `String`
+  The message id of the created message.
+- **threadId**: `String`
+  The thread id of the created message.
+
+The following errors may be returned instead of the *messageImported* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+
+`accountReadOnly`: Returned if the account has `isReadOnly == true`.
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`notFound`: Returned if the URL given in the `file` argument does not correspond to an internal file.
+
+`invalidMailboxes`: Returned if one of the mailbox ids cannot be found, or an invalid combination of mailbox ids is specified.
+
+`maxQuotaReached`: Returned if the user has reached their mail quota so the message cannot be imported.
+
+### copyMessages
+
+The only way to move messages **between** two different accounts is to copy them using the *copyMessages* method, then once the copy has succeeded, delete the original. It takes the following arguments:
+
+- **fromAccountId**: `String` (optional)
+  The id of the account to copy messages from. If omitted, defaults to the primary account.
+- **toAccountId**: `String` (optional)
+  The id of the account to copy messages to. If omitted, defaults to the primary account.
+- **messages**: `String[MessageCopy]`
+  A map of *creation id* to a MessageCopy object.
+
+A **MessageCopy** object has the following properties:
+
+- **messageId**: `String`
+  The id of the message to be copied in the "from" account.
+- **mailboxIds**: `String[]`
+  The ids of the mailboxes (in the "to" account) to add the copied message to.
+- **isUnread**: `Boolean`
+  The *isUnread* property for the copy.
+- **isFlagged**: `Boolean`
+  The *isFlagged* property for the copy.
+- **isAnswered**: `Boolean`
+  The *isAnswered* property for the copy.
+- **isDraft**: `Boolean`
+  The *isDraft* property for the copy.
+
+The "from" account may be the same as the "to" account to copy messages within an account.
+
+The response to *copyMessages* is called *messagesCopied*. It has the following arguments:
+
+- **fromAccountId**: `String`
+  The id of the account messages were copied from.
+- **toAccountId**: `String`
+  The id of the account messages were copied to.
+- **copied**: `String[Message]`
+  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully copied Message, omitted if none.
+- **notCreated**: `String[SetError]|null`
+  A map of creation id to a SetError object for each Message that failed to be copied, `null` if none.
+
+The **SetError** may be one of the following types:
+
+`notFound`: Returned if the messageId given can't be found.
+
+`invalidMailboxes`: Returned if one of the mailbox ids cannot be found, or an invalid combination of mailbox ids is specified.
+
+`maxQuotaReached`: Returned if the user has reached their mail quota so the message cannot be copied.
+
+The following errors may be returned instead of the *messagesCopied* response:
+
+`fromAccountNotFound`: Returned if a *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`toAccountNotFound`: Returned if a *toAccountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`fromAccountNoMail`: Returned if the *fromAccountId* given corresponds to a valid account, but does not contain any mail data.
+
+`toAccountNoMail`: Returned if the *toAccountId* given corresponds to a valid account, but does not contain any mail data.
+
+`accountReadOnly`: Returned if the "to" account has `isReadOnly == true`.
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+### reportMessages
+
+Messages can be reported as spam or non-spam to help train the user's spam filter. This MUST NOT affect the state of the Message objects (it DOES NOT move a message into or out of the Spam mailbox).
+
+To report messages, make a call to *reportMessages*. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If not given, defaults to the primary account.
+- **messageIds**: `String[]`
+  The list of ids of messages to report.
+- **asSpam**: `Boolean`
+  If `true`, learn these messages as spam. If `false`, learn as non-spam.
+
+
+The response to *reportMessages* is called *messagesReported*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for this call.
+- **asSpam**: `Boolean`
+  Echoed back from the call
+- **reported**: `String[]`
+  The ids of each message successfully reported.
+- **notFound**: `String`
+  The ids of each message not found.
+
+The following errors may be returned instead of the *messagesReported* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+
+`accountReadOnly`: Returned if the account has `isReadOnly == true`.
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.

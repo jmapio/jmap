@@ -1,0 +1,246 @@
+## MessageLists
+
+A **MessageList** is a sorted query on the set of messages in a user's mailbox. Since it can be very long, the client must specify what section of the list to return. The client can optionally also fetch the threads and/or messages for this part of the list.
+
+The same message may appear in multiple messages lists. For example, it may belong to multiple mailboxes, and of course it can appear in searches. Since messages have an immutable id, a client can easily tell if it already has a message cached and only fetch the ones it needs.
+
+When the state changes on the server, a delta update can be requested to efficiently update the client's cache of this list to the new state. If the server doesn't support this, the client still only needs to fetch the message list again, not the messages themselves.
+
+### getMessageList
+
+To fetch a message list, make a call to *getMessageList*. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If omitted, the primary account will be used.
+- **filter**: `FilterOperator`
+  Determines the set of messages returned in the results. See the "Filtering" section below for allowed values and semantics.
+- **sort**: `String[]`
+  A list of Message property names to sort by. See the "Sorting" section below for allowed values and semantics.
+- **collapseThreads**: `Boolean`
+  If true, each thread will only be returned once in the resulting list, at the position of the first message in the list (given the filter and sort order) belonging to the thread.
+- **position**: `Number` (optional)
+  The 0-based index of the first result in the list to return. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **anchor**: `String` (optional)
+  A Message id. The index of this message id will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see the "Windowing" section below for more details).
+- **anchorOffset**: `Number` (optional)
+  The index of the anchor message relative to the index of the first result to return. This MAY be negative. For example, `-1` means the first message after the anchor message should be the first result in the results returned (see the "Windowing" section below for more details).
+- **limit**: `Number`
+  The maximum number of results to return. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given, the limit should be clamped to the maximum; since the total number of results in the list is returned, the client should not be relying on how many results are returned to determine if it has reached the end of the list. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **fetchThreads**: `Boolean`
+  If `true`, after outputting a *messageList* response, an implicit call will be made to *getThreads* with the *threadIds* array in the reponse as the *ids* argument, and the *fetchMessage* and *fetchMessageProperties* arguments passed straight through from the call to *getMessageList*.
+- **fetchMessages**: `Boolean`
+  If `true` and `fetchThreads == false`, then after outputting a *messageList* response, an implicit call will be made to *getMessages* with the `messageIds` array in the response as the *ids* argument, and the *fetchMessageProperties* argument as the *properties* argument.
+- **fetchMessageProperties**: `String[]|null`
+  The list of properties to fetch on any fetched messages. See *getMessages* for a full description.
+- **fetchSearchSnippets**: `Boolean`
+  If `true`, then after outputting a *messageList* and making any other implicit calls, an implicit call will be made to *getSearchSnippets*. The *messageIds* array from the response will be used as the *messageIds* argument, and the *filter* argument will be passed straight through.
+
+#### Filtering
+
+A **FilterOperator** object has the following properties:
+
+- **operator**: `String`
+  This MUST be one of the following strings: "AND"/"OR"/"NOT":
+  - **AND**: all of the conditions must match for the filter to match.
+  - **OR**: at least one of the conditions must match for the filter to match.
+  - **NOT**: none of the conditions must match for the filter to match.
+- **conditions**: `(FilterCondition|FilterOperator)[]`
+  The conditions to evaluate against each message.
+
+A **FilterCondition** object has the following properties:
+
+- **inMailboxes**: `String[]` (optional)
+  A list of mailbox ids. A message must be in ALL of these mailboxes to match the condition.
+- **notInMailboxes**: `String[]` (optional)
+  A list of mailbox ids. A message must NOT be in ANY of these mailboxes to match the condition.
+- **before**: `Date` (optional)
+  The date of the message (as returned on the Message object) must be before this date to match the condition.
+- **after**: `Date` (optional)
+  The date of the message (as returned on the Message object) must be on or after this date to match the condition.
+- **isFlagged**: `Boolean` (optional)
+  The `isFlagged` property of the message must be identical to the value given to match the condition.
+- **isUnread**: `Boolean` (optional)
+  The `isUnread` property of the message must be identical to the value given to match the condition.
+- **isAnswered**: `Boolean` (optional)
+  The `isAnswered` property of the message must be identical to the value given to match the condition.
+- **isDraft**: `Boolean` (optional)
+  The `isDraft` property of the message must be identical to the value given to match the condition.
+- **hasAttachment**: `Boolean` (optional)
+  The `hasAttachment` property of the message must be identical to the value given to match the condition.
+- **text**: `String` (optional)
+  Looks for the text in the *from*, *to*, *cc*, *bcc*, *subject*, *textBody* or *htmlBody* properties of the message.
+- **from**: `String` (optional)
+  Looks for the text in the *from* property of the message.
+- **to**: `String` (optional)
+  Looks for the text in the *to* property of the message.
+- **cc**: `String` (optional)
+  Looks for the text in the *cc* property of the message.
+- **bcc**: `String` (optional)
+  Looks for the text in the *bcc* property of the message.
+- **subject**: `String` (optional)
+  Looks for the text in the *subject* property of the message.
+- **body**: `String` (optional)
+  Looks for the text in the *textBody* or *htmlBody* property of the message.
+- **header**: `String[]` (optional)
+  The array MUST contain either one or two elements. The first element is the name of the header to match against. The second (optional) element is the text to look for in the header. If not supplied, the message matches simply if it *has* a header of the given name.
+
+The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
+
+- Text SHOULD be matched in a case-insensitive manner.
+- Text contained in either (but matched) single or double quotes SHOULD be treated as a **phrase search**, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use `\"`, `\'` and `\\` to match a literal `"`, `'` and `\` respectively in a phrase.
+- Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the message, but MUST all be present for the message to match the filter.
+- Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for `bus` would match "buses" but not "business").
+- When searching inside the *htmlBody* property, HTML tags and attributes SHOULD be ignored.
+
+#### Sorting
+
+The `sort` argument lists the properties to compare between two messages to determine which comes first in the sort. If two messages have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array is given as the argument), the sort order is server-dependent, but MUST be stable between calls to `getMessageList`.
+
+Optionally, following the property name there can be a space and then either the string `asc` or `desc` to specify ascending or descending sort for that property. If not specified, it MUST default to **descending**.
+
+The following properties may be used for sort:
+
+- **id** - The id as returned in the Message object.
+- **date** - The date as returned in the Message object.
+- **size** - The size as returned in the Message object.
+- **from** – This is taken to be either the "name" part of the Emailer object, or if none then the "email" part of the Emailer object (see the definition of the from property in the Message object). If still none, consider the value to be the empty string.
+- **to** - This is taken to be either the "name" part of the **first** Emailer object, or if none then the "email" part of the **first** Emailer object (see the definition of the to property in the Message object). If still none, consider the value to be the empty string.
+- **subject** - This is taken to be the subject of the Message with any ignoring any leading "Fwd:"s or "Re:"s (case-insensitive match).
+- **isFlagged** - If `collapseThreads == true`, this value MUST be considered `true` for the message if it is `true` for **any** of the messages in the thread.
+- **isUnread** - If `collapseThreads == true`, this value MUST be considered `true` for the message if it is `true` for **any** of the messages in the thread.
+
+The method of comparison depends on the type of the property:
+
+- `String`: Comparison function is server-dependent. It SHOULD be case-insensitive and SHOULD take into account locale-specific conventions if known for the user. However, the server MAY choose to just sort based on unicode code point, after best-effort translation to lower-case.
+- `Date`: If sorting in ascending order, the earlier date MUST come first.
+- `Boolean`: If sorting in ascending order, a `false` value MUST come before a `true` value.
+
+#### Thread collapsing
+
+When `collapseThreads == true`, then after filtering and sorting the message list, the list is further winnowed by removing any messages for a thread id that has already been seen (when passing through the list sequentially). A thread will therefore only appear **once** in the `threadIds` list of the result, at the position of the first message in the list that belongs to the thread.
+
+#### Windowing
+
+To paginate the results the client MUST **either** specify a *position* argument OR an *anchor* argument. If both, or neither are supplied, the call MUST be rejected with an `invalidArguments` error. The *anchorOffset* argument MUST be supplied **if and only** if the *anchor* argument is supplied. Any other case MUST be rejected with an `invalidArguments` error.
+
+If a *position* offset is supplied, then this is the 0-based index of the first result to return in the list of messages after filtering, sorting and collapsing threads. If the index is greater than or equal to the total number of messages in the list, then there are no results to return, but this DOES NOT generate an error.
+
+Alternatively, a message id, called the **anchor** may be given. In this case, after filtering, sorting and collapsing threads, the anchor is searched for in the message list. If found, the **anchor offset** is then subtracted from this index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
+
+#### Response
+
+The response to a call to *getMessageList* is called *messageList*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **filter**: `FilterCriterion[]`
+  The filter of the message list. Echoed back from the call.
+- **sort**: `String[]`
+  A list of Message property names used to sort by. Echoed back from the call.
+- **collapseThreads**: `Boolean`
+  Echoed back from the call.
+- **state**: `String`
+  A string encoding the current state on the server. This string will change
+  if the results of the message list MAY have changed (for example, there has been a change to the state of the set of Messages; it does not guarantee that anything in the list has changed). It may be passed to *getMessageListUpdates* to efficiently get the set of changes from the previous state.
+  
+  Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached list and fetch it again (note, this does not require fetching the messages again, just the list of ids) or, if the server supports it, call *getMessageListUpdates* to get the delta difference.
+- **canCalculateUpdates**: `Boolean`
+  This is `true` if the server supports calling `getMessageListUpdates` with these `filter`/`sort`/`collapseThreads` parameters. Note, this does not guarantee that the getMessageListUpdates call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
+- **position**: `Number`
+  The 0-based index of the first result in the `threadIds` array within the complete list.
+- **total**: `Number`
+  The total number of messages in the message list (given the *filter* and *collapseThreads* arguments).
+- **threadIds**: `String[]`
+  The list of Thread ids for each message in the list after filtering, sorting and collapsing threads, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids.
+- **messageIds**: `String[]`
+  The list of Message ids for each message in the list after filtering, sorting and collapsing threads, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids.
+
+The following errors may be returned instead of the `messageList` response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`anchorNotFound`: Returned if an anchor argument was supplied, but it cannot be found in the message list.
+
+### getMessageListUpdates
+
+The `getMessageListUpdates` call allows a client to efficiently update the state of any cached message list to match the new state on the server. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If omitted, the primary account will be used.
+- **filter**: `FilterCriterion[]`
+  The filter argument that was used with *getMessageList*.
+- **sort**: `String[]`
+  The sort argument that was used with *getMessageList*.
+- **collapseThreads**: `Boolean`
+  The *collapseThreads* argument that was used with *getMessageList*.
+- **sinceState**: `String`
+  The current state of the client. This is the string that was returned as the *state* argument in the *messageList* response. The server will return the changes made since this state.
+- **maxChanges**: `Number` (optional)
+  The maximum number of changes to return in the response. See below for a more detailed description.
+
+The response to *getMessageListUpdates* is called *messageListUpdates* It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **filter**: `FilterCriterion[]`
+  The filter of the message list. Echoed back from the call.
+- **sort**: `String[]`
+  A list of Message property names used to sort by. Echoed back from the call.
+- **collapseThreads**: `Boolean`
+  Echoed back from the call.
+- **oldState**: `String`
+  This is the `sinceState` argument echoed back; the state from which the server is returning changes.
+- **newState**: `String`
+  This is the state the client will be in after applying the set of changes to the old state.
+- **total**: `Number`
+  The total number of messages in the message list (given the filter and collapseThreads arguments).
+- **removed**: `RemovedItem[]`
+  The *messageId* and *threadId* for **every** message that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra messages in addition that MAY have been in the old list but are not in the new list.
+
+  In addition, if the sort includes the property *isUnread* or *isFlagged*, the server MUST include all messages in the current list for which this property MAY have changed. If `collapseThreads == true`, then the server MUST include all messages in the current list for which this property MAY have changed **on any of the messages in the thread**.
+
+- **added**: `AddedItem[]`
+  The messageId and threadId and index in the list (in the new state) for every message that has been added to the list since the old state AND every message in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.
+
+A **RemovedItem** object has the following properties:
+
+- **messageId**: `String`
+- **threadId**: `String`
+
+An **AddedItem** object has the following properties:
+
+- **messageId**: `String`
+- **threadId**: `String`
+- **index**: `Number`
+
+The result of this should be that if the client has a cached sparse array of message ids in the list in the old state:
+
+    messageIds = [ "id1", "id2", null, null, "id3", "id4", null, null, null ]
+
+then if it **splices out** all messages in the removed array:
+
+    removed = [{ messageId: "id2", … }];
+    messageIds => [ "id1", null, null, "id3", "id4", null, null, null ]
+
+and **splices in** (in order) all of the messages in the added array:
+
+    added = [{ messageId: "id5", index: 0, … }];
+    messageIds => [ "id5", "id1", null, null, "id3", "id4", null, null, null ]
+
+then the message list will now be in the new state.
+
+The following errors may be returned instead of the `messageListUpdates` response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the message list.
+
+`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the message list.

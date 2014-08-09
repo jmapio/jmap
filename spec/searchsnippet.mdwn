@@ -1,0 +1,41 @@
+## SearchSnippets
+
+When doing a search on a `String` property, the client may wish to show the relevant section of the body that matches the search as a preview instead of the beginning of the message, and to highlight any matching terms in both this and the subject of the message. Search snippets represent this data.
+
+A **SearchSnippet** object has the following properties:
+
+- **messageId**: `String`
+  The message id the snippet applies to.
+- **subject**: `String|null`
+  If text from the filter matches the subject, this is the subject of the message HTML-escaped, with matching words/phrases wrapped in `<b></b>` tags. If it does not match, this is `null`.
+- **preview**: `String|null`
+  If text from the filter matches the plain-text or HTML body, this is the relevant section of the body (converted to plain text if originaly HTML), HTML-escaped, with matching words/phrases wrapped in `<b></b>` tags, up to 256 characters long. If it does not match, this is `null`.
+
+It is server-defined what is a relevant section of the body for preview. If the server is unable to determine search snippets, it MUST just return `null` for both the *subject* and *preview* properties.
+
+Note, unlike most data types, a SearchSnippet DOES NOT have a property called `id`.
+
+### getSearchSnippets
+
+To fetch search snippets, make a call to `getSearchSnippets`. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If not given, defaults to the primary account.
+- **messageIds**: `String[]`
+  The list of ids of messages to fetch the snippets for.
+- **filter**: `FilterOperator`
+  The same filter as passed to getMessageList; see the description of this method for details.
+
+The response to `getSearchSnippets` is called `searchSnippets`. It has the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If not given, defaults to the primary account.
+- **filter**: `FilterOperator`
+  Echoed back from the call.
+- **list**: `Thread[]`
+  An array of SearchSnippets objects for the requested message ids. This may not be in the same order as the ids that were in the request.
+- **notFound**: `String[]|null`
+  An array of message ids requested which could not be found, or `null` if all
+  ids were found.
+
+Since snippets are only based on immutable properties, there is no state string or update mechanism needed.

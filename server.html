@@ -1,0 +1,365 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
+<link href="main.css" rel="stylesheet" type="text/css">
+<title>JSON Mail Access Protocol Specification (JMAP)</title>
+</head>
+<body>
+<header>
+<div id="logo">JMAP</div>
+<ul id="nav">
+    <li class="nav-item"><a class="nav-link" href="index.html">Intro</a></li>
+    <li class="nav-item"><a class="nav-link" href="spec.html">The Spec</a> </li>
+    <li class="nav-item"><a class="nav-link" href="client.html">Using JMAP</a></li>
+    <li class="nav-item"><a class="nav-link" href="server.html">Implementing JMAP</a></li>
+</ul>
+<a href="https://github.com/neilj/jmap"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+</header>
+<article>
+<h1>Advice for JMAP implementors</h1>
+
+<p>Thread collapsing</p>
+
+<p>Here is an example algorithm showing how threads work (minus the parsing
+of arguments and correct formatting of the response):</p>
+
+<pre><code>let messageList = args.mailboxId ?
+      mailbox[ args.mailboxId ] : allMessages;
+
+let sortedList = messageList.sortedBy( args.sort )
+let collapseThreads = args.collapseThreads
+
+let position = args.position
+let limit = args.limit
+let total = 0
+let messageIds = [] # NB Max size of array is limit
+let threadIds = []
+
+let SeenExemplar =  collapseThreads ? empty set : null
+let numFound = 0
+
+# Optimisation for the common case where the total number of results is
+# already known (e.g. because it's the total number of messages/threads
+# in the mailbox).
+let totalIsKnown = totalIsInCache( mailbox, collapseThreads )
+
+foreach msg in sortedList {
+  if !collapseThreads || !SeenExemplar{ msg.threadId } {
+
+    total += 1
+
+    if collapseThreads {
+      SeenExemplar.set( msg.threadId )
+    }
+
+    if position &gt;= total &amp;&amp; numFound &lt; limit {
+      messageIds.push( msg.id )
+      threadIds.push( msg.threadId )
+      numFound += 1
+      if numFound == limit &amp;&amp; totalIsKnown {
+        break;
+      }
+    }
+  }
+}
+
+if totalIsKnown {
+  total = getTotalFromCache( mailbox, collapseThreads )
+}
+
+return [ messageIds, threadIds, position, total, state ]
+</code></pre>
+
+<p>Delta update</p>
+
+<p>Implementation:</p>
+
+<p>Here is an example algorithm for calculating step 4:</p>
+
+<pre><code>let index = -1
+let added = []
+let removed = []
+let changed = []
+
+let collapseThreads = args.collapseThreads
+
+# A mutable search is one that contains a parameter which is mutable (i.e. a
+# flag). So for example a search for messages which are unread is mutable,
+# whereas a search for messages with "Joe Bloggs" in the From field is not.
+# Similarly, a mutable sort is one which sorts by a mutable property, e.g.
+# sort flagged messages/threads first.
+let isMutable = search.isMutable() || sort.isMutable()
+let totalIsKnown = totalIsInCache( mailbox, search, collapseThreads )
+let uptoHasBeenFound = false
+
+let SeenExemplar = collapseThreads ? empty set : null
+let SeenOldExemplar = collapseThreads ? empty set : null
+
+# Mailbox includes expunged messages from the last week.
+let sortedMailbox = mailbox.sortedBy( args.sort );
+
+foreach msg in sortedMailbox {
+
+  let isNewExemplar = false
+  let isOldExemplar = false
+  let inSearch = !search || search.matches( msg )
+
+  let isNew = ( msg.uid &gt;= args.uidNext )
+  let isChanged = ( msg.modSeq &gt; args.modSeq )
+  let isDeleted = ( msg.flags &amp; FLAG_EXPUNGED )
+  let wasDeleted = ( isDeleted &amp;&amp; !isChanged )
+
+  # Is this message the current exemplar?
+  if !isDeleted &amp;&amp; inSearch &amp;&amp;
+      ( !collapseThreads || !SeenExemplar{ msg.threadId } ) {
+    isNewExemplar = true
+    index += 1
+    if collapseThreads {
+      SeenExemplar.set( msg.threadId )
+    }
+  }
+
+  # Optimisation for when the total is not known but we've hit the 'upto'
+  # message
+  if uptoHasBeenFound {
+    continue
+  }
+
+  # Was this message an old exemplar, or in the case of mutable searches,
+  # possibly an old exemplar?
+  # 1. Must not have arrived after the client's state
+  # 2. Must have been deleted before the client's state
+  # 3. Must match search or search must be mutable (in which case, due to the
+  #    restrictions detailed above, we must either not be grouping by
+  #    thread, or the mutable properties are thread-wide
+  #    properties. Either way, the first message we come to is the exemplar
+  #    for that thread.
+  # 4. Must not have already found the old exemplar
+  if !isNew &amp;&amp; !wasDeleted &amp;&amp; ( inSearch || search.isMutable() ) &amp;&amp;
+      ( !collapseThreads || !SeenOldExemplar{ msg.threadId } ) {
+    isOldExemplar = true
+    if collapseThreads {
+      SeenOldExemplar.set( msg.threadId )
+    }
+  }
+
+  if isOldExemplar &amp;&amp; !isNewExemplar {
+    removed.push( msg.messageId )
+  }
+  else if !isOldExemplar &amp;&amp; isNewExemplar {
+    added.push( [ index, msg.messageId ] )
+  }
+  if !isNew {
+    let modSeq = msg.modSeq
+    # Has the message changed since the last update?
+    if modSeq &gt; args.modSeq {
+      if isMutable &amp;&amp; isOldExemplar &amp;&amp; isNewExemplar {
+        # We need to remove it from the client view (if there; we don't
+        # know if it used to match the filter) and add it back in if it
+        # now matches the filter. This will also fix mutable sorts, as
+        # it will be added back in at the correct position, effectively
+        # moving it to the correct place.
+        removed.push( msg.messageId )
+        added.push( [ index, msg.messageId, msg.threadId ] )
+      }
+    }
+  }
+
+  # If this is the last message the client cares about, we can stop here
+  # and just return what we've calculated so far. However, the 'total'
+  # value returned MUST be correct; this should be possible as the total
+  # values are being kept in a separate DB and updated as needed when
+  # threads change. If they're not, must continue to end of list (the
+  # index variable + 1 will then be the total), but can still shortcut most
+  # of the loop; only the bit that checks whether to increment index is
+  # required.
+
+  # If not mutable, can't break early either, as messages may have moved
+  # from the region we care about to lower down the list.
+  if !isMutable &amp;&amp; msg.uid == args.upto {
+    if totalIsKnown {
+      break
+    }
+    else {
+      uptoHasBeenFound = true
+    }
+  }
+
+} # End loop
+
+if totalIsKnown {
+  total = getTotalFromCache( search, collapseThreads )
+} else {
+  total = index + 1
+}
+
+return [ added, removed, total, state ]
+</code></pre>
+
+<p>Note! There is one case where this algorithm does not work, which is when
+a) Thread grouping is on. AND
+b) Either the sort or search is on a mutable message property (i.e. search for
+   messages with flag \X).</p>
+
+<p>In this situation, any message in the mailbox is then potentially an old
+exemplar. NB, it&rsquo;s OK if the sort and/or search is on a mutable
+<strong>thread</strong> property which has counts stored in the threads DB
+(i.e. search for messages within a thread that has at least one
+message with flag \X, or sort by flagged thread).</p>
+
+<p>The server should reject requests that cannot be calculated, rather
+than returning bogus results. The canCalculateUpdates response of the
+original getMessageList call should have been <code>false</code> so the client should
+know it cannot fetch updates for that.</p>
+
+<h3>Implementation notes</h3>
+
+<p>To implement this, the server must keep the metadata at least of deleted
+(expunged) messages for a little while. At FM, we keep them for 1-2 weeks.
+This is also very useful for restoring accidentally deleted messages as well.
+At cleanup time (when actually removing the messages), the server must keep
+track of the highest modseq of a message it has removed in that mailbox (the
+modseq would have been set at the original delete time); any requests for
+updates from a state before this must be rejected, as the results may be
+incorrect.</p>
+
+<hr />
+
+<p>Message Ids</p>
+
+<p>As you&rsquo;ll see below, in JMAP I plan to make message ids immutable even when moving across mailboxes (yes, I&rsquo;ve wanted this for a long long time). Mailbox UIDs exist for IMAP compat and for calculating delta updates, but are never explicitly exposed in JMAP. The message ids need to be unique per user (actually they need to be unique across every message the user can see, but I think we can give messages in shared folders the id of &ldquo;${userId}/${acutalMessageId}&rdquo;). They also must not be reused for messages with different immutable properties (but can be reused if the same message is deleted and then re-inserted). My suggestion would be to sha1 the message, which we need to do to get the GUID anyway. If this is already in use (i.e. another copy of the message already exists), sha1 the GUID. Repeat until there is no collision. Since 160-bits seems very long, we might want to use only the first 64/128 bits as the message id. It just needs to be long enough to make the chance of accidentally reusing an old id of a different message very very unlikely. In JMAP it will be an arbitrary string, so the server can choose whatever length it thinks is appropriate.</p>
+
+<hr />
+
+<p>Data Structures</p>
+
+<p>Get your data structures right and the server will practically write itself.</p>
+
+<p>These are the data structures I think we want on the server for JMAP. (BTW, I&rsquo;ve decided to change the term &ldquo;conversation&rdquo; to &ldquo;thread&rdquo;; it&rsquo;s shorter and seems to be the term used everywhere else for the same concept). I&rsquo;m presuming modseqs are 63-bits for IMAP compat.</p>
+
+<ol>
+<li><p>User: a simple collection of important top-level values.
+Highest ModSeq (63 bits)
+Low watermark ModSeq for Thread Log (63 bits)
+Low watermark ModSeq for Message Log (63 bits)
+Quota available in bytes (63 bits. -1 => Don&rsquo;t care?)
+Quota used in bytes (64 bits)
+List of other users with mailboxes made available to this user (shared mailboxes) (var length).</p></li>
+<li><p>Mailboxes: a map of Mailbox Id to important mailbox values (also iterable to return all mailboxes). The values stored in each Mailbox object are:
+Id (16 bits, giving support for a max 65536 mailboxes per user; old ids are reusable without penalty while keeping with the JMAP semantics).
+Parent Id (16 bits)
+Name (utf8, var length)
+Role (8 bits is more than sufficient)
+Whether the mailbox must be the only mailbox for a message (as discussed above) (1 bit).
+Permissions for the current user: (16 bits) (there are only 7 permissions for JMAP, but IMAP has more I think?)
+Other user id -> permissions map (for each user the mailbox is shared with) (var length)
+Num Messages (32 bits)
+Num Threads (32 bits)
+Num Unread Messages (32 bits)
+Num Unread Threads (32 bits)
+Mailbox ModSeq (63 bits) (updated when any of the mailbox properties above change, not when the mailbox message list changes)
+UID next (32 bits) (for message list).
+Message list highest ModSeq (63 bits) (updated whenever the mailbox message list changes only)
+Low watermark message list ModSeq (63 bits) (whenever a message is undeleted or a deleted message is fully removed, set this to the ModSeq of the message if higher than previous value)</p></li>
+<li><p>Mailbox message list (for each mailbox): an ordered list of fixed size objects. Each object is:
+UID (32 bits) (as per IMAP semantics, increments each time you append a message to the mailbox).
+ModSeq (63 bits) (as per IMAP semantics, updated whenever the message flags change).
+Message Id (128 bits?) (this is the ID always used within JMAP to refer to the message, and does not change as it moves between mailboxes).
+Thread Id (64 bits)
+Deleted (64 bit time value; 0 = not deleted)
+Date of message (64 bits)</p></li>
+</ol>
+
+
+<p>Given that most fetches are of the first section of the mailbox in date descending order, if we keep it stored in this order on disk we can just read the first few bytes to return the desired information; no sorting required (we don&rsquo;t even have to look up anything in the message cache). The date is included in each record so we can insert a new one in the correct position without having to reference any other data.</p>
+
+<ol>
+<li><p>Message cache: a map of Message Id to flags, mailboxes and common header information for that message (variable length). For each message, we would store:
+isRead (or isUnread?) (1 bit) (mutable)
+isFlagged (1 bit) (mutable)
+isAnswered (1 bit) (mutable)
+isSeen (not for JMAP, just for IMAP compat) (1 bit) (mutable)
+Other flags + labels + annotations needed for IMAP compat only. (mutable)
+Mailboxes (list of mailbox ids this message belongs to) (mutable)
+From header (either in the JSON used by JMAP, or whatever IMAP needs)
+To header (either in the JSON used by JMAP, or whatever IMAP needs)
+Subject header (utf8 decoded?)
+Date
+Preview (first 128 chars of text, excluding salutations &amp; quotes)
+Attachments (list of file names only)
+GUID (sha1 of raw email)</p></li>
+<li><p>Messages: Each message stored separately using its GUID as the name (as we do now pretty much).</p></li>
+<li><p>MessageLog: An append only log of changes made to the message cache. Each entry consists of:
+ModSeq of change
+List of message ids which were affected by the change (to save extra lookups when the client is fetching these changes, should probably include a bit to say whether the message was destroyed by the change or created/modified).</p></li>
+</ol>
+
+
+<p>Periodically we would truncate the log by chopping records off the beginning (how/when this would be scheduled is not important right now); at this point we need to update the low watermark ModSeq for the log in the user object.</p>
+
+<ol>
+<li><p>Theads: a map of thread id to an object containing information about the thread (variable length). The information stored for each thread is:
+The list of messages belonging to the thread, sorted in date order. For each message we need to store:
+Message Id
+Mailboxes (the list of mailboxes the message belongs to)
+isRead
+isFlagged
+ModSeq of last change to isRead/isFlagged for any message in the thread (for sorting a message list by conv unread/conv pinned purposes only).
+Sha1 of subject after stripping Fwd/Re etc. (for checking whether we need to split a new conversation out later).</p></li>
+<li><p>Thread log: An append only log of changes made to the <strong>membership</strong> of threads (in data structure 7; changes to only the isRead/isFlagged/Mailboxes of a message in a thread do not need to go in the log). Each entry consists of:
+ModSeq of change
+List of thread ids which were affected by the change (to save extra lookups when the client is fetching these changes, should probably include a bit to say whether the thread was destroyed by the change or created/modified).</p></li>
+</ol>
+
+
+<p>As with the message log, periodically we would truncate the log by chopping records off the beginning (how/when this would be scheduled is not important right now); at this point we need to update the low watermark ModSeq for the log in the user object.</p>
+
+<ol>
+<li>Refs to ThreadId: this is solely used to look up the conversation to assign to a message on delivery. Maps the MIME Message Id (eughh, so many different types of id!) to the conversation id. Build up as we do today.</li>
+</ol>
+
+
+<h3>Implementation notes</h3>
+
+<p>In an IMAP server, each mailbox must have a uid validity value. One way to
+produce a state string is to hash all these together using sha1 or some other
+suitable hash function. We can detect whenever any of the uid validities
+change, or a mailbox is created or destroyed, simply by comparing the single
+value. If making a stateless proxy implementation of the api on top of an IMAP
+server, you could implement mailboxId as Full Mailbox Name + uid validity (e.g.
+&ldquo;Folder.Subfolder356150234&rdquo;), however it would be more efficient to create a
+shorter id (e.g. sequential numbering) in the server itself. The id for a
+mailbox must be unique and never reused again for another mailbox of the same
+user (or that might be visible to the user, if shared mailboxes are supported).</p>
+
+<p>If not constrained to just proxying a pure IMAP server, a better state string
+than a hash of the UID validities would be to increment and store the user
+modseq whenever a mailbox is created, deleted or has a property updated.</p>
+
+<p>Each time an email is changed (created, flag change, deleted), it is assigned a
+new modseq (modification sequence) number: an unsigned, monotonically
+incrementing 63-bit integer.</p>
+
+<p>Unlike in IMAP, there needs to be a single modseq counter across the whole user, not per mailbox (this is, however, completely backwards compatible with IMAP).
+A method that mutates the state of multiple messages (e.g. changing their unread
+state) may increment the modseq once then apply that new modseq to all messages
+affected by the change, or may increase multiple times; this is implementation-dependent.</p>
+
+<p>Unlike IMAP, there is no \Deleted deletion model. All mailbox related methods
+must act as though messages marked \Deleted do not exist: they must not be
+returned as part of any call and they must not be included in any <code>total</code>
+count. If using an IMAP-compatible backing store, the server may choose to
+implement this by adding an implicit <code>NOT \Deleted</code> search term to everything,
+or by expunging immediately anything marked <code>\Deleted</code>, or any other method it
+chooses.</p>
+</article>
+<aside>
+<div class="toc-selected"></div>
+<ol class="toc"></ol>
+</aside>
+<script type="text/javascript" src="toc.js"></script>
+</body>
+</html>

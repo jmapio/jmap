@@ -1,0 +1,41 @@
+# JMAP
+
+## What is JMAP?
+
+JMAP is a transport-agnostic, stateless JSON-based API for synchronising a mail client with a mail server. It is intended as a replacement for IMAP. The specification is based on the API currently used by [FastMail](https://www.fastmail.fm)'s web app.  It aims to be compatible with the IMAP data model, so that it can be easily implemented on a server that currently supports IMAP, but also allows for reduced data usage and more efficient synchronisation, bundling of requests for latency mitigation and is generally much easier to work with than IMAP.
+
+## Why is it not REST based?
+
+JMAP is actually more REST-like than most "RESTful" APIs. It is stateless, highly cacheable, supports transparent intermediaries and provides a uniform interface for manipulating different resources. However, it doesn't use HTTP verbs to implement this.
+
+When you have a high latency connection (such as on a mobile phone, or even wired connections from the other side of the world), the extra round trips required for an HTTP REST-based protocol can make a huge impact on  performance. This is especially an issue when you have an order-dependency in your API calls and you need to make sure one has finished before the other can be run (for example when you mutate the state of a message then want to fetch the changes to a mailbox containing the message). In the JMAP protocol, this can be done in a single round trip. An HTTP REST-based version would require two full round trips for the same operation.
+
+The JMAP protocol is transport agnostic and can be easily transported over a WebSocket, for example, as well as HTTP.
+
+## Why is it not a binary protocol?
+
+A binary protocol would be arguably more compact and faster to encode/parse. However, history has shown text-based protocols are much easier to debug, and by using an existing widely-used encoding format (JSON) we make it much easier for developers to use this protocol. No need to write new custom, error-prone parsers. The difference in speed is likely to be minimal, especially if you GZIP the exchange and use WebSockets instead of HTTP.
+
+## Why do labels apply to messages not threads?
+
+Mutable state has to be stored per-message, for example the `isUnread` status must apply on a per message basis, and it's very useful to be able to flag a particular useful message rather than just the whole thread. To be able to delete a particular message to the Trash out of a thread, you need to be able to change the mailbox of that message. Sent messages should belong to the sent mailbox, but not messages you receive.
+
+Meanwhile, it is simple to aggregate the information of the messages in the thread. So, for example, if any message in the thread is unread, then the thread can be considered unread. There is no need to store mutable state as a property of a thread therefore, and the less mutable state, the easier it is to manage. Finally, all known existing IMAP implementations, plus Gmail, store this state per-message, not per-thread, so it makes it easier for implementors to migrate to JMAP.
+
+## Why are there flags (e.g. isUnread) separate to mailboxes?
+
+In IMAP, you can only have one mailbox but you can have mutliple flags on a single message. In other systems (where you have labels), these are really the same thing and you can have a single message in multiple mailboxes. JMAP aims to support both, so it has to be able to specify whether a mailbox can be used in combination with other mailboxes on a message, or must be the only one with the message (but does allow different flags). The clearest way of specifying what is allowed by the server is to keep the mailboxes separate to flags in JMAP as well.
+
+## Why isUnread instead of isRead?
+
+Although this may seem inconsistent at first, it actually makes more sense. The "special" status is when a message is unread (this is what clients are interested in), so like isDraft, isFlagged and isAnswered, we make the special status equal to `true`. It is also consistant with the need for unread counts in mailbox objects, not read counts, and makes the definition of sorting a message list the same for isFlagged and isUnread when conversations are collapsed.
+
+## I want to implement it. What do I need to know?
+
+That's great! There are lots of resources on this website to help you. Counter-intuitive though it may seem, I recommend starting with the guide for client authors to get a good feel for how the JMAP spec works. After that though, the spec is your bible and the advice for implementors is your friend.
+
+If you're implementing the spec and suddenly find there's an externally visible behaviour that's not specified, please email <editor@jmap.io> so we can update the spec to nail down this corner.
+
+## I want to use it to build a client. What do I need to know?
+
+Have a read through the [client guide](client.html) to get an idea of how it works. Then you'll want to find a JMAP server to test against.

@@ -1,0 +1,81 @@
+## Accounts
+
+A single login may provide access to multiple accounts, for example if another user is sharing their mail with the logged in user.
+
+All data belongs to an account. With the exception of a few explicit operations to copy data between accounts, all methods take an *accountId* argument that specifies on which account the operations are to take place. This argument is always optional; if not specified, the primary account is used. All ids (other than Account ids of course) are only unique within their account.
+
+An **Account** object has the following properties:
+
+- **id**: `String`
+  The id of the account.
+- **name**: `String`
+  A user-friendly string to show when presenting content from this account. e.g. the email address of the account.
+- **isPrimary**: `Boolean`
+  This MUST be true for exactly one of the accounts returned.
+- **isReadOnly**: `Boolean`
+  True if the user has read-only access to this account. The user may not use the `set` methods with this account.
+- **hasMail**: `Boolean`
+  This account contains mail data. Clients may use the Mail methods with this account.
+- **mailCapabilities**: `MailCapabilities|null`
+  An object describing various capabilities of this server with relation to mail, or `null` if `hasMail == false`.
+- **hasContacts**: `Boolean`
+  This account contains contact data. Clients may use the Contacts methods with this account.
+- **hasCalendars**: `Boolean`
+  This account contains calendar data. Clients may use the Calendar methods with this account.
+
+A **MailCapabilities** object has the following properties
+
+TODO:
+
+- delayedSend?
+- maxSendSize?
+- supportsMultiMailbox?
+- supportsThreads?
+
+### getAccounts
+
+To fetch the complete list of accounts to which the user has access, make a call to `getAccounts`. It takes a sole, optional argument:
+
+- **sinceState**: `String` (optional)
+  This is the `state` string from a previous call to *getAccounts*.
+
+The response to *getAccounts* is called *accounts*. It has the following arguments:
+
+- **state**: `String`
+   A string representing the state on the server for **all** the data contained within the Account objects. If the data changes, this string will change.
+- **list**: `Account[]`
+  An array of all Account objects.
+
+The following errors may be returned instead of the `accounts` response:
+
+`invalidArguments`: Returned if the `sinceState` argument is included and has the wrong type.
+
+Example of a successful request:
+
+    ["getAccounts", {}, "#0"]
+
+and response:
+
+    [ "accounts", {
+      "state": "f6a7e214",
+      "list": [
+        {
+          "id": "6asf5",
+          "name": "user@example.com",
+          "isPrimary": true,
+          "isReadOnly": false,
+          "hasMail": true,
+          "hasContacts": true,
+          "hasCalendars": true
+        },
+        {
+          "id": "e12e1a",
+          "name": "shared.user@example.com",
+          "isPrimary": false,
+          "isReadOnly": true,
+          "hasMail": true,
+          "hasContacts": false,
+          "hasCalendars": false
+        }
+      ]
+    }, "#0" ]

@@ -1,0 +1,710 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,700' rel='stylesheet' type='text/css'>
+<link href="main.css" rel="stylesheet" type="text/css">
+<title>JSON Mail Access Protocol Specification (JMAP)</title>
+</head>
+<body>
+<header>
+<div id="logo">JMAP</div>
+<ul id="nav">
+    <li class="nav-item"><a class="nav-link" href="index.html">Intro</a></li>
+    <li class="nav-item"><a class="nav-link" href="spec.html">The Spec</a> </li>
+    <li class="nav-item"><a class="nav-link" href="client.html">Using JMAP</a></li>
+    <li class="nav-item"><a class="nav-link" href="server.html">Implementing JMAP</a></li>
+</ul>
+<a href="https://github.com/neilj/jmap"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+</header>
+<article>
+<h1>Guide for client developers</h1>
+
+<p>This guide shows how you can use JMAP to efficiently minimise bandwidth usage and round trips whilst still giving the user a complete view of their mail. This is particularly relevant to clients on mobile devices, where there is not the space to store a complete cache of all messages, or for web clients where you often do not have a permanent cache at all and must efficiently start from scratch each time the app is loaded.</p>
+
+<p>JMAP can also be used to efficiently download and keep in sync the entire set of a user&rsquo;s mail. This is much simpler to do, so it is not the focus of this guide. Understand the more complex case (explained here) of keeping a partial data set in sync, and it should become fairly obvious how to do the same with a full set.</p>
+
+<p>A single login may have access to multiple accounts. In this guide I&rsquo;m going to ignore this and just use the primary account, which I&rsquo;m going to presume has full read-write mail access.</p>
+
+<h2>1. Cold boot</h2>
+
+<p>When a user first logs in and you have no data cached for them, first call:</p>
+
+<pre><code>[
+    [ "getMailboxes", {}, "#0" ]
+]
+</code></pre>
+
+<p>This will fetch the list of mailboxes (folders or labels) for the user, and the permissions and roles for each. Here&rsquo;s an example of the response you might receive:</p>
+
+<pre><code>[
+    [ "mailboxes", {
+        state: "m123456789",
+        list: [
+            {
+                id: "mailbox1",
+                userId: null,
+                name: "Inbox",
+                parentId: null,
+                role: "inbox",
+                mustBeOnlyMailbox: false,
+                totalMessages: 1424,
+                unreadMessages: 3,
+                totalThreads: 1213,
+                unreadThreads: 2
+            },
+            {
+                id: "mailbox2",
+                userId: null,
+                name: "Sent",
+                parentId: null,
+                role: "sent",
+                mustBeOnlyMailbox: false,
+                totalMessages: 41,
+                unreadMessages: 0,
+                totalThreads: 32,
+                unreadThreads: 2
+            },
+            {
+                id: "mailbox3",
+                userId: null,
+                name: "Trash",
+                parentId: null,
+                role: "trash",
+                mustBeOnlyMailbox: true,
+                totalMessages: 3,
+                unreadMessages: 0,
+                totalThreads: 2,
+                unreadThreads: 0
+            },
+            {
+                id: "mailbox4",
+                userId: null,
+                name: "Awaiting Reply",
+                parentId: "mailbox2",
+                role: "",
+                mustBeOnlyMailbox: false,
+                totalMessages: 0,
+                unreadMessages: 0,
+                totalThreads: 0,
+                unreadThreads: 0
+            }
+        ]
+    }, "#0"]
+]
+</code></pre>
+
+<p>In this (simple) example, the user has four mailboxes. Three at the top level (Inbox, Sent and Trash) and one submailbox of Sent called &ldquo;Awaiting Reply&rdquo;. The first 3 have <code>role</code> attributes, so they are to be used for the designated system roles (these are much as you would expect, but see the spec for full details). Note, you should always use the <code>role</code> attribute, as names may be localised (or even different between different servers with the same language)!</p>
+
+<p>The Inbox, Sent and Awaiting Reply mailboxes all have <code>mustBeOnlyMailbox:false</code>. The Trash mailbox on the other hand has <code>mustBeOnlyMailbox:true</code>. This means that a message in the trash may not be in any other mailbox, and vice versa. However, a message belonging to the Sent mailbox could also be in, for example, the Awaiting Reply mailbox.</p>
+
+<p>The Sent mailbox has no unread messages, but 2 unread threads. This is not an error! A thread is considered unread if any of the messages in it are unread, even if those messages are actually in a different mailbox. In this case, the 3 unread messages in the Inbox must all be replies to messages in the Sent mailbox. Email clients will probably want to hide unread thread counts for mailboxes with a role of &ldquo;sent&rdquo; or &ldquo;archive&rdquo;.</p>
+
+<p>Presuming the client defaults to showing the <code>role=inbox</code> mailbox, we now get the list of messages at the top of the mailbox, and the data for each one that we need to show it in the interface.</p>
+
+<pre><code>[
+    [ "getMessageList", {
+        filter: {
+            inMailboxes: [ "mailbox1" ]
+        },
+        sort: [ "date desc", "id desc" ]
+        collapseThreads: true,
+        position: 0,
+        limit: 10,
+        fetchThreads: true,
+        fetchMessages: true,
+        fetchMessageProperties: [
+            "threadId",
+            "mailboxId",
+            "isUnread",
+            "isFlagged",
+            "isAnswered",
+            "isDraft",
+            "hasAttachment",
+            "from",
+            "to",
+            "subject",
+            "date",
+            "preview"
+        ],
+        fetchSearchSnippets: false
+    }, "call1"]
+]
+</code></pre>
+
+<p>This might return the following:</p>
+
+<pre><code>[
+    [ "messageList", {
+        filter: {
+            inMailboxes: [ "mailbox1" ]
+        },
+        sort: [ "date desc", "id desc" ]
+        collapseThreads: true,
+        state: "m8231u341",
+        canCalculateUpdates: true,
+        position: 0,
+        total: 1213,
+        messageIds: [
+            "fm1u314",
+            "fm1u312",
+            "fm1u298",
+            "fm1u286",
+            "fm1u265",
+            "fm1u254",
+            "fm1u241",
+            "fm1u211",
+            "fm1u109",
+            "fm1u3"
+        ],
+        threadIds: [
+            "4f512aafed75e7fb",
+            "fed75e7fb4f512aa",
+            "75e7fb4f512aafed",
+            "512aafed75e7fb4f",
+            "fb4f512aafed75e7",
+            "2aafed75e7fb4f51",
+            "afed75fb4f512ae7",
+            "e7fb4f512aafed75",
+            "ed75e74f51fb2aaf",
+            "b4f5ed75e712aaff"
+        ]
+    }, "call1" ],
+    [ "threads", {
+        state: "mc1264092",
+        list: [{
+            id: "4f512aafed75e7fb",
+            messageIds: [ "fm1u314" ]
+        }, {
+            id: "fed75e7fb4f512aa",
+            messageIds: [ "fm1u312", "fm2u12", "fm1u304" ]
+        },
+            … 8 more thread objects, omitted for brevity … 
+        ]
+    }],
+    [ "messages", {
+        state: "m815034",
+        list: [{
+            "id": "fm1u314",
+            "threadId": "4f512aafed75e7fb",
+            "mailboxIds": [ "mailbox1" ],
+            "isUnread": true,
+            "isFlagged": false,
+            "isAnswered": false,
+            "isDraft": false,
+            "hasAttachment": false,
+            "from": [
+                { name: "Joe Bloggs", email: "joebloggs@fastmail.fm" }
+            ],
+            "to": [
+                { name: "Jane Doe", email: "janedoe@fastmail.fm" }
+            ],
+            "subject": "Camping trip",
+            "date": "2014-07-24T15:04:51Z",
+            "preview": "Hey Joe. Fancy a trip out west next week? I hea…"
+        },
+        {
+            "id": "fm1u312",
+            "threadId": "fed75e7fb4f512aa",
+            "mailboxIds": [ "mailbox1" ],
+            "isUnread": false,
+            "isFlagged": true,
+            "isAnswered": false,
+            "isDraft": false,
+            "hasAttachment": true,
+            "from": [
+                { name: "James Connor", email: "jamesconnorwork@fastmail.fm" }
+            ],
+            "to": [
+                { name: "Jane Doe", email: "janedoe@fastmail.fm" },
+                { name: "Joe Bloggs", email: "joebloggs@fastmail.fm" }
+            ],
+            "subject": "Re: I need the swallow velocity report ASAP",
+            "date": "2014-07-24T12:01:43Z",
+            "preview": "Come on you guys. How long can it take to do a simple scientif…"
+        },
+        {
+            "id": "fm2u12",
+            "threadId": "fed75e7fb4f512aa",
+            "mailboxIds": [ "mailbox2" ],
+            "isUnread": false,
+            "isFlagged": false,
+            "isAnswered": false,
+            "isDraft": false,
+            "hasAttachment": false,
+            "from": [
+                { name: "Jane Doe", email: "janedoe@fastmail.fm" }
+            ],
+            "to": [
+                { name: "James Connor", email: "jamesconnorwork@fastmail.fm" },
+                { name: "Joe Bloggs", email: "joebloggs@fastmail.fm" }
+            ],
+            "subject": "Re: I need the swallow velocity report ASAP",
+            "date": "2014-07-24T11:32:15Z",
+            "preview": "It's on its way. Jane."
+        },
+            … more message objects, omitted for brevity …
+        ]
+    }, "call1" ]
+]
+</code></pre>
+
+<p>We now have the header information for all the messages in the top 10 threads in the Inbox, plus a full list of mailboxes and their unread counts. Providing the screen cannot fit more than 10 messages without scrolling, this is sufficient to display a standard mail interface as though <strong>all data was loaded</strong>, even though we have only made 2 round trips to the server, and transferred minimal data. (Obviously, you can request more than 10 in the request if you need more to show the initial screen).</p>
+
+<h2>2. Paging in data as the interface is navigated</h2>
+
+<p>In our example Inbox, there are 1213 threads, but so far we have only loaded in data for the first 10. As the user scrolls down, we need to page in the data for the section of the mailbox that becomes visible (and indeed, to avoid the user having to wait, it&rsquo;s advisable to preload a little way ahead too). This is just another call to <code>getMessageList</code>, as in the cold boot example, but with the <code>position</code> property changed to the index for the section required.</p>
+
+<p>Similarly, if we switch mailboxes, or want to do a search, we can use the same call as well. However, remember in JMAP the same message may appear in multiple mailboxes, so to avoid downloading the same data multiple times, it&rsquo;s advisable to just fetch the message list without also getting the message or thread objects (except in certain situations, such as the very first request; the exact heuristics for deciding between the two can be made arbitrarily clever and complex).</p>
+
+<pre><code>[
+    [ "getMessageList", {
+        filter: {
+            inMailboxes: [ "mailbox2" ]
+        },
+        sort: [ "date desc", "id desc" ]
+        collapseThreads: true,
+        position: 11,
+        limit: 10,
+        fetchThreads: false,
+        fetchMessages: false,
+        fetchMessageProperties: null,
+        fetchSearchSnippets: false
+    }, "call1"]
+]
+</code></pre>
+
+<p>After the list has been returned, a second request can be made directly to <code>getThreads</code> with the thread ids (or to <code>getMessages</code> with the message ids) to fetch the ones you are missing.</p>
+
+<h2>3. Opening a thread</h2>
+
+<p>So far we have only fetched the minimal amount of information we need to display a mailbox entry for a message or thread. When opening a thread from the mailbox, we now need to fetch the rest of the message details. Exactly what you wish to fetch depends on what information your client displays. Suppose we open the 2nd thread in the example Inbox above. I&rsquo;m presuming we already know the list of message ids in the thread from the data received when we fetched the mailbox.</p>
+
+<pre><code>[
+    [ "getMessages", {
+        ids: [ "fm1u312", "fm2u12", "fm1u304" ],
+        properties: [
+            "threadId",
+            "mailboxId",
+            "isUnread",
+            "isFlagged",
+            "isAnswered",
+            "isDraft",
+            "hasAttachment",
+            "from",
+            "to",
+            "cc",
+            "bcc",
+            "replyTo",
+            "subject",
+            "date",
+            "size",
+            "body",
+            "attachments",
+            "attachedMessages"
+        ]
+    }]
+]
+</code></pre>
+
+<p>Alternatively, a client may want to just request the &ldquo;rawUrl&rdquo; property, then download the original RFC2822 message from the URL returned and parse it in the client.</p>
+
+<h2>4. Staying in sync</h2>
+
+<p>Suppose a new message arrives, or the user performs some actions on their messages using a different client. A push notification comes in to indicate the state has changed on the server, or you get a response back to a method call with a different state string to the previous call. We now need efficiently work out exactly what has changed so that we can update the model in the client and keep it in sync, without throwing away all of our data and starting again.</p>
+
+<p>To efficiently stay in sync, we can call:</p>
+
+<pre><code>[
+    [ "getMailboxUpdates", {
+        sinceState: "m123456789",
+        fetchMailboxes: true
+    }, "call1" ],
+    [ "getMessageListUpdates", {
+        filter: {
+            inMailboxes: [ "mailbox1" ]
+        },
+        sort: [ "date desc", "id desc" ]
+        collapseThreads: true,
+        sinceState: "m8231u341",
+        uptoMessageId: "fm1u3",
+        maxChanges: 100
+    }, "call2" ],
+    [ "getMessageUpdates", {
+        sinceState: "m815034"
+        maxChanges: 30,
+        fetchMessages: true,
+        properties: [
+            "threadId",
+            "mailboxId",
+            "isUnread",
+            "isFlagged",
+            "isAnswered",
+            "isDraft",
+            "hasAttachment",
+            "labels",
+            "from",
+            "to",
+            "subject",
+            "date",
+            "preview"
+        ]
+    }, "call3" ],
+    [ "getThreadUpdates", {
+        sinceState: "mc1264092"
+        maxChanges: 20,
+        fetchThreads: true
+    }, "call4" ]
+]
+</code></pre>
+
+<p>This is a good example of multiple method calls combined into a single request. Let&rsquo;s have a look at what they are doing.</p>
+
+<ol>
+<li><code>getMailboxUpdates</code>: This will return the mailbox object for any mailboxes that have been created or modified (e.g. renamed, or have changed counts). It will also return the ids of any mailboxes that have been deleted; with this information we can update our mailbox state to match the server.</li>
+<li><code>getMessageListUpdates</code>: All our message lists may have changed, so we must mark all of them as needing a refresh, and immediately refresh the one that is currently selected in the client (here, presuming the Inbox). We&rsquo;ll look at the response to this and how it is used to update the client cache below.</li>
+<li><code>getMessageUpdates</code>: Gets the list of ids for all messages which have been added or modified, plus the list of messages which have been deleted. We have also specified a <code>fetchMessages</code> argument here to request the standard header information we need to display a message in a mailbox. This includes all mutable properties of a message, so is sufficient to bring any changed messages up to date.</li>
+<li><code>getThreadUpdates</code>: Gets the list of threads which have had messages added or removed from the thread. We also fetch the <code>Thread</code> object for those threads that have changed.</li>
+</ol>
+
+
+<p>In each case, the <code>sinceState</code> argument comes from the reponse to our previous calls to get the records of that type.</p>
+
+<h3>Handling a standard response</h3>
+
+<p>In the common case, not many changes will have occurred since we last synced with the server, and the data returned from this request will be sufficient to fully bring the client into sync with the server.</p>
+
+<p>The <code>maxChanges</code> argument prevents methods from returning huge volumes of data in the case where a large number of changes have been made. If we get a <code>tooManyChanges</code> error in response to one of our method calls then we will then have to do more work to get back in sync, as detailed below.</p>
+
+<p>Let&rsquo;s look at a common case example, where two new messages have been delivered to the Inbox and one other existing message has been marked as read. We might get back a response something like:</p>
+
+<pre><code>[
+    [ "mailboxUpdates", {
+        oldState: "m123456789",
+        newState: "m123471231",
+        changed: [ "mailbox1" ],
+        removed: []
+    }, "call1" ],
+    [ "mailboxes", {
+        state: "m123471231"
+        list: [{
+            id: "mailbox1",
+            name: "Inbox",
+            parentId: null,
+            role: "inbox",
+            isOwn: true,
+            threadGroupId: "main",
+            totalMessages: 1426,
+            unreadMessages: 4,
+            totalThreads: 1214,
+            unreadThreads: 3
+        }],
+    }, "call1" ],
+    [ "messageListUpdates", {
+        mailboxId: "mailbox1"
+        search: "",
+        collapseThreads: true,
+        sort: "date desc,id desc",
+        oldState: "m8231u341",
+        newState: "m8239u342",
+        uptoMessageId: "fm1u3",
+        removed: [ "fm1u241" ],
+        added: [ "fm1u316", "fm1u315" ],
+        addedIndexes: [ 0, 1 ],
+        addedThreadIds: [ "afed75fb4f512ae7", "b4aae3925af0a0a2" ]
+        total: 1214
+    }, "call2" ],
+    [ "messageUpdates", {
+        oldState: "m815034",
+        newState: "m815039",
+        changed: [ "fm1u316", "fm1u315", "fm1u314" ]
+        removed: []
+    }, "call3" ],
+    [ "messages", {
+        state: "m815039",
+        list: [{
+            "id": "fm1u316",
+            "threadId": "afed75fb4f512ae7",
+            "mailboxId": "mailbox1",
+            "isUnread": true,
+            "isFlagged": false,
+            "isAnswered": false,
+            "isDraft": false,
+            "hasAttachment": false,
+            "from": [
+                { name: "Joe Bloggs", email: "joebloggs@fastmail.fm" }
+            ],
+            "to": [
+                { name: "Jane Doe", email: "janedoe@fastmail.fm" }
+            ],
+            "subject": "Camping trip",
+            "date": "2014-07-24T15:04:51Z",
+            "preview": "Hey Joe. Fancy a trip out west next week? I hea…"
+        }, {
+            "id": "fm1u315",
+            "threadId": "b4aae3925af0a0a2",
+            "mailboxId": "mailbox1",
+            "isUnread": true,
+            "isFlagged": false,
+            "isAnswered": false,
+            "isDraft": false,
+            "hasAttachment": false,
+            "from": [
+                { name: "Joe Bloggs", email: "joebloggs@fastmail.fm" }
+            ],
+            "to": [
+                { name: "Jane Doe", email: "janedoe@fastmail.fm" }
+            ],
+            "subject": "Camping trip",
+            "date": "2014-07-24T15:04:51Z",
+            "preview": "Hey Joe. Fancy a trip out west next week? I hea…"
+        }, {
+            "id": "fm1u314",
+            "threadId": "4f512aafed75e7fb",
+            "mailboxId": "mailbox1",
+            "isUnread": false,
+            "isFlagged": false,
+            "isAnswered": false,
+            "isDraft": false,
+            "hasAttachment": false,
+            "from": [
+                { name: "Joe Bloggs", email: "joebloggs@fastmail.fm" }
+            ],
+            "to": [
+                { name: "Jane Doe", email: "janedoe@fastmail.fm" }
+            ],
+            "subject": "Camping trip",
+            "date": "2014-07-24T15:04:51Z",
+            "preview": "Hey Joe. Fancy a trip out west next week? I hea…"
+        }]
+    }, "call3" ],
+    [ "threadUpdates", {
+        oldState: "mc1264092",
+        newState: "mc1264097",
+        changed: [ "afed75fb4f512ae7", "b4aae3925af0a0a2" ],
+        removed: []
+    }, "call4" ]
+    [ "threads", {
+        state: "mc1264097",
+        list: [{
+            id: "afed75fb4f512ae7",
+            messageIds: [ "fm1u241", "fm1u316" ]
+        }, {
+            id: "b4aae3925af0a0a2",
+            messageIds: [ "fm1u315" ]
+        }]
+    }, "call4" ]
+]
+</code></pre>
+
+<p>Here&rsquo;s how we apply this information to our current state to stay in sync:</p>
+
+<ol>
+<li><code>mailboxUpdates</code>: The mailbox object for the inbox has been returned because the counts have changed. We just need to update our cache with the new properties</li>
+<li><code>messageListUpdates</code>: This is more interesting.</li>
+</ol>
+
+
+<p>Suppose the client will have a sparse list of messageIds:
+e.g. <code>[ 'm1u1', 'm1u2', 'm1u3', 'm1u4', -, -, -, 'm1u8', -, ...]</code></p>
+
+<ol>
+<li>Check the oldState property matches the current state of the list. Also check
+the sort and search are the same. If any of these don&rsquo;t match, abort and
+re-request an update from the actual current state.</li>
+<li>If the newState property is the same as the current state of the list,
+nothing to do, so return.</li>
+<li>If there&rsquo;s an uptoMessageId, search for this id. If found, remove
+anything after it in the list. If not found, abort, reset the list and start
+again with getMailboxMessageList.</li>
+<li>Search for each of the messageIds in the <code>removed</code> list and remove them
+from the client&rsquo;s list (without leaving a gap – this is a splice operation).
+If any can&rsquo;t be found, keep processing but after finishing, null out anything
+after the first gap in the list. e.g. referring to the example sparse list
+above, &lsquo;m1u8&rsquo; would be removed as it&rsquo;s after the first gap.</li>
+<li>Iterate through the [ position, messageId ] tuples in the <code>added</code> list
+in order, inserting the messageIds at the positions indicated.</li>
+<li>Set the list length to that given in the <code>total</code> property.</li>
+</ol>
+
+
+<p>Note, adding or removing an item to/from the list shifts the position of
+everything around it.</p>
+
+<p>e.g. adding &lsquo;m2&rsquo; in position 2: <code>[ 'm1', 'm3' ] -&gt; [ 'm1', 'm2', 'm3' ]</code></p>
+
+<p>e.g. removing &lsquo;m2&rsquo;: <code>[ 'm1', 'm2', 'm3' ] -&gt; [ 'm1', 'm3' ]</code></p>
+
+<ol>
+<li><code>messageUpdates</code>: The <code>removed</code> array has 0 length (so, although a message was removed from the Inbox message list, it has not been deleted: it is simply no longer the first message in the thread in the given sort order). The <code>changed</code> array has three message ids: the first two we don&rsquo;t have in memory, so we can ignore, but the last one we have in our cache so we should mark is as needing an update (i.e. the flags might be out of date).</li>
+<li><code>messages</code>: Because we specified a <code>fetchMessages</code> argument to <code>getMessageUpdates</code>, this response contains the requested data for the messages that have been modified or added. The first two are new messages, and we can add this data to our header cache information so we have the info we need to display the mailbox. The final message is one we already have in cache, but a property of it has now changed (in this case, it is no longer unread). We can update this data and clear the flag we set in step 3 indicating it needs refreshing (the reason we set the flag is so the <code>messageUpdates</code> response is correctly handled regardless of whether we specified <code>fetchMessages</code> or not.</li>
+<li><code>threadUpdates</code>: There are two changed threads here. One existing thread has a new message in it, the other is a brand new thread to create in our cache.</li>
+</ol>
+
+
+<p>After applying these changes, or cache is completely in sync with the server, even though we only have a partial data set cached, and we only made a single HTTP request.</p>
+
+<p>Now let&rsquo;s look at the more difficult cases, when errors occur.</p>
+
+<h3>Handling errors</h3>
+
+<p>The most common error will be a <code>tooManyChanges</code> error, when the number of changes exceeds the number we were prepared to accept. In this case, it would be more efficient to throw away much of our cache, or mark it as potentially dirty, and then just fetch the information we need right now (similar to the cold boot situation), rather than fetching a potentially large set of updates. Let&rsquo;s look at the errors for each method.</p>
+
+<p><code>getMessageListUpdates</code>: If there are more changes than the <code>tooManyChanges</code> property, or the server is unable to calculate updates from the state requested, you will receive an appropriate error back. In these cases, you simply have to throw away the current message list cache and request the section you are interested in with a standard <code>getMessageList</code> call.</p>
+
+<p><code>getMessageUpdates</code>: If there are too many changes, you will get an error back. In this case, there are two strategies you could adopt. The first is simple: mark each message you have in cache as needing an update, and fetch these when the message is next required by the user (note, since only flags and labels are mutable, the data you need to fetch can be reduced). As an extra possible optimisation, you could try another <code>getMessageUpdates</code> call first, with a higher <code>maxChanges</code>, but with <code>fetchMessages</code> set to <code>null</code>. If it succeeds, this will give you back an exact list of the message ids for messages with changes, so you can mark just those as needing a refresh rather than every message in your cache. If there are still too many changes, you will have to fall back to refetching all the flags and labels.</p>
+
+<p><code>getThreadUpdates</code>: Just like with <code>getMessageUpdates</code>, if there are too many changes you can either flush your cache of threads, or try with a higher <code>maxChanges</code> but <code>fetchThreads: false</code>.</p>
+
+<p>In each of the error cases, a single futher HTTP request should be sufficient to get the necessary data to update the client to the correct state.</p>
+
+<h3>Handling message list without delta updates</h3>
+
+<p>The response to <code>getMessageList</code> includes a property called <code>canCalculateUpdates</code>, which lets you know whether the server supports a call to <code>getMessageListUpdates</code> for the given message list (servers may not support it at all, or may only support it when there is no search involved etc.). In this case, we have to fetch the bit of the message list currently on display, and just throw away all of our cached data for the message list. Note, however, we don&rsquo;t have to throw away all the message data, so it&rsquo;s still not too inefficient.</p>
+
+<h2>5. Performing actions</h2>
+
+<p>Modifying the state is the most complex operation to get right, as changes to messages may change counts in mailboxes, or thread membership, and the client may not have sufficient information to work out all the effects; it must apply the change then get the rest of the updates from the server.</p>
+
+<h3>Selecting all</h3>
+
+<p>If you select all, you need to fetch the complete message list for the mailbox currently displayed.</p>
+
+<p>When applying actions to threads, you will often wish to apply the same action to every message in the thread in the same mailbox as the one explicitly selected, or even to all the messages in the thread, regardless of mailbox. You therefore need to fetch the Thread object for every thread in the message list (but you don&rsquo;t need to fetch any message details). You can do this in a single <code>getMessageList</code> call, with <code>fetchThreads: true</code>, but <code>fetchMessages: null</code>.</p>
+
+<h3>Moving a message</h3>
+
+<p>Moving a message from the Inbox to the Trash is simple:</p>
+
+<pre><code>[ "setMessages", {
+    update: {
+        "fm1u254": {
+            mailboxes: [ "mailbox3" ]
+        }
+    }
+}, "call1" ]
+</code></pre>
+
+<p>We can then do a resync as in section 4 to update the client cache. This is easy, but means there&rsquo;s a noticable delay performing every action, and we cannot operate in an offline mode and resync later. We can improve on this, although it makes it considerably more complicated. We can apply the effects we think the changes will have instantly then compare this with the results we get back from the server.</p>
+
+<ol>
+<li><p><strong>Mailbox counts</strong>.</p>
+
+<p>For each message moved:</p>
+
+<ul>
+<li>Decrement the <code>totalMessages</code> count for the source mailbox.</li>
+<li>Increment the <code>totalMessages</code> count for the destination mailbox.</li>
+<li>If unread, decrement the <code>unreadMessages</code> count for the source mailbox.</li>
+<li>If unread, increment the <code>unreadMessages</code> count for the destination mailbox.</li>
+</ul>
+
+
+<p>If there are no other messages in the thread in the source mailbox:</p>
+
+<ul>
+<li>Decrement the <code>totalThreads</code> count for the source mailbox.</li>
+<li>If any of the messages in the thread are unread, decrement the
+<code>unreadThreads</code> count for the source mailbox.</li>
+</ul>
+
+
+<p>If there are no other messages in the thread already in the destination mailbox:</p>
+
+<ul>
+<li>Increment the <code>totalThreads</code> count for the destination mailbox.</li>
+<li>If any of the messages in the thread are unread, increment the
+<code>unreadThreads</code> count for the destination mailbox.</li>
+</ul>
+</li>
+<li><p><strong>Message list</strong>. Splice each selected message being moved from the current message list (from which it was selected by the user). You may also try to insert them at the correct position in the message list of the destination mailbox:</p>
+
+<ul>
+<li>From the thread object, you know if there are any other messages in the thread already in the mailbox. As the message list in the thread object is sorted by date, as long as the mailbox list is also sorted by date, you can now work out if the message is a new exemplar in the message list or not. If it is, binary search the list by date to find where to insert it. If you don&rsquo;t have message headers for all the message list loaded, you may not be able to determine the correct spot. In this case, it should be inserted anyway so the user can access it; the mistake will be corrected when the next sync with the server occurs.</li>
+</ul>
+</li>
+<li><p><strong>Thread</strong>. Update the <code>mailboxIds</code> property with the message&rsquo;s new mailboxes. If the message was moved to a mailbox with a different <code>threadGroupId</code>, then the <code>threadId</code> will also change, so we must remove it from this thread. Since we have no idea what the new thread will be, we should make a new one until we can sync with the server.</p></li>
+<li><p><strong>Message object</strong>. Update the <code>mailboxId</code> property on the message object.</p></li>
+</ol>
+
+
+<p>When you next do resync, whether that&rsquo;s a second or several days later, apply the changes and fetch the delta update (as per section 4) in a single request, and when the response is received, undo the preemptive changes made above and apply the real changes. Hopefully the end result will be the same, and there will be no noticable difference to the user.</p>
+
+<p>However, since the Trash has a different <code>threadGroupId</code> to Inbox, the <code>threadId</code> of the message is going to change. The counts of mailboxes will change, and the message sets of the old thread and new thread will change.</p>
+
+<p>In order to be able to undo, we need to know the original mailbox of each message.</p>
+
+<p>This is a complete pain in the arse to keep consistant.</p>
+
+<pre><code>[ "messagesMoved", {
+    moved: {
+
+    },
+    oldState: ,
+    newState:
+}, "call1" ],
+[ "messages", {
+    state: "m815039",
+    list: [{
+        "id": "fm1u316",
+        "threadId": "afed75fb4f512ae7",
+        "mailboxId": "mailbox1",
+        "isUnread": true,
+        "isFlagged": false,
+        "isAnswered": false,
+        "isDraft": false,
+        "hasAttachment": false,
+        "from": [
+            { name: "Joe Bloggs", email: "joebloggs@fastmail.fm" }
+        ],
+        "to": [
+            { name: "Jane Doe", email: "janedoe@fastmail.fm" }
+        ],
+        "subject": "Camping trip",
+        "date": "2014-07-24T15:04:51Z",
+        "preview": "Hey Joe. Fancy a trip out west next week? I hea…"
+    }]
+}, "call2" ]
+</code></pre>
+
+<p>Preemptively update mailbox counts.
+Call getMailboxUpdates</p>
+
+<p>Preemptively update message list
+Call getMessageListUpdates</p>
+
+<p>Delete
+- thread needs updating
+- mailbox(es) needs updating</p>
+
+<p>Mark read
+- mailbox(es) need updating</p>
+
+<p>Move
+Preemptively update mailbox counts.
+Call getMailboxUpdates
+Preemptively update message list
+Call getMessageListUpdates
+- only a
+- messageId + threadId may change.
+- thread needs updating
+- mailbox(es) needs updating</p>
+
+<p>Copy</p>
+
+<h2>6. Sending messages</h2>
+
+<p>Create message -> Drafts folder.</p>
+
+<p>Immutable, so must destroy old and create new. They will have same thread id, to ensure easy to keep together. If old no longer exists, it&rsquo;s either because the draft has been sent/updated/discarded on another computer. Hmm, how to tell?</p>
+
+<p>Move message to Outbox (or create in Outbox) -> Server will send and move to Sent folder for you (or something else if set on the server).</p>
+</article>
+<aside>
+<div class="toc-selected"></div>
+<ol class="toc"></ol>
+</aside>
+<script type="text/javascript" src="toc.js"></script>
+</body>
+</html>
