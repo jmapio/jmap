@@ -26,7 +26,7 @@
 
 <p>This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the <a href="client.html">guide for client developers</a> first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.</p>
 
-<p>There are undoubtably edge cases that are not yet covered. If you find one, please email <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#111;&#x3a;&#101;&#100;&#105;&#x74;&#x6f;&#114;&#64;&#106;&#109;&#97;&#x70;&#x2e;&#105;&#x6f;">&#101;&#x64;&#105;&#x74;&#111;&#x72;&#x40;&#106;&#x6d;&#97;&#x70;&#46;&#105;&#111;</a> or make a pull request on GitHub if you have a proposed fix.</p>
+<p>There are undoubtably edge cases that are not yet covered. If you find one, please email <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x65;&#100;&#x69;&#116;&#111;&#114;&#x40;&#x6a;&#109;&#97;&#x70;&#x2e;&#105;&#x6f;">&#101;&#100;&#x69;&#116;&#x6f;&#114;&#x40;&#106;&#109;&#97;&#112;&#x2e;&#105;&#x6f;</a> or make a pull request on GitHub if you have a proposed fix.</p>
 
 <p>The key words &ldquo;MUST&rdquo;, &ldquo;MUST NOT&rdquo;, &ldquo;REQUIRED&rdquo;, &ldquo;SHALL&rdquo;, &ldquo;SHALL NOT&rdquo;, &ldquo;SHOULD&rdquo;, &ldquo;SHOULD NOT&rdquo;, &ldquo;RECOMMENDED&rdquo;, &ldquo;MAY&rdquo;, and &ldquo;OPTIONAL&rdquo; in this document are to be interpreted as described in <a href="https://tools.ietf.org/html/rfc2119">RFC2119</a>.</p>
 
@@ -474,6 +474,8 @@ The number of threads where at least one message in the thread has <code>isUnrea
 <p>The result of this is that messages in the Trash are treated as though they are in a separate thread for the purposes of mailbox counts. It is expected that clients will hide messages in the Trash when viewing a thread in another mailbox and vice versa. This allows you to delete a single message to the Trash out of a thread.</p>
 
 <p>For example, suppose you have an account where the entire contents is a single conversation with 2 messages: an unread message in the Trash and a read message in the Inbox. The <code>unreadThreads</code> count would be <code>1</code> for the Trash and <code>0</code> for the Inbox.</p>
+
+<p>The server MAY support extra properties on the Message object. To avoid conflict with any future standardised properties, custom property names MUST begin with <code>"x-"</code>. Custom properties MAY be mutable. If so, changes to these properties SHOULD, cause the mailbox id to appear in the <em>changed</em> response of a call to <em>getMailboxUpdates</em>.</p>
 
 <h3>getMailboxes</h3>
 
@@ -1227,7 +1229,7 @@ An object mapping attachment id (as found in the <code>attachments</code> proper
 </ul>
 
 
-<p>TODO:Custom props: &lsquo;x-propName&rsquo;.Signature validity and detail.Per-message action metadata (ala Gmail Actions in the Inbox).</p>
+<p>The server MAY support extra properties on the Message object, such as information on DKIM signature validity or action metadata. To avoid conflict with any future standardised properties, custom property names MUST begin with <code>"x-"</code>. Custom properties SHOULD be immutable. In the event of mutable custom properties, it is not defined whether these will cause the message id to appear in the <em>changed</em> response in a call to <em>getMessageUpdates</em>.</p>
 
 <p>An <strong>Emailer</strong> object has the following properties:</p>
 
