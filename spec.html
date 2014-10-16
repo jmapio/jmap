@@ -26,7 +26,7 @@
 
 <p>This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the <a href="client.html">guide for client developers</a> first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.</p>
 
-<p>There are undoubtably edge cases that are not yet covered. If you find one, please email <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x65;&#100;&#105;&#x74;&#111;&#x72;&#64;&#x6a;&#109;&#97;&#x70;&#x2e;&#105;&#111;">&#101;&#x64;&#105;&#x74;&#111;&#x72;&#x40;&#106;&#109;&#97;&#112;&#46;&#105;&#x6f;</a> or make a pull request on GitHub if you have a proposed fix.</p>
+<p>There are undoubtably edge cases that are not yet covered. If you find one, please email <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#111;&#x3a;&#101;&#100;&#105;&#x74;&#x6f;&#114;&#64;&#106;&#109;&#97;&#x70;&#x2e;&#105;&#x6f;">&#101;&#x64;&#105;&#x74;&#111;&#x72;&#x40;&#106;&#x6d;&#97;&#x70;&#46;&#105;&#111;</a> or make a pull request on GitHub if you have a proposed fix.</p>
 
 <p>The key words &ldquo;MUST&rdquo;, &ldquo;MUST NOT&rdquo;, &ldquo;REQUIRED&rdquo;, &ldquo;SHALL&rdquo;, &ldquo;SHALL NOT&rdquo;, &ldquo;SHOULD&rdquo;, &ldquo;SHOULD NOT&rdquo;, &ldquo;RECOMMENDED&rdquo;, &ldquo;MAY&rdquo;, and &ldquo;OPTIONAL&rdquo; in this document are to be interpreted as described in <a href="https://tools.ietf.org/html/rfc2119">RFC2119</a>.</p>
 
@@ -823,11 +823,17 @@ The array MUST contain either one or two elements. The first element is the name
 
 <p>Optionally, following the property name there can be a space and then either the string <code>asc</code> or <code>desc</code> to specify ascending or descending sort for that property. If not specified, it MUST default to <strong>descending</strong>.</p>
 
-<p>The following properties may be used for sort:</p>
+<p>The following properties MUST be supported for sorting:</p>
 
 <ul>
 <li><strong>id</strong> - The id as returned in the Message object.</li>
 <li><strong>date</strong> - The date as returned in the Message object.</li>
+</ul>
+
+
+<p>The following properties SHOULD be supported  for sorting:</p>
+
+<ul>
 <li><strong>size</strong> - The size as returned in the Message object.</li>
 <li><strong>from</strong> – This is taken to be either the &ldquo;name&rdquo; part of the Emailer object, or if none then the &ldquo;email&rdquo; part of the Emailer object (see the definition of the from property in the Message object). If still none, consider the value to be the empty string.</li>
 <li><strong>to</strong> - This is taken to be either the &ldquo;name&rdquo; part of the <strong>first</strong> Emailer object, or if none then the &ldquo;email&rdquo; part of the <strong>first</strong> Emailer object (see the definition of the to property in the Message object). If still none, consider the value to be the empty string.</li>
@@ -836,6 +842,8 @@ The array MUST contain either one or two elements. The first element is the name
 <li><strong>isUnread</strong> - If <code>collapseThreads == true</code>, this value MUST be considered <code>true</code> for the message if it is <code>true</code> for <strong>any</strong> of the messages in the thread.</li>
 </ul>
 
+
+<p>The server MAY support sorting based on other properties as well.</p>
 
 <p>The method of comparison depends on the type of the property:</p>
 
@@ -895,6 +903,8 @@ The list of Message ids for each message in the list after filtering, sorting an
 
 <p><code>accountNoMail</code>: Returned if the <em>accountId</em> given corresponds to a valid account, but does not contain any mail data.</p>
 
+<p><code>unsupportedSort</code>: Returned if the <em>sort</em> includes a property the server does not support sorting on.</p>
+
 <p><code>invalidArguments</code>: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A <code>description</code> property MAY be present on the response object to help debug with an explanation of what the problem was.</p>
 
 <p><code>anchorNotFound</code>: Returned if an anchor argument was supplied, but it cannot be found in the message list.</p>
@@ -914,6 +924,8 @@ The sort argument that was used with <em>getMessageList</em>.</li>
 The <em>collapseThreads</em> argument that was used with <em>getMessageList</em>.</li>
 <li><strong>sinceState</strong>: <code>String</code>
 The current state of the client. This is the string that was returned as the <em>state</em> argument in the <em>messageList</em> response. The server will return the changes made since this state.</li>
+<li><strong>uptoMessageId</strong>: <code>String</code> (optional)
+The message id of the last message in the list that the client knows about. In the common case of the client only having the first X ids cached, this allows the server to ignore changes further down the list the client doesn&rsquo;t care about.</li>
 <li><strong>maxChanges</strong>: <code>Number</code> (optional)
 The maximum number of changes to return in the response. See below for a more detailed description.</li>
 </ul>
@@ -937,11 +949,15 @@ This is the state the client will be in after applying the set of changes to the
 <li><strong>total</strong>: <code>Number</code>
 The total number of messages in the message list (given the filter and collapseThreads arguments).</li>
 <li><p><strong>removed</strong>: <code>RemovedItem[]</code>
-The <em>messageId</em> and <em>threadId</em> for <strong>every</strong> message that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra messages in addition that MAY have been in the old list but are not in the new list.</p>
+The <em>messageId</em> and <em>threadId</em> for every message that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra messages in addition that MAY have been in the old list but are not in the new list.</p>
+
+<p>If an <em>uptoMessageId</em> was given AND this id was found in the list, only messages positioned before this message that were removed need be returned.</p>
 
 <p>In addition, if the sort includes the property <em>isUnread</em> or <em>isFlagged</em>, the server MUST include all messages in the current list for which this property MAY have changed. If <code>collapseThreads == true</code>, then the server MUST include all messages in the current list for which this property MAY have changed <strong>on any of the messages in the thread</strong>.</p></li>
 <li><p><strong>added</strong>: <code>AddedItem[]</code>
-The messageId and threadId and index in the list (in the new state) for every message that has been added to the list since the old state AND every message in the current list that was included in the <em>removed</em> array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.</p></li>
+The messageId and threadId and index in the list (in the new state) for every message that has been added to the list since the old state AND every message in the current list that was included in the <em>removed</em> array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.</p>
+
+<p>If an <em>uptoMessageId</em> was given AND this id was found in the list, only messages positioned before this message that have been added need be returned.</p></li>
 </ul>
 
 

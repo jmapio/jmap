@@ -98,16 +98,21 @@ The `sort` argument lists the properties to compare between two messages to dete
 
 Optionally, following the property name there can be a space and then either the string `asc` or `desc` to specify ascending or descending sort for that property. If not specified, it MUST default to **descending**.
 
-The following properties may be used for sort:
+The following properties MUST be supported for sorting:
 
 - **id** - The id as returned in the Message object.
 - **date** - The date as returned in the Message object.
+
+The following properties SHOULD be supported  for sorting:
+
 - **size** - The size as returned in the Message object.
 - **from** – This is taken to be either the "name" part of the Emailer object, or if none then the "email" part of the Emailer object (see the definition of the from property in the Message object). If still none, consider the value to be the empty string.
 - **to** - This is taken to be either the "name" part of the **first** Emailer object, or if none then the "email" part of the **first** Emailer object (see the definition of the to property in the Message object). If still none, consider the value to be the empty string.
 - **subject** - This is taken to be the subject of the Message with any ignoring any leading "Fwd:"s or "Re:"s (case-insensitive match).
 - **isFlagged** - If `collapseThreads == true`, this value MUST be considered `true` for the message if it is `true` for **any** of the messages in the thread.
 - **isUnread** - If `collapseThreads == true`, this value MUST be considered `true` for the message if it is `true` for **any** of the messages in the thread.
+
+The server MAY support sorting based on other properties as well.
 
 The method of comparison depends on the type of the property:
 
@@ -161,6 +166,8 @@ The following errors may be returned instead of the `messageList` response:
 
 `accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
 
+`unsupportedSort`: Returned if the *sort* includes a property the server does not support sorting on.
+
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 `anchorNotFound`: Returned if an anchor argument was supplied, but it cannot be found in the message list.
@@ -179,6 +186,8 @@ The `getMessageListUpdates` call allows a client to efficiently update the state
   The *collapseThreads* argument that was used with *getMessageList*.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *messageList* response. The server will return the changes made since this state.
+- **uptoMessageId**: `String` (optional)
+  The message id of the last message in the list that the client knows about. In the common case of the client only having the first X ids cached, this allows the server to ignore changes further down the list the client doesn't care about.
 - **maxChanges**: `Number` (optional)
   The maximum number of changes to return in the response. See below for a more detailed description.
 
@@ -199,12 +208,16 @@ The response to *getMessageListUpdates* is called *messageListUpdates* It has th
 - **total**: `Number`
   The total number of messages in the message list (given the filter and collapseThreads arguments).
 - **removed**: `RemovedItem[]`
-  The *messageId* and *threadId* for **every** message that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra messages in addition that MAY have been in the old list but are not in the new list.
+  The *messageId* and *threadId* for every message that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra messages in addition that MAY have been in the old list but are not in the new list.
+
+  If an *uptoMessageId* was given AND this id was found in the list, only messages positioned before this message that were removed need be returned.
 
   In addition, if the sort includes the property *isUnread* or *isFlagged*, the server MUST include all messages in the current list for which this property MAY have changed. If `collapseThreads == true`, then the server MUST include all messages in the current list for which this property MAY have changed **on any of the messages in the thread**.
 
 - **added**: `AddedItem[]`
   The messageId and threadId and index in the list (in the new state) for every message that has been added to the list since the old state AND every message in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.
+
+  If an *uptoMessageId* was given AND this id was found in the list, only messages positioned before this message that have been added need be returned.
 
 A **RemovedItem** object has the following properties:
 
