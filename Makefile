@@ -29,6 +29,7 @@ spec.html: header.inc \
 	markdown spec/thread.mdwn >> $@
 	markdown spec/message.mdwn >> $@
 	markdown spec/searchsnippet.mdwn >> $@
+	markdown spec/push.mdwn >> $@
 	markdown spec/upload.mdwn >> $@
 	cat footer.inc >> $@
 

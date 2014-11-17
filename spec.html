@@ -26,7 +26,7 @@
 
 <p>This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the <a href="client.html">guide for client developers</a> first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.</p>
 
-<p>There are undoubtably edge cases that are not yet covered. If you find one, please email <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x65;&#100;&#x69;&#116;&#111;&#114;&#x40;&#x6a;&#109;&#97;&#x70;&#x2e;&#105;&#x6f;">&#101;&#100;&#x69;&#116;&#x6f;&#114;&#x40;&#106;&#109;&#97;&#112;&#x2e;&#105;&#x6f;</a> or make a pull request on GitHub if you have a proposed fix.</p>
+<p>There are undoubtably edge cases that are not yet covered. If you find one, please email <a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#101;&#100;&#105;&#x74;&#x6f;&#114;&#x40;&#x6a;&#x6d;&#x61;&#x70;&#46;&#x69;&#x6f;">&#101;&#x64;&#105;&#116;&#x6f;&#114;&#x40;&#106;&#109;&#97;&#x70;&#x2e;&#x69;&#x6f;</a> or make a pull request on GitHub if you have a proposed fix.</p>
 
 <p>The key words &ldquo;MUST&rdquo;, &ldquo;MUST NOT&rdquo;, &ldquo;REQUIRED&rdquo;, &ldquo;SHALL&rdquo;, &ldquo;SHALL NOT&rdquo;, &ldquo;SHOULD&rdquo;, &ldquo;SHOULD NOT&rdquo;, &ldquo;RECOMMENDED&rdquo;, &ldquo;MAY&rdquo;, and &ldquo;OPTIONAL&rdquo; in this document are to be interpreted as described in <a href="https://tools.ietf.org/html/rfc2119">RFC2119</a>.</p>
 
@@ -303,15 +303,15 @@ equivalent in IMAP. In JMAP these flags are called:</p>
 
 <p>Messages are immutable other than these 4 flags and the set of mailboxes to which it belongs. To change anything else, the message must be deleted and a new one created (which will get a different id).</p>
 
-<p>Related messages are grouped into threads. When getting a message list, you can collapse threads; that is the thread is only returned <strong>once</strong>, at the position of the first message in the thread to found in the non-collapsed list (given the sort order).</p>
+<p>Related messages are grouped into threads. When getting a message list, you can collapse threads; that is the thread is only returned <strong>once</strong>, at the position of the first message in the thread in the non-collapsed list (given the sort order).</p>
 
 <h3>Contacts</h3>
 
-<p>The contacts spec is yet to come. Excited?!</p>
+<p>The contacts spec is coming soon.</p>
 
 <h3>Calendars</h3>
 
-<p>The calendars spec is yet to come. Excited?!</p>
+<p>The calendars spec is coming soon.</p>
 <h2>Accounts</h2>
 
 <p>A single login may provide access to multiple accounts, for example if another user is sharing their mail with the logged in user.</p>
@@ -407,7 +407,7 @@ An array of all Account objects.</li>
   ]
 }, "#0" ]
 </code></pre>
-<h2>Mailbox</h2>
+<h2>Mailboxes</h2>
 
 <p>A mailbox represents a named set of emails. This is the primary mechanism for organising messages within an account. It is analogous to a folder in IMAP or a label in other systems. A mailbox may perform a certain role in the system.</p>
 
@@ -661,7 +661,7 @@ A list of ids for Mailboxes to permanently delete.</li>
 
 <h4>Response</h4>
 
-<p>The response to <code>setMailboxes</code> is called <code>mailboxesSet</code>. It has the following arguments:</p>
+<p>The response to <em>setMailboxes</em> is called <em>mailboxesSet</em>. It has the following arguments:</p>
 
 <ul>
 <li><strong>accountId</strong>: <code>String</code>
@@ -1755,6 +1755,88 @@ ids were found.</li>
 
 
 <p>Since snippets are only based on immutable properties, there is no state string or update mechanism needed.</p>
+<h2>Push</h2>
+
+<p>Any modern email client should be able to update instantly whenever the data on the server is changed by another client or message delivery. Push notifications in JMAP occur out-of-band (i.e. not over the same connection as API exchanges) so that they can make use of efficient native push mechanisms on different platforms.</p>
+
+<p>The general model for push is simple and does not send any sensitive data over the push channel, making it suitable for use with less trusted 3rd party intermediaries. When something changes on the server, the server pushes a small JSON object to the client with the following properties:</p>
+
+<ul>
+<li><strong>clientId</strong>: <code>String|null</code>.
+If the change was due to an action initiated by the JMAP API, the <em>client id</em> (the third argument to the method call making the change) is echoed back in this property. Clients may use this to determine if the change was caused by them or an external factor. This may be <code>null</code> if not directly caused by an API call (for example, when first making an event-source connection).</li>
+<li><strong>accountStates</strong>: <code>String[AccountState]</code>
+A map of <em>account id</em> to an object encoding the current state of mail/contacts/calendar data for that account, for each of the accounts to which the user has access.</li>
+</ul>
+
+
+<p>An <strong>AccountState</strong> object has the following properties:</p>
+
+<ul>
+<li><strong>mailState</strong>: <code>String</code>
+A string encoding the current state of all mail data. If any of the message/thread/mailbox etc. data changes, this string will change.</li>
+<li><strong>contactsState</strong>: <code>String</code>
+A string encoding the current state of all contact data. If any of the contacts/contact groups etc. data changes, this string will change.</li>
+<li><strong>calendarState</strong>: <code>String</code>
+A string encoding the current state of all calendar data. If any of the event/calendar etc. data changes, this string will change.</li>
+</ul>
+
+
+<p>Upon receiving this data, the client can easily compare to the previous state strings to see whether data has changed in mail, contacts, and/or calendars. The actual changes can then be efficiently fetched in a single standard API request (mainly using the <em>getFooUpdates</em> type methods).</p>
+
+<h3>Event Source</h3>
+
+<p>There are two mechanisms by which the client can receive the push events. The first is directly via a <code>text/event-stream</code> resource, as described in
+<a href="http://www.w3.org/TR/eventsource/">http://www.w3.org/TR/eventsource/</a>. This is essentially a long running HTTP request down which the server can push data. When a change occurs, the server MUST push an event called <strong>state</strong> to any connected clients. The server SHOULD also set a new <code>Last-Event-Id</code> that encodes the entire server state visible to the user. When a new connection is made to the event-source endpoint, the server MUST immediately send a push with the current state for all accounts unless a <code>Last-Event-Id</code> was sent by the client AND this matches the current <code>Last-Event-Id</code> on the server.</p>
+
+<p>The server MUST also send an event called <strong>ping</strong> with an empty object as the data if a maximum of 5 minutes has elapsed since the previous event. This MUST NOT set a new <code>Last-Event-Id</code>. A client may detect the absence of these to determine that the HTTP connection has been dropped somewhere along the route and so it needs to re-establish the connection.</p>
+
+<p>Refer to the Authentication section of this spec for details on how to get the URL for the event-source endpoint, and the authentication required when connecting to it.</p>
+
+<p>A client MAY hold open multiple connections to the event-source, although it SHOULD try to use a single connection for efficiency.</p>
+
+<h3>setPushCallback</h3>
+
+<p>The second push mechanism is to register a callback URL to which the JMAP server will make an HTTPS POST request whenever the event occurs. The request MUST have a content type of <code>application/json</code> and contain the same UTF-8 JSON encoded object as described above as the body.</p>
+
+<p>The JMAP server MUST also set the following headers in the POST request:
+- <code>X-JMAP-EventType: state</code>
+- <code>X-JMAP-User: ${username}</code> where <code>${username}</code> is the username of the authenticated user for which the push event occurred.</p>
+
+<p>The JMAP server MUST follow any redirects. If the final response code from the server is <code>2xx</code>, the callback is considered a success. If the response code is <code>503</code> (Service Unavailable), the JMAP server MAY try again later (but may also just drop the event). If the response code is <code>429</code> (Too Many Requests) the JMAP server SHOULD attempt to reduce the frequency of pushes to that URL. Any other response code SHOULD be considered a <strong>permanent failure</strong> and the callback should be deregistered (not tried again even for future events unless explicitly re-registered by the client).</p>
+
+<p>The URL set by the client MUST be HTTPS-based and SHOULD encode within it a unique token that can be verified by the server to know that the request comes from the JMAP server the authenticated client connected to.</p>
+
+<p>The callback is tied to the session created by authentication. Should the user become unauthenticated, the callback MUST be removed by the JMAP server. The client MUST re-register the callback after reauthenticating to resume callbacks.</p>
+
+<p>Each session MAY only have a single callback URL registered. To set it, make a call to <em>setPushCallback</em>. It takes the following argument:</p>
+
+<ul>
+<li><strong>callback</strong>: <code>String|null</code>
+The (HTTPS) URL the JMAP server should POST events to. This will replace any previously set URL. Set to <code>null</code> to just remove any previously set callback URL.</li>
+</ul>
+
+
+<p>The response to <em>setPushCallback</em> is called <em>pushCallbackSet</em>. It has the following argument:</p>
+
+<ul>
+<li><strong>callback</strong>: <code>String|null</code>
+Echoed back from the call.</li>
+</ul>
+
+
+<p>The following error may be returned instead of the <em>mailboxesSet</em> response:</p>
+
+<p><code>invalidUrl</code>: Returned if the URL does not begin with <code>https://</code>, or is otherwise syntactically invalid or does not resolve.</p>
+
+<h3>getPushCallback</h3>
+
+<p>To check the currently set callback URL (if any), make a call to <em>getPushCallback</em>. It does not take any arguments. The response to <em>getPushCallback</em> is called <code>pushCallback</code>. It has a single argument:</p>
+
+<ul>
+<li><strong>callback</strong>: <code>String|null</code>
+The URL the JMAP server is currently posting push events to, or <code>null</code> if none.</li>
+</ul>
+
 <h2>File Uploads</h2>
 
 <p>This needs to go in a separate spec (part of the JMAP over HTTP spec?) but basically:</p>
