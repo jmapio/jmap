@@ -27,7 +27,7 @@ There are two mechanisms by which the client can receive the push events. The fi
 
 The server MUST also send an event called **ping** with an empty object as the data if a maximum of 5 minutes has elapsed since the previous event. This MUST NOT set a new `Last-Event-Id`. A client may detect the absence of these to determine that the HTTP connection has been dropped somewhere along the route and so it needs to re-establish the connection.
 
-Refer to the Authentication section of this spec for details on how to get the URL for the event-source endpoint, and the authentication required when connecting to it.
+Refer to the Authentication section of this spec for details on how to get the URL for the event-source endpoint. The request must be authenticated using an `Authorization` header like any HTTP request.
 
 A client MAY hold open multiple connections to the event-source, although it SHOULD try to use a single connection for efficiency.
 
@@ -41,11 +41,11 @@ The JMAP server MUST also set the following headers in the POST request:
 
 The JMAP server MUST follow any redirects. If the final response code from the server is `2xx`, the callback is considered a success. If the response code is `503` (Service Unavailable), the JMAP server MAY try again later (but may also just drop the event). If the response code is `429` (Too Many Requests) the JMAP server SHOULD attempt to reduce the frequency of pushes to that URL. Any other response code SHOULD be considered a **permanent failure** and the callback should be deregistered (not tried again even for future events unless explicitly re-registered by the client).
 
-The URL set by the client MUST be HTTPS-based and SHOULD encode within it a unique token that can be verified by the server to know that the request comes from the JMAP server the authenticated client connected to.
+The URL set by the client MUST use the HTTPS protocol and SHOULD encode within it a unique token that can be verified by the server to know that the request comes from the JMAP server the authenticated client connected to.
 
-The callback is tied to the session created by authentication. Should the user become unauthenticated, the callback MUST be removed by the JMAP server. The client MUST re-register the callback after reauthenticating to resume callbacks.
+The callback is tied to the access token used to create it. Should the access token expire or be revoked, the callback MUST be removed by the JMAP server. The client MUST re-register the callback after reauthenticating to resume callbacks.
 
-Each session MAY only have a single callback URL registered. To set it, make a call to *setPushCallback*. It takes the following argument:
+Each session may only have a single callback URL registered. To set it, make a call to *setPushCallback*. It takes the following argument:
 
 - **callback**: `String|null`
   The (HTTPS) URL the JMAP server should POST events to. This will replace any previously set URL. Set to `null` to just remove any previously set callback URL.

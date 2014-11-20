@@ -25,7 +25,7 @@ A **Message** object has the following properties:
 - **hasAttachment**: `Boolean`
   Does the message have any attachments?
 - **rawUrl**: `String`
-  A url to download the original RFC2822 message from. See the JMAP over HTTP specification for details of the authentication required when accessing this URL.
+  A url to download the original RFC2822 message from. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).
 - **headers**: `String[String]`
   A map of header name to (decoded) header value for all headers in the message. For headers that occur multiple times (e.g. `Received`), the values are concatenated with a single new line (`\n`) character in between each one.
 - **from**: `Emailer|null`
@@ -88,7 +88,7 @@ An **Attachment** object has the following properties:
 - **id**: `String`
   The attachment id. This is only unique when paired with the message id, and has no meaning without reference to that.
 - **url**: `String`
-  A url to download the attachment. See the JMAP over HTTP specification for details of the authentication required when accessing this URL.
+  A url to download the attachment. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).
 - **type**: `String`
   The content-type of the attachment.
 - **name**: `String`

@@ -23,6 +23,7 @@ spec.html: header.inc \
 	cp header.inc $@
 	markdown spec/apimodel.mdwn >> $@
 	markdown spec/datamodel.mdwn >> $@
+	markdown spec/authentication.mdwn >> $@
 	markdown spec/accounts.mdwn >> $@
 	markdown spec/mailbox.mdwn >> $@
 	markdown spec/messagelist.mdwn >> $@

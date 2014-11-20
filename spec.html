@@ -26,7 +26,7 @@
 
 <p>This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the <a href="client.html">guide for client developers</a> first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.</p>
 
-<p>There are undoubtably edge cases that are not yet covered. If you find one, please email <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#x3a;&#101;&#100;&#x69;&#x74;&#x6f;&#x72;&#64;&#106;&#109;&#97;&#x70;&#46;&#x69;&#x6f;">&#x65;&#100;&#105;&#x74;&#111;&#114;&#64;&#106;&#x6d;&#97;&#x70;&#x2e;&#105;&#x6f;</a> or make a pull request on GitHub if you have a proposed fix.</p>
+<p>There are undoubtably edge cases that are not yet covered. If you find one, please email <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x65;&#x64;&#x69;&#x74;&#x6f;&#114;&#64;&#106;&#109;&#97;&#112;&#46;&#105;&#x6f;">&#x65;&#x64;&#x69;&#116;&#x6f;&#x72;&#64;&#x6a;&#109;&#x61;&#112;&#x2e;&#105;&#x6f;</a> or make a pull request on GitHub if you have a proposed fix.</p>
 
 <p>The key words &ldquo;MUST&rdquo;, &ldquo;MUST NOT&rdquo;, &ldquo;REQUIRED&rdquo;, &ldquo;SHALL&rdquo;, &ldquo;SHALL NOT&rdquo;, &ldquo;SHOULD&rdquo;, &ldquo;SHOULD NOT&rdquo;, &ldquo;RECOMMENDED&rdquo;, &ldquo;MAY&rdquo;, and &ldquo;OPTIONAL&rdquo; in this document are to be interpreted as described in <a href="https://tools.ietf.org/html/rfc2119">RFC2119</a>.</p>
 
@@ -312,6 +312,142 @@ equivalent in IMAP. In JMAP these flags are called:</p>
 <h3>Calendars</h3>
 
 <p>The calendars spec is coming soon.</p>
+<h2>Authentication</h2>
+
+<p>Before connecting to any JMAP service, the client must first gain an access token. It cannot just use a username/password directly. This allows the server to know (and show the user) which clients currently have access to the account, and to be able to revoke access individually.</p>
+
+<p>The server may support multiple different mechanisms for authenticating a user to gain the access token. It is expected that further types may be added in future extensions to the JMAP specification (for example <a href="https://fidoalliance.org/">FIDO</a>).</p>
+
+<h3>Service autodiscovery</h3>
+
+<p>A JMAP server SHOULD publish an SRV DNS record + /.wellknown information to allow autodiscovery of the <em>authentication URL</em>. (TODO: specify this properly). This is the URL to use for gaining an access token. It SHOULD use the HTTPS protocol.</p>
+
+<h3>Getting an access token</h3>
+
+<p>Authorisation always starts with the client making a POST request to the authentication URL (found either via service autodiscovery or manual entry). The request MUST be of type <code>application/json</code> and specify an <code>Accept: application/json</code> header. The body of the request MUST be a single JSON object, encoded in UTF-8, with the following properties:</p>
+
+<ul>
+<li><strong>username</strong>: <code>String</code>
+The username the client wishes to authenticate. This is normally the primary email address of the user.</li>
+<li><strong>clientName</strong>: <code>String</code>
+The name of the client software. e.g. <code>Mozilla Thunderbird</code>.</li>
+<li><strong>clientVersion</strong>: <code>Number</code>
+A number to identify the version of the client. Newer clients are expected to have higher numbers. This number is NOT REQUIRED to be integral. e.g. <code>5.61</code>.</li>
+<li><strong>deviceName</strong>: <code>String</code>
+A human-friendly string to identify the device making the request, e.g. &ldquo;Joe Blogg&rsquo;s iPhone&rdquo;.</li>
+</ul>
+
+
+<p>The server may use the client/device information to help identify the login to the user in a login log or other security reporting. Although hopefully unnecessary, they may also be helpful for working around client bugs in the future.</p>
+
+<p>The server will respond with one of the following HTTP status codes:</p>
+
+<h4><code>200</code>: Success, but more authorisation required.</h4>
+
+<p>The response body will be a single JSON object with the following properties.</p>
+
+<ul>
+<li><strong>continuationToken</strong>: <code>String</code>
+A token from the server to allow it to connect the next request with previous requests in the login process. This SHOULD be of limited time validity (e.g. 15 minutes from previous call).</li>
+<li><strong>methods</strong>: <code>String[]</code>
+A list of the supported authentication methods to continue with authentication. This will often have only have one item in it. Allowed values are <code>"password"</code>, <code>"external"</code> and <code>"oauth"</code>. More options may be added in future extensions to JMAP.</li>
+<li><strong>prompt</strong>: <code>String|null</code>
+A message to display in the client to the user.</li>
+</ul>
+
+
+<p>This is the standard response to an initial request. Note, a server may return this even if the username is not actually active, to prevent enumeration. The client should then pick one of the <em>methods</em> from the list in the response to continue with authentication (if no methods supported by the client are in the list, it will not be able to log in to this account):</p>
+
+<ul>
+<li><code>"password"</code>: the client should prompt the user for a password. If the <code>prompt</code> property is non-null, this message should be displayed to the user to explain what input is required. The prompt MUST be treated as plain text, but the client SHOULD automatically hyperlink any URLs it finds in the text if a system browser is available. If <code>prompt == null</code>, the client SHOULD just show a generic password prompt message.</li>
+<li><code>"external"</code>: the user must do something out-of-band to authorise the app. The server SHOULD return a prompt string to display to the user to tell them what they need to do. Again, the client MUST treat the prompt as plain text, but SHOULD automatically hyperlink any URLs it finds if a system browser is available. The client MUST also offer a continue button (or similar) for the user to indicate to the client when they have completed the out-of-band authentication.</li>
+<li><code>"oauth"</code>: OAuth based authentication. For OAuth integration, see the docs of the service in question, since every service implements it slightly differently and the client must register with the service beforehand to use it. If using this method, an access token is obtained entirely through the OAuth mechanism. See the &ldquo;Refetching URL endpoints&rdquo; section below for how to obtain the URL endpoints after successfully authenticating using OAuth.</li>
+</ul>
+
+
+<p>If using <code>"password"</code> or <code>"external"</code>, the user will at some point indicate to the client to continue authentication. At this point the client submits a POST request to the same URL as before, with the body being a single JSON object with the following properties:</p>
+
+<ul>
+<li><strong>token</strong>: <code>String</code>
+The <em>continuationToken</em> the server sent from the previous request.</li>
+<li><strong>method</strong>: <code>String</code>
+The method chosen to continue authentication.</li>
+<li><strong>password</strong>: <code>String</code> (optional)
+The password entered by the user (if <code>method == password</code>). The client SHOULD NOT store the password the user entered beyond what is required to submit it to the server in this step.</li>
+</ul>
+
+
+<p>The server will then return one of the same set of responses as before, which should be handled the same (for example, if 2FA is required, a <code>200</code> response may be returned again and a second password prompted for, with a <code>prompt</code> text explaining to the user that a one-time password has been SMSed to them).</p>
+
+<h4><code>201</code>: Authentication is complete, access token created.</h4>
+
+<p>The response body will be a single JSON object with the following properties.</p>
+
+<ul>
+<li><strong>accessToken</strong>: <code>String</code>
+The secret token to be used by the client to authenticate all future JMAP requests. The client should keep this secure, preferably in an OS keychain or the like. Since tokens should not be reused across devices or clients, the client SHOULD NOT reveal this token to the user.</li>
+<li><strong>api</strong>: <code>String</code>
+The URL to use for JMAP API requests.</li>
+<li><strong>eventSource</strong>: <code>String</code>
+The URL to connect to for push events (see the Push section of this spec).</li>
+<li><strong>upload</strong>: <code>String</code>
+The URL endpoint to use when uploading files (see the Upload section of this spec).</li>
+</ul>
+
+
+<p>URLs are returned only after logging in. This allows different URLs to be used for users located in different geographic datacentres within the same service.</p>
+
+<p>Note, if authentication is done via IP or mobile subscriber ID or some similar mechanism, a <code>201</code> response MAY be returned in response to the initial request (with just the username and client info).</p>
+
+<h4><code>400</code>: Malformed request</h4>
+
+<p>The request is of the wrong content type, or does not contain data in the expected format. The client MUST NOT retry the same request.</p>
+
+<h4><code>401</code>: Authentication step failed</h4>
+
+<p>Returned in response to a continuation request which failed (e.g. the password entered was not correct, or the out-of-band step was not completed successfully). The response body will be a single JSON object with the same properties as the <code>200</code> response.</p>
+
+<h4><code>403</code>: Restart authentication</h4>
+
+<p>This normally means the continuation token has expired, but it can be returned for any other reason. The client MUST restart authentication (go back to sending the username and client info to the server).</p>
+
+<h4><code>429</code>: Rate limited</h4>
+
+<p>Returned if the server is temporarily blocking this IP/client from authenticating. This may be due to too many failed password attempts, or detected username enumeration attempts, or any other reason. (Legitimate) clients should wait a while then try again.</p>
+
+<h3>Refetching URL endpoints</h3>
+
+<p>A server MAY (although SHOULD NOT) move end points for any services other than authentication at any time. If a request to the API/file upload/event source endpoing returns a <code>404</code>, the client MUST refetch the URL endpoints. To do this, it should make an authenticated GET request to the authentication URL (see below for how to authenticate requests). This should return a <code>200</code> response, with a single JSON object containing the following properties:</p>
+
+<ul>
+<li><strong>api</strong>: <code>String</code>
+The URL to use for JMAP API requests.</li>
+<li><strong>eventSource</strong>: <code>String</code>
+The URL to connect to for push events (see the Push section of this spec).</li>
+<li><strong>upload</strong>: <code>String</code>
+The URL endpoint to use when uploading files (see the Upload section of this spec).</li>
+</ul>
+
+
+<p>For OAuth logins, this is how the URLs may be fetched initially as well.</p>
+
+<h3>Revoking an access token</h3>
+
+<p>The validity of an access token is determined by the server. It may be valid for a limited time only, or expire after a certain time of inactivity, or be valid indefinitely etc. If an access token expires, it MUST NOT be resurrected. The client MUST restart the authentication process to get a new access token.</p>
+
+<p>A client may revoke an access token at any time by making a DELETE HTTP request to the authentication URL (used to get the token in the first place), with the correct authorisation header (see below). The response from the server will be one of the following:</p>
+
+<p><code>204</code>: Success (the access token has now been revoked).</p>
+
+<p><code>401</code>: Failed due to due to no authorisation header, or authorisation header is not a valid access token.</p>
+
+<p>No content is returned in either case.</p>
+
+<p>For OAuth, see the provider&rsquo;s documentation on revoking access tokens.</p>
+
+<h3>Authenticating HTTP requests</h3>
+
+<p>All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an <code>Authorization</code> header to each request with the value being the access token. This applies to OAuth tokens too, but see the provider&rsquo;s documentation for the details of what value to use for the header.</p>
 <h2>Accounts</h2>
 
 <p>A single login may provide access to multiple accounts, for example if another user is sharing their mail with the logged in user.</p>
@@ -1181,7 +1317,7 @@ Is the message a draft? This corresponds to the <code>\Draft</code> system flag 
 <li><strong>hasAttachment</strong>: <code>Boolean</code>
 Does the message have any attachments?</li>
 <li><strong>rawUrl</strong>: <code>String</code>
-A url to download the original RFC2822 message from. See the JMAP over HTTP specification for details of the authentication required when accessing this URL.</li>
+A url to download the original RFC2822 message from. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).</li>
 <li><strong>headers</strong>: <code>String[String]</code>
 A map of header name to (decoded) header value for all headers in the message. For headers that occur multiple times (e.g. <code>Received</code>), the values are concatenated with a single new line (<code>\n</code>) character in between each one.</li>
 <li><strong>from</strong>: <code>Emailer|null</code>
@@ -1255,7 +1391,7 @@ The email address of the sender/recipient.</li>
 <li><strong>id</strong>: <code>String</code>
 The attachment id. This is only unique when paired with the message id, and has no meaning without reference to that.</li>
 <li><strong>url</strong>: <code>String</code>
-A url to download the attachment. See the JMAP over HTTP specification for details of the authentication required when accessing this URL.</li>
+A url to download the attachment. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).</li>
 <li><strong>type</strong>: <code>String</code>
 The content-type of the attachment.</li>
 <li><strong>name</strong>: <code>String</code>
@@ -1790,7 +1926,7 @@ A string encoding the current state of all calendar data. If any of the event/ca
 
 <p>The server MUST also send an event called <strong>ping</strong> with an empty object as the data if a maximum of 5 minutes has elapsed since the previous event. This MUST NOT set a new <code>Last-Event-Id</code>. A client may detect the absence of these to determine that the HTTP connection has been dropped somewhere along the route and so it needs to re-establish the connection.</p>
 
-<p>Refer to the Authentication section of this spec for details on how to get the URL for the event-source endpoint, and the authentication required when connecting to it.</p>
+<p>Refer to the Authentication section of this spec for details on how to get the URL for the event-source endpoint. The request must be authenticated using an <code>Authorization</code> header like any HTTP request.</p>
 
 <p>A client MAY hold open multiple connections to the event-source, although it SHOULD try to use a single connection for efficiency.</p>
 
@@ -1804,11 +1940,11 @@ A string encoding the current state of all calendar data. If any of the event/ca
 
 <p>The JMAP server MUST follow any redirects. If the final response code from the server is <code>2xx</code>, the callback is considered a success. If the response code is <code>503</code> (Service Unavailable), the JMAP server MAY try again later (but may also just drop the event). If the response code is <code>429</code> (Too Many Requests) the JMAP server SHOULD attempt to reduce the frequency of pushes to that URL. Any other response code SHOULD be considered a <strong>permanent failure</strong> and the callback should be deregistered (not tried again even for future events unless explicitly re-registered by the client).</p>
 
-<p>The URL set by the client MUST be HTTPS-based and SHOULD encode within it a unique token that can be verified by the server to know that the request comes from the JMAP server the authenticated client connected to.</p>
+<p>The URL set by the client MUST use the HTTPS protocol and SHOULD encode within it a unique token that can be verified by the server to know that the request comes from the JMAP server the authenticated client connected to.</p>
 
-<p>The callback is tied to the session created by authentication. Should the user become unauthenticated, the callback MUST be removed by the JMAP server. The client MUST re-register the callback after reauthenticating to resume callbacks.</p>
+<p>The callback is tied to the access token used to create it. Should the access token expire or be revoked, the callback MUST be removed by the JMAP server. The client MUST re-register the callback after reauthenticating to resume callbacks.</p>
 
-<p>Each session MAY only have a single callback URL registered. To set it, make a call to <em>setPushCallback</em>. It takes the following argument:</p>
+<p>Each session may only have a single callback URL registered. To set it, make a call to <em>setPushCallback</em>. It takes the following argument:</p>
 
 <ul>
 <li><strong>callback</strong>: <code>String|null</code>

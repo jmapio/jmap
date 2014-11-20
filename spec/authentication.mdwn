@@ -1,0 +1,118 @@
+## Authentication
+
+Before connecting to any JMAP service, the client must first gain an access token. It cannot just use a username/password directly. This allows the server to know (and show the user) which clients currently have access to the account, and to be able to revoke access individually. 
+
+The server may support multiple different mechanisms for authenticating a user to gain the access token. It is expected that further types may be added in future extensions to the JMAP specification (for example [FIDO](https://fidoalliance.org/)).
+
+### Service autodiscovery
+
+A JMAP server SHOULD publish an SRV DNS record + /.wellknown information to allow autodiscovery of the *authentication URL*. (TODO: specify this properly). This is the URL to use for gaining an access token. It SHOULD use the HTTPS protocol.
+
+### Getting an access token
+
+Authorisation always starts with the client making a POST request to the authentication URL (found either via service autodiscovery or manual entry). The request MUST be of type `application/json` and specify an `Accept: application/json` header. The body of the request MUST be a single JSON object, encoded in UTF-8, with the following properties:
+
+- **username**: `String`
+  The username the client wishes to authenticate. This is normally the primary email address of the user.
+- **clientName**: `String`
+  The name of the client software. e.g. `Mozilla Thunderbird`.
+- **clientVersion**: `Number`
+  A number to identify the version of the client. Newer clients are expected to have higher numbers. This number is NOT REQUIRED to be integral. e.g. `5.61`.
+- **deviceName**: `String`
+  A human-friendly string to identify the device making the request, e.g. "Joe Blogg's iPhone".
+
+The server may use the client/device information to help identify the login to the user in a login log or other security reporting. Although hopefully unnecessary, they may also be helpful for working around client bugs in the future.
+
+The server will respond with one of the following HTTP status codes:
+
+#### `200`: Success, but more authorisation required.
+
+The response body will be a single JSON object with the following properties.
+
+- **continuationToken**: `String`
+  A token from the server to allow it to connect the next request with previous requests in the login process. This SHOULD be of limited time validity (e.g. 15 minutes from previous call).
+- **methods**: `String[]`
+  A list of the supported authentication methods to continue with authentication. This will often have only have one item in it. Allowed values are `"password"`, `"external"` and `"oauth"`. More options may be added in future extensions to JMAP.
+- **prompt**: `String|null`
+  A message to display in the client to the user.
+
+This is the standard response to an initial request. Note, a server may return this even if the username is not actually active, to prevent enumeration. The client should then pick one of the *methods* from the list in the response to continue with authentication (if no methods supported by the client are in the list, it will not be able to log in to this account):
+
+- `"password"`: the client should prompt the user for a password. If the `prompt` property is non-null, this message should be displayed to the user to explain what input is required. The prompt MUST be treated as plain text, but the client SHOULD automatically hyperlink any URLs it finds in the text if a system browser is available. If `prompt == null`, the client SHOULD just show a generic password prompt message.
+- `"external"`: the user must do something out-of-band to authorise the app. The server SHOULD return a prompt string to display to the user to tell them what they need to do. Again, the client MUST treat the prompt as plain text, but SHOULD automatically hyperlink any URLs it finds if a system browser is available. The client MUST also offer a continue button (or similar) for the user to indicate to the client when they have completed the out-of-band authentication.
+- `"oauth"`: OAuth based authentication. For OAuth integration, see the docs of the service in question, since every service implements it slightly differently and the client must register with the service beforehand to use it. If using this method, an access token is obtained entirely through the OAuth mechanism. See the "Refetching URL endpoints" section below for how to obtain the URL endpoints after successfully authenticating using OAuth.
+
+If using `"password"` or `"external"`, the user will at some point indicate to the client to continue authentication. At this point the client submits a POST request to the same URL as before, with the body being a single JSON object with the following properties:
+
+- **token**: `String`
+  The *continuationToken* the server sent from the previous request.
+- **method**: `String`
+  The method chosen to continue authentication.
+- **password**: `String` (optional)
+  The password entered by the user (if `method == password`). The client SHOULD NOT store the password the user entered beyond what is required to submit it to the server in this step.
+
+The server will then return one of the same set of responses as before, which should be handled the same (for example, if 2FA is required, a `200` response may be returned again and a second password prompted for, with a `prompt` text explaining to the user that a one-time password has been SMSed to them).
+
+#### `201`: Authentication is complete, access token created.
+
+The response body will be a single JSON object with the following properties.
+
+- **accessToken**: `String`
+  The secret token to be used by the client to authenticate all future JMAP requests. The client should keep this secure, preferably in an OS keychain or the like. Since tokens should not be reused across devices or clients, the client SHOULD NOT reveal this token to the user.
+- **api**: `String`
+  The URL to use for JMAP API requests.
+- **eventSource**: `String`
+  The URL to connect to for push events (see the Push section of this spec).
+- **upload**: `String`
+  The URL endpoint to use when uploading files (see the Upload section of this spec).
+
+URLs are returned only after logging in. This allows different URLs to be used for users located in different geographic datacentres within the same service.
+
+Note, if authentication is done via IP or mobile subscriber ID or some similar mechanism, a `201` response MAY be returned in response to the initial request (with just the username and client info).
+
+#### `400`: Malformed request
+
+The request is of the wrong content type, or does not contain data in the expected format. The client MUST NOT retry the same request.
+
+#### `401`: Authentication step failed
+
+Returned in response to a continuation request which failed (e.g. the password entered was not correct, or the out-of-band step was not completed successfully). The response body will be a single JSON object with the same properties as the `200` response.
+
+#### `403`: Restart authentication
+
+This normally means the continuation token has expired, but it can be returned for any other reason. The client MUST restart authentication (go back to sending the username and client info to the server).
+
+#### `429`: Rate limited
+
+Returned if the server is temporarily blocking this IP/client from authenticating. This may be due to too many failed password attempts, or detected username enumeration attempts, or any other reason. (Legitimate) clients should wait a while then try again.
+
+### Refetching URL endpoints
+
+A server MAY (although SHOULD NOT) move end points for any services other than authentication at any time. If a request to the API/file upload/event source endpoing returns a `404`, the client MUST refetch the URL endpoints. To do this, it should make an authenticated GET request to the authentication URL (see below for how to authenticate requests). This should return a `200` response, with a single JSON object containing the following properties:
+
+- **api**: `String`
+  The URL to use for JMAP API requests.
+- **eventSource**: `String`
+  The URL to connect to for push events (see the Push section of this spec).
+- **upload**: `String`
+  The URL endpoint to use when uploading files (see the Upload section of this spec).
+
+For OAuth logins, this is how the URLs may be fetched initially as well.
+
+### Revoking an access token
+
+The validity of an access token is determined by the server. It may be valid for a limited time only, or expire after a certain time of inactivity, or be valid indefinitely etc. If an access token expires, it MUST NOT be resurrected. The client MUST restart the authentication process to get a new access token.
+
+A client may revoke an access token at any time by making a DELETE HTTP request to the authentication URL (used to get the token in the first place), with the correct authorisation header (see below). The response from the server will be one of the following:
+
+`204`: Success (the access token has now been revoked).
+
+`401`: Failed due to due to no authorisation header, or authorisation header is not a valid access token.
+
+No content is returned in either case.
+
+For OAuth, see the provider's documentation on revoking access tokens.
+
+### Authenticating HTTP requests
+
+All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request with the value being the access token. This applies to OAuth tokens too, but see the provider's documentation for the details of what value to use for the header.
