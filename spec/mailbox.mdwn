@@ -62,12 +62,12 @@ The server MAY support extra properties on the Message object. To avoid conflict
 
 Mailboxes can either be fetched explicitly by id, or you can fetch all of them at once. To fetch mailboxes, make a call to `getMailboxes`. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The Account to fetch the mailboxes for. If omitted, the primary account is used.
-- **ids**: `String` (optional)
-  The ids of the mailboxes to fetch. If omitted, all mailboxes in the account are be fetched.
-- **properties**: `String[]|null`
-  If supplied, only the properties listed in the array will be returned for each mailbox. If `null`, all properties are returned. The id of the mailbox will **always** be returned, even if not explicitly requested. For compatibility with possible future extensions, the server MUST simply ignore any unknown properties in the list.
+- **accountId**: `String|null` (optional)
+  The Account to fetch the mailboxes for. If omitted or `null`, the primary account is used.
+- **ids**: `String[]|null` (optional)
+  The ids of the mailboxes to fetch. If omitted or `null`, all mailboxes in the account are returned.
+- **properties**: `String[]|null` (optional)
+  The properties of each mailbox to fetch. If omitted or `null`, all properties are returned. The id of the mailbox will **always** be returned, even if not explicitly requested. For compatibility with future extensions, the server MUST ignore any unknown properties in the list.
 
 The response to *getMailboxes* is called *mailboxes*. It has the following arguments:
 
