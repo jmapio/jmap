@@ -6,7 +6,20 @@ The server may support multiple different mechanisms for authenticating a user t
 
 ### Service autodiscovery
 
-A JMAP server SHOULD publish an SRV DNS record + /.wellknown information to allow autodiscovery of the *authentication URL*. (TODO: specify this properly). This is the URL to use for gaining an access token. It SHOULD use the HTTPS protocol.
+There are three common autodiscovery methods in use for internet protocols:
+
+- **DNS srv**
+  See [RFC6186](https://tools.ietf.org/rfc/rfc6186.txt) and [RFC6764](https://tools.ietf.org/rfc/rfc6764.txt)
+- **.well-known/`servicename`**
+  See [RFC5785](https://tools.ietf.org/rfc/rfc5785.txt)
+- **autoconfig.example.com**/**autodiscover.example.com**
+  Used by [Thunderbird](https://developer.mozilla.org/en-US/docs/Mozilla/Thunderbird/Autoconfiguration/FileFormat/HowTo) and Outlook.
+
+A JMAP server SHOULD publish a SRV record `_jmaps._tcp.example.com` which gives a hostname and port (usually port 443).
+
+The authentication URL is https://hostname/.well-known/jmap (following any redirects)
+
+Other autodiscovery options using autoconfig.example.com or autodiscover.example.com may be added to this spec at a later date to support clients which can't use SRV lookup.
 
 ### Getting an access token
 
