@@ -1,8 +1,48 @@
 ## File Uploads
 
-This needs to go in a separate spec (part of the JMAP over HTTP spec?) but basically:
+There is a single endpoint which handles all file uploads, regardless of what they are to be used for. To upload a file, submit a POST request to the file upload endpoint (see the authentication section for information on how to obtain this URL). The Content-Type MUST be correctly set for the type of the file being uploaded. The request MUST be authenticated as per any HTTP request.
 
-* Upload to endpoint.
-* Get back identifer (URL) and expiry date.
-* File exists until expiry time.
-* File is reference counted once used in drafts.
+The server will respond with one of the following HTTP response codes:
+
+#### `201`: File uploaded successfully
+
+The content of the reponse is a single JSON object with the following properties:
+
+- **url**: `String`,
+  The file can be redownloaded from this link (the request MUST be authenticated as per any HTTP request). This is also used to identify the file internally when attached to drafts etc.
+- **type**: `String`
+  The content type of the file.
+- **name**: `String`
+  The name of the file as submitted to the server.
+- **size**: `Number`
+  The size of the file in bytes.
+- **expires**: `Date`
+  The date the file will be deleted from temp storage if not used in a draft etc.
+
+Once the file has been used, for example attached to a draft message, the file will no longer expire, and is instead reference counted by the number of other objects (draft messages etc.) that refer to it. Once this reaches zero, the server MAY immediately delete the file and the URL will become invalid.
+
+If uploading a file would take the user over quota, the server SHOULD delete previously uploaded (but unused) files before their expiry time. This means a client does not have to explicitly delete unused temporary files (indeed, there is no way for it to do so).
+
+#### `400`: Bad request
+
+The request was malformed. The client SHOULD NOT retry the same request.
+
+#### `401`: Unauthorized
+
+The *Authorization* header was missing or did not contain a valid token. Reauthenticate and then retry the request. There is no content in the response.
+
+#### `404`: Not Found
+
+The upload endpoint has moved. See the Authentication section of the spec for how to rediscover the current URL to use. There is no content in the response.
+
+#### `413`:  Request Entity Too Large
+
+The file is larger than the maximum size the server is willing to accept for a single file. The client SHOULD NOT retry uploading the same file. There is no content in the response.
+
+#### `415`: Unsupported Media Type
+
+The server MAY choose to not allow certain content types to be uploaded, such as executable files. This error response is returned if an unacceptable type is uploaded. The client SHOULD NOT retry uploading the same file. There is no content in the response.
+
+#### `503`: Service Unavailable
+
+The server is currently down. The client should try again later with exponential backoff. There is no content in the response.
