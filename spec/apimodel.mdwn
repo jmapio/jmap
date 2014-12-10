@@ -1,6 +1,6 @@
 # JMAP: The Spec
 
-<div id="last-update">Last updated 2014-12-08</div>
+<div id="last-update">Last updated 2014-12-10</div>
 
 This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the [guide for client developers](client.html) first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.
 
@@ -155,7 +155,7 @@ When the state of the set of Foo records changes on the server (whether due to c
 
   If the *getFoos* method takes a *properties* argument, this argument is passed through on implicit calls (see the *fetchFoos* argument).
 
-If there are too many changes on the server and the client is only keeping a partial cache, it may be more efficient for the client to just invalidate its entire cache and fetch what it needs on demand. The *maxChanges* argument allows the client to tell the server the maximum number of changes to send back. If the server has the capability to return just the updates to an intermediate state, it should return a standard *fooUpdates* response, but set the *hasMoreUpdates* argument to `true` to indicate that *newState* is not the current server state, and so the client may call *getFooUpdates* again to get further changes. In this instance, the client MUST be able to get the full set of changes by repeatedly calling *getFooUpdates* until `hasMoreUpdates == false`. The same Foo id MAY appear in more than one of these partial updates. If the server is not able to support this, it may instead return a `tooManyChanges` error if the number of changes exceeds the *maxChanges* argument. The client can treat this like a `cannotCalculateUpdates` error and invalidate its entire Foo cache.
+If there are too many changes on the server and the client is only keeping a partial cache, it may be more efficient for the client to just invalidate its entire cache and fetch what it needs on demand. The *maxChanges* argument allows the client to tell the server the maximum number of changes to send back. The server will return a `tooManyChanges` error if the number of changes exceeds the *maxChanges* argument. The client can treat this like a `cannotCalculateUpdates` error and invalidate its entire Foo cache.
 
 The response to *getFooUpdates* is called *fooUpdates*. It has the following arguments:
 
@@ -174,9 +174,6 @@ The response to *getFooUpdates* is called *fooUpdates*. It has the following arg
 - **removed**: `String[]`
 
   An array of Foo ids for records which have been destroyed since the old state.
-- **hasMoreUpdates**: `Boolean`
-
-  Indicates that *newState* is not the current server state and the client may fetch more changes by calling *getFooUpdates* again.
 
 If a Foo record has been modified AND deleted since the oldState, the server should just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server should remove the Foo id from the response entirely, but MAY include it in the *removed* response, and optionally the *changed* response as well.
 
@@ -184,7 +181,7 @@ The following errors may be returned instead of the *fooUpdates* response:
 
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument, and the server is unable to return an update to an intermediate state. The client MAY retry with a higher max changes, (but with `fetchFoos:false` perhaps to limit the data transfer). Alternatively, the client can invalidate its Foo cache.
+`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument. The client can either invalidate its Foo cache or perhaps try again with a higher *maxChanges* argument but `fetchFoos: false`.
 
 `cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its Foo cache.
 
