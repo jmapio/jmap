@@ -110,8 +110,8 @@ Messages can only be fetched explicitly by id. To fetch messages, make a call to
   The id of the account to use for this call. If not given, defaults to the primary account.
 - **ids**: `String[]`
   An array of ids for the messages to fetch.
-- **properties**: `String[]`
-  A list of properties to fetch for each message.
+- **properties**: `String[]|null`
+  A list of properties to fetch for each message. If `null`, all properties will be fetched.
 
 The `id` property is always returned, regardless of whether it is in the list of requested properties. The possible values for `properties` can be found above in the description of the Message object. In addition to this, the client may request the following special values:
 
@@ -124,7 +124,7 @@ The response to *getMessages* is called *messages*. It has the following argumen
   The id of the account used for the call.
 - **state**: `String`
   A string encoding the current state on the server. This string will change
-  if any messages change (that is, a new messages arrives, a change is made to one of the mutable properties, or a message is deleted). It can be passed to *getMessageUpdates* to efficiently get the list of changes from the previous state.
+  if any messages change (that is, a new message arrives, a change is made to one of the mutable properties, or a message is deleted). It can be passed to *getMessageUpdates* to efficiently get the list of changes from the previous state.
 - **list**: `Message[]`
   An array of Message objects for the requested message ids. This may not be in the same order as the ids were in the request.
 - **notFound**: `String[]|null`
@@ -289,7 +289,7 @@ Only the following properties may be modified:
 
 Note, a mailbox id may be a *creation id* (see `setFoos` for a description of how this works).
 
-If any of the properties in the update are invalid (immutable, wrong type, invalid value for the property – like a mailbox id for non-existant mailbox), the server MUST reject the update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+If any of the properties in the update are invalid (immutable, wrong type, invalid value for the property – like a mailbox id for non-existent mailbox), the server MUST reject the update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
 
 If the *id* given does not correspond to a Message in the given account, reject the update with a `notFound` error.
 
