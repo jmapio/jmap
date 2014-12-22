@@ -204,6 +204,12 @@ Other properties may also be present on the object, as described in the relevant
 
 The following errors may be returned instead of the *contactsSet* response:
 
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`stateMismatch`: Returned if an `ifInState` argument was supplied and it does not match the current state.
+`accountNoContacts`: Returned if the *accountId* given corresponds to a valid account, but does not contain any contacts data.
+
+`accountReadOnly`: Returned if the account has `isReadOnly == true`.
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`stateMismatch`: Returned if an *ifInState* argument was supplied and it does not match the current state.
