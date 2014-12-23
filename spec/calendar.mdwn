@@ -1,0 +1,139 @@
+## Calendar
+
+A Calendar is a named collection of events. All events are associated with one, and only one, calendar.
+
+A **Calendar** object has the following properties:
+
+- **id**: `String`
+  The id of the calendar. This property is immutable.
+- **name**: `String`
+  The user-visible name of the calendar. This may be any UTF-8 string of at least 1 character in length and maximum 256 bytes in size.
+- **colour**: `String`
+  Any valid CSS colour value. The colour to be used when displaying events associated with the calendar. The colour SHOULD have sufficient contrast to be used as text on a white background.
+- **isVisible**: `Boolean`
+  Should the calendar's events be displayed to the user at the moment?
+
+### getCalendars
+
+Calendars can either be fetched explicitly by id, or you can fetch all of them at once. To fetch calendars, make a call to `getCalendars`. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The Account to fetch the calendars for. If omitted, the primary account is used.
+- **ids**: `String` (optional)
+  The ids of the calendars to fetch. If omitted, all calendars in the account are be fetched.
+
+The response to *getCalendars* is called *calendars*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **state**: `String`
+  A string representing the state on the server for **all** calendars. If a property of a calendar changes, or a new calendar is created, or a calendar is destroyed, this string will change. It is used to get delta updates.
+- **list**: `Calendar[]`
+  An array of the Calendar objects requested. This will be the **empty array** if none were requested, or none were found.
+- **notFound**: `String[]|null`
+  This array contains the ids passed to the method for calendars that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument was omitted from the call.
+
+The following errors may be returned instead of the *calendars* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoCalendars`: Returned if the *accountId* given corresponds to a valid account, but does not contain any calendar data.
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+### getCalendarUpdates
+
+The *getCalendarUpdates* call allows a client to efficiently update the state of its cached calendars to match the new state on the server. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If omitted, the primary account will be used.
+- **sinceState**: `String`
+  The current state of the client. This is the string that was returned as the *state* argument in the *calendars* response. The server will return the changes made since this state.
+- **fetchCalendars**: `Boolean`
+  If `true`, after outputting a *calendarUpdates* response, an implicit call will be made to *getCalendars* with the *changed* property of the response as the *ids* argument.
+
+The response to *getCalendarUpdates* is called *calendarUpdates*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **oldState**: `String`
+  This is the *sinceState* argument echoed back; the state from which the server is returning changes.
+- **newState**: `String`
+  This is the state the client will be in after applying the set of changes to the old state.
+- **changed**: `String[]`
+  An array of Calendar ids where a property of the calendar has changed between the old state and the new state, or the calendar has been created, and the calendar has not been destroyed.
+- **removed**: `String[]`
+  An array of Calendar ids for calendars which have been destroyed since the old state.
+
+If a calendar has been modified AND deleted since the oldState, the server should just return the id in the *removed* array, but MAY return it in the *changed* array as well. If a calendar has been created AND deleted since the oldState, the server SHOULD remove the calendar id from the response entirely, but MAY include it in the *removed* array, and optionally the *changed* array as well.
+
+The following errors may be returned instead of the `calendarUpdates` response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoCalendars`: Returned if the *accountId* given corresponds to a valid account, but does not contain any calendar data.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its Calendar cache.
+
+### setCalendars
+
+Modifying the state of Calendar objects on the server is done via the *setCalendars* method. This encompasses creating, updating and destroying Calendar records.
+
+The *setCalendars* method takes the following arguments:
+
+- **ifInState**: `String` (optional)
+  This is a state string as returned by the *getCalendars* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
+- **create**: `String[Calendar]` (optional)
+  A map of *creation id* (an arbitrary string set by the client) to Calendar objects (containing all properties except the id).
+- **update**: `String[Calendar]` (optional)
+  A map of id to a Calendar object. The object may omit any property; only properties that have changed need be included.
+- **destroy**: `String[]` (optional)
+  A list of ids for Calendar objects to permanently delete.
+
+Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single calendar (e.g. update the *name* property but not the *isVisible* property if both are supplied in the update object).
+
+If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+
+A calendar MAY be deleted that is currently associated with one or more events. In this case, the events belonging to this calendar MUST also be deleted. Conceptually, this MUST happen prior to the calendar itself being deleted, and MUST generate a **push** event that modifies the *calendarState* for the account, and has a *clientId* of `null`, to indicate that a change has been made to the calendar data not explicitly requested by the client.
+
+The response to *setCalendars* is called *calendarsSet*. It has the following arguments:
+
+- **oldState**: `String`
+  The state string that would have been returned by *getCalendars* before making the requested changes.
+- **newState**: `String`
+  The state string that will now be returned by *getCalendars*.
+- **created**: `String[Calendar]` (optional)
+  A map of the creation id to an object containing the **id** property for all successfully created calendars, omitted if none.
+- **updated**: `String[]` (optional)
+  A list of ids for gropus that were successfully updated, omitted if none.
+- **destroyed**: `String[]` (optional)
+  A list of ids for calendars that were successfully destroyed, omitted if none.
+- **notCreated**: `String[SetError]` (optional)
+  A map of creation id to a SetError object for each calendar that failed to be created, omitted if none. The possible errors are defined in the description of the method for specific data types.
+- **notUpdated**: `String[SetError]` (optional)
+  A map of Calendar id to a SetError object for each calendar that failed to be updated, omitted if none. The possible errors are defined in the description of the method for specific data types.
+- **notDestroyed**: `String[SetError]` (optional)
+  A map of Calendar id to a SetError object for each calendar that failed to be destroyed, omitted if none. The possible errors are defined in the description of the method for specific data types.
+
+A **SetError** object has the following properties:
+
+- **type**: `String`
+  The type of error.
+- **description**: `String` (optional)
+  A description of the error to display to the user.
+
+If any of the properties in a create or update are invalid (immutable, wrong type, invalid value for the property – like a zero-length *name*), the server MUST reject the create/update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+
+The following errors may be returned instead of the *calendarEventsSet* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoCalendars`: Returned if the *accountId* given corresponds to a valid account, but does not contain any calendar data.
+
+`accountReadOnly`: Returned if the account has `isReadOnly == true`.
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`stateMismatch`: Returned if an *ifInState* argument was supplied and it does not match the current state.

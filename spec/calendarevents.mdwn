@@ -1,0 +1,288 @@
+## Calendar Events
+
+A CalendarEvent contains information about an event, or recurring series of events, that takes place at a particular time. The object is designed to be easily convertible to/from iCalendar format ([RFC 5545](https://tools.ietf.org/html/rfc5545)) for compatibility with existing calendaring systems.
+
+A **CalendarEvent** object has the following properties:
+
+- **id**: `String`
+  The id of the event. This property is immutable. The id is unique across
+  *all* events the user has access to.
+- **calendarId**: `String`
+  The id of the calendar this event belongs to.
+- **summary**: `String`
+  A short summary of the event. This maps to the SUMMARY property in iCalendar.
+- **description**: `String`
+  A longer form description of the event. This is plain text, not HTML, but
+  a client *should* attempt to mark up URLs. This maps to the DESCRIPTION property in iCalendar.
+- **location**: `String`
+  Where the event is to take place. This maps to the LOCATION property in iCalendar.
+- **showAsFree**: `Boolean`
+  If true, the even should be ignored when calculating free/busy data for the
+  user. This maps to the TRANSP property in iCalendar (`false <=> OPAQUE`, `true <=> TRANSPARENT`).
+- **isAllDay**: `Boolean`
+  Is the event an all day event, such as a birthday or public holiday? This corresponds to the type (DATE or DATE-TIME) of the DTSTART property in iCalendar.
+- **utcStart**: `Date`
+  The date/time the event would start in the UTC time zone. This corresponds to the DTSTART property in iCalendar (in conjunction with any time zone information to convert it to UTC).
+- **utcEnd**: `Date`
+  The date/time the event would end in the UTC time zone. This corresponds to the DTSTART/DURATION or DTEND property in iCalendar (in conjunction with any time zone information to convert it to UTC).
+- **startTimeZone**: `String|null`
+  The [Olsen Time Zone Database](http://www.iana.org/time-zones) name for the timezone the start of the event is actually in, or `null` for floating time. This corresponds to the TZID part of the DTSTART property; if the underlying iCalendar file does not use an Olsen name, the server SHOULD try to guess the correct time zone based on the VTIMEZONE information, or fallback to floating time.
+- **endTimeZone**: `String|null`
+  The [Olsen Time Zone Database](http://www.iana.org/time-zones) name for the timezone the end of the event is actually in, or `null` for floating time. This corresponds to the TZID part of the DTEND property (or DTSTART if not present); if the underlying iCalendar file does not use an Olsen name, the server SHOULD try to guess the correct time zone based on the VTIMEZONE information, or fallback to floating time.
+- **recurrence**: `Recurrence|null`
+  The recurrence rule for the event, or `null` if it does not recur. This corresponds to the RRULE property in iCalendar.
+- **inclusions**: `Date[]|null`
+  List of extra *local* start times to recur on. The list MUST be sorted in date order (oldest first). This corresponds to the RDATE property in iCalendar.
+- **exceptions**: `Date[null|CalendarEvent]|null`
+  An object mapping an occurrence start time (in **local time**, not UTC) to either:
+  - `null`: The occurrence has been deleted. This corresponds to the EXDATE property in iCalendar.
+  - `CalendarEvent`: A partial CalendarEvent object. Any properties in the object override the property of the same name for this occurrence. This corresponds to extra VEVENTs with RECURRENCE-IDs in iCalendar. Allowed properties are:
+    - summary
+    - description
+    - location
+    - showAsFree
+    - utcStart
+    - utcEnd
+    - startTimeZone
+    - endTimeZone
+    - alerts
+    - organiser
+    - attendees
+- **alerts**: `Alert[]|null`
+  A list of alerts to display or send the user for this event. This maps to the VALARM property in iCalendar.
+- **organiser**: `Participant|null`
+  The organiser of the event. This maps to the ORGANIZER property in iCalendar
+- **attendees**: `Participant[]|null`
+  A list of attendees at the event. This maps to the ATTENDEE property in iCalendar.
+- **attachments**: `EventAttachment[]|null`
+  A list of file attachments to the event. This maps to the ATTACH property in iCalendar.
+
+Conditions:
+- The *utcEnd* date MUST be equal to or after the *utcStart* date.
+- if *isAllDay* is `true`, the *utcStart*/*utcEnd* properties MUST have a time component of `T00:00:00` and *startTimeZone*/*endTimeZone* properties MUST be `null`.
+- if *recurrence* is `null`, *inclusions* and *exceptions* MUST also be `null`.
+- either both organiser and attendees are `null`, or neither are.
+- any `null`able array/object property MUST be `null` rather than an empty array or object.
+
+A **Recurrence** object is a JSON object mapping of a RECUR value type in iCalendar. To make it easier to check if two recurrence rules are identical, optional properties MUST NOT be included if the value is the default. A Recurrence object has the following properties:
+
+- **frequency**: `String`
+  This MUST be one of the following values:
+  - `"yearly"`
+  - `"monthly"`
+  - `"weekly"`
+  - `"daily"`
+  - `"hourly"`
+  - `"minutely"`
+  - `"secondly"`
+  To convert from iCal, simply lower-case the FREQ part.
+- **interval**: `Number` (optional)
+  The INTERVAL part from iCal. Defaults to `1` if not present. This MUST NOT be included if the interval == 1, to ensure a canonical representation. If included, it MUST be an integer `x > 1`.
+- **firstDayOfWeek**: `Number` (optional)
+  The WKST part from iCal. Defaults to `1` (Monday) if not present. This MUST NOT be included if == 1 (Monday), to ensure a canonical representation. It MUST be an integer in the range (0,6), where SU => 0, TU => 2, WE => 3 etc.
+- **byDay**: `Number[]` (optional)
+  The BYDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order. To convert from the iCal string format (e.g. SU,+1MO):
+  1. Convert SU/MO/TU… <-> 0/1/2…
+  2. If it has a number attached (+1, -2 etc.), add on 7 * the attached number.
+  e.g. `+1MO => 1 + (7 * +1) => 8`, `-2TH => 4 + (7 * -2) => -10`
+- **byDate**: `Number[]` (optional)
+  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+- **byMonth**: `Number[]` (optional)
+  The BYMONTH part from iCal, but with Jan == 0, Feb == 1 etc. (Jan == 1 in iCal). The array MUST have at least one entry if included and MUST be sorted in ascending order.
+- **byYearDay**: `Number[]` (optional)
+  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+- **byWeekNo**: `Number[]` (optional)
+  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+- **byHour**: `Number[]` (optional)
+  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+- **byMinute**: `Number[]` (optional)
+  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+- **bySecond**: `Number[]` (optional)
+  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+- **bySetPosition**: `Number[]` (optional)
+  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+- **count**: `Number` (optional)
+  The COUNT part from iCal. This MUST NOT be included if an *until* property is specified.
+- **until**: `Date` (optional)
+  The UNTIL part from iCal. This MUST NOT be included if a *count* property is specified. Note, as in iCal, this date is presumed to be in the timezone specified in *startTimeZone*. It is not a UTC time.
+
+An **Alert** Object has the following properties:
+
+- **minutesBefore**: `Number`
+  The number of minutes before the start time of the event to show the alert. The number MAY be negative for an alert after the event start. Note, if the event is in floating time (including all-day events), the server SHOULD use the user's default time zone when determining the start time.
+- **type**: `String`
+  The value MUST be one of the following:
+  - `"email"` – the server will send an email to the user at the specified time. The format of this email is service-specific.
+  - `"alert"` – a message should be shown to the user on any client connected to this account at the specified time.
+
+A **Participant** Object has the following properties:
+
+- **name**: `String`
+  The name of the participant.
+- **email**: `String`
+  The email address of the participant.
+- **isYou**: `Boolean`
+  This is `true` if the participant is the logged in user (determining this is not defined and is server dependent).
+- **rsvp**: `String`
+  The value MUST be one of:
+  - `""`: no RSVP made.
+  - `"yes"`: the participant is attending
+  - `"maybe"`: the participant may be attending
+  - `"no"`: the participant is not attending
+
+An **EventAttachment** Object has the following properties:
+
+- **url**: `String`
+  A url to download the attachment. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).
+- **type**: `String` (optional)
+  The content-type of the attachment, if known.
+- **name**: `String` (optional)
+  The full file name, if known. e.g. "myworddocument.doc"
+- **size**: `Number` (optional)
+  The size, in bytes, of the attachment when fully decoded (i.e. the number of bytes in the file the user would download), if known.
+
+### getCalendarEvents
+
+CalendarEvents can only be fetched explicitly by id. To fetch events, make a call to `getCalendarEvents`. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If not given, defaults to the primary account.
+- **ids**: `String[]`
+  An array of ids for the events to fetch.
+- **properties**: `String[]|null`
+  A list of properties to fetch for each event. If `null`, all properties will be fetched.
+
+The `id` property is always returned, regardless of whether it is in the list of requested properties. The possible values for `properties` can be found above in the description of the CalendarEvent object.
+
+The response to *getCalendarEvents* is called *calendarEvents*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **state**: `String`
+  A string encoding the current state on the server. This string will change
+  if any events change (that is, an event is created, updated or deleted). It can be passed to *getCalendarEventUpdates* to efficiently get the list of changes from the previous state.
+- **list**: `CalendarEvent[]`
+  An array of CalendarEvent objects for the requested event ids. This may not be in the same order as the ids were in the request.
+- **notFound**: `String[]|null`
+  An array of calendar event ids requested which could not be found, or `null` if all ids were found.
+
+The following errors may be returned instead of the *events* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoCalendars`: Returned if the *accountId* given corresponds to a valid account, but does not contain any calendar data.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+### getCalendarEventUpdates
+
+The *getCalendarEventUpdates* call allows a client to efficiently update the state of its cached calendar events to match the new state on the server. It takes the following arguments:
+
+- **accountId**: `String` (optional)
+  The id of the account to use for this call. If omitted, the primary account will be used.
+- **sinceState**: `String`
+  The current state of the client. This is the string that was returned as the *state* argument in the *calendarEvents* response. The server will return the changes made since this state.
+- **fetchCalendarEvents**: `Boolean`
+  If `true`, after outputting a *calendarEventUpdates* response, an implicit call will be made to *getCalendarEvents* with the *changed* property of the response as the *ids* argument, and the *fetchCalendarEventProperties* argument as the *properties* argument.
+- **fetchCalendarEventProperties**: `String[]|null`
+  Passed through as the *properties* argument to any implicit *getCalendarEvents* call.
+
+The response to *getCalendarEventUpdates* is called *calendarEventUpdates*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **oldState**: `String`
+  This is the *sinceState* argument echoed back; the state from which the server is returning changes.
+- **newState**: `String`
+  This is the state the client will be in after applying the set of changes to the old state.
+- **changed**: `String[]`
+  An array of CalendarEvent ids where a property of the event has changed between the old state and the new state, or the event has been created, and the event has not been destroyed.
+- **removed**: `String[]`
+  An array of CalendarEvent ids for events which have been destroyed since the old state.
+
+If an event has been modified AND deleted since the oldState, the server should just return the id in the *removed* array, but MAY return it in the *changed* array as well. If an event has been created AND deleted since the oldState, the server SHOULD remove the event id from the response entirely, but MAY include it in the *removed* array, and optionally the *changed* array as well.
+
+The following errors may be returned instead of the `calendarEventUpdates` response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoCalendars`: Returned if the *accountId* given corresponds to a valid account, but does not contain any calendar data.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its CalendarEvent cache.
+
+### setCalendarEvents
+
+Modifying the state of CalendarEvent objects on the server is done via the *setCalendarEvents* method. This encompasses creating, updating and destroying CalendarEvent records.
+
+The *setCalendarEvents* method takes the following arguments:
+
+- **ifInState**: `String` (optional)
+  This is a state string as returned by the *getCalendarEvents* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
+- **create**: `String[CalendarEvent]` (optional)
+  A map of *creation id* (an arbitrary string set by the client) to CalendarEvent objects (containing all properties except the id).
+- **update**: `String[CalendarEvent]` (optional)
+  A map of id to a CalendarEvent object. The object may omit any property; only properties that have changed need be included.
+- **destroy**: `String[]` (optional)
+  A list of ids for CalendarEvent objects to permanently delete.
+
+Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single event (e.g. update the *utcStart* property but not the *startTimeZone* property if both are supplied in the update object).
+
+If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+
+CalendarEvents reference a Calendar object. When events are created or modified, they may reference a calendar being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the calendar being referenced is created in an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to Calendar id for each newly created calendar, so it can substitute in the correct value if necessary in later method calls.
+
+When an event is created, updated or destroyed, the server MUST also ensure the following:
+- Any alerts are scheduled/cancelled correctly..
+- If `organiser.isYou == true`:
+  - If an event is created with participants, send a REQUEST email with the
+    event as an ICS attachment to all participants with `isYou == false`.
+  - When an event is updated, email all participants with `isYou == false` the 
+    change.
+  - When an event is destroyed, if it is in the future, then email all
+    participants with `isYou == false` to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
+- If you are an attendee to the event, changing your RSVP status MUST send the
+  appropriate email to the organiser to inform them of your change in status, as per the iMIP standard.
+
+Note, for compatibility with CalDAV clients, when updating an attendee, the server SHOULD maintain any ROLE, CUTYPE, MEMBER, DELEGATED-TO, DELEGATED-FROM, SENT-BY etc. parameters currently in the iCalendar object for that attendee, even though this API does not currently care about it.
+
+The response to *setCalendarEvents* is called *calendarEventsSet*. It has the following arguments:
+
+- **oldState**: `String`
+  The state string that would have been returned by *getCalendarEvents* before making the requested changes.
+- **newState**: `String`
+  The state string that will now be returned by *getCalendarEvents*.
+- **created**: `String[CalendarEvent]` (optional)
+  A map of the creation id to an object containing the **id** property for all successfully created events, omitted if none.
+- **updated**: `String[]` (optional)
+  A list of ids for events that were successfully updated, omitted if none.
+- **destroyed**: `String[]` (optional)
+  A list of ids for events that were successfully destroyed, omitted if none.
+- **notCreated**: `String[SetError]` (optional)
+  A map of creation id to a SetError object for each event that failed to be created, omitted if none. The possible errors are defined in the description of the method for specific data types.
+- **notUpdated**: `String[SetError]` (optional)
+  A map of CalendarEvent id to a SetError object for each event that failed to be updated, omitted if none. The possible errors are defined in the description of the method for specific data types.
+- **notDestroyed**: `String[SetError]` (optional)
+  A map of CalendarEvent id to a SetError object for each event that failed to be destroyed, omitted if none. The possible errors are defined in the description of the method for specific data types.
+
+A **SetError** object has the following properties:
+
+- **type**: `String`
+  The type of error.
+- **description**: `String` (optional)
+  A description of the error to display to the user.
+
+If any of the properties in a create or update are invalid (immutable, wrong type, invalid value for the property – like a *calendarId* for a non-existent calendar), the server MUST reject the create/update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+
+The following errors may be returned instead of the *calendarEventsSet* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoCalendars`: Returned if the *accountId* given corresponds to a valid account, but does not contain any calendar data.
+
+`accountReadOnly`: Returned if the account has `isReadOnly == true`.
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`stateMismatch`: Returned if an *ifInState* argument was supplied and it does not match the current state.
