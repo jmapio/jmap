@@ -8,6 +8,8 @@ A **Contact** object stores information about a person or company. It has the fo
   The ids of the contact groups this contact belongs to, if any.
 - **isFlagged**: `Boolean`
   Is the contact flagged (marked as important in some way by the user)?
+- **avatar**: `File|null`
+  A file containing an image to be used to represent this contact.
 - **prefix**: `String`
   The honorific title of the contact, e.g. "Mr", "Ms", "Dr", etc.
 - **firstName**: `String`
@@ -84,6 +86,17 @@ An **Address** object has the following properties:
   The postal code, post code, ZIP code or other short code associated with the address by the relevant country's postal system.
 - **country**: `String`
   The country name.
+
+A **File** Object has the following properties:
+
+- **url**: `String`
+  A url to download the file. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).
+- **type**: `String` (optional)
+  The content-type of the file, if known.
+- **name**: `String` (optional)
+  The full file name, if known. e.g. "myface.png"
+- **size**: `Number` (optional)
+  The size, in bytes, of the file when fully decoded (i.e. the number of bytes in the file the user would download), if known.
 
 ### getContacts
 
@@ -173,6 +186,8 @@ Each create, update or destroy is considered an atomic unit. It is permissible f
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 Contacts may reference Contact Groups. When contacts are created or modified, they may reference groups being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the group being referenced is created in an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to ContactGroup id for each newly created group, so it can substitute in the correct value if necessary in later method calls.
+
+To set a new avatar, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give you a valid URL/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the avatar for a contact.
 
 The response to *setContacts* is called *contactsSet*. It has the following arguments:
 
