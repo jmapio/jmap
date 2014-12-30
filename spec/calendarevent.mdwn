@@ -46,12 +46,12 @@ A **CalendarEvent** object has the following properties:
     - startTimeZone
     - endTimeZone
     - alerts
-    - organiser
+    - organizer
     - attendees
 - **alerts**: `Alert[]|null`
   A list of alerts to display or send the user for this event. This maps to the VALARM property in iCalendar.
-- **organiser**: `Participant|null`
-  The organiser of the event. This maps to the ORGANIZER property in iCalendar
+- **organizer**: `Participant|null`
+  The organizer of the event. This maps to the ORGANIZER property in iCalendar
 - **attendees**: `Participant[]|null`
   A list of attendees at the event. This maps to the ATTENDEE property in iCalendar.
 - **attachments**: `File[]|null`
@@ -61,7 +61,7 @@ Conditions:
 - The *utcEnd* date MUST be equal to or after the *utcStart* date.
 - if *isAllDay* is `true`, the *utcStart*/*utcEnd* properties MUST have a time component of `T00:00:00` and *startTimeZone*/*endTimeZone* properties MUST be `null`.
 - if *recurrence* is `null`, *inclusions* and *exceptions* MUST also be `null`.
-- either both organiser and attendees are `null`, or neither are.
+- either both organizer and attendees are `null`, or neither are.
 - any `null`able array/object property MUST be `null` rather than an empty array or object.
 
 A **Recurrence** object is a JSON object mapping of a RECUR value type in iCalendar. To make it easier to check if two recurrence rules are identical, optional properties MUST NOT be included if the value is the default. A Recurrence object has the following properties:
@@ -237,7 +237,7 @@ To add new attachments, the file must first be uploaded using the standard uploa
 
 When an event is created, updated or destroyed, the server MUST also ensure the following:
 - Any alerts are scheduled/cancelled correctly..
-- If `organiser.isYou == true`:
+- If `organizer.isYou == true`:
   - If an event is created with participants, send a REQUEST email with the
     event as an ICS attachment to all participants with `isYou == false`.
   - When an event is updated, email all participants with `isYou == false` the 
@@ -245,7 +245,7 @@ When an event is created, updated or destroyed, the server MUST also ensure the 
   - When an event is destroyed, if it is in the future, then email all
     participants with `isYou == false` to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
 - If you are an attendee to the event, changing your RSVP status MUST send the
-  appropriate email to the organiser to inform them of your change in status, as per the iMIP standard.
+  appropriate email to the organizer to inform them of your change in status, as per the iMIP standard.
 
 Note, for compatibility with CalDAV clients, when updating an attendee, the server SHOULD maintain any ROLE, CUTYPE, MEMBER, DELEGATED-TO, DELEGATED-FROM, SENT-BY etc. parameters currently in the iCalendar object for that attendee, even though this API does not currently care about it.
 
