@@ -23,7 +23,7 @@ Other autodiscovery options using autoconfig.example.com or autodiscover.example
 
 ### Getting an access token
 
-Authorisation always starts with the client making a POST request to the authentication URL (found either via service autodiscovery or manual entry). The request MUST be of type `application/json` and specify an `Accept: application/json` header. The body of the request MUST be a single JSON object, encoded in UTF-8, with the following properties:
+Authorization always starts with the client making a POST request to the authentication URL (found either via service autodiscovery or manual entry). The request MUST be of type `application/json` and specify an `Accept: application/json` header. The body of the request MUST be a single JSON object, encoded in UTF-8, with the following properties:
 
 - **username**: `String`
   The username the client wishes to authenticate. This is normally the primary email address of the user.
@@ -38,7 +38,7 @@ The server may use the client/device information to help identify the login to t
 
 The server will respond with one of the following HTTP status codes:
 
-#### `200`: Success, but more authorisation required.
+#### `200`: Success, but more authorization required.
 
 The response body will be a single JSON object with the following properties.
 
@@ -52,7 +52,7 @@ The response body will be a single JSON object with the following properties.
 This is the standard response to an initial request. Note, a server may return this even if the username is not actually active, to prevent enumeration. The client should then pick one of the *methods* from the list in the response to continue with authentication (if no methods supported by the client are in the list, it will not be able to log in to this account):
 
 - `"password"`: the client should prompt the user for a password. If the `prompt` property is non-null, this message should be displayed to the user to explain what input is required. The prompt MUST be treated as plain text, but the client SHOULD automatically hyperlink any URLs it finds in the text if a system browser is available. If `prompt == null`, the client SHOULD just show a generic password prompt message.
-- `"external"`: the user must do something out-of-band to authorise the app. The server SHOULD return a prompt string to display to the user to tell them what they need to do. Again, the client MUST treat the prompt as plain text, but SHOULD automatically hyperlink any URLs it finds if a system browser is available. The client MUST also offer a continue button (or similar) for the user to indicate to the client when they have completed the out-of-band authentication.
+- `"external"`: the user must do something out-of-band to authorize the app. The server SHOULD return a prompt string to display to the user to tell them what they need to do. Again, the client MUST treat the prompt as plain text, but SHOULD automatically hyperlink any URLs it finds if a system browser is available. The client MUST also offer a continue button (or similar) for the user to indicate to the client when they have completed the out-of-band authentication.
 - `"oauth"`: OAuth based authentication. For OAuth integration, see the docs of the service in question, since every service implements it slightly differently and the client must register with the service beforehand to use it. If using this method, an access token is obtained entirely through the OAuth mechanism. See the "Refetching URL endpoints" section below for how to obtain the URL endpoints after successfully authenticating using OAuth.
 
 If using `"password"` or `"external"`, the user will at some point indicate to the client to continue authentication. At this point the client submits a POST request to the same URL as before, with the body being a single JSON object with the following properties:
@@ -116,11 +116,11 @@ For OAuth logins, this is how the URLs may be fetched initially as well.
 
 The validity of an access token is determined by the server. It may be valid for a limited time only, or expire after a certain time of inactivity, or be valid indefinitely etc. If an access token expires, it MUST NOT be resurrected. The client MUST restart the authentication process to get a new access token.
 
-A client may revoke an access token at any time by making a DELETE HTTP request to the authentication URL (used to get the token in the first place), with the correct authorisation header (see below). The response from the server will be one of the following:
+A client may revoke an access token at any time by making a DELETE HTTP request to the authentication URL (used to get the token in the first place), with the correct `Authorization` header (see below). The response from the server will be one of the following:
 
 `204`: Success (the access token has now been revoked).
 
-`401`: Failed due to due to no authorisation header, or authorisation header is not a valid access token.
+`401`: Failed due to due to no `Authorization` header, or `Authorization` header is not a valid access token.
 
 No content is returned in either case.
 
