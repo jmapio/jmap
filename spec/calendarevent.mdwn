@@ -31,9 +31,9 @@ A **CalendarEvent** object has the following properties:
   The [Olsen Time Zone Database](http://www.iana.org/time-zones) name for the timezone the end of the event is actually in, or `null` for floating time. This corresponds to the TZID part of the DTEND property (or DTSTART if not present); if the underlying iCalendar file does not use an Olsen name, the server SHOULD try to guess the correct time zone based on the VTIMEZONE information, or fallback to floating time.
 - **recurrence**: `Recurrence|null`
   The recurrence rule for the event, or `null` if it does not recur. This corresponds to the RRULE property in iCalendar.
-- **inclusions**: `Date[]|null`
-  List of extra *local* start times to recur on. The list MUST be sorted in date order (oldest first). This corresponds to the RDATE property in iCalendar.
-- **exceptions**: `Date[null|CalendarEvent]|null`
+- **inclusions**: `LocalDate[]|null`
+  List of extra **local** start times to recur on. The list MUST be sorted in date order (oldest first). This corresponds to the RDATE property in iCalendar.
+- **exceptions**: `LocalDate[null|CalendarEvent]|null`
   An object mapping an occurrence start time (in **local time**, not UTC) to either:
   - `null`: The occurrence has been deleted. This corresponds to the EXDATE property in iCalendar.
   - `CalendarEvent`: A partial CalendarEvent object. Any properties in the object override the property of the same name for this occurrence. This corresponds to extra VEVENTs with RECURRENCE-IDs in iCalendar. Allowed properties are:
@@ -103,7 +103,7 @@ A **Recurrence** object is a JSON object mapping of a RECUR value type in iCalen
   The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
 - **count**: `Number` (optional)
   The COUNT part from iCal. This MUST NOT be included if an *until* property is specified.
-- **until**: `Date` (optional)
+- **until**: `LocalDate` (optional)
   The UNTIL part from iCal. This MUST NOT be included if a *count* property is specified. Note, as in iCal, this date is presumed to be in the timezone specified in *startTimeZone*. It is not a UTC time.
 
 An **Alert** Object has the following properties:
