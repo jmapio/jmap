@@ -91,11 +91,11 @@ For each message, store:
  
 ### 5. Message index
 
-For searching messages at any reasonable speed, an index is required from textual content within the message to the message id. Describing how this should work is beyone the scope of this guide. 
+For searching messages at any reasonable speed, an index is required from textual content within the message to the message id. Describing how this should work is beyond the scope of this guide.
 
 ### 6. Messages
 
-A map of GUID (sha1 of the message contents) to the raw RFC2822 message itself. This is the bulk of the data to be stored for each user. As this data is immutable and referenced by its sha1, there are many possibilities for how to store it. Each message ould be stored as a separate file using its GUID as the name. Or on a separate networked object store etc. etc.
+A map of GUID (sha1 of the message contents) to the raw RFC2822 message itself. This is the bulk of the data to be stored for each user. As this data is immutable and referenced by its sha1, there are many possibilities for how to store it. Each message could be stored as a separate file using its GUID as the name. Or on a separate networked object store etc. etc.
  
 ### 7. Message log
 
@@ -133,7 +133,7 @@ This is solely used to look up the conversation to assign to a message on creati
 
 The suggested rule for connecting messages into threads is this:
 
-If two messages share a common RFC2822 Message Id in the set of such ids within the `Message-Id`, `References` and `In-Reply-To` headers of each message, and the messages have the same `Subject` header (after stripping any preceeding Re:/Fwd: and trimmming white space from either end), then they should belong in the same thread. Otherwise they should belong in different threads.
+If two messages share a common RFC2822 Message Id in the set of such ids within the `Message-Id`, `References` and `In-Reply-To` headers of each message, and the messages have the same `Subject` header (after stripping any preceding Re:/Fwd: and trimming white space from either end), then they should belong in the same thread. Otherwise they should belong in different threads.
 
 ## Message List Algorithms
 

@@ -367,7 +367,7 @@ This is a good example of multiple method calls combined into a single request. 
 3. `getMessageUpdates`: Gets the list of ids for all messages which have been added or modified, plus the list of messages which have been deleted. We have also specified `fetchMessages` and `fetchMessageProperties` arguments here to request the standard header information we need to display a message in a mailbox for any new/changed messages. This includes all mutable properties of a message, so is sufficient to bring any changed messages up to date.
 4. `getThreadUpdates`: Gets the list of threads which have had messages added or removed from the thread. We also fetch the `Thread` object for those threads that have changed.
 
-In each case, the `sinceState` argument comes from the reponse to our previous calls to get the records of that type.
+In each case, the `sinceState` argument comes from the response to our previous calls to get the records of that type.
 
 ### Handling a standard response
 
@@ -553,7 +553,7 @@ The most common error will be a `tooManyChanges` error, when the number of chang
 
 `getThreadUpdates`: Just like with `getMessageUpdates`, if there are too many changes you can either flush your cache of threads, or try with a higher `maxChanges` but `fetchThreads: false`.
 
-In each of the error cases, a single futher HTTP request should be sufficient to get the necessary data to update the client to the correct state.
+In each of the error cases, a single further HTTP request should be sufficient to get the necessary data to update the client to the correct state.
 
 ### Handling message list without delta updates
 
@@ -582,7 +582,7 @@ Moving a message from the Inbox to the Trash is simple:
         }
     }, "call1" ]
 
-We can then do a resync as in section 4 to update the client cache. This is easy, but means there's a noticable delay performing every action, and we cannot operate in an offline mode and resync later. We can improve on this, although it makes it considerably more complicated. We can apply the effects we think the changes will have instantly then compare this with the results we get back from the server.
+We can then do a resync as in section 4 to update the client cache. This is easy, but means there's a noticeable delay performing every action, and we cannot operate in an offline mode and resync later. We can improve on this, although it makes it considerably more complicated. We can apply the effects we think the changes will have instantly then compare this with the results we get back from the server.
 
 1. **Mailbox counts**.
 
@@ -612,4 +612,4 @@ We can then do a resync as in section 4 to update the client cache. This is easy
 
 4. **Message object**. Update the `mailboxIds` property on the message object.
 
-When you next do resync, whether that's a second or several days later, apply the changes and fetch the delta update (as per section 4) in a single request, and when the response is received, undo the preemptive changes made above and apply the real changes. Hopefully the end result will be the same, and there will be no noticable difference to the user.
+When you next do resync, whether that's a second or several days later, apply the changes and fetch the delta update (as per section 4) in a single request, and when the response is received, undo the preemptive changes made above and apply the real changes. Hopefully the end result will be the same, and there will be no noticeable difference to the user.
