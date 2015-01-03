@@ -34,7 +34,7 @@ There are three types of data structures suggested in this guide (excluding the 
 
 This is a simple collection of important top-level values for the user (kept in a **Map**):
 
-- Highest ModSeq for the user (`63 bits` for IMAP compat)
+- Highest ModSeq for the user (`63 bits` for IMAP compatibility)
 - Highest ModSeq of any Mailbox.
 - Low watermark ModSeq for Thread Log `63 bits` – whenever the thread log (see below) is truncated, the modseq of the new first item in the log is stored here. Any attempt to call *getThreadUpdates* with a modseq lower than this must be rejected with a `cannotCalculateUpdates` error.
 - Low watermark ModSeq for Message Log `63 bits` – the same, but for the message log.
@@ -79,7 +79,7 @@ For each message, store:
 - **isFlagged** `1 bit` (mutable)
 - **isAnswered** `1 bit` (mutable)
 - **isDraft** `1 bit` (mutable by IMAP)
-- Other flags + labels + annotations as needed for IMAP compat only. (mutable)
+- Other flags + labels + annotations as needed for IMAP compatibility only. (mutable)
 - **Mailboxes** (list of mailbox ids this message belongs to) (mutable)
 - **From** header (either in the JSON used by JMAP, or whatever IMAP needs)
 - **To** header (either in the JSON used by JMAP, or whatever IMAP needs)
