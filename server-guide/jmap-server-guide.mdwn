@@ -34,7 +34,7 @@ There are three types of data structures suggested in this guide (excluding the 
 
 This is a simple collection of important top-level values for the user (kept in a **Map**):
 
-- Highest ModSeq for the user (`63 bits` for IMAP compat)
+- Highest ModSeq for the user (`63 bits` for IMAP compatibility)
 - Highest ModSeq of any Mailbox.
 - Low watermark ModSeq for Thread Log `63 bits` – whenever the thread log (see below) is truncated, the modseq of the new first item in the log is stored here. Any attempt to call *getThreadUpdates* with a modseq lower than this must be rejected with a `cannotCalculateUpdates` error.
 - Low watermark ModSeq for Message Log `63 bits` – the same, but for the message log.
@@ -79,7 +79,7 @@ For each message, store:
 - **isFlagged** `1 bit` (mutable)
 - **isAnswered** `1 bit` (mutable)
 - **isDraft** `1 bit` (mutable by IMAP)
-- Other flags + labels + annotations as needed for IMAP compat only. (mutable)
+- Other flags + labels + annotations as needed for IMAP compatibility only. (mutable)
 - **Mailboxes** (list of mailbox ids this message belongs to) (mutable)
 - **From** header (either in the JSON used by JMAP, or whatever IMAP needs)
 - **To** header (either in the JSON used by JMAP, or whatever IMAP needs)
@@ -91,11 +91,11 @@ For each message, store:
  
 ### 5. Message index
 
-For searching messages at any reasonable speed, an index is required from textual content within the message to the message id. Describing how this should work is beyone the scope of this guide. 
+For searching messages at any reasonable speed, an index is required from textual content within the message to the message id. Describing how this should work is beyond the scope of this guide.
 
 ### 6. Messages
 
-A map of GUID (sha1 of the message contents) to the raw RFC2822 message itself. This is the bulk of the data to be stored for each user. As this data is immutable and referenced by its sha1, there are many possibilities for how to store it. Each message ould be stored as a separate file using its GUID as the name. Or on a separate networked object store etc. etc.
+A map of GUID (sha1 of the message contents) to the raw RFC2822 message itself. This is the bulk of the data to be stored for each user. As this data is immutable and referenced by its sha1, there are many possibilities for how to store it. Each message could be stored as a separate file using its GUID as the name. Or on a separate networked object store etc. etc.
  
 ### 7. Message log
 
@@ -133,7 +133,7 @@ This is solely used to look up the conversation to assign to a message on creati
 
 The suggested rule for connecting messages into threads is this:
 
-If two messages share a common RFC2822 Message Id in the set of such ids within the `Message-Id`, `References` and `In-Reply-To` headers of each message, and the messages have the same `Subject` header (after stripping any preceeding Re:/Fwd: and trimmming white space from either end), then they should belong in the same thread. Otherwise they should belong in different threads.
+If two messages share a common RFC2822 Message Id in the set of such ids within the `Message-Id`, `References` and `In-Reply-To` headers of each message, and the messages have the same `Subject` header (after stripping any preceding Re:/Fwd: and trimming white space from either end), then they should belong in the same thread. Otherwise they should belong in different threads.
 
 ## Message List Algorithms
 
