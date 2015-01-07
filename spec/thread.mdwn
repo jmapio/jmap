@@ -4,7 +4,7 @@ Replies are grouped together with the original message to form a thread. In JMAP
 
 The JMAP spec does not require the server to use any particular algorithm for determining whether two messages belong to the same thread, however there is a recommended algorithm in the [implementation guide](server.html). As such, a server may choose not to support threading and just behave as though every message belongs to its own thread. It MUST still support all the methods though.
 
-If messages are delivered out of order for some reason, you may receive two messages in the same thread but without headers that associate them with each other. In this case, the server may decide that the two threads need to be joined into a single thread. Since the `threadId` of a message is immutable, the server MUST handle this by deleting and reinserting (with a new message id) the messages that change thread.
+If messages are delivered out of order for some reason, a user may receive two messages in the same thread but without headers that associate them with each other. In this case, the server may decide that the two threads need to be joined into a single thread. Since the `threadId` of a message is immutable, the server MUST handle this by deleting and reinserting (with a new message id) the messages that change thread.
 
 A **Thread** object has the following properties:
 

@@ -233,19 +233,18 @@ If a create, update or destroy is rejected, the appropriate error should be adde
 
 CalendarEvents reference a Calendar object. When events are created or modified, they may reference a calendar being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the calendar being referenced is created in an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to Calendar id for each newly created calendar, so it can substitute in the correct value if necessary in later method calls.
 
-To add new attachments, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give you a valid URL/size/type to use.
+To add new attachments, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid URL/size/type to use.
 
 When an event is created, updated or destroyed, the server MUST also ensure the following:
 - Any alerts are scheduled/cancelled correctly..
 - If `organizer.isYou == true`:
-  - If an event is created with participants, send a REQUEST email with the
-    event as an ICS attachment to all participants with `isYou == false`.
-  - When an event is updated, email all participants with `isYou == false` the 
-    change.
+  - If an event is created with attendees, send a REQUEST iMIP email with the
+    event as an ICS attachment to all attendees with `isYou == false`.
+  - When an event is updated, email all attendees with `isYou == false` the 
+    change with an appropriate iMIP email.
   - When an event is destroyed, if it is in the future, then email all
-    participants with `isYou == false` to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
-- If you are an attendee to the event, changing your RSVP status MUST send the
-  appropriate email to the organizer to inform them of your change in status, as per the iMIP standard.
+    attendees with `isYou == false` to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
+- If `organizer.isYou != true` and one of the attendees of the event has `isYou == true`, then changing the RSVP status of this attendee MUST send the appropriate email to the organizer to inform them of the change in status, as per the iMIP standard.
 
 Note, for compatibility with CalDAV clients, when updating an attendee, the server SHOULD maintain any ROLE, CUTYPE, MEMBER, DELEGATED-TO, DELEGATED-FROM, SENT-BY etc. parameters currently in the iCalendar object for that attendee, even though this API does not currently care about it.
 
