@@ -6,6 +6,8 @@ A **Contact Group** represents a named set of contacts. It has the following pro
   The id of the group. This property is immutable.
 - **name**: `String`
   The user-visible name for the group, e.g. "Friends". This may be any UTF-8 string of at least 1 character in length and maximum 256 bytes in size. The same name MAY NOT be used by two different groups.
+- **contactIds**: `String[]`
+  The ids of the contacts in the group. This must be returned in the same order given by the client when the property is set.
 
 ### getContactGroups
 
@@ -86,11 +88,13 @@ The *setContactGroups* method takes the following arguments:
 - **destroy**: `String[]` (optional)
   A list of ids for ContactGroup objects to permanently delete.
 
-Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single contact (e.g. update the *firstName* property but not the *lastName* property if both are supplied in the update object).
+Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single group (e.g. update the *name* property but not the *contactIds* property if both are supplied in the update object).
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
-A group MAY be deleted that is currently associated with one or more contacts. In this case, the group id MUST be removed from all the currently associated contacts (which will change the state string associated with those contacts).
+If any of the properties in a create or update are invalid (immutable, wrong type, non-existent contactId value in contactsIds list), the server MUST reject the create/update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+
+Contacts Groups reference Contacts. When groups are created or modified, they may reference contacts being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the contact being referenced is created in an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to Contact id for each newly created contact, so it can substitute in the correct value if necessary in later method calls.
 
 The response to *setContactGroups* is called *contactGroupsSet*. It has the following arguments:
 

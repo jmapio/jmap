@@ -4,8 +4,6 @@ A **Contact** object stores information about a person or company. It has the fo
 
 - **id**: `String`
   The id of the contact. This property is immutable.
-- **groupIds**: `String[]`
-  The ids of the contact groups this contact belongs to, if any.
 - **isFlagged**: `Boolean`
   Is the contact flagged (marked as important in some way by the user)?
 - **avatar**: `File|null`
@@ -184,8 +182,6 @@ The *setContacts* method takes the following arguments:
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single contact (e.g. update the *firstName* property but not the *lastName* property if both are supplied in the update object).
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
-
-Contacts may reference Contact Groups. When contacts are created or modified, they may reference groups being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the group being referenced is created in an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to ContactGroup id for each newly created group, so it can substitute in the correct value if necessary in later method calls.
 
 To set a new avatar, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid URL/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the avatar for a contact.
 
