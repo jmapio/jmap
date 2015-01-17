@@ -7,8 +7,7 @@ JMAP can also be used to efficiently download and keep in sync the entire set of
 
 A single login may have access to multiple accounts. In this guide I'm going to ignore this and just use the primary account, which I'm going to presume has full read-write mail access.
 
-1. Cold boot
-------------
+## Cold boot
 
 When a user first logs in and you have no data cached for them, first call:
 
@@ -252,8 +251,7 @@ This might return the following:
 
 We now have the header information for all the messages in the top 10 threads in the Inbox, plus a full list of mailboxes and their unread counts. Providing the screen cannot fit more than 10 messages without scrolling, this is sufficient to display a standard mail interface as though **all data was loaded**, even though we have only made 2 round trips to the server, and transferred minimal data. (Obviously, you can request more than 10 in the request if you need more to show the initial screen).
 
-2. Paging in data as the interface is navigated
------------------------------------------------
+## Paging in data as the interface is navigated
 
 In our example Inbox, there are 1213 threads, but so far we have only loaded in data for the first 10. As the user scrolls down, we need to page in the data for the section of the mailbox that becomes visible (and indeed, to avoid the user having to wait, it's advisable to preload a little way ahead too). This is just another call to `getMessageList`, as in the cold boot example, but with the `position` property changed to the index for the section required.
 
@@ -277,8 +275,7 @@ Similarly, if we switch mailboxes, or want to do a search, we can use the same c
 
 After the list has been returned, a second request can be made directly to `getThreads` with the thread ids (or to `getMessages` with the message ids) to fetch the ones you are missing.
 
-3. Opening a thread
--------------------
+## Opening a thread
 
 So far we have only fetched the minimal amount of information we need to display a mailbox entry for a message or thread. When opening a thread from the mailbox, we now need to fetch the rest of the message details. Exactly what you wish to fetch depends on what information your client displays. Suppose we open the 2nd thread in the example Inbox above. I'm presuming we already know the list of message ids in the thread from the data received when we fetched the mailbox.
 
@@ -310,8 +307,7 @@ So far we have only fetched the minimal amount of information we need to display
 
 Alternatively, a client may want to just request the "rawUrl" property, then download the original RFC2822 message from the URL returned and parse it in the client.
 
-4. Staying in sync
-------------------
+## Staying in sync
 
 Suppose a new message arrives, or the user performs some actions on their messages using a different client. A push notification comes in to indicate the state has changed on the server, or you get a response back to a method call with a different state string to the previous call. We now need efficiently work out exactly what has changed so that we can update the model in the client and keep it in sync, without throwing away all of our data and starting again.
 
@@ -559,8 +555,7 @@ In each of the error cases, a single further HTTP request should be sufficient t
 
 The response to `getMessageList` includes a property called `canCalculateUpdates`, which lets you know whether the server supports a call to `getMessageListUpdates` for the given message list (servers may not support it at all, or may only support it when there is no search involved etc.). In this case, we have to fetch the bit of the message list currently on display, and just throw away all of our cached data for the message list. Note, however, we don't have to throw away all the message data, we just have to fetch the message ids, so it's still not too inefficient.
 
-5. Performing actions
----------------------
+## Performing actions
 
 Modifying the state is the most complex operation to get right, as changes to messages may change counts in mailboxes, or thread membership, and the client may not have sufficient information to work out all the effects; it must apply the change then get the rest of the updates from the server.
 
