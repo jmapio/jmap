@@ -28,6 +28,9 @@ A **Mailbox** object has the following properties:
   An account is not required to have mailboxes with any of the above roles. A client MAY create new mailboxes with a role property to help them keep track of a use-case not covered by the above list. To avoid potential conflict with any special behaviour a server might apply to mailboxes with certain roles in the future, any roles not in the above list created by the client must begin with `"x-"`. The client MAY attempt to create mailboxes with the standard roles if not already present, but the server MAY reject these.
 - **mustBeOnlyMailbox**: `Boolean`
   If true, messages in this mailbox may not also be in any other mailbox.
+- **mayReadMessageList**: `Boolean`
+  If true, may use this mailbox as part of a filter in a *getMessageList* call.
+  If a submailbox is shared but not the parent mailbox, this may be `false`.
 - **mayAddMessages**: `Boolean`
   The user may add messages to this mailbox (by either creating a new message or modifying an existing one).
 - **mayRemoveMessages**: `Boolean`
@@ -178,6 +181,7 @@ All properties being updated must be of the correct type, not immutable or serve
   - id
   - role
   - mustBeOnlyMailbox
+  - mayReadMessageList
   - mayAddMessages
   - mayRemoveMessages
   - mayCreateChild
