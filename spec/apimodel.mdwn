@@ -1,6 +1,6 @@
 # JMAP: The Spec
 
-<div id="last-update">Last updated 2014-12-31</div>
+<div id="last-update">Last updated 2015-01-17</div>
 
 This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the [guide for client developers](client.html) first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.
 
@@ -161,7 +161,7 @@ When the state of the set of Foo records changes on the server (whether due to c
 
   If the *getFoos* method takes a *properties* argument, this argument is passed through on implicit calls (see the *fetchFoos* argument).
 
-If there are too many changes on the server and the client is only keeping a partial cache, it may be more efficient for the client to just invalidate its entire cache and fetch what it needs on demand. The *maxChanges* argument allows the client to tell the server the maximum number of changes to send back. The server will return a `tooManyChanges` error if the number of changes exceeds the *maxChanges* argument. The client can treat this like a `cannotCalculateUpdates` error and invalidate its entire Foo cache.
+If there are too many changes on the server and the client is only keeping a partial cache, it may be more efficient for the client to just invalidate its entire cache and fetch what it needs on demand. The *maxChanges* argument allows the client to tell the server the maximum number of changes to send back. The server will return a `tooManyChanges` error if the number of changes exceeds the *maxChanges* argument. The client can treat this like a `cannotCalculateChanges` error and invalidate its entire Foo cache.
 
 The response to *getFooUpdates* is called *fooUpdates*. It has the following arguments:
 
