@@ -186,7 +186,7 @@ The `getMessageListUpdates` call allows a client to efficiently update the state
   The *collapseThreads* argument that was used with *getMessageList*.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *messageList* response. The server will return the changes made since this state.
-- **uptoMessageId**: `String` (optional)
+- **uptoMessageId**: `String|null` (optional)
   The message id of the last message in the list that the client knows about. In the common case of the client only having the first X ids cached, this allows the server to ignore changes further down the list the client doesn't care about.
 - **maxChanges**: `Number` (optional)
   The maximum number of changes to return in the response. See below for a more detailed description.
@@ -205,6 +205,8 @@ The response to *getMessageListUpdates* is called *messageListUpdates* It has th
   This is the `sinceState` argument echoed back; the state from which the server is returning changes.
 - **newState**: `String`
   This is the state the client will be in after applying the set of changes to the old state.
+- **uptoMessageId**: `String|null`
+  Echoed back from the call.
 - **total**: `Number`
   The total number of messages in the message list (given the filter and collapseThreads arguments).
 - **removed**: `RemovedItem[]`
