@@ -2,23 +2,32 @@
 
 Any modern email client should be able to update instantly whenever the data on the server is changed by another client or message delivery. Push notifications in JMAP occur out-of-band (i.e. not over the same connection as API exchanges) so that they can make use of efficient native push mechanisms on different platforms.
 
-The general model for push is simple and does not send any sensitive data over the push channel, making it suitable for use with less trusted 3rd party intermediaries. When something changes on the server, the server pushes a small JSON object to the client with the following properties:
+The general model for push is simple and does not send any sensitive data over the push channel, making it suitable for use with less trusted 3rd party intermediaries. The format allows multiple changes to be coalesced into a single push update, and the frequency of pushes to be rate limited by the server. It doesn't matter if some push events are dropped before they reach the client; as long as the client gets *a* push event eventually it will then fully sync (it can of course do this in response to other triggers such as coming online).
 
-- **clientId**: `String|null`.
-  If the change was due to an action initiated by the JMAP API, the *client id* (the third argument to the method call making the change) is echoed back in this property. Clients may use this to determine if the change was caused by them or an external factor. This may be `null` if not directly caused by an API call (for example, when first making an event-source connection).
+When something changes on the server, the server pushes a small JSON object to the client with the following property:
+
 - **accountStates**: `String[AccountState]`
   A map of *account id* to an object encoding the current state of mail/contacts/calendar data for that account, for each of the accounts to which the user has access.
 
 An **AccountState** object has the following properties:
 
-- **mailState**: `String`
-  A string encoding the current state of all mail data. If any of the message/thread/mailbox etc. data changes, this string will change.
-- **contactsState**: `String`
-  A string encoding the current state of all contact data. If any of the contacts/contact groups etc. data changes, this string will change.
-- **calendarState**: `String`
-  A string encoding the current state of all calendar data. If any of the event/calendar etc. data changes, this string will change.
+- **mailboxes**: `String` (optional)
+  The string that would be returned as the `state` argument in a `mailboxes` response. Omitted if and only if the account has no mail data.
+- **threads**: `String` (optional)
+  The string that would be returned as the `state` argument in a `threads` response. Omitted if and only if the account has no mail data.
+- **messages**: `String` (optional)
+  The string that would be returned as the `state` argument in a `messages` response. Note, if this has changed, the client needs to refresh
+  message lists too, since these are queries on message state. Omitted if and only if the account has no mail data.
+- **contactGroups**: `String` (optional)
+  The string that would be returned as the `state` argument in a `contactGroups` response. Omitted if and only if the account has no contact data.
+- **contacts**: `String` (optional)
+  The string that would be returned as the `state` argument in a `contacts` response. Omitted if and only if the account has no contact data.
+- **calendars**: `String` (optional)
+  The string that would be returned as the `state` argument in a `calendars` response. Omitted if and only if the account has no calendar data.
+- **calendarEvents**: `String` (optional)
+  The string that would be returned as the `state` argument in a `calendarEvents` response. Omitted if and only if the account has no calendar data.
 
-Upon receiving this data, the client can easily compare to the previous state strings to see whether data has changed in mail, contacts, and/or calendars. The actual changes can then be efficiently fetched in a single standard API request (mainly using the *getFooUpdates* type methods).
+Upon receiving this data, the client can easily compare to the previous state strings to see whether data has changed for each type. The actual changes can then be efficiently fetched in a single standard API request (mainly using the *getFooUpdates* type methods).
 
 ### Event Source
 
