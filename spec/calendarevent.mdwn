@@ -58,6 +58,7 @@ A **CalendarEvent** object has the following properties:
   A list of file attachments to the event. This maps to the ATTACH property in iCalendar.
 
 Conditions:
+
 - The *utcEnd* date MUST be equal to or after the *utcStart* date.
 - if *isAllDay* is `true`, the *utcStart*/*utcEnd* properties MUST have a time component of `T00:00:00` and *startTimeZone*/*endTimeZone* properties MUST be `null`.
 - if *recurrence* is `null`, *inclusions* and *exceptions* MUST also be `null`.
@@ -236,6 +237,7 @@ CalendarEvents reference a Calendar object. When events are created or modified,
 To add new attachments, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid URL/size/type to use.
 
 When an event is created, updated or destroyed, the server MUST also ensure the following:
+
 - Any alerts are scheduled/cancelled correctly..
 - If `organizer.isYou == true`:
   - If an event is created with attendees, send a REQUEST iMIP email with the
