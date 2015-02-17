@@ -33,10 +33,6 @@ A **Contact** object stores information about a person or company. It has the fo
   - `"personal"` The address is for emailing the person in a personal context.
   - `"work"` The address is for emailing the person in a professional context.
   - `"other"` The address is for some other purpose. A *label* property MAY be included to display next to the address to help the user identify its purpose.
-- **defaultEmailIndex**: `Number`
-  The 0-based index of the email within the *emails* property to use by 
-  default when writing to this contact. The value MUST be in the range
-  `0 <= defaultEmailIndex < Math.max( emails.length, 1 )`.
 - **phones**: `ContactInformation[]`
   An array of ContactInformation objects where the values are phone numbers. Types are:
   - `"home"` The number is for contacting the person at their residence.
@@ -66,14 +62,21 @@ Note, none of these properties have a `null`able type. If the specific informati
 
 A **ContactInformation** object has the following properties:
 
-- **type**: `String` Specifies the context of the contact information. This MUST be taken from the set of values allowed depending on whether this is part of the *phones*, *emails* or *online* property (see above).
-- **label**: `String` (optional) A label describing the value in more detail, especially if `type === "other"` (but MAY be included with any type).
-- **value**: `String` The actual contact information, e.g. the email address or phone number.
+- **type**: `String`
+  Specifies the context of the contact information. This MUST be taken from the set of values allowed depending on whether this is part of the *phones*, *emails* or *online* property (see above).
+- **label**: `String` (optional)
+  A label describing the value in more detail, especially if `type === "other"` (but MAY be included with any type).
+- **value**: `String`
+  The actual contact information, e.g. the email address or phone number.
+- **isDefault**: `Boolean`
+  Whether this contact is the default for its type (SHOULD only be one per type, but some backends will allow multiple defaults)
 
 An **Address** object has the following properties:
 
-- **type**: `String` Specifies the context of the contact information. This MUST be taken from the set of values allowed depending on whether this is part of the *phones*, *emails* or *online* property (see above).
-- **label**: `String` (optional) A label describing the value in more detail, especially if `type === "other"` (but MAY be included with any type).
+- **type**: `String`
+  Specifies the context of the contact information. This MUST be taken from the set of values allowed depending on whether this is part of the *phones*, *emails* or *online* property (see above).
+- **label**: `String` (optional)
+  A label describing the value in more detail, especially if `type === "other"` (but MAY be included with any type).
 - **street**: `String`
   The street address. This MAY be multiple lines; newlines MUST be preserved.
 - **locality**: `String`
@@ -84,6 +87,8 @@ An **Address** object has the following properties:
   The postal code, post code, ZIP code or other short code associated with the address by the relevant country's postal system.
 - **country**: `String`
   The country name.
+- **isDefault**: `Boolean`
+  Whether this contact is the default for its type (SHOULD only be one per type, but some backends will allow multiple defaults)
 
 A **File** Object has the following properties:
 
