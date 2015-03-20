@@ -1,6 +1,6 @@
 # JMAP: The Spec
 
-<div id="last-update">Last updated 2015-03-17</div>
+<div id="last-update">Last updated 2015-03-20</div>
 
 This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the [guide for client developers](client.html) first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.
 
@@ -98,7 +98,7 @@ To ensure the client always sees a consistent view of the data, the state access
 
 ### The Number datatype
 
-The JSON datatypes are limited to those found in JavaScript. A `Number` in JavaScript is represented as a signed double (64-bit floating point). However, except where explicitly specified, all numbers used in this API are integers and MAY be represented in a 64-bit integer.
+The JSON datatypes are limited to those found in JavaScript. A `Number` in JavaScript is represented as a signed double (64-bit floating point). However, except where explicitly specified, all numbers used in this API are unsigned integers <= 2^53 (the maximum integer that may be reliably stored in a double). This implicitly limits the maximum length of message lists in queries and the like.
 
 ### The Date datatypes
 
