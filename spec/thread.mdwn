@@ -87,10 +87,10 @@ The *getThreadUpdates* call allows a client to efficiently update the state of a
   The current state of the client. This is the string that was returned as the *state* argument in the *threads* response. The server will return the changes made since this state.
 - **maxChanges**: `Number` (optional)
   The maximum number of changed threads to return in the response. See below for a more detailed description.
-- **fetchThreads**: `Boolean`
+- **fetchRecords**: `Boolean`
   If `true`, after outputting a *threadUpdates* response, an implicit call will be made to *getThreads* with the *changed* property of the response as the *ids* argument, and *fetchMessages* equal to `false`.
 
-If there are too many changes on the server and the client is only keeping a partial cache, it may be more efficient for the client to just invalidate its entire cache and fetch what it needs on demand. The *maxChanges* argument allows the client to tell the server the maximum number of changes to send back. The server will return a `tooManyChanges` error if the number of changes exceeds the *maxChanges* argument. The client can either invalidate its Thread cache or perhaps try again with a higher *maxChanges* argument but `fetchThreads: false`.
+If there are too many changes on the server and the client is only keeping a partial cache, it may be more efficient for the client to just invalidate its entire cache and fetch what it needs on demand. The *maxChanges* argument allows the client to tell the server the maximum number of changes to send back. The server will return a `tooManyChanges` error if the number of changes exceeds the *maxChanges* argument. The client can either invalidate its Thread cache or perhaps try again with a higher *maxChanges* argument but `fetchRecords: false`.
 
 The response to *getThreadUpdates* is called *threadUpdates*. It has the following arguments:
 
@@ -116,6 +116,6 @@ The following errors may be returned instead of the *threadUpdates* response:
 
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument. The client MAY retry with a higher max changes, (but with `fetchThreads:false` perhaps to limit the data transfer). Alternatively, the client can invalidate its Thread cache.
+`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument. The client MAY retry with a higher max changes, (but with `fetchRecords:false` perhaps to limit the data transfer). Alternatively, the client can invalidate its Thread cache.
 
 `cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its Thread cache.
