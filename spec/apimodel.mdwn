@@ -140,10 +140,10 @@ When the state of the set of Foo records changes on the server (whether due to c
   The current state of the client. This is the string that was returned as the *state* argument in the *foos* response. The server will return the changes made since this state.
 - **maxChanges**: `Number` (optional)
   The maximum number of changed Foos to return in the response. See below for a more detailed description.
-- **fetchFoos**: `Boolean`
+- **fetchRecords**: `Boolean`
   If `true`, after outputting the *fooUpdates* response, the server will make an implicit call to *getFoos* with the *changed* property of the response as the *ids* argument.
-- **fetchFooProperties**: `String[]|null`
-  If the *getFoos* method takes a *properties* argument, this argument is passed through on implicit calls (see the *fetchFoos* argument).
+- **fetchRecordProperties**: `String[]|null`
+  If the *getFoos* method takes a *properties* argument, this argument is passed through on implicit calls (see the *fetchRecords* argument).
 
 If there are too many changes on the server and the client is only keeping a partial cache, it may be more efficient for the client to just invalidate its entire cache and fetch what it needs on demand. The *maxChanges* argument allows the client to tell the server the maximum number of changes to send back. The server will return a `tooManyChanges` error if the number of changes exceeds the *maxChanges* argument. The client can treat this like a `cannotCalculateChanges` error and invalidate its entire Foo cache.
 
@@ -164,7 +164,7 @@ The following errors may be returned instead of the *fooUpdates* response:
 
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument. The client can either invalidate its Foo cache or perhaps try again with a higher *maxChanges* argument but `fetchFoos: false`.
+`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument. The client can either invalidate its Foo cache or perhaps try again with a higher *maxChanges* argument but `fetchRecords: false`.
 
 `cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its Foo cache.
 
