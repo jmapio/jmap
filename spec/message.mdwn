@@ -97,16 +97,16 @@ An **Attachment** object has the following properties:
   The size, in bytes, of the attachment when fully decoded (i.e. the number of bytes in the file the user would download).
 - **isInline**: `Boolean`
   True if the attachment is referenced by a `cid:` link from within the HTML body of the message.
-- **width**: `Number` (optional)
+- **width**: `Number|null`
   The width (in px) of the image, if the attachment is an image.
-- **height**: `Number` (optional)
+- **height**: `Number|null`
   The height (in px) of the image, if the attachment is an image.
 
 ### getMessages
 
 Messages can only be fetched explicitly by id. To fetch messages, make a call to `getMessages`. It takes the following arguments:
 
-- **accountId**: `String` (optional)
+- **accountId**: `String|null`
   The id of the account to use for this call. If not given, defaults to the primary account.
 - **ids**: `String[]`
   An array of ids for the messages to fetch.
@@ -170,13 +170,13 @@ If a call to *getMessages* returns with a different *state* string in the respon
 
 The *getMessageUpdates* call allows a client to efficiently update the state of any cached messages to match the new state on the server. It takes the following arguments:
 
-- **accountId**: `String` (optional)
+- **accountId**: `String|null`
   The id of the account to use for this call. If not given, defaults to the primary account.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *messages* response. The server will return the changes made since this state.
-- **maxChanges**: `Number` (optional)
+- **maxChanges**: `Number|null`
   The maximum number of changed messages to return in the response. See below for a more detailed description.
-- **fetchRecords**: `Boolean`
+- **fetchRecords**: `Boolean|null`
   If true, after outputting a *messageUpdates* response, an implicit call will be made to *getMessages* with a list of all message ids in the *changed* argument of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument.
 - **fetchRecordProperties**: `String[]|null`
   The list of properties to fetch on any fetched messages. See *getMessages* for a full description.
@@ -220,15 +220,15 @@ The *setMessages* method encompasses:
 
 It takes the following arguments:
 
-- **accountId**: `String` (optional)
+- **accountId**: `String|null`
   The id of the account to use for this call. If not given, defaults to the primary account.
-- **ifInState**: `String` (optional)
+- **ifInState**: `String|null`
   This is a state string as returned by the *getMessages* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
-- **create**: `String[Message]` (optional)
+- **create**: `String[Message]|null`
   A map of *creation id* (an arbitrary string set by the client) to Message objects (see below for a detailed description).
-- **update**: `String[Message]` (optional)
+- **update**: `String[Message]|null`
   A map of id to a an object containing the properties to update for that Message.
-- **destroy**: `String[]` (optional)
+- **destroy**: `String[]|null`
   A list of ids for Message objects to permanently delete.
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update the *isFlagged* field but not the *mailboxIds* field, if both are supplied in the update object for a message).
@@ -321,18 +321,18 @@ The response to *setMessages* is called *messagesSet*. It has the following argu
   The state string that would have been returned by *getMessages* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by *getMessages*.
-- **created**: `String[Message]` (optional)
-  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully created Message, omitted if none.
-- **updated**: `String[]` (optional)
-  A list of Message ids for Messages that were successfully updated, omitted if none.
-- **destroyed**: `String[]` (optional)
-  A list of Message ids for Messages that were successfully destroyed, omitted if none.
-- **notCreated**: `String[SetError]` (optional)
-  A map of creation id to a SetError object for each Message that failed to be created, omitted if none. The possible errors are defined above.
-- **notUpdated**: `String[SetError]` (optional)
-  A map of Message id to a SetError object for each Message that failed to be updated, omitted if none. The possible errors are defined above.
-- **notDestroyed**: `String[SetError]` (optional)
-  A map of Message id to a SetError object for each Message that failed to be destroyed, omitted if none. The possible errors are defined above.
+- **created**: `String[Message]`
+  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully created Message.
+- **updated**: `String[]`
+  A list of Message ids for Messages that were successfully updated.
+- **destroyed**: `String[]`
+  A list of Message ids for Messages that were successfully destroyed.
+- **notCreated**: `String[SetError]`
+  A map of creation id to a SetError object for each Message that failed to be created. The possible errors are defined above.
+- **notUpdated**: `String[SetError]`
+  A map of Message id to a SetError object for each Message that failed to be updated. The possible errors are defined above.
+- **notDestroyed**: `String[SetError]`
+  A map of Message id to a SetError object for each Message that failed to be destroyed. The possible errors are defined above.
 
 The following errors may be returned instead of the *messagesSet* response:
 
@@ -350,8 +350,8 @@ The following errors may be returned instead of the *messagesSet* response:
 
 The *importMessage* method adds an RFC2822 message to a user's set of messages. The message must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The id of the account to use for this call. If not given, defaults to the primary account.
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, defaults to the primary account.
 - **file**: `String`
   The URL of the uploaded file (see the file upload section).
 - **mailboxIds** `String[]`
@@ -392,10 +392,10 @@ The following errors may be returned instead of the *messageImported* response:
 
 The only way to move messages **between** two different accounts is to copy them using the *copyMessages* method, then once the copy has succeeded, delete the original. It takes the following arguments:
 
-- **fromAccountId**: `String` (optional)
-  The id of the account to copy messages from. If omitted, defaults to the primary account.
-- **toAccountId**: `String` (optional)
-  The id of the account to copy messages to. If omitted, defaults to the primary account.
+- **fromAccountId**: `String|null`
+  The id of the account to copy messages from. If `null`, defaults to the primary account.
+- **toAccountId**: `String|null`
+  The id of the account to copy messages to. If `null`, defaults to the primary account.
 - **messages**: `String[MessageCopy]`
   A map of *creation id* to a MessageCopy object.
 
@@ -422,8 +422,8 @@ The response to *copyMessages* is called *messagesCopied*. It has the following 
   The id of the account messages were copied from.
 - **toAccountId**: `String`
   The id of the account messages were copied to.
-- **copied**: `String[Message]`
-  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully copied Message, omitted if none.
+- **copied**: `String[Message]|null`
+  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully copied Message.
 - **notCreated**: `String[SetError]|null`
   A map of creation id to a SetError object for each Message that failed to be copied, `null` if none.
 
@@ -455,7 +455,7 @@ Messages can be reported as spam or non-spam to help train the user's spam filte
 
 To report messages, make a call to *reportMessages*. It takes the following arguments:
 
-- **accountId**: `String` (optional)
+- **accountId**: `String|null`
   The id of the account to use for this call. If not given, defaults to the primary account.
 - **messageIds**: `String[]`
   The list of ids of messages to report.

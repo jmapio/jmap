@@ -11,21 +11,21 @@ When something changes on the server, the server pushes a small JSON object to t
 
 An **AccountState** object has the following properties:
 
-- **mailboxes**: `String` (optional)
-  The string that would be returned as the `state` argument in a `mailboxes` response. Omitted if and only if the account has no mail data.
-- **threads**: `String` (optional)
-  The string that would be returned as the `state` argument in a `threads` response. Omitted if and only if the account has no mail data.
-- **messages**: `String` (optional)
+- **mailboxes**: `String|null`
+  The string that would be returned as the `state` argument in a `mailboxes` response. `null` if and only if the account has no mail data.
+- **threads**: `String|null`
+  The string that would be returned as the `state` argument in a `threads` response. `null` if and only if the account has no mail data.
+- **messages**: `String|null`
   The string that would be returned as the `state` argument in a `messages` response. Note, if this has changed, the client needs to refresh
-  message lists too, since these are queries on message state. Omitted if and only if the account has no mail data.
-- **contactGroups**: `String` (optional)
-  The string that would be returned as the `state` argument in a `contactGroups` response. Omitted if and only if the account has no contact data.
-- **contacts**: `String` (optional)
-  The string that would be returned as the `state` argument in a `contacts` response. Omitted if and only if the account has no contact data.
-- **calendars**: `String` (optional)
-  The string that would be returned as the `state` argument in a `calendars` response. Omitted if and only if the account has no calendar data.
-- **calendarEvents**: `String` (optional)
-  The string that would be returned as the `state` argument in a `calendarEvents` response. Omitted if and only if the account has no calendar data.
+  message lists too, since these are queries on message state. `null` if and only if the account has no mail data.
+- **contactGroups**: `String|null`
+  The string that would be returned as the `state` argument in a `contactGroups` response. `null` if and only if the account has no contact data.
+- **contacts**: `String|null`
+  The string that would be returned as the `state` argument in a `contacts` response. `null` if and only if the account has no contact data.
+- **calendars**: `String|null`
+  The string that would be returned as the `state` argument in a `calendars` response. `null` if and only if the account has no calendar data.
+- **calendarEvents**: `String|null`
+  The string that would be returned as the `state` argument in a `calendarEvents` response. `null` if and only if the account has no calendar data.
 
 Upon receiving this data, the client can easily compare to the previous state strings to see whether data has changed for each type. The actual changes can then be efficiently fetched in a single standard API request (mainly using the *getFooUpdates* type methods).
 

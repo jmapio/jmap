@@ -106,6 +106,10 @@ Where the API specifies `Date` as a type, it means a string in [RFC3339](https:/
 
 Where the API specifies `LocalDate` as a type, it means a string in the same format as `Date`, but with the `Z` omitted from the end. This only occurs in relation to calendar event recurrences, due to the need for them to be expanded and interpreted in local time for a particular time zone. The interpretation in absolute time depends upon the time zone for the event, which MAY not be a fixed offset (for example when daylight savings occurs). 
 
+### Use of `null`
+
+Unless otherwise noted, a missing property in a request, response or object MUST be intepreted exactly the same as that property having the value `null` If `null` is not a valid value for that property this would typically cause an error to occur. This rule does not apply to the [top-level datatypes](#data-model-overview), where a missing property usually indicates that the sender wants to leave the existing property value untouched (eg in a [`setFoos`](#setfoos) request or a [`getFooUpdates`](#getfooupdates) response.
+
 ### CRUD methods
 
 JMAP defines various types of objects and provides a uniform interface for creating, retrieving, updating and deleting them. A **data type** is a collection of named, typed properties, just like the schema for a database table. Each row of the table is a **record**. For a `Foo` data type, records of that type would be fetched via a `getFoos` call and modified via a `setFoos` call. Delta updates may be fetched via a `getFooUpdates` call. These methods all follow a standard format as described below.
@@ -116,21 +120,21 @@ Objects of type **Foo** are fetched via a call to *getFoos*. Methods starting wi
 
 This method may take some or all of the following arguments. The getter for a particular data type may not implement all of the arguments (for example if the data type only has two properties, there is little point in being able to just return one of them etc.); see the docs of the type in question. However, if one of the following arguments is available, it will behave exactly as specified below.
 
-- **ids**: `String[]`
-  The ids of the Foo objects to return. For data types where there will never be that many records this may be optional, in which case **all** records of the data type are returned if it is omitted.
+- **ids**: `String[]|null`
+  The ids of the Foo objects to return. If `null` then **all** records of the data type are returned.
 - **properties**: `String[]|null`
   If supplied, only the properties listed in the array are returned for each Foo object. If `null`, all properties of the object are returned. The id of the object is **always** returned, even if not explicitly requested. For compatibility with possible future extensions, the server MUST simply ignore any unknown properties in the list.
-- **sinceState**: `String` (optional)
+- **sinceState**: `String|null`
   The *state* argument from a *foos* response may be passed back to future *getFoos* calls as the *sinceState* argument. If the current state is the same, the server SHOULD skip fetching the records and return a result indicating there is no change (this is essentially like an ETag). Most types support the more sophisticated *getFooUpdates* call instead to allow for delta updates. However, for small collections of data that change infrequently, this might be used. If available, this argument is always optional.
 
 The response to `getFoos` is called `foos`. It has the following arguments:
 
 - **state**: `String`
   A string representing the state on the server for **all** the data of this type. If the data changes, this string will change. It is used to get delta updates, if supported for the type.
-- **list**: `Foo[]|null`
+- **list**: `Foo[]`
   An array of the Foo objects requested. This is the **empty array** if no objects were requested, or none were found. If *sinceState* was supplied and it is identical to the current state, this property is `null`.
 - **notFound**: `String[]|null`
-  This array contains the ids passed to the method for records that do not exist.
+  This array contains the ids passed to the method for records that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument in the call was `null`.
 
 ### getFooUpdates
 
@@ -138,10 +142,10 @@ When the state of the set of Foo records changes on the server (whether due to c
 
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *foos* response. The server will return the changes made since this state.
-- **maxChanges**: `Number` (optional)
+- **maxChanges**: `Number|null`
   The maximum number of changed Foos to return in the response. See below for a more detailed description.
-- **fetchRecords**: `Boolean`
-  If `true`, after outputting the *fooUpdates* response, the server will make an implicit call to *getFoos* with the *changed* property of the response as the *ids* argument.
+- **fetchRecords**: `Boolean|null`
+  If `true`, after outputting the *fooUpdates* response, the server will make an implicit call to *getFoos* with the *changed* property of the response as the *ids* argument. If `false` or `null`, no implicit call will be made.
 - **fetchRecordProperties**: `String[]|null`
   If the *getFoos* method takes a *properties* argument, this argument is passed through on implicit calls (see the *fetchRecords* argument).
 
@@ -177,14 +181,14 @@ Modifying the state of Foo objects on the server is done via the *setFoos* metho
 
 The *setFoos* method takes the following arguments:
 
-- **ifInState**: `String` (optional)
-  This is a state string as returned by the *getFoos* method. It is always optional to supply this argument. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
-- **create**: `String[Foo]` (optional)
-  A map of *creation id* (an arbitrary string set by the client) to Foo objects (containing all properties except the id, unless otherwise stated in the specific documentation of the data type).
-- **update**: `String[Foo]` (optional)
-  A map of id to a Foo object. The object may omit any property; only properties that have changed need be included.
-- **destroy**: `String[]` (optional)
-  A list of ids for Foo objects to permanently delete.
+- **ifInState**: `String|null`
+  This is a state string as returned by the *getFoos* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, the change will be applied to the current state.
+- **create**: `String[Foo]|null`
+  A map of *creation id* (an arbitrary string set by the client) to Foo objects (containing all properties except the id, unless otherwise stated in the specific documentation of the data type). If `null`, no objects will be created.
+- **update**: `String[Foo]|null`
+  A map of id to a Foo object. The object may omit any property; only properties that have changed need be included. If `null`, no objects will be updated.
+- **destroy**: `String[]|null`
+  A list of ids for Foo objects to permanently delete. If `null`, no objects will be deleted.
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
 
@@ -198,24 +202,24 @@ The response to *setFoos* is called *foosSet*. It has the following arguments:
   The state string that would have been returned by *getFoos* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by *getFoos*.
-- **created**: `String[Foo]` (optional)
-  A map of the creation id to an object containing any **server-assigned** properties of the Foo object (including the id) for all successfully created records, omitted if none.
-- **updated**: `String[]` (optional)
-  A list of Foo ids for records that were successfully updated, omitted if none.
-- **destroyed**: `String[]` (optional)
-  A list of Foo ids for records that were successfully destroyed, omitted if none.
-- **notCreated**: `String[SetError]` (optional)
-  A map of creation id to a SetError object for each record that failed to be created, omitted if none. The possible errors are defined in the description of the method for specific data types.
-- **notUpdated**: `String[SetError]` (optional)
-  A map of Foo id to a SetError object for each record that failed to be updated, omitted if none. The possible errors are defined in the description of the method for specific data types.
-- **notDestroyed**: `String[SetError]` (optional)
-  A map of Foo id to a SetError object for each record that failed to be destroyed, omitted if none. The possible errors are defined in the description of the method for specific data types.
+- **created**: `String[Foo]`
+  A map of the creation id to an object containing any **server-assigned** properties of the Foo object (including the id) for all successfully created records.
+- **updated**: `String[]`
+  A list of Foo ids for records that were successfully updated.
+- **destroyed**: `String[]`
+  A list of Foo ids for records that were successfully destroyed.
+- **notCreated**: `String[SetError]`
+  A map of creation id to a SetError object for each record that failed to be created. The possible errors are defined in the description of the method for specific data types.
+- **notUpdated**: `String[SetError]`
+  A map of Foo id to a SetError object for each record that failed to be updated. The possible errors are defined in the description of the method for specific data types.
+- **notDestroyed**: `String[SetError]`
+  A map of Foo id to a SetError object for each record that failed to be destroyed. The possible errors are defined in the description of the method for specific data types.
 
 A **SetError** object has the following properties:
 
 - **type**: `String`
   The type of error.
-- **description**: `String` (optional)
+- **description**: `String|null`
   A description of the error to display to the user.
 
 Other properties may also be present on the object, as described in the relevant methods.

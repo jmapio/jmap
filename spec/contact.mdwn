@@ -64,7 +64,7 @@ A **ContactInformation** object has the following properties:
 
 - **type**: `String`
   Specifies the context of the contact information. This MUST be taken from the set of values allowed depending on whether this is part of the *phones*, *emails* or *online* property (see above).
-- **label**: `String` (optional)
+- **label**: `String|null`
   A label describing the value in more detail, especially if `type === "other"` (but MAY be included with any type).
 - **value**: `String`
   The actual contact information, e.g. the email address or phone number.
@@ -75,7 +75,7 @@ An **Address** object has the following properties:
 
 - **type**: `String`
   Specifies the context of the contact information. This MUST be taken from the set of values allowed depending on whether this is part of the *phones*, *emails* or *online* property (see above).
-- **label**: `String` (optional)
+- **label**: `String|null`
   A label describing the value in more detail, especially if `type === "other"` (but MAY be included with any type).
 - **street**: `String`
   The street address. This MAY be multiple lines; newlines MUST be preserved.
@@ -94,21 +94,21 @@ A **File** Object has the following properties:
 
 - **url**: `String`
   A url to download the file. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).
-- **type**: `String` (optional)
+- **type**: `String|null`
   The content-type of the file, if known.
-- **name**: `String` (optional)
+- **name**: `String|null`
   The full file name, if known. e.g. "myface.png"
-- **size**: `Number` (optional)
+- **size**: `Number|null`
   The size, in bytes, of the file when fully decoded (i.e. the number of bytes in the file the user would download), if known.
 
 ### getContacts
 
 Contacts can either be fetched explicitly by id, or all of them at once. To fetch contacts, make a call to `getContacts`. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The Account to fetch the contacts for. If omitted, the primary account is used.
-- **ids**: `String` (optional)
-  The ids of the contacts to fetch. If omitted, all contacts in the account are be fetched.
+- **accountId**: `String|null`
+  The Account to fetch the contacts for. If `null`, the primary account is used.
+- **ids**: `String|null`
+  The ids of the contacts to fetch. If `null`, all contacts in the account are be fetched.
 - **properties**: `String[]|null`
   If supplied, only the properties listed in the array will be returned for each contact. If `null`, all properties are returned. The id of the contact will **always** be returned, even if not explicitly requested. For compatibility with possible future extensions, the server MUST simply ignore any unknown properties in the list.
 
@@ -121,7 +121,7 @@ The response to *getContacts* is called *contacts*. It has the following argumen
 - **list**: `Contact[]`
   An array of the Contact objects requested. This will be the **empty array** if none were requested, or none were found.
 - **notFound**: `String[]|null`
-  This array contains the ids passed to the method for contacts that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument was omitted from the call.
+  This array contains the ids passed to the method for contacts that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument in the call was `null`.
 
 The following errors may be returned instead of the *contacts* response:
 
@@ -135,12 +135,12 @@ The following errors may be returned instead of the *contacts* response:
 
 The *getContactUpdates* call allows a client to efficiently update the state of its cached contacts to match the new state on the server. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The id of the account to use for this call. If omitted, the primary account will be used.
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *contacts* response. The server will return the changes made since this state.
-- **fetchRecords**: `Boolean`
-  If `true`, after outputting a *contactUpdates* response, an implicit call will be made to *getContacts* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument.
+- **fetchRecords**: `Boolean|null`
+  If `true`, after outputting a *contactUpdates* response, an implicit call will be made to *getContacts* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument. If `false` or `null`, no implicit call is made.
 - **fetchRecordProperties**: `String[]|null`
   Passed through as the *properties* argument to any implicit *getContacts* call.
 
@@ -175,13 +175,13 @@ Modifying the state of Contact objects on the server is done via the *setContact
 
 The *setContacts* method takes the following arguments:
 
-- **ifInState**: `String` (optional)
-  This is a state string as returned by the *getContacts* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
-- **create**: `String[Contact]` (optional)
+- **ifInState**: `String|null`
+  This is a state string as returned by the *getContacts* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, the change will be applied to the current state.
+- **create**: `String[Contact]|null`
   A map of *creation id* (an arbitrary string set by the client) to Contact objects (containing all properties except the id).
-- **update**: `String[Contact]` (optional)
+- **update**: `String[Contact]|null`
   A map of id to a Contact object. The object may omit any property; only properties that have changed need be included.
-- **destroy**: `String[]` (optional)
+- **destroy**: `String[]|null`
   A list of ids for Contact objects to permanently delete.
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single contact (e.g. update the *firstName* property but not the *lastName* property if both are supplied in the update object).
@@ -196,24 +196,24 @@ The response to *setContacts* is called *contactsSet*. It has the following argu
   The state string that would have been returned by *getContacts* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by *getContacts*.
-- **created**: `String[Contact]` (optional)
-  A map of the creation id to an object containing the **id** property for all successfully created contacts, omitted if none.
-- **updated**: `String[]` (optional)
-  A list of ids for contacts that were successfully updated, omitted if none.
-- **destroyed**: `String[]` (optional)
-  A list of ids for contacts that were successfully destroyed, omitted if none.
-- **notCreated**: `String[SetError]` (optional)
-  A map of creation id to a SetError object for each contact that failed to be created, omitted if none. The possible errors are defined in the description of the method for specific data types.
-- **notUpdated**: `String[SetError]` (optional)
-  A map of Contact id to a SetError object for each contact that failed to be updated, omitted if none. The possible errors are defined in the description of the method for specific data types.
-- **notDestroyed**: `String[SetError]` (optional)
-  A map of Contact id to a SetError object for each contact that failed to be destroyed, omitted if none. The possible errors are defined in the description of the method for specific data types.
+- **created**: `String[Contact]`
+  A map of the creation id to an object containing the **id** property for all successfully created contacts.
+- **updated**: `String[]`
+  A list of ids for contacts that were successfully updated.
+- **destroyed**: `String[]`
+  A list of ids for contacts that were successfully destroyed.
+- **notCreated**: `String[SetError]`
+  A map of creation id to a SetError object for each contact that failed to be created. The possible errors are defined in the description of the method for specific data types.
+- **notUpdated**: `String[SetError]`
+  A map of Contact id to a SetError object for each contact that failed to be updated. The possible errors are defined in the description of the method for specific data types.
+- **notDestroyed**: `String[SetError]`
+  A map of Contact id to a SetError object for each contact that failed to be destroyed. The possible errors are defined in the description of the method for specific data types.
 
 A **SetError** object has the following properties:
 
 - **type**: `String`
   The type of error.
-- **description**: `String` (optional)
+- **description**: `String|null`
   A description of the error to display to the user.
 
 Other properties may also be present on the object, as described in the relevant methods.
