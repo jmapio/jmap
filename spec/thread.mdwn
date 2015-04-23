@@ -19,12 +19,12 @@ A **Thread** object has the following properties:
 
 Threads can only be fetched explicitly by id. To fetch threads, make a call to *getThreads*. It takes the following arguments:
 
-- **accountId**: `String` (optional)
+- **accountId**: `String|null`
   The id of the account to use for this call. If not given, defaults to the primary account.
 - **ids**: `String[]`
   An array of ids for the threads to fetch.
-- **fetchMessages**: `Boolean`
-  If true, after outputting a *threads* response, an implicit call will be made to *getMessages* with a list of all message ids in the returned threads as the *ids* argument, and the *fetchMessageProperties* argument as the *properties* argument.
+- **fetchMessages**: `Boolean|null`
+  If true, after outputting a *threads* response, an implicit call will be made to *getMessages* with a list of all message ids in the returned threads as the *ids* argument, and the *fetchMessageProperties* argument as the *properties* argument. If `false` or `null`, no implicit call will be made.
 - **fetchMessageProperties**: `String[]|null`
   The list of properties to fetch on any fetched messages. See *getMessages* for a full description.
 
@@ -38,8 +38,7 @@ The response to *getThreads* is called *threads*. It has the following arguments
 - **list**: `Thread[]`
   An array of Thread objects for the requested thread ids. This may not be in the same order as the ids were in the request.
 - **notFound**: `String[]|null`
-  An array of thread ids requested which could not be found, or `null` if all
-  ids were found.
+  An array of thread ids requested which could not be found, or `null` if all ids were found.
 
 The following errors may be returned instead of the `threads` response:
 
@@ -81,13 +80,13 @@ When messages are created or deleted, new threads may be created, or the set of 
 
 The *getThreadUpdates* call allows a client to efficiently update the state of any cached threads to match the new state on the server. It takes the following arguments:
 
-- **accountId**: `String` (optional)
+- **accountId**: `String|null`
   The id of the account to use for this call. If not given, defaults to the primary account.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *threads* response. The server will return the changes made since this state.
-- **maxChanges**: `Number` (optional)
+- **maxChanges**: `Number|null`
   The maximum number of changed threads to return in the response. See below for a more detailed description.
-- **fetchRecords**: `Boolean`
+- **fetchRecords**: `Boolean|null`
   If `true`, after outputting a *threadUpdates* response, an implicit call will be made to *getThreads* with the *changed* property of the response as the *ids* argument, and *fetchMessages* equal to `false`.
 
 If there are too many changes on the server and the client is only keeping a partial cache, it may be more efficient for the client to just invalidate its entire cache and fetch what it needs on demand. The *maxChanges* argument allows the client to tell the server the maximum number of changes to send back. The server will return a `tooManyChanges` error if the number of changes exceeds the *maxChanges* argument. The client can either invalidate its Thread cache or perhaps try again with a higher *maxChanges* argument but `fetchRecords: false`.

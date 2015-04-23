@@ -6,16 +6,16 @@ A **CalendarEventList** is a query on the set of events in a user's calendars. T
 
 To fetch a calendar event list, make a call to *getCalendarEventList*. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The id of the account to use for this call. If omitted, the primary account will be used.
-- **filter**: `FilterCondition|FilterOperator`
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
+- **filter**: `FilterCondition|FilterOperator|null`
   Determines the set of events returned in the results. See the "Filtering" section below for allowed values and semantics.
-- **position**: `Number` (optional)
-  The 0-based index of the first result in the list to return, presumed `0` if omitted. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
-- **limit**: `Number` (optional)
-  The maximum number of results to return. No limit presumed if omitted. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is omitted), the limit should be clamped to the maximum; since the total number of results in the list is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
-- **fetchCalendarEvents**: `Boolean`
-  If `true` then after outputting a *calendarEventList* response, an implicit call will be made to *getCalendarEvents* with the `calendarEventIds` array in the response as the *ids* argument.
+- **position**: `Number|null`
+  The 0-based index of the first result in the list to return, presumed `0` if `null`. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **limit**: `Number|null`
+  The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the list is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **fetchCalendarEvents**: `Boolean|null`
+  If `true` then after outputting a *calendarEventList* response, an implicit call will be made to *getCalendarEvents* with the `calendarEventIds` array in the response as the *ids* argument. If `false` or `null`, no implicit call will be made.
 
 #### Filtering
 
@@ -31,23 +31,23 @@ A **FilterOperator** object has the following properties:
 
 A **FilterCondition** object has the following properties:
 
-- **inCalendars**: `String[]` (optional)
+- **inCalendars**: `String[]|null`
   A list of calendar ids. An event must be in ANY of these calendars to match the condition.
-- **before**: `Date`  (optional)
+- **before**: `Date|null`
   The `utcStart` of the event, or any recurrence of the event, must be before this date to match the condition.
-- **after**: `Date` (optional)
+- **after**: `Date|null`
   The `utcEnd` of the event, or any recurrence of the event, must be after this date to match the condition.
-- **text**: `String` (optional)
+- **text**: `String|null`
   Looks for the text in the *summary*, *description*, *location*, *organizer*, *attendees* properties of the event or any recurrence of the event (matching either name or email in the organizer/attendee case).
-- **summary**: `String` (optional)
+- **summary**: `String|null`
   Looks for the text in the *summary* property of the event, or the overridden *summary* property of a recurrence.
-- **description**: `String` (optional)
+- **description**: `String|null`
   Looks for the text in the *description* property of the event, or the overridden *description* property of a recurrence.
-- **location**: `String` (optional)
+- **location**: `String|null`
   Looks for the text in the *location* property of the event, or the overridden *location* property of a recurrence.
-- **organizer**: `String` (optional)
+- **organizer**: `String|null`
   Looks for the text in the name or email fields of the *organizer* property of the event, or the overridden *organizer* property of a recurrence.
-- **attendee**: `String` (optional)
+- **attendee**: `String|null`
   Looks for the text in the name or email of any item in the *attendees* property of the event, or the overridden *attendees* property of a recurrence.
 
 The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
@@ -63,7 +63,7 @@ Results MUST be sorted in order of the *utcStart* property, oldest first.
 
 #### Windowing
 
-To paginate the results the client MAY supply a *position* argument: this is the 0-based index of the first result to return in the list of events after filtering and sorting. If the index is greater than or equal to the total number of events in the list, then there are no results to return, but this DOES NOT generate an error. If omitted, this defaults to `0`.
+To paginate the results the client MAY supply a *position* argument: this is the 0-based index of the first result to return in the list of events after filtering and sorting. If the index is greater than or equal to the total number of events in the list, then there are no results to return, but this DOES NOT generate an error. If `null`, this defaults to `0`.
 
 #### Response
 
@@ -71,7 +71,7 @@ The response to a call to *getCalendarEventList* is called *calendarEventList*. 
 
 - **accountId**: `String`
   The id of the account used for the call.
-- **filter**: `FilterCondition|FilterOperator`
+- **filter**: `FilterCondition|FilterOperator|null`
   The filter of the event list. Echoed back from the call.
 - **state**: `String`
   A string encoding the current state on the server. This string will change

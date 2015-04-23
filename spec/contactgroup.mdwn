@@ -13,10 +13,10 @@ A **Contact Group** represents a named set of contacts. It has the following pro
 
 Contact Groups can either be fetched explicitly by id, or all of them at once. To fetch contact groups, make a call to `getContactGroups`. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The Account to fetch the groups for. If omitted, the primary account is used.
-- **ids**: `String` (optional)
-  The ids of the groups to fetch. If omitted, all contact groups in the account are be fetched.
+- **accountId**: `String|null`
+  The Account to fetch the groups for. If `null`, the primary account is used.
+- **ids**: `String|null`
+  The ids of the groups to fetch. If `null`, all contact groups in the account are be fetched.
 
 The response to *getContactGroups* is called *contactGroups*. It has the following arguments:
 
@@ -27,7 +27,7 @@ The response to *getContactGroups* is called *contactGroups*. It has the followi
 - **list**: `ContactGroup[]`
   An array of the ContactGroup objects requested. This will be the **empty array** if none were requested, or none were found.
 - **notFound**: `String[]|null`
-  This array contains the ids passed to the method for groups that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument was omitted from the call.
+  This array contains the ids passed to the method for groups that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument in the call was `null`.
 
 The following errors may be returned instead of the *contactGroups* response:
 
@@ -41,12 +41,12 @@ The following errors may be returned instead of the *contactGroups* response:
 
 The *getContactGroupUpdates* call allows a client to efficiently update the state of its cached contacts to match the new state on the server. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The id of the account to use for this call. If omitted, the primary account will be used.
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *contactGroups* response. The server will return the changes made since this state.
-- **fetchRecords**: `Boolean`
-  If `true`, after outputting a *contactGroupUpdates* response, an implicit call will be made to *getContactGroups* with the *changed* property of the response as the *ids* argument.
+- **fetchRecords**: `Boolean|null`
+  If `true`, after outputting a *contactGroupUpdates* response, an implicit call will be made to *getContactGroups* with the *changed* property of the response as the *ids* argument. If `false` or `null`, no implicit call will be made.
 
 The response to *getContactGroupUpdates* is called *contactGroupUpdates*. It has the following arguments:
 
@@ -79,13 +79,13 @@ Modifying the state of ContactGroup objects on the server is done via the *setCo
 
 The *setContactGroups* method takes the following arguments:
 
-- **ifInState**: `String` (optional)
-  This is a state string as returned by the *getContactGroups* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
-- **create**: `String[ContactGroup]` (optional)
+- **ifInState**: `String|null`
+  This is a state string as returned by the *getContactGroups* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, the change will be applied to the current state.
+- **create**: `String[ContactGroup]|null`
   A map of *creation id* (an arbitrary string set by the client) to ContactGroup objects (containing all properties except the id).
-- **update**: `String[ContactGroup]` (optional)
+- **update**: `String[ContactGroup]|null`
   A map of id to a ContactGroup object. The object may omit any property; only properties that have changed need be included.
-- **destroy**: `String[]` (optional)
+- **destroy**: `String[]|null`
   A list of ids for ContactGroup objects to permanently delete.
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single group (e.g. update the *name* property but not the *contactIds* property if both are supplied in the update object).
@@ -102,24 +102,24 @@ The response to *setContactGroups* is called *contactGroupsSet*. It has the foll
   The state string that would have been returned by *getContactGroups* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by *getContactGroups*.
-- **created**: `String[Contact]` (optional)
-  A map of the creation id to an object containing the **id** property for all successfully created groups, omitted if none.
-- **updated**: `String[]` (optional)
-  A list of ids for groups that were successfully updated, omitted if none.
-- **destroyed**: `String[]` (optional)
-  A list of ids for groups that were successfully destroyed, omitted if none.
-- **notCreated**: `String[SetError]` (optional)
-  A map of creation id to a SetError object for each group that failed to be created, omitted if none. The possible errors are defined in the description of the method for specific data types.
-- **notUpdated**: `String[SetError]` (optional)
-  A map of ContactGroup id to a SetError object for each group that failed to be updated, omitted if none. The possible errors are defined in the description of the method for specific data types.
-- **notDestroyed**: `String[SetError]` (optional)
-  A map of ContactGroup id to a SetError object for each group that failed to be destroyed, omitted if none. The possible errors are defined in the description of the method for specific data types.
+- **created**: `String[Contact]`
+  A map of the creation id to an object containing the **id** property for all successfully created groups.
+- **updated**: `String[]`
+  A list of ids for groups that were successfully updated.
+- **destroyed**: `String[]`
+  A list of ids for groups that were successfully destroyed.
+- **notCreated**: `String[SetError]`
+  A map of creation id to a SetError object for each group that failed to be created. The possible errors are defined in the description of the method for specific data types.
+- **notUpdated**: `String[SetError]`
+  A map of ContactGroup id to a SetError object for each group that failed to be updated. The possible errors are defined in the description of the method for specific data types.
+- **notDestroyed**: `String[SetError]`
+  A map of ContactGroup id to a SetError object for each group that failed to be destroyed. The possible errors are defined in the description of the method for specific data types.
 
 A **SetError** object has the following properties:
 
 - **type**: `String`
   The type of error.
-- **description**: `String` (optional)
+- **description**: `String|null`
   A description of the error to display to the user.
 
 The following errors may be returned instead of the *contactGroupsSet* response:
