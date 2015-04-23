@@ -10,30 +10,30 @@ When the state changes on the server, a delta update can be requested to efficie
 
 To fetch a message list, make a call to *getMessageList*. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The id of the account to use for this call. If omitted, the primary account will be used.
-- **filter**: `FilterCondition|FilterOperator`
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
+- **filter**: `FilterCondition|FilterOperator|null`
   Determines the set of messages returned in the results. See the "Filtering" section below for allowed values and semantics.
-- **sort**: `String[]`
+- **sort**: `String[]|null`
   A list of Message property names to sort by. See the "Sorting" section below for allowed values and semantics.
-- **collapseThreads**: `Boolean`
-  If true, each thread will only be returned once in the resulting list, at the position of the first message in the list (given the filter and sort order) belonging to the thread.
-- **position**: `Number` (optional)
-  The 0-based index of the first result in the list to return. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
-- **anchor**: `String` (optional)
+- **collapseThreads**: `Boolean|null`
+  If true, each thread will only be returned once in the resulting list, at the position of the first message in the list (given the filter and sort order) belonging to the thread. If `false` or `null`, threads may be returned multiple times.
+- **position**: `Number|null`
+  The 0-based index of the first result in the list to return. If a negative value is given, the call MUST be rejected with an `invalidArguments` error. If `null, 0 is used.
+- **anchor**: `String|null`
   A Message id. The index of this message id will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see the "Windowing" section below for more details).
-- **anchorOffset**: `Number` (optional)
+- **anchorOffset**: `Number|null`
   The index of the anchor message relative to the index of the first result to return. This MAY be negative. For example, `-1` means the first message after the anchor message should be the first result in the results returned (see the "Windowing" section below for more details).
-- **limit**: `Number`
-  The maximum number of results to return. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given, the limit should be clamped to the maximum; since the total number of results in the list is returned, the client should not be relying on how many results are returned to determine if it has reached the end of the list. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
-- **fetchThreads**: `Boolean`
-  If `true`, after outputting a *messageList* response, an implicit call will be made to *getThreads* with the *threadIds* array in the reponse as the *ids* argument, and the *fetchMessages* and *fetchMessageProperties* arguments passed straight through from the call to *getMessageList*.
-- **fetchMessages**: `Boolean`
-  If `true` and `fetchThreads == false`, then after outputting a *messageList* response, an implicit call will be made to *getMessages* with the `messageIds` array in the response as the *ids* argument, and the *fetchMessageProperties* argument as the *properties* argument.
+- **limit**: `Number|null`
+  The maximum number of results to return. If `null`, no limit is presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given, the limit should be clamped to the maximum; since the total number of results in the list is returned, the client should not be relying on how many results are returned to determine if it has reached the end of the list. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **fetchThreads**: `Boolean|null`
+  If `true`, after outputting a *messageList* response, an implicit call will be made to *getThreads* with the *threadIds* array in the reponse as the *ids* argument, and the *fetchMessages* and *fetchMessageProperties* arguments passed straight through from the call to *getMessageList*. If `false` or `null`, no implicit call will be made.
+- **fetchMessages**: `Boolean|null`
+  If `true` and `fetchThreads == false`, then after outputting a *messageList* response, an implicit call will be made to *getMessages* with the `messageIds` array in the response as the *ids* argument, and the *fetchMessageProperties* argument as the *properties* argument. If `false` or `null`, no implicit call will be made.
 - **fetchMessageProperties**: `String[]|null`
   The list of properties to fetch on any fetched messages. See *getMessages* for a full description.
-- **fetchSearchSnippets**: `Boolean`
-  If `true`, then after outputting a *messageList* and making any other implicit calls, an implicit call will be made to *getSearchSnippets*. The *messageIds* array from the response will be used as the *messageIds* argument, and the *filter* argument will be passed straight through.
+- **fetchSearchSnippets**: `Boolean|null`
+  If `true`, then after outputting a *messageList* and making any other implicit calls, an implicit call will be made to *getSearchSnippets*. The *messageIds* array from the response will be used as the *messageIds* argument, and the *filter* argument will be passed straight through. If `false` or `null`, no implicit call will be made.
 
 #### Filtering
 
@@ -49,43 +49,43 @@ A **FilterOperator** object has the following properties:
 
 A **FilterCondition** object has the following properties:
 
-- **inMailboxes**: `String[]` (optional)
+- **inMailboxes**: `String[]|null`
   A list of mailbox ids. A message must be in ALL of these mailboxes to match the condition.
-- **notInMailboxes**: `String[]` (optional)
+- **notInMailboxes**: `String[]|null`
   A list of mailbox ids. A message must NOT be in ANY of these mailboxes to match the condition.
-- **before**: `Date` (optional)
+- **before**: `Date|null`
   The date of the message (as returned on the Message object) must be before this date to match the condition.
-- **after**: `Date` (optional)
+- **after**: `Date|null`
   The date of the message (as returned on the Message object) must be on or after this date to match the condition.
-- **minSize**: `Number` (optional)
+- **minSize**: `Number|null`
   The size of the message in bytes (as returned on the Message object) must be equal to or greater than this number to match the condition.
-- **maxSize**: `Number` (optional)
+- **maxSize**: `Number|null`
   The size of the message in bytes (as returned on the Message object) must be less than this number to match the condition.
-- **isFlagged**: `Boolean` (optional)
+- **isFlagged**: `Boolean|null`
   The `isFlagged` property of the message must be identical to the value given to match the condition.
-- **isUnread**: `Boolean` (optional)
+- **isUnread**: `Boolean|null`
   The `isUnread` property of the message must be identical to the value given to match the condition.
-- **isAnswered**: `Boolean` (optional)
+- **isAnswered**: `Boolean|null`
   The `isAnswered` property of the message must be identical to the value given to match the condition.
-- **isDraft**: `Boolean` (optional)
+- **isDraft**: `Boolean|null`
   The `isDraft` property of the message must be identical to the value given to match the condition.
-- **hasAttachment**: `Boolean` (optional)
+- **hasAttachment**: `Boolean|null`
   The `hasAttachment` property of the message must be identical to the value given to match the condition.
-- **text**: `String` (optional)
+- **text**: `String|null`
   Looks for the text in the *from*, *to*, *cc*, *bcc*, *subject*, *textBody* or *htmlBody* properties of the message.
-- **from**: `String` (optional)
+- **from**: `String|null`
   Looks for the text in the *from* property of the message.
-- **to**: `String` (optional)
+- **to**: `String|null`
   Looks for the text in the *to* property of the message.
-- **cc**: `String` (optional)
+- **cc**: `String|null`
   Looks for the text in the *cc* property of the message.
-- **bcc**: `String` (optional)
+- **bcc**: `String|null`
   Looks for the text in the *bcc* property of the message.
-- **subject**: `String` (optional)
+- **subject**: `String|null`
   Looks for the text in the *subject* property of the message.
-- **body**: `String` (optional)
+- **body**: `String|null`
   Looks for the text in the *textBody* or *htmlBody* property of the message.
-- **header**: `String[]` (optional)
+- **header**: `String[]|null`
   The array MUST contain either one or two elements. The first element is the name of the header to match against. The second (optional) element is the text to look for in the header. If not supplied, the message matches simply if it *has* a header of the given name.
 
 The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
@@ -98,7 +98,7 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 
 #### Sorting
 
-The `sort` argument lists the properties to compare between two messages to determine which comes first in the sort. If two messages have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array is given as the argument), the sort order is server-dependent, but MUST be stable between calls to `getMessageList`.
+The `sort` argument lists the properties to compare between two messages to determine which comes first in the sort. If two messages have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array or `null` is given as the argument), the sort order is server-dependent, but MUST be stable between calls to `getMessageList`.
 
 Optionally, following the property name there can be a space and then either the string `asc` or `desc` to specify ascending or descending sort for that property. If not specified, it MUST default to **descending**.
 
@@ -142,15 +142,14 @@ The response to a call to *getMessageList* is called *messageList*. It has the f
 
 - **accountId**: `String`
   The id of the account used for the call.
-- **filter**: `FilterCondition|FilterOperator`
+- **filter**: `FilterCondition|FilterOperator|null`
   The filter of the message list. Echoed back from the call.
 - **sort**: `String[]`
   A list of Message property names used to sort by. Echoed back from the call.
 - **collapseThreads**: `Boolean`
   Echoed back from the call.
 - **state**: `String`
-  A string encoding the current state on the server. This string will change
-  if the results of the message list MAY have changed (for example, there has been a change to the state of the set of Messages; it does not guarantee that anything in the list has changed). It may be passed to *getMessageListUpdates* to efficiently get the set of changes from the previous state.
+  A string encoding the current state on the server. This string will change if the results of the message list MAY have changed (for example, there has been a change to the state of the set of Messages; it does not guarantee that anything in the list has changed). It may be passed to *getMessageListUpdates* to efficiently get the set of changes from the previous state.
   
   Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached list and fetch it again (note, this does not require fetching the messages again, just the list of ids) or, if the server supports it, call *getMessageListUpdates* to get the delta difference.
 - **canCalculateUpdates**: `Boolean`
@@ -180,28 +179,28 @@ The following errors may be returned instead of the `messageList` response:
 
 The `getMessageListUpdates` call allows a client to efficiently update the state of any cached message list to match the new state on the server. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The id of the account to use for this call. If omitted, the primary account will be used.
-- **filter**: `FilterCondition|FilterOperator`
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
+- **filter**: `FilterCondition|FilterOperator|null`
   The filter argument that was used with *getMessageList*.
-- **sort**: `String[]`
+- **sort**: `String[]|null`
   The sort argument that was used with *getMessageList*.
-- **collapseThreads**: `Boolean`
+- **collapseThreads**: `Boolean|null`
   The *collapseThreads* argument that was used with *getMessageList*.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *messageList* response. The server will return the changes made since this state.
-- **uptoMessageId**: `String|null` (optional)
+- **uptoMessageId**: `String|null`
   The message id of the last message in the list that the client knows about. In the common case of the client only having the first X ids cached, this allows the server to ignore changes further down the list the client doesn't care about.
-- **maxChanges**: `Number` (optional)
+- **maxChanges**: `Number|null`
   The maximum number of changes to return in the response. See below for a more detailed description.
 
 The response to *getMessageListUpdates* is called *messageListUpdates* It has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for the call.
-- **filter**: `FilterCondition|FilterOperator`
+- **filter**: `FilterCondition|FilterOperator|null`
   The filter of the message list. Echoed back from the call.
-- **sort**: `String[]`
+- **sort**: `String[]|null`
   A list of Message property names used to sort by. Echoed back from the call.
 - **collapseThreads**: `Boolean`
   Echoed back from the call.

@@ -135,18 +135,18 @@ A **File** Object has the following properties:
 
 - **url**: `String`
   A url to download the attachment. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).
-- **type**: `String` (optional)
+- **type**: `String|null`
   The content-type of the attachment, if known.
-- **name**: `String` (optional)
+- **name**: `String|null`
   The full file name, if known. e.g. "myworddocument.doc"
-- **size**: `Number` (optional)
+- **size**: `Number|null`
   The size, in bytes, of the attachment when fully decoded (i.e. the number of bytes in the file the user would download), if known.
 
 ### getCalendarEvents
 
 CalendarEvents can only be fetched explicitly by id. To fetch events, make a call to `getCalendarEvents`. It takes the following arguments:
 
-- **accountId**: `String` (optional)
+- **accountId**: `String|null`
   The id of the account to use for this call. If not given, defaults to the primary account.
 - **ids**: `String[]`
   An array of ids for the events to fetch.
@@ -179,12 +179,12 @@ The following errors may be returned instead of the *events* response:
 
 The *getCalendarEventUpdates* call allows a client to efficiently update the state of its cached calendar events to match the new state on the server. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The id of the account to use for this call. If omitted, the primary account will be used.
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *calendarEvents* response. The server will return the changes made since this state.
-- **fetchRecords**: `Boolean`
-  If `true`, after outputting a *calendarEventUpdates* response, an implicit call will be made to *getCalendarEvents* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument.
+- **fetchRecords**: `Boolean|null`
+  If `true`, after outputting a *calendarEventUpdates* response, an implicit call will be made to *getCalendarEvents* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument. If `false` or `null`, no implicit call will be made.
 - **fetchRecordProperties**: `String[]|null`
   Passed through as the *properties* argument to any implicit *getCalendarEvents* call.
 
@@ -219,13 +219,13 @@ Modifying the state of CalendarEvent objects on the server is done via the *setC
 
 The *setCalendarEvents* method takes the following arguments:
 
-- **ifInState**: `String` (optional)
-  This is a state string as returned by the *getCalendarEvents* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
-- **create**: `String[CalendarEvent]` (optional)
+- **ifInState**: `String|null`
+  This is a state string as returned by the *getCalendarEvents* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, the change will be applied to the current state.
+- **create**: `String[CalendarEvent]|null`
   A map of *creation id* (an arbitrary string set by the client) to CalendarEvent objects (containing all properties except the id).
-- **update**: `String[CalendarEvent]` (optional)
+- **update**: `String[CalendarEvent]|null`
   A map of id to a CalendarEvent object. The object may omit any property; only properties that have changed need be included.
-- **destroy**: `String[]` (optional)
+- **destroy**: `String[]|null`
   A list of ids for CalendarEvent objects to permanently delete.
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single event (e.g. update the *utcStart* property but not the *startTimeZone* property if both are supplied in the update object).
@@ -256,24 +256,24 @@ The response to *setCalendarEvents* is called *calendarEventsSet*. It has the fo
   The state string that would have been returned by *getCalendarEvents* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by *getCalendarEvents*.
-- **created**: `String[CalendarEvent]` (optional)
-  A map of the creation id to an object containing the **id** property for all successfully created events, omitted if none.
-- **updated**: `String[]` (optional)
-  A list of ids for events that were successfully updated, omitted if none.
-- **destroyed**: `String[]` (optional)
-  A list of ids for events that were successfully destroyed, omitted if none.
-- **notCreated**: `String[SetError]` (optional)
-  A map of creation id to a SetError object for each event that failed to be created, omitted if none. The possible errors are defined in the description of the method for specific data types.
-- **notUpdated**: `String[SetError]` (optional)
-  A map of CalendarEvent id to a SetError object for each event that failed to be updated, omitted if none. The possible errors are defined in the description of the method for specific data types.
-- **notDestroyed**: `String[SetError]` (optional)
-  A map of CalendarEvent id to a SetError object for each event that failed to be destroyed, omitted if none. The possible errors are defined in the description of the method for specific data types.
+- **created**: `String[CalendarEvent]`
+  A map of the creation id to an object containing the **id** property for all successfully created events
+- **updated**: `String[]`
+  A list of ids for events that were successfully updated.
+- **destroyed**: `String[]`
+  A list of ids for events that were successfully destroyed.
+- **notCreated**: `String[SetError]`
+  A map of creation id to a SetError object for each event that failed to be created. The possible errors are defined in the description of the method for specific data types.
+- **notUpdated**: `String[SetError]`
+  A map of CalendarEvent id to a SetError object for each event that failed to be updated. The possible errors are defined in the description of the method for specific data types.
+- **notDestroyed**: `String[SetError]`
+  A map of CalendarEvent id to a SetError object for each event that failed to be destroyed. The possible errors are defined in the description of the method for specific data types.
 
 A **SetError** object has the following properties:
 
 - **type**: `String`
   The type of error.
-- **description**: `String` (optional)
+- **description**: `String|null`
   A description of the error to display to the user.
 
 If any of the properties in a create or update are invalid (immutable, wrong type, invalid value for the property – like a *calendarId* for a non-existent calendar), the server MUST reject the create/update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.

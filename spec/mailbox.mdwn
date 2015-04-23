@@ -75,12 +75,12 @@ The server MAY support extra properties on the Mailbox object. To avoid conflict
 
 Mailboxes can either be fetched explicitly by id, or all of them at once. To fetch mailboxes, make a call to `getMailboxes`. It takes the following arguments:
 
-- **accountId**: `String|null` (optional)
-  The Account to fetch the mailboxes for. If omitted or `null`, the primary account is used.
-- **ids**: `String[]|null` (optional)
-  The ids of the mailboxes to fetch. If omitted or `null`, all mailboxes in the account are returned.
-- **properties**: `String[]|null` (optional)
-  The properties of each mailbox to fetch. If omitted or `null`, all properties are returned. The id of the mailbox will **always** be returned, even if not explicitly requested. For compatibility with future extensions, the server MUST ignore any unknown properties in the list.
+- **accountId**: `String|null`
+  The Account to fetch the mailboxes for. If `null`, the primary account is used.
+- **ids**: `String[]|null`
+  The ids of the mailboxes to fetch. If `null`, all mailboxes in the account are returned.
+- **properties**: `String[]|null`
+  The properties of each mailbox to fetch. If `null`, all properties are returned. The id of the mailbox will **always** be returned, even if not explicitly requested. For compatibility with future extensions, the server MUST ignore any unknown properties in the list.
 
 The response to *getMailboxes* is called *mailboxes*. It has the following arguments:
 
@@ -91,7 +91,7 @@ The response to *getMailboxes* is called *mailboxes*. It has the following argum
 - **list**: `Mailbox[]`
   An array of the Mailbox objects requested. This will be the **empty array** if none were requested, or none were found.
 - **notFound**: `String[]|null`
-  This array contains the ids passed to the method for mailboxes that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument was omitted from the call.
+  This array contains the ids passed to the method for mailboxes that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument in the call was `null`.
 
 The following errors may be returned instead of the *mailboxes* response:
 
@@ -105,12 +105,12 @@ The following errors may be returned instead of the *mailboxes* response:
 
 The *getMailboxUpdates* call allows a client to efficiently update the state of its cached mailboxes to match the new state on the server. It takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The id of the account to use for this call. If omitted, the primary account will be used.
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *mailboxes* response. The server will return the changes made since this state.
-- **fetchRecords**: `Boolean`
-  If `true`, after outputting a *mailboxUpdates* response, an implicit call will be made to *getMailboxes* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument.
+- **fetchRecords**: `Boolean|null`
+  If `true`, after outputting a *mailboxUpdates* response, an implicit call will be made to *getMailboxes* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument. If `false` or `null`, no implicit call will be made.
 - **fetchRecordProperties**: `String[]|null`
   If `null`, all Mailbox properties will be fetched unless *onlyCountsChanged* in the *mailboxUpdates* response is `true`, in which case only the 4 counts properties will be returned (*totalMessages*, *unreadMessages*, *totalThreads* and *unreadThreads*). If not `null`, this value will be passed through to the *getMailboxes* call regardless of the *onlyCountsChanged* value in the *mailboxUpdates* response.
 
@@ -145,16 +145,16 @@ The following errors may be returned instead of the `mailboxUpdates` response:
 
 Mailboxes can be created, updated and destroyed using the *setMailboxes* method. The method takes the following arguments:
 
-- **accountId**: `String` (optional)
-  The id of the account to use for this call. If not given, defaults to the primary account.
-- **ifInState**: `String` (optional)
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, defaults to the primary account.
+- **ifInState**: `String|null`
   This is a state string as returned by the *getMailboxes* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
-- **create**: `String[Mailbox]` (optional)
-  A map of *creation id* (an arbitrary string set by the client) to Mailbox objects.
-- **update**: `String[Mailbox]` (optional)
-  A map of id to a an object containing the properties to update for that Mailbox.
-- **destroy**: `String[]` (optional)
-  A list of ids for Mailboxes to permanently delete.
+- **create**: `String[Mailbox]|null`
+  A map of *creation id* (an arbitrary string set by the client) to Mailbox objects. If `null`, no objects will be created.
+- **update**: `String[Mailbox]|null`
+  A map of id to a an object containing the properties to update for that Mailbox. If `null`, no objects will be updated.
+- **destroy**: `String[]|null`
+  A list of ids for Mailboxes to permanently delete. If `null`, no objects will be deleted.
 
 Each create, update or destroy is considered an atomic unit. The server MAY commit some of the changes but not others, however MAY NOT only commit part of an update to a single record (e.g. update the *name* field but not the *parentId* field, if both are supplied in the update object).
 
@@ -168,10 +168,10 @@ The properties of the Mailbox object submitted for creation MUST conform to the 
 
 - The *id* property MUST NOT be present.
 - The *parentId* property MUST be either `null` or be a valid id for a mailbox for which the `mayCreateSub` property is `true`.
-- The *role* property is optional. If not present, it defaults to `null`. If present it MUST be either `null`, a valid role as listed in the Mailbox object specification, or prefixed by `"x-"`.
+- The *role* property MUST be either `null`, a valid role as listed in the Mailbox object specification, or prefixed by `"x-"`.
 - The *mustBeOnlyMailbox* property MUST NOT be present. This is server dependent and will be set by the server.
-- The *mayXXX* properties are optional. All default to `true`. If present, they MUST all be set to `true`. Restrictions may only be set by the server for system mailboxes, or when sharing mailboxes with other users (setting sharing is not defined yet in this spec).
-- The *totalMessages*, *unreadMessages*, *totalThreads* and *unreadThreads* properties are optional. If present they MUST all have a value of 0.
+- The *mayXXX* properties MUST NOT be present. Restrictions may only be set by the server for system mailboxes, or when sharing mailboxes with other users (setting sharing is not defined yet in this spec).
+- The *totalMessages*, *unreadMessages*, *totalThreads* and *unreadThreads* properties MUST NOT be present.
 
 If any of the properties are invalid, the server MUST reject the create with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
 
@@ -236,18 +236,18 @@ The response to *setMailboxes* is called *mailboxesSet*. It has the following ar
   The state string that would have been returned by `getMailboxes` before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by `getMailboxes`.
-- **created**: `String[Mailbox]` (optional)
-  A map of the creation id to an object containing the **id** and **mustBeOnlyMailbox** properties for each successfully created Mailbox, omitted if none.
-- **updated**: `String[]` (optional)
-  A list of ids for Mailboxes that were successfully updated, omitted if none.
-- **destroyed**: `String[]` (optional)
-  A list of ids for Mailboxes that were successfully destroyed, omitted if none.
-- **notCreated**: `String[SetError]` (optional)
-  A map of creation id to a SetError object for each Mailbox that failed to be created, omitted if none. The possible errors are defined above.
-- **notUpdated**: `String[SetError]` (optional)
-  A map of Mailbox id to a SetError object for each Mailbox that failed to be updated, omitted if none. The possible errors are defined above.
-- **notDestroyed**: `String[SetError]` (optional)
-  A map of Mailbox id to a SetError object for each Mailbox that failed to be destroyed, omitted if none. The possible errors are defined above.
+- **created**: `String[Mailbox]`
+  A map of the creation id to an object containing the **id** and **mustBeOnlyMailbox** properties for each successfully created Mailbox.
+- **updated**: `String[]`
+  A list of ids for Mailboxes that were successfully updated.
+- **destroyed**: `String[]`
+  A list of ids for Mailboxes that were successfully destroyed.
+- **notCreated**: `String[SetError]`
+  A map of creation id to a SetError object for each Mailbox that failed to be created. The possible errors are defined above.
+- **notUpdated**: `String[SetError]`
+  A map of Mailbox id to a SetError object for each Mailbox that failed to be updated. The possible errors are defined above.
+- **notDestroyed**: `String[SetError]`
+  A map of Mailbox id to a SetError object for each Mailbox that failed to be destroyed. The possible errors are defined above.
 
 The following errors may be returned instead of the *mailboxesSet* response:
 
