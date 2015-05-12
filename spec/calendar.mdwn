@@ -12,6 +12,22 @@ A **Calendar** object has the following properties:
   Any valid CSS colour value. The colour to be used when displaying events associated with the calendar. The colour SHOULD have sufficient contrast to be used as text on a white background.
 - **isVisible**: `Boolean`
   Should the calendar's events be displayed to the user at the moment?
+- **mayReadFreeBusy**: `Boolean`
+  The user may read the free-busy information for this calendar. In JMAP
+  terms, this means the user may use this calendar as part of a filter in a
+  *getCalendarEventList* call, however unless `mayRead == true`, the events
+  returned for this calendar will only contain free-busy information, and be stripped of any other data.
+  This property MUST be `true` if *mayRead* is `true`.
+- **mayRead**: `Boolean`
+  The user may fetch the events in this calendar. In JMAP terms, this means
+  the user may use this calendar as part of a filter in a
+  *getCalendarEventList* call
+- **mayWrite**: `Boolean`
+  The user may add, edit or remove events in this calendar. In JMAP terms,
+  this means the user may call *setCalendarEvents* to create new events in this
+  calendar, or update/destroy events currently in this calendar.
+  This property MUST be `false` if the account to which this calendar belongs 
+  has the *isReadOnly* property set to `true`.
 
 ### getCalendars
 
@@ -95,6 +111,8 @@ The *setCalendars* method takes the following arguments:
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single calendar (e.g. update the *name* property but not the *isVisible* property if both are supplied in the update object).
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+
+The *mayXXX* properties are optional when creating a calendar. All default to `true`. If present, they MUST all be set to `true`. These properties are *read-only* to the client and may not be modified in an update call. Restrictions may only be set by the server, or when sharing calendars with other accounts (setting up sharing is not yet defined in this spec).
 
 A calendar MAY be deleted that is currently associated with one or more events. In this case, the events belonging to this calendar MUST also be deleted. Conceptually, this MUST happen prior to the calendar itself being deleted, and MUST generate a **push** event that modifies the *calendarState* for the account, and has a *clientId* of `null`, to indicate that a change has been made to the calendar data not explicitly requested by the client.
 
