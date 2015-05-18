@@ -12,22 +12,44 @@ A **Calendar** object has the following properties:
   Any valid CSS colour value. The colour to be used when displaying events associated with the calendar. The colour SHOULD have sufficient contrast to be used as text on a white background.
 - **isVisible**: `Boolean`
   Should the calendar's events be displayed to the user at the moment?
+- **parentId**: `String|null`
+  The calendar id for the parent of this calendar, or `null` if this calendar is at the top level.
 - **mayReadFreeBusy**: `Boolean`
   The user may read the free-busy information for this calendar. In JMAP
   terms, this means the user may use this calendar as part of a filter in a
   *getCalendarEventList* call, however unless `mayRead == true`, the events
   returned for this calendar will only contain free-busy information, and be stripped of any other data.
   This property MUST be `true` if *mayRead* is `true`.
-- **mayRead**: `Boolean`
+- **mayReadItems**: `Boolean`
   The user may fetch the events in this calendar. In JMAP terms, this means
   the user may use this calendar as part of a filter in a
   *getCalendarEventList* call
-- **mayWrite**: `Boolean`
-  The user may add, edit or remove events in this calendar. In JMAP terms,
-  this means the user may call *setCalendarEvents* to create new events in this
-  calendar, or update/destroy events currently in this calendar.
+- **mayAddItems**: `Boolean`
+  The user may add events to this calendar. In JMAP terms, this means the 
+  user may call *setCalendarEvents* to create new events in this calendar.
   This property MUST be `false` if the account to which this calendar belongs 
   has the *isReadOnly* property set to `true`.
+- **mayWriteItems**: `Boolean`
+  The user may edit events in this calendar by calling *setCalendarEvents* with the *update* argument
+  referencing events in this collection. This property MUST be `false` if the account to which this
+  calendar belongs has the *isReadOnly* property set to `true`.
+- **mayRemoveItems**: `Boolean`
+  The user may remove events from this calendar by calling *setCalendarEvents* with the *destroy* argument
+  referencing events in this collection. This property MUST be `false` if the account to which this
+  calendar belongs has the *isReadOnly* property set to `true`.
+- **mayCreateChild**: `Boolean`
+  The user may create a calendar with this calendar as its parent.
+  This property MUST be `false` if the account to which this calendar belongs 
+  has the *isReadOnly* property set to `true`.
+- **mayRename**: `Boolean`
+  The user may rename the calendar or make it a child of another calendar.
+  This property MUST be `false` if the account to which this calendar belongs 
+  has the *isReadOnly* property set to `true`.
+- **mayDelete**: `Boolean`
+  The user may delete the calendar itself.
+  This property MUST be `false` if the account to which this calendar belongs 
+  has the *isReadOnly* property set to `true`.
+
 
 ### getCalendars
 
