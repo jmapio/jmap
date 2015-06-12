@@ -346,12 +346,16 @@ The following errors may be returned instead of the *messagesSet* response:
 
 `stateMismatch`: Returned if an *ifInState* argument was supplied and it does not match the current state.
 
-### importMessage
+### importMessages
 
-The *importMessage* method adds an RFC2822 message to a user's set of messages. The message must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
+The *importMessages* method adds RFC2822 messages to a user's set of messages. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the account to use for this call. If `null`, defaults to the primary account.
+- **messages**: `String[MessageImport]`
+  A map of creation id (client specified) to MessageImport objects
+
+An ImportMessage object consists of:
 - **file**: `String`
   The URL of the uploaded file (see the file upload section).
 - **mailboxIds** `String[]`
@@ -363,14 +367,14 @@ The *importMessage* method adds an RFC2822 message to a user's set of messages. 
 
 If `isDraft == true`, the mailboxes MUST include the drafts or outbox mailbox. Adding to the outbox will send the message, as described in the *setMessages* section (it will NOT automatically mark any other message as *isAnswered*).
 
-The response to *importMessage* is called *messageImported*. It has the following arguments:
+The response to *importMessages* is called *messagesImported*. It has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for this call.
-- **messageId**: `String`
-  The message id of the created message.
-- **threadId**: `String`
-  The thread id of the created message.
+- **created**: `String[Message]`
+  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully imported Message.
+- **notCreated**: `String[SetError]`
+  A map of creation id to a SetError object for each Message that failed to be created. The possible errors are defined above.
 
 The following errors may be returned instead of the *messageImported* response:
 
@@ -422,7 +426,7 @@ The response to *copyMessages* is called *messagesCopied*. It has the following 
   The id of the account messages were copied from.
 - **toAccountId**: `String`
   The id of the account messages were copied to.
-- **copied**: `String[Message]|null`
+- **created**: `String[Message]|null`
   A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully copied Message.
 - **notCreated**: `String[SetError]|null`
   A map of creation id to a SetError object for each Message that failed to be copied, `null` if none.
