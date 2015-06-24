@@ -23,9 +23,9 @@ A **Calendar** object has the following properties:
   the user may use this calendar as part of a filter in a
   *getCalendarEventList* call
 - **mayAddItems**: `Boolean`
-  The user may add events to this calendar. In JMAP terms, this means the 
+  The user may add events to this calendar. In JMAP terms, this means the
   user may call *setCalendarEvents* to create new events in this calendar.
-  This property MUST be `false` if the account to which this calendar belongs 
+  This property MUST be `false` if the account to which this calendar belongs
   has the *isReadOnly* property set to `true`.
 - **mayWriteItems**: `Boolean`
   The user may edit events in this calendar by calling *setCalendarEvents* with the *update* argument
@@ -37,11 +37,11 @@ A **Calendar** object has the following properties:
   calendar belongs has the *isReadOnly* property set to `true`.
 - **mayRename**: `Boolean`
   The user may rename the calendar or make it a child of another calendar.
-  This property MUST be `false` if the account to which this calendar belongs 
+  This property MUST be `false` if the account to which this calendar belongs
   has the *isReadOnly* property set to `true`.
 - **mayDelete**: `Boolean`
   The user may delete the calendar itself.
-  This property MUST be `false` if the account to which this calendar belongs 
+  This property MUST be `false` if the account to which this calendar belongs
   has the *isReadOnly* property set to `true`.
 
 
@@ -61,7 +61,7 @@ The response to *getCalendars* is called *calendars*. It has the following argum
 - **state**: `String`
   A string representing the state on the server for **all** calendars. If a property of a calendar changes, or a new calendar is created, or a calendar is destroyed, this string will change. It is used to get delta updates.
 - **list**: `Calendar[]`
-  An array of the Calendar objects requested. This will be the **empty array** if none were requested, or none were found.
+  An array of the Calendar objects requested. This will be the **empty array** if the *ids* argument was the empty array, or contained only ids for calendars that could not be found.
 - **notFound**: `String[]|null`
   This array contains the ids passed to the method for calendars that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument in the call was `null`.
 

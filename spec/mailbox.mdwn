@@ -27,7 +27,7 @@ A **Mailbox** object has the following properties:
 
   An account is not required to have mailboxes with any of the above roles. A client MAY create new mailboxes with a role property to help them keep track of a use-case not covered by the above list. To avoid potential conflict with any special behaviour a server might apply to mailboxes with certain roles in the future, any roles not in the above list created by the client must begin with `"x-"`. The client MAY attempt to create mailboxes with the standard roles if not already present, but the server MAY reject these.
 - **precedence**: `Number`
-  Defines the sort order of mailboxes when presented in the UI, so it is 
+  Defines the sort order of mailboxes when presented in the UI, so it is
   consistent between devices. The number MUST be an integer in the range
   0 <= precedence < 2^31.
 
@@ -89,7 +89,7 @@ The response to *getMailboxes* is called *mailboxes*. It has the following argum
 - **state**: `String`
   A string representing the state on the server for **all** mailboxes. If the state of a mailbox changes, or a new mailbox is created, or a mailbox is destroyed, this string will change. It is used to get delta updates.
 - **list**: `Mailbox[]`
-  An array of the Mailbox objects requested. This will be the **empty array** if none were requested, or none were found.
+  An array of the Mailbox objects requested. This will be the **empty array** if the *ids* argument was the empty array, or contained only ids for mailboxes that could not be found.
 - **notFound**: `String[]|null`
   This array contains the ids passed to the method for mailboxes that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument in the call was `null`.
 
