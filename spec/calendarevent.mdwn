@@ -5,8 +5,7 @@ A CalendarEvent contains information about an event, or recurring series of even
 A **CalendarEvent** object has the following properties:
 
 - **id**: `String`
-  The id of the event. This property is immutable. The id is unique across
-  *all* events the user has access to.
+  The id of the event. This property is immutable.
 - **calendarId**: `String`
   The id of the calendar this event belongs to.
 - **summary**: `String`
@@ -242,7 +241,7 @@ When an event is created, updated or destroyed, the server MUST also ensure the 
 - If `organizer.isYou == true`:
   - If an event is created with attendees, send a REQUEST iMIP email with the
     event as an ICS attachment to all attendees with `isYou == false`.
-  - When an event is updated, email all attendees with `isYou == false` the 
+  - When an event is updated, email all attendees with `isYou == false` the
     change with an appropriate iMIP email.
   - When an event is destroyed, if it is in the future, then email all
     attendees with `isYou == false` to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
