@@ -6,11 +6,11 @@ All data belongs to an account. An account may provide access to mail, contacts 
 
 ### Ids
 
-All ids MUST be unique among all records of the **same type** within the **same account**. Ids may clash across accounts, or for two records of different types within the same account.
+All ids for messages, contacts, etc. are assigned by the server. They MUST be unique among all records of the **same type** within the **same account**. Ids may clash across accounts, or for two records of different types within the same account.
 
 ### Mail
 
-Each message must have a unique, immutable id. This id does not change if the message changes mailboxes. A mailbox is a named, arbitrary set of emails. For compatibility with IMAP, a message MUST always belong to at least one mailbox at any time.
+Each message has a unique, immutable id. This id does not change if the message changes mailboxes. A mailbox is a named, arbitrary set of emails. For compatibility with IMAP, a message MUST always belong to at least one mailbox at any time.
 
 Each message has 4 mutable boolean "flags" stored with it, each with a direct
 equivalent in IMAP. In JMAP these flags are called:
@@ -20,7 +20,7 @@ equivalent in IMAP. In JMAP these flags are called:
 * **isDraft**: Is the email a draft?
 * **isAnswered**: Has the email been answered (replied to)?
 
-Messages are immutable other than these 4 flags and the set of mailboxes to which it belongs. To change anything else, the message must be deleted and a new one created (which will get a different id).
+Messages are **immutable** other than these 4 flags and the set of mailboxes to which it belongs. To change anything else, the message must be deleted and a new one created (which will get a different id).
 
 Related messages are grouped into threads. When getting a message list, you can collapse threads; that is the thread is only returned **once**, at the position of the first message in the thread in the non-collapsed list (given the sort order).
 
