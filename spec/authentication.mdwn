@@ -1,6 +1,6 @@
 ## Authentication
 
-Before connecting to any JMAP service, the client must first gain an access token. It cannot just use a username/password directly. This allows the server to know (and show the user) which clients currently have access to the account, and to be able to revoke access individually. 
+Before connecting to any JMAP service, the client must first gain an access token. It cannot just use a username/password directly. This allows the server to know (and show the user) which clients currently have access to the account, and to be able to revoke access individually.
 
 The server may support multiple different mechanisms for authenticating a user to gain the access token. It is expected that further types may be added in future extensions to the JMAP specification (for example [FIDO](https://fidoalliance.org/)).
 
@@ -101,7 +101,15 @@ Returned if the server is temporarily blocking this IP/client from authenticatin
 
 ### Refetching URL endpoints
 
-A server MAY (although SHOULD NOT) move end points for any services other than authentication at any time. If a request to the API/file upload/event source endpoint returns a `404`, the client MUST refetch the URL endpoints. To do this, it should make an authenticated GET request to the authentication URL (see below for how to authenticate requests). This should return a `200` response, with a single JSON object containing the following properties:
+A server MAY (although SHOULD NOT) move end points for any services other than authentication at any time. If a request to the API/file upload/event source endpoint returns a `404`, the client MUST refetch the URL endpoints. To do this, it should make an authenticated GET request to the authentication URL (see below for how to authenticate requests).
+
+For OAuth logins, this is how the URLs may be fetched initially as well.
+
+The server MUST respond with one of the following status codes:
+
+#### `200`: OK
+
+The request was successful. The response will be of type `application/json` and consists of a single JSON object containing the following properties:
 
 - **api**: `String`
   The URL to use for JMAP API requests.
@@ -110,7 +118,21 @@ A server MAY (although SHOULD NOT) move end points for any services other than a
 - **upload**: `String`
   The URL endpoint to use when uploading files (see the Upload section of this spec).
 
-For OAuth logins, this is how the URLs may be fetched initially as well.
+#### `401`: Unauthorized
+
+The `Authorization` header was missing or did not contain a valid token. Reauthenticate and then retry the request. There is no content in the response.
+
+#### `404`: Not Found
+
+The JMAP server is no longer here. There is no content in the response.
+
+#### `500`: Internal Server Error
+
+Something has gone wrong internally, and the server is in a broken state. Don't automatically retry. There is no content in the response.
+
+#### `503`: Service Unavailable
+
+The server is currently down. Try again later with exponential backoff. There is no content in the response.
 
 ### Revoking an access token
 
