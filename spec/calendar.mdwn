@@ -24,19 +24,23 @@ A **Calendar** object has the following properties:
   *getCalendarEventList* call
 - **mayAddItems**: `Boolean`
   The user may add events to this calendar. In JMAP terms, this means the
-  user may call *setCalendarEvents* to create new events in this calendar.
+  user may call *setCalendarEvents* to create new events in this calendar or
+  move existing events into this calendar from another calenadr.
   This property MUST be `false` if the account to which this calendar belongs
   has the *isReadOnly* property set to `true`.
-- **mayWriteItems**: `Boolean`
-  The user may edit events in this calendar by calling *setCalendarEvents* with the *update* argument
-  referencing events in this collection. This property MUST be `false` if the account to which this
-  calendar belongs has the *isReadOnly* property set to `true`.
+- **mayModifyItems**: `Boolean`
+  The user may edit events in this calendar by calling *setCalendarEvents* with
+  the *update* argument referencing events in this collection.
+  This property MUST be `false` if the account to which this calendar belongs
+  has the *isReadOnly* property set to `true`.
 - **mayRemoveItems**: `Boolean`
-  The user may remove events from this calendar by calling *setCalendarEvents* with the *destroy* argument
-  referencing events in this collection. This property MUST be `false` if the account to which this
-  calendar belongs has the *isReadOnly* property set to `true`.
+  The user may remove events from this calendar by calling *setCalendarEvents*
+  with the *destroy* argument referencing events in this collection, or by
+  updating their *calendarId* property to a different calendar.
+  This property MUST be `false` if the account to which this calendar belongs
+  has the *isReadOnly* property set to `true`.
 - **mayRename**: `Boolean`
-  The user may rename the calendar or make it a child of another calendar.
+  The user may rename the calendar.
   This property MUST be `false` if the account to which this calendar belongs
   has the *isReadOnly* property set to `true`.
 - **mayDelete**: `Boolean`
