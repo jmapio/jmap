@@ -78,6 +78,8 @@ The response body will be a single JSON object with the following properties.
   The URL to connect to for push events (see the Push section of this spec).
 - **upload**: `String`
   The URL endpoint to use when uploading files (see the Upload section of this spec).
+- **download**: `String`
+  The URL endpoint to use when downloading files, in [RFC6570 URI Template](https://tools.ietf.org/html/rfc6570) (level 1) format. The URL MUST contain a variable called `blobId`. The URL SHOULD contain a variable called `name`. The client may use this template in combination with a blobId to download any binary data (files) referenced by other objects. Since a blob is not associated with a particular name, the template SHOULD allow a name to be substituted in as well; the server will return this as the filename if it sets a `Content-Disposition` header. To download the data the client MUST make an authenticated GET request (see below for how to authenticate requests) to the expanded URL, and then follow any redirects.
 
 URLs are returned only after logging in. This allows different URLs to be used for users located in different geographic datacentres within the same service.
 

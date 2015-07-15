@@ -92,8 +92,8 @@ An **Address** object has the following properties:
 
 A **File** Object has the following properties:
 
-- **url**: `String`
-  A url to download the file. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).
+- **blobId**: `String`
+  The id of the binary data.
 - **type**: `String|null`
   The content-type of the file, if known.
 - **name**: `String|null`
@@ -188,7 +188,7 @@ Each create, update or destroy is considered an atomic unit. It is permissible f
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
-To set a new avatar, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid URL/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the avatar for a contact.
+To set a new avatar, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid blobId/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the avatar for a contact.
 
 The response to *setContacts* is called *contactsSet*. It has the following arguments:
 

@@ -8,18 +8,20 @@ The server will respond with one of the following HTTP response codes:
 
 The content of the response is a single JSON object with the following properties:
 
-- **url**: `String`,
-  The file can be redownloaded from this link (the request MUST be authenticated as per any HTTP request). This is also used to identify the file internally when attached to drafts etc.
+- **blobId**: `String`,
+  The id representing the binary data uploaded. The data for this id is immutable. The id *only* refers to the binary data, not any metadata.
 - **type**: `String`
   The content type of the file.
 - **size**: `Number`
   The size of the file in bytes.
 - **expires**: `Date`
-  The date the file will be deleted from temp storage if not used in a draft etc.
+  The date the file will be deleted from temp storage if not referenced by another object, e.g. used in a draft.
 
-Once the file has been used, for example attached to a draft message, the file will no longer expire, and is instead reference counted by the number of other objects (draft messages etc.) that refer to it. Once this reaches zero, the server MAY immediately delete the file and the URL will become invalid.
+Once the file has been used, for example attached to a draft message, the file will no longer expire, and is instead guaranteed to exist while at least one other object references it. Once no other object references it, the server MAY immediately delete the file at any time. It MUST NOT delete the file during the method call which removed the last reference, so that if there is a create and a delete within the same call which both reference the file, this always works.
 
 If uploading a file would take the user over quota, the server SHOULD delete previously uploaded (but unused) files before their expiry time. This means a client does not have to explicitly delete unused temporary files (indeed, there is no way for it to do so).
+
+If identical binary content is uploaded, the same *blobId* SHOULD be returned.
 
 #### `400`: Bad request
 

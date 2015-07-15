@@ -132,8 +132,8 @@ A **Participant** Object has the following properties:
 
 A **File** Object has the following properties:
 
-- **url**: `String`
-  A url to download the attachment. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).
+- **blobId**: `String`
+  The id of the binary data.
 - **type**: `String|null`
   The content-type of the attachment, if known.
 - **name**: `String|null`
@@ -233,7 +233,7 @@ If a create, update or destroy is rejected, the appropriate error should be adde
 
 CalendarEvents reference a Calendar object. When events are created or modified, they may reference a calendar being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the calendar being referenced is created in an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to Calendar id for each newly created calendar, so it can substitute in the correct value if necessary in later method calls.
 
-To add new attachments, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid URL/size/type to use.
+To add new attachments, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid blobId/size/type to use.
 
 When an event is created, updated or destroyed, the server MUST also ensure the following:
 
