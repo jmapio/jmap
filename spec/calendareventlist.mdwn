@@ -59,7 +59,7 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 
 #### Sorting
 
-Results MUST be sorted in order of the *utcStart* property, oldest first.
+Results MUST be sorted in a stable order so the client can load the full list in sections. The exact ordering to use is server dependent.
 
 #### Windowing
 
@@ -81,7 +81,7 @@ The response to a call to *getCalendarEventList* is called *calendarEventList*. 
 - **total**: `Number`
   The total number of events in the list (given the *filter*).
 - **calendarEventIds**: `String[]`
-  The list of CalendarEvent ids for each event in the list after filtering and sorting, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids. Note, that recurrences are not returned separately in any way; the event only occurs once in the calendarEventIds array no matter how many times it recurs, at the position given by the *utcStart* of the event itself.
+  The list of CalendarEvent ids for each event in the list after filtering and sorting, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids. Note, that recurrences are not returned separately in any way; the event only occurs once in the calendarEventIds array no matter how many times it recurs.
 
 The following errors may be returned instead of the `calendarEventList` response:
 
