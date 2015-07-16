@@ -1,0 +1,109 @@
+## ContactLists
+
+A **ContactList** is a query on the set of contacts in a user's contacts. The client can optionally also fetch the contacts.
+
+### getContactList
+
+To fetch a contact list, make a call to *getContactList*. It takes the following arguments:
+
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
+- **filter**: `FilterCondition|FilterOperator|null`
+  Determines the set of contacts returned in the results. See the "Filtering" section below for allowed values and semantics.
+- **position**: `Number|null`
+  The 0-based index of the first result in the list to return, presumed `0` if `null`. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **limit**: `Number|null`
+  The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the list is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **fetchContacts**: `Boolean|null`
+  If `true` then after outputting a *contactList* response, an implicit call will be made to *getContacts* with the `contactIds` array in the response as the *ids* argument. If `false` or `null`, no implicit call will be made.
+
+#### Filtering
+
+A **FilterOperator** object has the following properties:
+
+- **operator**: `String`
+  This MUST be one of the following strings: "AND"/"OR"/"NOT":
+  - **AND**: all of the conditions must match for the filter to match.
+  - **OR**: at least one of the conditions must match for the filter to match.
+  - **NOT**: none of the conditions must match for the filter to match.
+- **conditions**: `(FilterCondition|FilterOperator)[]`
+  The conditions to evaluate against each contact.
+
+A **FilterCondition** object has the following properties:
+
+- **inContactGroup**: `String[]|null`
+  A list of contact group ids. A contact must be in ANY of these groups to match the condition.
+- **isFlagged**: `Boolean|null`
+  The `isFlagged` property of the contact must be identical to the value given to match the condition.
+- **text**: `String|null`
+  Equivalent to ORing together a FilterCondition for each of the `String` typed conditions (prefix, firstName, etc.).
+- **prefix**: `String`
+  Looks for the text in the *prefix* property of the contact.
+- **firstName**: `String`
+  Looks for the text in the *firstName* property of the contact.
+- **lastName**: `String`
+  Looks for the text in the *lastName* property of the contact.
+- **suffix**: `String`
+  Looks for the text in the *suffix* property of the contact.
+- **nickname**: `String`
+  Looks for the text in the *nickname* property of the contact.
+- **company**: `String`
+  Looks for the text in the *company* property of the contact.
+- **department**: `String`
+  Looks for the text in the *department* property of the contact.
+- **jobTitle**: `String`
+  Looks for the text in the *jobTitle* property of the contact.
+- **email**: `String`
+  Looks for the text in the *value* property of any object in the *emails*
+  property of the contact.
+- **phone**: `String`
+  Looks for the text in the *value* property of any object in the *phones*
+  property of the contact.
+- **online**: `String`
+  Looks for the text in the *value* property of any object in the *online*
+  property of the contact.
+- **address**: `String`
+  Looks for the text in the *street*, *locality*, *region*, *postcode* or *country* property of any object in the *addresses* property of the contact.
+- **notes**: `String`
+  Looks for the text in the *notes* property of the contact.
+
+The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
+
+- Text SHOULD be matched in a case-insensitive manner.
+- Text contained in either (but matched) single or double quotes SHOULD be treated as a **phrase search**, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use `\"`, `\'` and `\\` to match a literal `"`, `'` and `\` respectively in a phrase.
+- Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the contact, but MUST all be present for the contact to match the filter.
+- Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for `bus` would match "buses" but not "business").
+
+#### Sorting
+
+Results MUST be sorted in a stable order so the client can load the full list in sections. The exact ordering to use is server dependent.
+
+#### Windowing
+
+To paginate the results the client MAY supply a *position* argument: this is the 0-based index of the first result to return in the list of contacts after filtering and sorting. If the index is greater than or equal to the total number of contacts in the list, then there are no results to return, but this DOES NOT generate an error. If `null`, this defaults to `0`.
+
+#### Response
+
+The response to a call to *getContactList* is called *contactList*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **filter**: `FilterCondition|FilterOperator|null`
+  The filter of the contact list. Echoed back from the call.
+- **state**: `String`
+  A string encoding the current state on the server. This string will change
+  if the results of the contact list MAY have changed (for example, there has been a change to the state of the set of Contacts; it does not guarantee that anything in the list has changed).
+- **position**: `Number`
+  The 0-based index of the first result in the `contactIds` array within the complete list.
+- **total**: `Number`
+  The total number of contacts in the list (given the *filter*).
+- **contactIds**: `String[]`
+  The list of Contact ids for each contact in the list after filtering and sorting, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids.
+
+The following errors may be returned instead of the `contactList` response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoContacts`: Returned if the *accountId* given corresponds to a valid account, but does not support storing contact data.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
