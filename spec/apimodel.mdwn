@@ -1,6 +1,6 @@
 # JMAP: The Spec
 
-<div id="last-update">Last updated 2015-06-24</div>
+<div id="last-update">Last updated 2015-07-16</div>
 
 This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the [guide for client developers](client.html) first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.
 
@@ -109,6 +109,12 @@ Where the API specifies `LocalDate` as a type, it means a string in the same for
 ### Use of `null`
 
 Unless otherwise noted, a missing property in a request, response or object MUST be intepreted exactly the same as that property having the value `null` If `null` is not a valid value for that property this would typically cause an error to occur. This rule does not apply to the [top-level datatypes](#data-model-overview), where a missing property usually indicates that the sender wants to leave the existing property value untouched (e.g. in a [`setFoos`](#setfoos) request or a [`getFooUpdates`](#getfooupdates) response.
+
+### Unknown arguments and properties
+
+For compatibility with possible future extensions, the server MUST ignore any unknown arguments to a method. This does not automatically generate an `invalidArguments` error.
+
+Similarly, for *getRecords* type calls that take a *properties* argument. The server MUST ignore any unknown properties requested and not treat this as an error.
 
 ### CRUD methods
 
