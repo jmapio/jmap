@@ -2,37 +2,23 @@
 
 Any modern email client should be able to update instantly whenever the data on the server is changed by another client or message delivery. Push notifications in JMAP occur out-of-band (i.e. not over the same connection as API exchanges) so that they can make use of efficient native push mechanisms on different platforms.
 
-The general model for push is simple and does not send any sensitive data over the push channel, making it suitable for use with less trusted 3rd party intermediaries. The format allows multiple changes to be coalesced into a single push update, and the frequency of pushes to be rate limited by the server. It doesn't matter if some push events are dropped before they reach the client; as long as the client gets *a* push event eventually it will then fully sync (it can of course do this in response to other triggers such as coming online).
+The general model for push is simple and does not send any sensitive data over the push channel, making it suitable for use with less trusted 3rd party intermediaries. The format allows multiple changes to be coalesced into a single push update, and the frequency of pushes to be rate limited by the server. It doesn't matter if some push events are dropped before they reach the client; it will still get all changes next time it syncs.
 
 When something changes on the server, the server pushes a small JSON object to the client with the following property:
 
-- **accountStates**: `String[AccountState]`
-  A map of *account id* to an object encoding the current state of mail/contacts/calendar data for that account, for each of the accounts to which the user has access.
+- **changed**: `String[ChangedStates]`
+  A map of *account id* to an object encoding the state of data types which have changed for that account since the last push event, for each of the accounts to which the user has access and for which something has changed.
 
-An **AccountState** object has the following properties:
+A **ChangedStates** object is a map of the type name (e.g. "Mailbox" or "Message") to the current state token for that type (i.e. the "state" property that would currently be returned by a call to "getMailboxes" or "getMessages", as appropriate). The types in JMAP are "Mailbox", "Thread", "Message", "ContactGroup", "Contact", "Calendar", "CalendarEvent".
 
-- **mailboxes**: `String|null`
-  The string that would be returned as the `state` argument in a `mailboxes` response. `null` if and only if the account has no mail data.
-- **threads**: `String|null`
-  The string that would be returned as the `state` argument in a `threads` response. `null` if and only if the account has no mail data.
-- **messages**: `String|null`
-  The string that would be returned as the `state` argument in a `messages` response. Note, if this has changed, the client needs to refresh
-  message lists too, since these are queries on message state. `null` if and only if the account has no mail data.
-- **contactGroups**: `String|null`
-  The string that would be returned as the `state` argument in a `contactGroups` response. `null` if and only if the account has no contact data.
-- **contacts**: `String|null`
-  The string that would be returned as the `state` argument in a `contacts` response. `null` if and only if the account has no contact data.
-- **calendars**: `String|null`
-  The string that would be returned as the `state` argument in a `calendars` response. `null` if and only if the account has no calendar data.
-- **calendarEvents**: `String|null`
-  The string that would be returned as the `state` argument in a `calendarEvents` response. `null` if and only if the account has no calendar data.
-
-Upon receiving this data, the client can easily compare to the previous state strings to see whether data has changed for each type. The actual changes can then be efficiently fetched in a single standard API request (mainly using the *getFooUpdates* type methods).
+Upon receiving this data, the client can compare the new state strings with its current values to see whether it has the current data for these types. The actual changes can then be efficiently fetched in a single standard API request (using the *getFooUpdates* type methods).
 
 ### Event Source
 
 There are two mechanisms by which the client can receive the push events. The first is directly via a `text/event-stream` resource, as described in
-<http://www.w3.org/TR/eventsource/>. This is essentially a long running HTTP request down which the server can push data. When a change occurs, the server MUST push an event called **state** to any connected clients. The server SHOULD also set a new `Last-Event-Id` that encodes the entire server state visible to the user. When a new connection is made to the event-source endpoint, the server MUST immediately send a push with the current state for all accounts unless a `Last-Event-Id` was sent by the client AND this matches the current `Last-Event-Id` on the server.
+<http://www.w3.org/TR/eventsource/>. This is essentially a long running HTTP request down which the server can push data. When a change occurs, the server MUST push an event called **state** to any connected clients.
+
+The server MAY also set a new `Last-Event-Id` that encodes the entire server state visible to the user. When a new connection is made to the event-source endpoint, the server can then work out whether the client has missed some changes which it should send immediately.
 
 The server MUST also send an event called **ping** with an empty object as the data if a maximum of 5 minutes has elapsed since the previous event. This MUST NOT set a new `Last-Event-Id`. A client may detect the absence of these to determine that the HTTP connection has been dropped somewhere along the route and so it needs to re-establish the connection.
 
