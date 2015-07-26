@@ -8,6 +8,9 @@ A **Message** object has the following properties:
 
 - **id**: `String`
   The id of the message.
+- **blobId**: `String`
+  The id representing the raw RFC2822 message. This may be used to download
+  the original message or to attach it directly to another message etc.
 - **threadId**: `String`
   The id of the thread to which this message belongs.
 - **mailboxIds**: `String[]` (Mutable)
@@ -24,8 +27,6 @@ A **Message** object has the following properties:
   Is the message a draft? This corresponds to the `\Draft` system flag in IMAP.
 - **hasAttachment**: `Boolean`
   Does the message have any attachments?
-- **rawUrl**: `String`
-  A url to download the original RFC2822 message from. The HTTP request must be authenticated (see the Authenticating HTTP Requests section).
 - **headers**: `String[String]`
   A map of header name to (decoded) header value for all headers in the message. For headers that occur multiple times (e.g. `Received`), the values are concatenated with a single new line (`\n`) character in between each one.
 - **from**: `Emailer|null`
@@ -242,6 +243,7 @@ Creating messages via the *setMessages* method is only for creating draft messag
 The properties of the Message object submitted for creation MUST conform to the following conditions:
 
 - **id**: This property MUST NOT be included. It is set by the server upon creation.
+- **blobId**: This property MUST NOT be included. It is set by the server upon creation.
 - **threadId**: This property MUST NOT be included. It is set by the server upon creation.
 - **mailboxIds**: This property MUST be included. The value MUST include the id of either the mailbox with `role == "drafts"` (to save a draft) or the mailbox with `role == "outbox"` (to send the message). If this mailbox does not have `mustBeOnlyMailbox == true`, others may be included too.
 - **inReplyToMessageId**: Optional. If included, the server will look up this message and if found set appropriate `References` and `In-Reply-To` headers. These will override any such headers supplied in the *headers* property. If not found, the creation MUST be rejected with an `inReplyToNotFound` error.
@@ -250,7 +252,6 @@ The properties of the Message object submitted for creation MUST conform to the 
 - **isAnswered**: Optional, defaults to `false`. If included this MUST be `false`.
 - **isDraft**: Optional, defaults to `true`. If included this MUST be `true`.
 - **hasAttachment**: This property MUST NOT be included. It is set by the server upon creation based on the attachments property.
-- **rawUrl**: This property MUST NOT be included. It is set by the server upon creation.
 - **headers**: Optional. The keys MUST only contain the characters A-Z, a-z, 0-9 and hyphens.
 - **from**: Optional. Overrides a "From" in the *headers*.
 - **to**: Optional. Overrides a "To" in the *headers*.
@@ -322,7 +323,7 @@ The response to *setMessages* is called *messagesSet*. It has the following argu
 - **newState**: `String`
   The state string that will now be returned by *getMessages*.
 - **created**: `String[Message]`
-  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully created Message.
+  A map of the creation id to an object containing the *id*, *blobId*, *threadId*, and *size* properties for each successfully created Message.
 - **updated**: `String[]`
   A list of Message ids for Messages that were successfully updated.
 - **destroyed**: `String[]`
@@ -373,7 +374,7 @@ The response to *importMessages* is called *messagesImported*. It has the follow
 - **accountId**: `String`
   The id of the account used for this call.
 - **created**: `String[Message]`
-  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully imported Message.
+  A map of the creation id to an object containing the *id*, *blobId*, *threadId* and *size* properties for each successfully imported Message.
 - **notCreated**: `String[SetError]`
   A map of creation id to a SetError object for each Message that failed to be created. The possible errors are defined above.
 
@@ -428,7 +429,7 @@ The response to *copyMessages* is called *messagesCopied*. It has the following 
 - **toAccountId**: `String`
   The id of the account messages were copied to.
 - **created**: `String[Message]|null`
-  A map of the creation id to an object containing the *id*, *threadId*, *rawUrl* and *size* properties for each successfully copied Message.
+  A map of the creation id to an object containing the *id*, *blobId*, *threadId* and *size* properties for each successfully copied Message.
 - **notCreated**: `String[SetError]|null`
   A map of creation id to a SetError object for each Message that failed to be copied, `null` if none.
 
