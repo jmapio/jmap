@@ -19,7 +19,7 @@ To fetch a message list, make a call to *getMessageList*. It takes the following
 - **collapseThreads**: `Boolean|null`
   If true, each thread will only be returned once in the resulting list, at the position of the first message in the list (given the filter and sort order) belonging to the thread. If `false` or `null`, threads may be returned multiple times.
 - **position**: `Number|null`
-  The 0-based index of the first result in the list to return. If a negative value is given, the call MUST be rejected with an `invalidArguments` error. If `null, 0 is used.
+  The 0-based index of the first result in the list to return. If a negative value is given, the call MUST be rejected with an `invalidArguments` error. If `null`, 0 is used.
 - **anchor**: `String|null`
   A Message id. The index of this message id will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see the "Windowing" section below for more details).
 - **anchorOffset**: `Number|null`
@@ -132,11 +132,11 @@ When `collapseThreads == true`, then after filtering and sorting the message lis
 
 #### Windowing
 
-To paginate the results the client MUST **either** specify a *position* argument OR an *anchor* argument. If both, or neither are supplied, the call MUST be rejected with an `invalidArguments` error. The *anchorOffset* argument MUST be supplied **if and only** if the *anchor* argument is supplied. Any other case MUST be rejected with an `invalidArguments` error.
-
-If a *position* offset is supplied, then this is the 0-based index of the first result to return in the list of messages after filtering, sorting and collapsing threads. If the index is greater than or equal to the total number of messages in the list, then there are no results to return, but this DOES NOT generate an error.
+If a *position* offset is supplied, then this is the 0-based index of the first result to return in the list of messages after filtering, sorting and collapsing threads. If the index is greater than or equal to the total number of messages in the list, then there are no results to return, but this DOES NOT generate an error. If *position* is `null` (or, equivalently, omitted) this MUST be interpreted as `position: 0`.
 
 Alternatively, a message id, called the **anchor** may be given. In this case, after filtering, sorting and collapsing threads, the anchor is searched for in the message list. If found, the **anchor offset** is then subtracted from this index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
+
+If an *anchor* is specified, any position argument supplied by the client MUST be ignored. If *anchorOffset* is `null`, it defaults to `0`. If no *anchor* is supplied, any anchor offset argument MUST be ignored.
 
 #### Response
 
