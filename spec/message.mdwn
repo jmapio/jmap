@@ -176,7 +176,7 @@ The *getMessageUpdates* call allows a client to efficiently update the state of 
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *messages* response. The server will return the changes made since this state.
 - **maxChanges**: `Number|null`
-  The maximum number of changed messages to return in the response. See below for a more detailed description.
+  The maximum number of changed messages to return in the response. The server MAY choose to clamp this value to a particular maximum or set a maximum if none is given by the client. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
 - **fetchRecords**: `Boolean|null`
   If true, after outputting a *messageUpdates* response, an implicit call will be made to *getMessages* with a list of all message ids in the *changed* argument of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument.
 - **fetchRecordProperties**: `String[]|null`
@@ -190,10 +190,14 @@ The response to *getMessageUpdates* is called *messageUpdates*. It has the follo
   This is the *sinceState* argument echoed back; the state from which the server is returning changes.
 - **newState**: `String`
   This is the state the client will be in after applying the set of changes to the old state.
+- **hasMoreUpdates**: `Boolean`
+  If `true`, the client may call *getMessageUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
 - **changed**: `String[]`
   An array of message ids for messages that have either been created or had their state change, and are not currently deleted.
 - **removed**: `String[]`
   An array of message ids for messages that have been deleted since the oldState.
+
+If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getMessageUpdates* until it is fully up to date. The server MAY return more ids than the *maxChanges* total if this is required for it to be able to produce an update to an intermediate state, but it SHOULD try to keep it close to the maximum requested.
 
 If a message has been modified AND deleted since the oldState, the server should just return the id in the *removed* response, but MAY return it in the changed response as well. If a message has been created AND deleted since the oldState, the server should remove the message id from the response entirely, but MAY include it in the *removed* response, and (if in the *removed* response) MAY included it in the *changed* response as well.
 
@@ -205,9 +209,7 @@ The following errors may be returned instead of the *messageUpdates* response:
 
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument. The client MAY retry with a higher max changes, (but with `fetchRecords:false` perhaps to limit the data transfer). Alternatively, the client can invalidate its Message cache.
-
-`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST not try to call *getMessageUpdates* again with the same *oldState*, and instead MUST invalidate its Message cache.
+`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Message cache. The error object MUST also include a `newState: String` property with the current state for the type.
 
 ### setMessages
 

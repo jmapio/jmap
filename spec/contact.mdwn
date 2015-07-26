@@ -139,6 +139,8 @@ The *getContactUpdates* call allows a client to efficiently update the state of 
   The id of the account to use for this call. If `null`, the primary account will be used.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *contacts* response. The server will return the changes made since this state.
+- **maxChanges**: `Number|null`
+  The maximum number of Contact ids to return in the response. The server MAY choose to clamp this value to a particular maximum or set a maximum if none is given by the client. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
 - **fetchRecords**: `Boolean|null`
   If `true`, after outputting a *contactUpdates* response, an implicit call will be made to *getContacts* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument. If `false` or `null`, no implicit call is made.
 - **fetchRecordProperties**: `String[]|null`
@@ -152,10 +154,14 @@ The response to *getContactUpdates* is called *contactUpdates*. It has the follo
   This is the *sinceState* argument echoed back; the state from which the server is returning changes.
 - **newState**: `String`
   This is the state the client will be in after applying the set of changes to the old state.
+- **hasMoreUpdates**: `Boolean`
+  If `true`, the client may call *getContactUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
 - **changed**: `String[]`
   An array of Contact ids where a property of the contact has changed between the old state and the new state, or the contact has been created, and the contact has not been destroyed.
 - **removed**: `String[]`
   An array of Contact ids for contacts which have been destroyed since the old state.
+
+If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getContactUpdates* until it is fully up to date. The server MAY return more ids than the *maxChanges* total if this is required for it to be able to produce an update to an intermediate state, but it SHOULD try to keep it close to the maximum requested.
 
 If a contact has been modified AND deleted since the oldState, the server should just return the id in the *removed* array, but MAY return it in the *changed* array as well. If a contact has been created AND deleted since the oldState, the server SHOULD remove the contact id from the response entirely, but MAY include it in the *removed* array, and optionally the *changed* array as well.
 
@@ -167,7 +173,7 @@ The following errors may be returned instead of the `contactUpdates` response:
 
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its Contact cache.
+`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Contact cache. The error object MUST also include a `newState: String` property with the current state for the type.
 
 ### setContacts
 

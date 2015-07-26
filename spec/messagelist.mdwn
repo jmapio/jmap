@@ -150,7 +150,7 @@ The response to a call to *getMessageList* is called *messageList*. It has the f
   Echoed back from the call.
 - **state**: `String`
   A string encoding the current state on the server. This string will change if the results of the message list MAY have changed (for example, there has been a change to the state of the set of Messages; it does not guarantee that anything in the list has changed). It may be passed to *getMessageListUpdates* to efficiently get the set of changes from the previous state.
-  
+
   Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached list and fetch it again (note, this does not require fetching the messages again, just the list of ids) or, if the server supports it, call *getMessageListUpdates* to get the delta difference.
 - **canCalculateUpdates**: `Boolean`
   This is `true` if the server supports calling `getMessageListUpdates` with these `filter`/`sort`/`collapseThreads` parameters. Note, this does not guarantee that the getMessageListUpdates call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
