@@ -50,6 +50,8 @@ A **FilterCondition** object has the following properties:
 - **attendee**: `String|null`
   Looks for the text in the name or email of any item in the *attendees* property of the event, or the overridden *attendees* property of a recurrence.
 
+If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
+
 The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
 
 - Text SHOULD be matched in a case-insensitive manner.

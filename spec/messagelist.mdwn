@@ -88,6 +88,8 @@ A **FilterCondition** object has the following properties:
 - **header**: `String[]|null`
   The array MUST contain either one or two elements. The first element is the name of the header to match against. The second (optional) element is the text to look for in the header. If not supplied, the message matches simply if it *has* a header of the given name.
 
+If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
+
 The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
 
 - Text SHOULD be matched in a case-insensitive manner.
