@@ -3,8 +3,6 @@ Guide for client developers
 
 This guide shows how you can use JMAP to efficiently minimise bandwidth usage and round trips whilst still giving the user a complete view of their mail. This is particularly relevant to clients on mobile devices, where there is not the space to store a complete cache of all messages, or for web clients where you often do not have a permanent cache at all and must efficiently start from scratch each time the app is loaded.
 
-JMAP can also be used to efficiently download and keep in sync the entire set of a user's mail. This is much simpler to do, so it is not the focus of this guide. Understand the more complex case (explained here) of keeping a partial data set in sync, and it should become fairly obvious how to do the same with a full set.
-
 A single login may have access to multiple accounts. In this guide I'm going to ignore this and just use the primary account, which I'm going to presume has full read-write mail access.
 
 ## Cold boot
@@ -177,7 +175,7 @@ This might return the following:
                 id: "fed75e7fb4f512aa",
                 messageIds: [ "fm1u312", "fm2u12", "fm1u304" ]
             },
-                … 8 more thread objects, omitted for brevity … 
+                … 8 more thread objects, omitted for brevity …
             ],
             notFound: null
         }],
@@ -405,7 +403,7 @@ Let's look at a common case example, where two new messages have been delivered 
             uptoMessageId: "fm1u3",
             removed: [{
                 messageId: "fm1u241",
-                threadId: 
+                threadId:
             }],
             added: [{
                 messageId: "fm1u316",
@@ -586,7 +584,7 @@ We can then do a resync as in section 4 to update the client cache. This is easy
    - Increment the `totalMessages` count for the destination mailbox.
    - If unread, decrement the `unreadMessages` count for the source mailbox.
    - If unread, increment the `unreadMessages` count for the destination mailbox.
-   
+
    If there are no other messages in the thread in the source mailbox:
    - Decrement the `totalThreads` count for the source mailbox.
    - If any of the messages in the thread are unread, decrement the
@@ -608,3 +606,48 @@ We can then do a resync as in section 4 to update the client cache. This is easy
 4. **Message**. Update the `mailboxIds` property on the message object.
 
 When you next do resync, whether that's a second or several days later, apply the changes and fetch the delta update (as per section 4) in a single request, and when the response is received, undo the preemptive changes made above and apply the real changes. Hopefully the end result will be the same, and there will be no noticeable difference to the user.
+
+## Keeping a full copy of mail in sync
+
+JMAP can also be used to efficiently download and keep in sync the entire set of a user's mail. To do this, you would firstly get the full set of mailboxes, then page in the full list of message ids and download the actual messages. From this point on, you would only need to get the delta updates. Presuming you also want to optimise for fetching new mail first, you could do something like when you want to get the latest updates:
+
+    [
+        [ "getMailboxUpdates", {
+            sinceState: "m123456789",
+            fetchRecords: true,
+            fetchRecordProperties: null
+        }, "call1" ],
+        [ "getMessageUpdates", {
+            sinceState: "m815034"
+            maxChanges: 50,
+            fetchRecords: true,
+            fetchRecordProperties: [
+                "threadId",
+                "mailboxIds",
+                "isUnread",
+                "isFlagged",
+                "isAnswered",
+                "isDraft",
+                "hasAttachment",
+                "labels",
+                "from",
+                "to",
+                "subject",
+                "date",
+                "preview"
+            ]
+        }, "call3" ],
+        [ "getMessageList", {
+            filter: {
+                inMailboxes: [ "${inboxId}" ]
+            },
+            sort: [ "date desc", "id desc" ]
+            collapseThreads: false,
+            position: 0,
+            limit: 100
+        }, "call2" ]
+    ]
+
+The first two calls get the delta updates to mailboxes and messages (if the client has a copy of all messages locally, it has no need to use the server to get threads as it already has all the information). In the common case where there are fewer than 50 message changes since last time, this will bring the client fully up to date (barring downloading new message bodies, attachments and other details, which it can easily schedule at its leisure).
+
+However, if there have been a large number of changes since last time, the client is not yet fully up to date. It can continue to call getMessageUpdates to fetch more changes until it reaches the current state. Simultaneously, it can use the response to the getMessageList call in the first request to see if there are any new message ids at the top of the Inbox. These can be downloaded first so the user has immediate access to new messages (by the end of the second round trip) while the other changes then continue to sync across afterwards.
