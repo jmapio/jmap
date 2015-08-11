@@ -75,14 +75,14 @@ An **Emailer** object has the following properties:
 - **name**: `String`
   The name of the sender/recipient. If a name cannot be extracted for an email, this property should be the empty string.
 - **email**: `String`
-  The email address of the sender/recipient. If no host can be extracted for an email, this property should be "<mailbox>@".
+  The email address of the sender/recipient. This MUST be of the form `"<mailbox>@<host>"` If a `host` or even `mailbox` cannot be extracted for an email, the empty string should be used for this part (so the result will always still contain an `"@"`).
 
 Example Emailer object:
 
     [
         {name:"Joe Bloggs", email:"joeb@example.com"},
         {name:"", email:"john@example.com"},
-        {name:"Joe Bloggs", email: "john@"},
+        {name:"John Smith", email: "john@"}
     ]
 
 An **Attachment** object has the following properties:
