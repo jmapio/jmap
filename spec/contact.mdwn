@@ -181,6 +181,8 @@ Modifying the state of Contact objects on the server is done via the *setContact
 
 The *setContacts* method takes the following arguments:
 
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
 - **ifInState**: `String|null`
   This is a state string as returned by the *getContacts* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, the change will be applied to the current state.
 - **create**: `String[Contact]|null`
@@ -198,6 +200,8 @@ To set a new avatar, the file must first be uploaded using the standard upload m
 
 The response to *setContacts* is called *contactsSet*. It has the following arguments:
 
+- **accountId**: `String`
+  The id of the account used for the call.
 - **oldState**: `String|null`
   The state string that would have been returned by *getContacts* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
