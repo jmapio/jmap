@@ -143,6 +143,8 @@ Each create, update or destroy is considered an atomic unit. It is permissible f
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
+If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
+
 The *mayXXX* properties are optional when creating a calendar. All default to `true`. If present, they MUST all be set to `true`. These properties are *read-only* to the client and may not be modified in an update call. Restrictions may only be set by the server, or when sharing calendars with other accounts (setting up sharing is not yet defined in this spec).
 
 A calendar MAY be deleted that is currently associated with one or more events. In this case, the events belonging to this calendar MUST also be deleted. Conceptually, this MUST happen prior to the calendar itself being deleted, and MUST generate a **push** event that modifies the *calendarState* for the account, and has a *clientId* of `null`, to indicate that a change has been made to the calendar data not explicitly requested by the client.

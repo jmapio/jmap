@@ -239,6 +239,8 @@ Each create, update or destroy is considered an atomic unit. It is permissible f
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
+If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
+
 #### Saving a draft
 
 Creating messages via the *setMessages* method is only for creating draft messages and sending them. For delivering/importing a complete RFC2822 message, use the `importMessages` method.

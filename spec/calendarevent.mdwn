@@ -239,6 +239,8 @@ Each create, update or destroy is considered an atomic unit. It is permissible f
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
+If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
+
 CalendarEvents reference a Calendar object. When events are created or modified, they may reference a calendar being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the calendar being referenced is created in an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to Calendar id for each newly created calendar, so it can substitute in the correct value if necessary in later method calls.
 
 To add new attachments, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid blobId/size/type to use.

@@ -1,6 +1,6 @@
 # JMAP: The Spec
 
-<div id="last-update">Last updated 2015-08-14</div>
+<div id="last-update">Last updated 2015-09-21</div>
 
 This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the [guide for client developers](client.html) first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.
 
@@ -199,6 +199,8 @@ The *setFoos* method takes the following arguments:
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+
+If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
 
 Some record objects may hold references to others (foreign keys). When records are created or modified, they may reference other records being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the record being referenced is created in the same or an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to record id for each newly created record, so it can substitute in the correct value if necessary in later method calls.
 
