@@ -22,7 +22,7 @@ A **CalendarEvent** object has the following properties:
   Is the event an all day event, such as a birthday or public holiday? This corresponds to the type (DATE or DATE-TIME) of the DTSTART property in iCalendar.
 - **start**: `LocalDate`
   The date/time the event would start in the event's time zone. This corresponds to the DTSTART property in iCalendar.
-- **end**: `Date`
+- **end**: `LocalDate`
   The date/time the event would end in the event's time zone. This corresponds to the DTSTART/DURATION or DTEND property in iCalendar.
 - **startTimeZone**: `String|null`
   The [Olsen Time Zone Database](http://www.iana.org/time-zones) name for the timezone the start of the event is actually in, or `null` for floating time. This corresponds to the TZID part of the DTSTART property; if the underlying iCalendar file does not use an Olsen name, the server SHOULD try to guess the correct time zone based on the VTIMEZONE information, or fallback to floating time.
@@ -90,17 +90,17 @@ A **Recurrence** object is a JSON object mapping of a RECUR value type in iCalen
 - **byMonth**: `Number[]` (optional)
   The BYMONTH part from iCal, but with Jan == 0, Feb == 1 etc. (Jan == 1 in iCal). The array MUST have at least one entry if included and MUST be sorted in ascending order.
 - **byYearDay**: `Number[]` (optional)
-  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+  The BYYEARDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
 - **byWeekNo**: `Number[]` (optional)
-  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+  The BYWEEKNO part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
 - **byHour**: `Number[]` (optional)
-  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+  The BYHOUR part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
 - **byMinute**: `Number[]` (optional)
-  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+  The BYMINUTE part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
 - **bySecond**: `Number[]` (optional)
-  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+  The BYSECOND part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
 - **bySetPosition**: `Number[]` (optional)
-  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
+  The BYSETPOS part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
 - **count**: `Number` (optional)
   The COUNT part from iCal. This MUST NOT be included if an *until* property is specified.
 - **until**: `LocalDate` (optional)
