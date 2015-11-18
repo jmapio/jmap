@@ -237,6 +237,8 @@ The *setCalendarEvents* method takes the following arguments:
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single event (e.g. update the *start* property but not the *startTimeZone* property if both are supplied in the update object).
 
+In a create or update, the Calendar Event object MAY include properties that are unknown to the server. For compatability with possible future extensions, the server MUST ignore these properties and treat the request as though the object were supplied without them.
+
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
@@ -287,7 +289,7 @@ A **SetError** object has the following properties:
 - **description**: `String|null`
   A description of the error to display to the user.
 
-If any of the properties in a create or update are invalid (immutable, wrong type, invalid value for the property – like a *calendarId* for a non-existent calendar), the server MUST reject the create/update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+If any of the properties in a create or update are invalid (immutable and different to the current server value, wrong type, invalid value for the property – like a *calendarId* for a non-existent calendar), the server MUST reject the create/update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
 
 The following errors may be returned instead of the *calendarEventsSet* response:
 

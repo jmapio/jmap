@@ -159,6 +159,8 @@ Mailboxes can be created, updated and destroyed using the *setMailboxes* method.
 
 Each create, update or destroy is considered an atomic unit. The server MAY commit some of the changes but not others, however MAY NOT only commit part of an update to a single record (e.g. update the *name* field but not the *parentId* field, if both are supplied in the update object).
 
+In a create or update, the Mailbox object MAY include properties that are unknown to the server. For compatability with possible future extensions, the server MUST ignore these properties and treat the request as though the object were supplied without them.
+
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 ####  Creating mailboxes
