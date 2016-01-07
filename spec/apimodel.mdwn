@@ -14,11 +14,11 @@ JSON is a text-based data interchange format as specified in [RFC7159](https://t
 
 ### The structure of an exchange
 
-The client initiates an API request by sending the server a JSON array. Each element in this array is another array and constitutes passing a **message** to the server. The server will process this and return a response consisting of an array of messages in the same format. A message array always contains three elements:
+The client initiates an API request by sending the server a JSON array. Each element in this array is another array representing a method invocation on the server. The server will process the method calls and return a response consisting of an array in the same format. Each method call always contains three elements:
 
-1. The **name** of the message, a `String` specifying the method to be called on the server, or the type of response being sent to the client.
+1. The **name** of the method to call, or the name of the response from the server. This is a `String`.
 2. An `Object` containing *named* **arguments** for that method or response.
-3. A **client id**, an arbitrary `String` to be echoed back with the responses emitted by that method call (as we'll see lower down, a method may return 1 or more responses, especially as some methods make implicit calls to other ones).
+3. A **client id**: an arbitrary `String` to be echoed back with the responses emitted by that method call (as we'll see lower down, a method may return 1 or more responses, as some methods make implicit calls to other ones).
 
 Example query:
 
@@ -31,7 +31,7 @@ Example query:
 The method calls MUST be processed sequentially, in order. Each API request
 (which, as shown, may contain multiple method calls) receives a JSON
 response in exactly the same format. The output of the methods MUST be added
-to the array in the same order in which the methods are processed.
+to the array in the same order as the methods are processed.
 
 Example response:
 
@@ -46,11 +46,11 @@ Example response:
 
 If the data sent as an API request is not valid JSON or does not match the structure above, an error will be returned at the transport level. For example, when using JMAP over HTTP, a `400 Bad Request` error will be returned at the HTTP level.
 
-Possible errors for each method are specified in the method descriptions. If a method encounters an error, an `error` message must be inserted at the current point in the response and, unless otherwise specified, no further processing must happen within that method.
+Possible errors for each method are specified in the method descriptions. If a method encounters an error, an `error` response must be inserted at the current point in the output array and, unless otherwise specified, no further processing must happen within that method.
 
 Any further method calls in the request MUST then be processed as normal.
 
-An `error` message looks like this:
+An `error` response looks like this:
 
     ["error", {
       type: "unknownMethod"
@@ -62,7 +62,7 @@ If an unknown method is called, an `unknownMethod` error (this is the type shown
 
 ### JMAP over HTTPS
 
-To make an API request over HTTP (support for other protocols may be added in future extensions to the spec), the client makes an authenticated POST request to the API URL; see the Authentication section of the spec for how to discover this URL and how to authenticate requests. The request MUST have a content type of `application/json` and be encoded in utf-8. The server will respond with one of the following:
+To make an API request over HTTP (support for other protocols may be added in future extensions to the spec), the client makes an authenticated POST request to the API URL; see the Authentication section of the spec for how to discover this URL and how to authenticate requests. The request MUST have a content type of `application/json` and be encoded in utf-8. The server will respond with one of the following HTTP response codes:
 
 #### `200`: OK
 
@@ -94,7 +94,7 @@ As always, the server must be strict about data received from the client. Argume
 
 ### Concurrency
 
-To ensure the client always sees a consistent view of the data, the state accessed by a method call must not change during the execution of the method, except due to actions by the method call itself. The state may change in-between method calls (even within a single API request).
+To ensure the client always sees a consistent view of the data, the state accessed by a method call MUST NOT change during the execution of the method, except due to actions by the method call itself. The state MAY change in-between method calls (even within a single API request).
 
 ### The Number datatype
 
@@ -108,7 +108,7 @@ Where the API specifies `LocalDate` as a type, it means a string in the same for
 
 ### Use of `null`
 
-Unless otherwise noted, a missing property in a request, response or object MUST be intepreted exactly the same as that property having the value `null`. If `null` is not a valid value for that property this would typically cause an error to occur. This rule does not apply to the [top-level datatypes](#data-model-overview), where a missing property usually indicates that the sender wants to leave the existing property value untouched (e.g. in a [`setFoos`](#setfoos) request or a [`getFooUpdates`](#getfooupdates) response).
+Unless otherwise specified, a missing property in a request, response or object MUST be intepreted exactly the same as that property having the value `null`. If `null` is not a valid value for that property this would typically cause an error to occur. This rule does not apply to the [top-level datatypes](#data-model-overview), where a missing property usually indicates that the sender wants to leave the existing property value untouched (e.g. in a [*setFoos*](#setfoos) request or a [*getFooUpdates*](#getfooupdates) response).
 
 ### Unknown arguments and properties
 
@@ -122,7 +122,7 @@ JMAP defines various types of objects and provides a uniform interface for creat
 
 ### getFoos
 
-Objects of type **Foo** are fetched via a call to *getFoos*. Methods starting with `get` MUST NOT alter state on the server.
+Objects of type **Foo** are fetched via a call to *getFoos*. Methods with a name starting with `get` MUST NOT alter state on the server.
 
 This method may take some or all of the following arguments. The getter for a particular data type may not implement all of the arguments (for example if the data type only has two properties, there is little point in being able to just return one of them etc.); see the docs of the type in question. However, if one of the following arguments is available, it will behave exactly as specified below.
 
@@ -138,7 +138,7 @@ The response to `getFoos` is called `foos`. It has the following arguments:
 - **state**: `String`
   A string representing the state on the server for **all** the data of this type. If the data changes, this string will change. It is used to get delta updates, if supported for the type.
 - **list**: `Foo[]|null`
-  An array of the Foo objects requested. This is the **empty array** if no objects were requested, or none were found. If *sinceState* was supplied and it is identical to the current state, this property is `null`.
+  An array of the Foo objects requested. This is the **empty array** if no objects were requested (and *ids* argument was passed with an empty array), or none were found (the user has no objects of this type, or none of the ids given were valid). If *sinceState* was supplied and it is identical to the current state, this property is `null` (the client already has up to date data so the server may skip returning it).
 - **notFound**: `String[]|null`
   This array contains the ids passed to the method for records that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument in the call was `null`.
 
@@ -168,7 +168,7 @@ The response to *getFooUpdates* is called *fooUpdates*. It has the following arg
 - **removed**: `String[]`
   An array of Foo ids for records which have been destroyed since the old state.
 
-The *maxChanges* argument (and *hasMoreUpdates* response argument) is available for data types with potentially large amounts of data (i.e. those for which there is a getFooList method available for loading the data in sections).  If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getFooUpdates* until it is fully up to date. The server MAY return more ids than the *maxChanges* total if this is required for it to be able to produce an update to an intermediate state, but it SHOULD try to keep it close to the maximum requested.
+The *maxChanges* argument (and *hasMoreUpdates* response argument) is available for data types with potentially large amounts of data (i.e. those for which there is a *getFooList* method available for loading the data in pages).  If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getFooUpdates* until it is fully up to date. The server MAY return more ids than the *maxChanges* total if this is required for it to be able to produce an update to an intermediate state, but it SHOULD try to keep it close to the maximum requested.
 
 If a Foo record has been modified AND deleted since the oldState, the server should just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server should remove the Foo id from the response entirely, but MAY include it in the *removed* response, and optionally the *changed* response as well.
 
