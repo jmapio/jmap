@@ -266,7 +266,7 @@ The properties of the Message object submitted for creation MUST conform to the 
 - **bcc**:  Optional. Overrides a "Bcc" in the *headers*.
 - **replyTo**: Optional. Overrides a "Reply-To" in the *headers*.
 - **subject**: Optional. Defaults to the empty string (`""`).
-- **date**: Optional. If included... TODO(delayed send).
+- **date**: Optional. If included, the server SHOULD wait until this time to send the message (once moved to the outbox folder). Until it is sent, the send may be cancelled by moving the message back out of the outbox folder. If the date is in the past, the message must be sent immediately. A client may find out if the server supports delayed sending by querying the capabilities property of the Account object.
 - **size**: This MUST NOT be included. It is set by the server upon creation.
 - **preview**: This MUST NOT be included. It is set by the server upon creation.
 - **textBody**: Optional. If not supplied and an htmlBody is, the server SHOULD generate a text version for the message from this.
