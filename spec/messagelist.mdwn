@@ -61,6 +61,10 @@ A **FilterCondition** object has the following properties:
   The size of the message in bytes (as returned on the Message object) must be equal to or greater than this number to match the condition.
 - **maxSize**: `Number|null`
   The size of the message in bytes (as returned on the Message object) must be less than this number to match the condition.
+- **threadIsFlagged**: `Boolean|null`
+  If `true`, the condition is matched if the `isFlagged` property of *any* message in the same thread as the message being examined is `true`. If `false`, the `isFlagged` property of *every* message in the same thread as the message being examined must be `false` to match the condition.
+- **threadIsUnread**: `Boolean|null`
+  If `true`, the condition is matched if the `isUnread` property of *any* message in the same thread as the message being examined is `true`. If `false`, the `isUnread` property of *every* message in the same thread as the message being examined must be `false` to match the condition.
 - **isFlagged**: `Boolean|null`
   The `isFlagged` property of the message must be identical to the value given to match the condition.
 - **isUnread**: `Boolean|null`
@@ -115,8 +119,10 @@ The following properties SHOULD be supported for sorting:
 - **from** – This is taken to be either the "name" part of the Emailer object, or if none then the "email" part of the Emailer object (see the definition of the from property in the Message object). If still none, consider the value to be the empty string.
 - **to** - This is taken to be either the "name" part of the **first** Emailer object, or if none then the "email" part of the **first** Emailer object (see the definition of the to property in the Message object). If still none, consider the value to be the empty string.
 - **subject** - This is taken to be the subject of the Message with any ignoring any leading "Fwd:"s or "Re:"s (case-insensitive match).
-- **isFlagged** - If `collapseThreads == true`, this value MUST be considered `true` for the message if it is `true` for **any** of the messages in the thread.
-- **isUnread** - If `collapseThreads == true`, this value MUST be considered `true` for the message if it is `true` for **any** of the messages in the thread.
+- **threadIsFlagged** - This value MUST be considered `true` for the message if **any** of the messages in the same thread (regardless of mailbox) have `isFlagged: true`.
+- **threadIsUnread** - This value MUST be considered `true` for the message if **any** of the messages in the same thread (regardless of mailbox) have `isUnread: true`.
+- **isFlagged** - The `isFlagged` state of the message (only).
+- **isUnread** - The `isUnread` state of the message (only).
 
 The server MAY support sorting based on other properties as well.
 
