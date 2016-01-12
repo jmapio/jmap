@@ -1,6 +1,6 @@
 # JMAP: The Spec
 
-<div id="last-update">Last updated 2015-11-17</div>
+<div id="last-update">Last updated 2016-01-15</div>
 
 This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the [guide for client developers](client.html) first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.
 
@@ -58,11 +58,27 @@ An `error` response looks like this:
 
 The response name is `error`, and it has a type property as specified in the method description. Other properties may be present with further information; these are detailed in the method descriptions where appropriate.
 
-If an unknown method is called, an `unknownMethod` error (this is the type shown in the example above) must be inserted and then the next method call processed as normal.
+If an unknown method is called, an `unknownMethod` error (this is the type shown in the example above) MUST be inserted and then the next method call MUST be processed as normal.
+
+If an unknown argument or invalid arguments (wrong type, or in violation of other specified constraints) are supplied to a method, an `invalidArguments` error MUST be inserted and then the next method call MUST be processed as normal.
+
+### Vendor-specific extensions
+
+Individual services will have custom features they wish to expose over JMAP. This may take the form of extra datatypes and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names). To ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP, the server MUST ONLY expose these extensions if the client explicitly opts in. Without opt-in, the server MUST just follow the spec and reject anything that does not conform to it as specified.
+
+Any vendor extensions supported by the server are advertised to the client in the capabilities property on the Account object. The client opt-in happens at the transport layer (see the next section).
 
 ### JMAP over HTTPS
 
-To make an API request over HTTP (support for other protocols may be added in future extensions to the spec), the client makes an authenticated POST request to the API URL; see the Authentication section of the spec for how to discover this URL and how to authenticate requests. The request MUST have a content type of `application/json` and be encoded in utf-8. The server will respond with one of the following HTTP response codes:
+To make an API request over HTTP (support for other protocols may be added in future extensions to the spec), the client makes an authenticated POST request to the API URL; see the Authentication section of the spec for how to discover this URL and how to authenticate requests.
+
+The request MUST have a content type of `application/json` and be encoded in utf-8.
+
+The request MAY include an `X-JMAP-Version` header, the value of which is a number for the spec version the client would like to use (the list of versions supported by each account can be discovered by the client by inspecting the capabilities property of the Account object). If omitted, the server MUST presume a value equal to the *lowest* supported version common to all accounts.
+
+The request MAY include an 'X-JMAP-Extensions' header, the value of which is a comma-separated list of 'vendor-extension-name:extension-version` the client would like to use. For example, "com.fastmail.message:1,com.fastmail.savedSearch:4". Any white-space should be ignored when evaluating this header.
+
+The server will respond with one of the following HTTP response codes:
 
 #### `200`: OK
 
@@ -79,6 +95,12 @@ The `Authorization` header was missing or did not contain a valid token. Reauthe
 #### `404`: Not Found
 
 The API endpoint has moved. See the Authentication section of the spec for how to rediscover the current URL to use. There is no content in the response.
+
+#### `412`: Precondition Failed
+
+This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by one of the accounts used in a method.
+
+After authentication, but before processing any methods, the server MUST scan the methods in the request and check the requested JMAP version and extensions are supported by all the accounts referenced by the methods (unknown account ids MUST just be skipped; these method calls will error out when processed). If there are any accounts that do not support the requested version and extensions, this HTTP error code is returned and the server MUST NOT process any of the methods.
 
 #### `500`: Internal Server Error
 
@@ -110,12 +132,6 @@ Where the API specifies `LocalDate` as a type, it means a string in the same for
 
 Unless otherwise specified, a missing property in a request, response or object MUST be intepreted exactly the same as that property having the value `null`. If `null` is not a valid value for that property this would typically cause an error to occur. This rule does not apply to the [top-level datatypes](#data-model-overview), where a missing property usually indicates that the sender wants to leave the existing property value untouched (e.g. in a [*setFoos*](#setfoos) request or a [*getFooUpdates*](#getfooupdates) response).
 
-### Unknown arguments and properties
-
-For compatibility with possible future extensions, the server MUST ignore any unknown arguments to a method. This does not automatically generate an `invalidArguments` error.
-
-Similarly, for *getRecords* type calls that take a *properties* argument. The server MUST ignore any unknown properties requested and not treat this as an error.
-
 ### CRUD methods
 
 JMAP defines various types of objects and provides a uniform interface for creating, retrieving, updating and deleting them. A **data type** is a collection of named, typed properties, just like the schema for a database table. Each row of the table is a **record**. For a `Foo` data type, records of that type would be fetched via a `getFoos` call and modified via a `setFoos` call. Delta updates may be fetched via a `getFooUpdates` call. These methods all follow a standard format as described below.
@@ -129,7 +145,7 @@ This method may take some or all of the following arguments. The getter for a pa
 - **ids**: `String[]|null`
   The ids of the Foo objects to return. If `null` then **all** records of the data type are returned.
 - **properties**: `String[]|null`
-  If supplied, only the properties listed in the array are returned for each Foo object. If `null`, all properties of the object are returned. The id of the object is **always** returned, even if not explicitly requested. For compatibility with possible future extensions, the server MUST simply ignore any unknown properties in the list.
+  If supplied, only the properties listed in the array are returned for each Foo object. If `null`, all properties of the object are returned. The id of the object is **always** returned, even if not explicitly requested.
 - **sinceState**: `String|null`
   The *state* argument from a *foos* response may be passed back to future *getFoos* calls as the *sinceState* argument. If the current state is the same, the server SHOULD skip fetching the records and return a result indicating there is no change (this is essentially like an ETag). Most types support the more sophisticated *getFooUpdates* call instead to allow for delta updates. However, for small collections of data that change infrequently, this might be used. If available, this argument is always optional.
 
@@ -141,6 +157,10 @@ The response to `getFoos` is called `foos`. It has the following arguments:
   An array of the Foo objects requested. This is the **empty array** if no objects were requested (and *ids* argument was passed with an empty array), or none were found (the user has no objects of this type, or none of the ids given were valid). If *sinceState* was supplied and it is identical to the current state, this property is `null` (the client already has up to date data so the server may skip returning it).
 - **notFound**: `String[]|null`
   This array contains the ids passed to the method for records that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument in the call was `null`.
+
+The following error may be returned instead of the `foos` response:
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 ### getFooUpdates
 
@@ -197,8 +217,6 @@ The *setFoos* method takes the following arguments:
   A list of ids for Foo objects to permanently delete. If `null`, no objects will be deleted.
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
-
-In a create or update, the Foo object MAY include properties that are unknown to the server. For compatability with possible future extensions, the server MUST ignore these properties and treat the request as though the object were supplied without them.
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 

@@ -68,8 +68,6 @@ A **Message** object has the following properties:
   - attachments
   - attachedMessages
 
-The server MAY support extra properties on the Message object, such as information on DKIM signature validity or action metadata. To avoid conflict with any future standardised properties, custom property names MUST begin with `"x-"`. Custom properties SHOULD be immutable. In the event of mutable custom properties, it is not defined whether these will cause the message id to appear in the *changed* response in a call to *getMessageUpdates*.
-
 An **Emailer** object has the following properties:
 
 - **name**: `String`
@@ -237,8 +235,6 @@ It takes the following arguments:
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update the *isFlagged* field but not the *mailboxIds* field, if both are supplied in the update object for a message).
 
-In a create or update, the Message object MAY include properties that are unknown to the server. For compatability with possible future extensions, the server MUST ignore these properties and treat the request as though the object were supplied without them.
-
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
@@ -276,7 +272,7 @@ The properties of the Message object submitted for creation MUST conform to the 
   If one of the attachments is not found, the creation MUST be rejected with an `invalidProperties` error. An extra property SHOULD be included in the error object called `attachmentsNotFound`, of type `String[]`, which should be an array of the ids of any attachments that could not be found on the server.
 - **attachedMessages**: This MUST NOT be included.
 
-All optional properties default to `null` unless otherwise stated. Where included, properties MUST conform to the type given in the Message object definition. For compatibility with possible future extensions, the server MUST ignore any unknown properties in the object.
+All optional properties default to `null` unless otherwise stated. Where included, properties MUST conform to the type given in the Message object definition.
 
 If any of the properties are invalid, the server MUST reject the create with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
 

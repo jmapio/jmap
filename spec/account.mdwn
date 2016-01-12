@@ -12,25 +12,52 @@ An **Account** object has the following properties:
   A user-friendly string to show when presenting content from this account. e.g. the email address of the account.
 - **isPrimary**: `Boolean`
   This MUST be true for exactly one of the accounts returned.
+- **versions**: `Number[]`
+  The list of JMAP-spec versions supported by the account. If the client does not opt in to a particular version, then the lowest/oldest version in the list will be used by the server.
+- **extensions**: `String[Number[]]`
+  As described in the API Model, specific vendors may need to add custom extensions to the JMAP protocol, including new datatypes, extra properties on existing datatypes and extra methods. To ensure compability, these extensions must be explicitly opted into by the client.
+
+  The *extensions* property is a map of a name that uniquely identifies the extension (including a unique string identifying the vendor) to a list of version numbers supported for that extension. e.g. `"com.fastmail.message": [ 1 ]`.
+
+  A client may opt in to an extension by sending `"extension-name:extension-version"` in the `X-JMAP-Extensions` header of the request (or as specified for any future non-HTTP transport). It is up to the vendor to document exactly what the extension provides.
+
+  It is expected that this mechanism is mainly used for custom clients by the vendor for their own server. Where features are added that are more universally useful, it is hoped they will quickly be standardised in a future version of this spec, to maintain open compatibility between vendors.
+- **capabilities**: `AccountCapabilities`
+  An object describing general capabilities of this server.
+- **mail**: `MailCapabilities|null`
+  If `null`, this account does not support mail, and any use of the mail-related methods with this account will result in an `accountNoMail` error. Otherwise, it will be an object describing certain capabilities of the mail system.
+- **contacts**: `ContactsCapabilities|null`
+  If `null`, this account does not support contacts, and any use of the contacts-related methods with this account will result in an `accountNoContacts` error. Otherwise, it will be an object describing certain capabilities of the contacts system.
+- **calendars**: `CalendarsCapabilities|null`
+  If `null`, this account does not support calendars, and any use of the calendar-related methods with this account will result in an `accountNoCalendars` error. Otherwise, it will be an object describing certain capabilities of the calendars system.
+
+An **AccountCapabilities** object has the following properties:
+
+- **maxSizeUpload**: `Number`
+  The maximum file size, in bytes, that the server will accept for a single file upload (for any purpose).
+
+A **MailCapabilities** object has the following properties:
+
 - **isReadOnly**: `Boolean`
-  True if the user has read-only access to this account. The user may not use the `set` methods with this account.
-- **hasMail**: `Boolean`
-  This account contains mail data. Clients may use the Mail methods with this account.
-- **hasContacts**: `Boolean`
-  This account contains contact data. Clients may use the Contacts methods with this account.
-- **hasCalendars**: `Boolean`
-  This account contains calendar data. Clients may use the Calendar methods with this account.
-- **capabilities**: `Capabilities`
-  An object describing various capabilities of this server.
+  True if the user has read-only access to the mail in this account. The user may not use the `set`-type mail methods with this account.
+- **maxSizeMessageAttachments**: `Number`
+  The maximum total size of attachments, in bytes, allowed for messages. A server MAY still reject messages with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
+- **canDelaySend**: `Boolean`
+  Does the server support inserting a message into the outbox to be sent later at a user-specified time?
+- **messageListSortOptions**: `String[]`
+  A list of all the message properties the server supports for sorting by. This MAY include properties the client does not recognise (for example custom properties specified in the vendor extension). Clients MUST just ignore any unknown properties in the list.
 
-A **Capabilities** object has the following properties
+A **ContactsCapabilities** object has the following properties:
 
-TODO:
+- **isReadOnly**: `Boolean`
+  True if the user has read-only access to the contacts in this account. The user may not use the `set`-type contacts methods with this account.
 
-- delayedSend?
-- maxSendSize?
-- supportsMultiMailbox?
-- supportsThreads?
+A **CalendarsCapabilities** object has the following properties:
+
+- **isReadOnly**: `Boolean`
+  True if the user has read-only access to the calendars in this account. The user may not use the `set`-type calendar methods with this account.
+
+The AccountCapabilities, MailCapabilities, ContactsCapabilities and CalendarsCapabilities objects MAY also contain one or more properties prefixed with "vnd-" + a name that uniquely identifies the vendor. For example `"vnd-com.fastmail"`. The value type for these properties is undefined. These properties allow vendors to be able to inform their own clients of custom capabilities. Unknown properties of this form MUST be ignored by clients.
 
 ### getAccounts
 

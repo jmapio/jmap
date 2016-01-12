@@ -70,8 +70,6 @@ The result of this is that messages in the Trash are treated as though they are 
 
 For example, suppose you have an account where the entire contents is a single conversation with 2 messages: an unread message in the Trash and a read message in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
 
-The server MAY support extra properties on the Mailbox object. To avoid conflict with any future standardised properties, custom property names MUST begin with `"x-"`. Custom properties MAY be mutable. If so, changes to these properties SHOULD, cause the mailbox id to appear in the *changed* response of a call to *getMailboxUpdates*.
-
 ### getMailboxes
 
 Mailboxes can either be fetched explicitly by id, or all of them at once. To fetch mailboxes, make a call to `getMailboxes`. It takes the following arguments:
@@ -81,7 +79,7 @@ Mailboxes can either be fetched explicitly by id, or all of them at once. To fet
 - **ids**: `String[]|null`
   The ids of the mailboxes to fetch. If `null`, all mailboxes in the account are returned.
 - **properties**: `String[]|null`
-  The properties of each mailbox to fetch. If `null`, all properties are returned. The id of the mailbox will **always** be returned, even if not explicitly requested. For compatibility with future extensions, the server MUST ignore any unknown properties in the list.
+  The properties of each mailbox to fetch. If `null`, all properties are returned. The id of the mailbox will **always** be returned, even if not explicitly requested.
 
 The response to *getMailboxes* is called *mailboxes*. It has the following arguments:
 
@@ -159,13 +157,9 @@ Mailboxes can be created, updated and destroyed using the *setMailboxes* method.
 
 Each create, update or destroy is considered an atomic unit. The server MAY commit some of the changes but not others, however MAY NOT only commit part of an update to a single record (e.g. update the *name* field but not the *parentId* field, if both are supplied in the update object).
 
-In a create or update, the Mailbox object MAY include properties that are unknown to the server. For compatability with possible future extensions, the server MUST ignore these properties and treat the request as though the object were supplied without them.
-
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 ####  Creating mailboxes
-
-For compatibility with possible future extensions, the server MUST ignore any unknown properties in the object.
 
 The properties of the Mailbox object submitted for creation MUST conform to the following conditions:
 
@@ -183,8 +177,6 @@ There may be a maximum number of mailboxes allowed on the server. If this is rea
 ####  Updating mailboxes
 
 If the *id* given does not correspond to a Mailbox in the given account, the update MUST be rejected with a `notFound` error.
-
-For compatibility with possible future extensions, the server MUST ignore any unknown properties in the object.
 
 All properties being updated must be of the correct type, not immutable or server-set-only, and the new value must obey all conditions of the property. In particular, note the following conditions:
 
