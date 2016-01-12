@@ -1,6 +1,6 @@
 ## File Uploads
 
-There is a single endpoint which handles all file uploads, regardless of what they are to be used for. To upload a file, submit a POST request to the file upload endpoint (see the authentication section for information on how to obtain this URL). The Content-Type MUST be correctly set for the type of the file being uploaded. The request MUST be authenticated as per any HTTP request.
+There is a single endpoint which handles all file uploads, regardless of what they are to be used for. To upload a file, submit a POST request to the file upload endpoint (see the authentication section for information on how to obtain this URL). The Content-Type MUST be correctly set for the type of the file being uploaded. The request MUST be authenticated as per any HTTP request. The request MAY include an "X-JMAP-AccountId" header, with the value being the account to use for the request. Otherwise, the default account will be used.
 
 The server will respond with one of the following HTTP response codes:
 
@@ -8,6 +8,8 @@ The server will respond with one of the following HTTP response codes:
 
 The content of the response is a single JSON object with the following properties:
 
+- **accountId**: `String`
+  The id of the account used for the call.
 - **blobId**: `String`,
   The id representing the binary data uploaded. The data for this id is immutable. The id *only* refers to the binary data, not any metadata.
 - **type**: `String`
@@ -25,7 +27,7 @@ If identical binary content is uploaded, the same *blobId* SHOULD be returned.
 
 #### `400`: Bad request
 
-The request was malformed. The client SHOULD NOT retry the same request.
+The request was malformed (this includes the case where an `X-JMAP-AccountId` header is sent with a value that does not exist). The client SHOULD NOT retry the same request.
 
 #### `401`: Unauthorized
 
