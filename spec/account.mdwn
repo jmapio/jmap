@@ -12,16 +12,6 @@ An **Account** object has the following properties:
   A user-friendly string to show when presenting content from this account. e.g. the email address of the account.
 - **isPrimary**: `Boolean`
   This MUST be true for exactly one of the accounts returned.
-- **versions**: `Number[]`
-  The list of JMAP-spec versions supported by the account. If the client does not opt in to a particular version, then the lowest/oldest version in the list will be used by the server.
-- **extensions**: `String[Number[]]`
-  As described in the API Model, specific vendors may need to add custom extensions to the JMAP protocol, including new datatypes, extra properties on existing datatypes and extra methods. To ensure compability, these extensions must be explicitly opted into by the client.
-
-  The *extensions* property is a map of a name that uniquely identifies the extension (including a unique string identifying the vendor) to a list of version numbers supported for that extension. e.g. `"com.fastmail.message": [ 1 ]`.
-
-  A client may opt in to an extension by sending `"extension-name:extension-version"` in the `X-JMAP-Extensions` header of the request (or as specified for any future non-HTTP transport). It is up to the vendor to document exactly what the extension provides.
-
-  It is expected that this mechanism is mainly used for custom clients by the vendor for their own server. Where features are added that are more universally useful, it is hoped they will quickly be standardised in a future version of this spec, to maintain open compatibility between vendors.
 - **capabilities**: `AccountCapabilities`
   An object describing general capabilities of this server.
 - **mail**: `MailCapabilities|null`
@@ -90,19 +80,37 @@ and response:
           "id": "6asf5",
           "name": "user@example.com",
           "isPrimary": true,
-          "isReadOnly": false,
-          "hasMail": true,
-          "hasContacts": true,
-          "hasCalendars": true
+          "capabilities": {
+            maxSizeUpload: 1000000000
+          },
+          "mail": {
+            "isReadOnly": false,
+            "maxSizeMessageAttachments": 50000000,
+            "canDelaySend": true,
+            "messageListSortOptions": [
+              "id", "date", "subject", "from", "to",
+              "isUnread", "isPinned", "threadUnread", "threadPinned"
+            ],
+          },
+          "contacts": {
+            "isReadOnly": false
+          },
+          "calendars": {
+            "isReadOnly": false
+          }
         },
         {
           "id": "e12e1a",
           "name": "shared.user@example.com",
           "isPrimary": false,
-          "isReadOnly": true,
-          "hasMail": true,
-          "hasContacts": false,
-          "hasCalendars": false
+          "capabilities": {
+            maxSizeUpload: 0
+          },
+          "mail": null,
+          "contacts": null,
+          "calendars": {
+            "isReadOnly": true
+          }
         }
       ]
     }, "#0" ]

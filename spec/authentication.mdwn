@@ -70,6 +70,16 @@ The server will then return one of the same set of responses as before, which sh
 
 The response body will be a single JSON object with the following properties.
 
+- **versions**: `Number[]`
+  The list of supported JMAP-spec versions. If the client does not opt in to a particular version, then the lowest/oldest version in the list will be used by the server.
+- **extensions**: `String[Number[]]`
+  As described in the API Model, specific vendors may need to add custom extensions to the JMAP protocol, including new datatypes, extra properties on existing datatypes and extra methods. To ensure compability, these extensions must be explicitly opted into by the client.
+
+  The *extensions* property is a map of a name that uniquely identifies the extension (including a unique string identifying the vendor) to a list of version numbers supported for that extension. e.g. `"com.fastmail.message": [ 1 ]`.
+
+  A client may opt in to an extension by sending `"extension-name:extension-version"` in the `X-JMAP-Extensions` header of the request (or as specified for any future non-HTTP transport). It is up to the vendor to document exactly what the extension provides.
+
+  It is expected that this mechanism is mainly used for custom clients by the vendor for their own server. Where features are added that are more universally useful, it is hoped they will quickly be standardised in a future version of this spec, to maintain open compatibility between vendors.
 - **accessToken**: `String`
   The secret token to be used by the client to authenticate all future JMAP requests. The client should keep this secure, preferably in an OS keychain or the like. Since tokens should not be reused across devices or clients, the client SHOULD NOT reveal this token to the user.
 - **api**: `String`
@@ -113,6 +123,10 @@ The server MUST respond with one of the following status codes:
 
 The request was successful. The response will be of type `application/json` and consists of a single JSON object containing the following properties:
 
+- **versions**: `Number[]`
+  The list of JMAP-spec versions supported by the account.
+- **extensions**: `String[Number[]]`
+  Map of extension names to version number of that extension (see above).
 - **api**: `String`
   The URL to use for JMAP API requests.
 - **eventSource**: `String`
