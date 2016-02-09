@@ -84,13 +84,13 @@ The response body will be a single JSON object with the following properties.
   It is expected that this mechanism is mainly used for custom clients by the vendor for their own server. Where features are added that are more universally useful, it is hoped they will quickly be standardised in a future version of this spec, to maintain open compatibility between vendors.
 - **accessToken**: `String`
   The secret token to be used by the client to authenticate all future JMAP requests. The client should keep this secure, preferably in an OS keychain or the like. Since tokens should not be reused across devices or clients, the client SHOULD NOT reveal this token to the user.
-- **api**: `String`
+- **apiUrl**: `String`
   The URL to use for JMAP API requests.
-- **eventSource**: `String`
+- **eventSourceUrl**: `String`
   The URL to connect to for push events (see the Push section of this spec).
-- **upload**: `String`
+- **uploadUrl**: `String`
   The URL endpoint to use when uploading files (see the Upload section of this spec).
-- **download**: `String`
+- **downloadUrl**: `String`
   The URL endpoint to use when downloading files, in [RFC6570 URI Template](https://tools.ietf.org/html/rfc6570) (level 1) format. The URL MUST contain a variable called `blobId`. The URL SHOULD contain a variable called `name`. The client may use this template in combination with a blobId to download any binary data (files) referenced by other objects. Since a blob is not associated with a particular name, the template SHOULD allow a name to be substituted in as well; the server will return this as the filename if it sets a `Content-Disposition` header. To download the data the client MUST make an authenticated GET request (see below for how to authenticate requests) to the expanded URL, and then follow any redirects.
 
 URLs are returned only after logging in. This allows different URLs to be used for users located in different geographic datacentres within the same service.
@@ -109,7 +109,7 @@ Returned in response to a continuation request which failed (e.g. the password e
 
 This normally means the continuation token has expired, but it can be returned for any other reason. The client MUST restart authentication (go back to sending the username and client info to the server).
 
-#### `404`: Not Found
+#### `404`: Not found
 
 The JMAP server is no longer here. There is no content in the response.
 
@@ -117,11 +117,11 @@ The JMAP server is no longer here. There is no content in the response.
 
 Returned if the server is temporarily blocking this IP/client from authenticating. This may be due to too many failed password attempts, or detected username enumeration attempts, or any other reason. (Legitimate) clients should wait a while then try again.
 
-#### `500`: Internal Server Error
+#### `500`: Internal server error
 
 Something has gone wrong internally, and the server is in a broken state. Don't automatically retry. There is no content in the response.
 
-#### `503`: Service Unavailable
+#### `503`: Service unavailable
 
 The server is currently down. Try again later with exponential backoff. There is no content in the response.
 
@@ -143,28 +143,28 @@ The request was successful. The response will be of type `application/json` and 
   The list of JMAP-spec versions supported by the account.
 - **extensions**: `String[Number[]]`
   Map of extension names to version number of that extension (see above).
-- **api**: `String`
+- **apiUrl**: `String`
   The URL to use for JMAP API requests.
-- **eventSource**: `String`
+- **eventSourceUrl**: `String`
   The URL to connect to for push events (see the Push section of this spec).
-- **upload**: `String`
+- **uploadUrl**: `String`
   The URL endpoint to use when uploading files (see the Upload section of this spec).
-- **download**: `String`
+- **downloadUrl**: `String`
   The URL endpoint to use when downloading files (see above).
 
 #### `403`: Restart authentication
 
 The `Authorization` header was missing or did not contain a valid token. Reauthenticate and then retry the request. There is no content in the response.
 
-#### `404`: Not Found
+#### `404`: Not found
 
 The JMAP server is no longer here. There is no content in the response.
 
-#### `500`: Internal Server Error
+#### `500`: Internal server error
 
 Something has gone wrong internally, and the server is in a broken state. Don't automatically retry. There is no content in the response.
 
-#### `503`: Service Unavailable
+#### `503`: Service unavailable
 
 The server is currently down. Try again later with exponential backoff. There is no content in the response.
 
