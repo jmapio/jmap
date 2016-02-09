@@ -70,6 +70,8 @@ The server will then return one of the same set of responses as before, which sh
 
 The response body will be a single JSON object with the following properties.
 
+- **username**: `String`
+  The username that was successfully authenticated.
 - **versions**: `Number[]`
   The list of supported JMAP-spec versions. If the client does not opt in to a particular version, then the lowest/oldest version in the list will be used by the server.
 - **extensions**: `String[Number[]]`
@@ -107,9 +109,21 @@ Returned in response to a continuation request which failed (e.g. the password e
 
 This normally means the continuation token has expired, but it can be returned for any other reason. The client MUST restart authentication (go back to sending the username and client info to the server).
 
+#### `404`: Not Found
+
+The JMAP server is no longer here. There is no content in the response.
+
 #### `429`: Rate limited
 
 Returned if the server is temporarily blocking this IP/client from authenticating. This may be due to too many failed password attempts, or detected username enumeration attempts, or any other reason. (Legitimate) clients should wait a while then try again.
+
+#### `500`: Internal Server Error
+
+Something has gone wrong internally, and the server is in a broken state. Don't automatically retry. There is no content in the response.
+
+#### `503`: Service Unavailable
+
+The server is currently down. Try again later with exponential backoff. There is no content in the response.
 
 ### Refetching URL endpoints
 
@@ -119,7 +133,7 @@ For OAuth logins, this is how the URLs may be fetched initially as well.
 
 The server MUST respond with one of the following status codes:
 
-#### `200`: OK
+#### `201`: Authentication is complete, access token created.
 
 The request was successful. The response will be of type `application/json` and consists of a single JSON object containing the following properties:
 
@@ -138,7 +152,7 @@ The request was successful. The response will be of type `application/json` and 
 - **download**: `String`
   The URL endpoint to use when downloading files (see above).
 
-#### `401`: Unauthorized
+#### `403`: Restart authentication
 
 The `Authorization` header was missing or did not contain a valid token. Reauthenticate and then retry the request. There is no content in the response.
 
