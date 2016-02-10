@@ -203,7 +203,7 @@ The following errors may be returned instead of the *fooUpdates* response:
 Modifying the state of Foo objects on the server is done via the *setFoos* method. This encompasses creating, updating and destroying Foo records. This has two benefits:
 
 1. It allows the server to sort out ordering and dependencies that may exist if doing multiple operations at once (for example to ensure there is always a minimum number of a certain record type).
-2. Only a single call is required to make all changes to a particular type, so the *ifInState* requirement will not be invalidated by a previous method call in the same request.
+2. A single call can make all the changes you want to a particular type. If the client wants to use *ifInState* to guard its changes, it can only make one call that modifies a particular type per request, since it will need the new state following that call to make the next modification.
 
 The *setFoos* method takes the following arguments:
 
