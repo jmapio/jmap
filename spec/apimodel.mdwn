@@ -64,7 +64,7 @@ If an unknown argument or invalid arguments (wrong type, or in violation of othe
 
 ### Vendor-specific extensions
 
-Individual services will have custom features they wish to expose over JMAP. This may take the form of extra datatypes and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names). To ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP, the server MUST ONLY expose these extensions if the client explicitly opts in. Without opt-in, the server MUST just follow the spec and reject anything that does not conform to it as specified.
+Individual services will have custom features they wish to expose over JMAP. This may take the form of extra datatypes and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names). To ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP, the server MUST ONLY expose these extensions if the client explicitly opts in. Without opt-in, the server MUST follow the spec and reject anything that does not conform to it as specified.
 
 Any vendor extensions supported by the server are advertised to the client in the capabilities property on the Account object. The client opt-in happens at the transport layer (see the next section).
 
@@ -100,7 +100,7 @@ The API endpoint has moved. See the Authentication section of the spec for how t
 
 This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by one of the accounts used in a method.
 
-After authentication, but before processing any methods, the server MUST scan the methods in the request and check the requested JMAP version and extensions are supported by all the accounts referenced by the methods (unknown account ids MUST just be skipped; these method calls will error out when processed). If there are any accounts that do not support the requested version and extensions, this HTTP error code is returned and the server MUST NOT process any of the methods.
+After authentication, but before processing any methods, the server MUST scan the methods in the request and check the requested JMAP version and extensions are supported by all the accounts referenced by the methods (unknown account ids MUST be skipped; these method calls will error out when processed). If there are any accounts that do not support the requested version and extensions, this HTTP error code is returned and the server MUST NOT process any of the methods.
 
 #### `500`: Internal Server Error
 
