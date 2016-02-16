@@ -74,9 +74,11 @@ To make an API request over HTTP (support for other protocols may be added in fu
 
 The request MUST have a content type of `application/json` and be encoded in utf-8.
 
-The request MAY include an `X-JMAP-Version` header, the value of which is a number for the spec version the client would like to use (the list of versions supported by each account can be discovered by the client by inspecting the capabilities property of the Account object). If omitted, the server MUST presume a value equal to the *lowest* supported version common to all accounts.
+The request MAY include an `X-JMAP-Version` header, the value of which is a number for the spec version the client would like to use. If omitted, the server MUST presume a value equal to the *lowest* version the server supports.
 
 The request MAY include an 'X-JMAP-Extensions' header, the value of which is a comma-separated list of 'vendor-extension-name:extension-version` the client would like to use. For example, "com.fastmail.message:1,com.fastmail.savedSearch:4". Any white-space should be ignored when evaluating this header.
+
+The list of versions and extensions supported by the server is returned upon successful authentication.
 
 The server will respond with one of the following HTTP response codes:
 
@@ -98,9 +100,7 @@ The API endpoint has moved. See the Authentication section of the spec for how t
 
 #### `412`: Precondition Failed
 
-This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by one of the accounts used in a method.
-
-After authentication, but before processing any methods, the server MUST scan the methods in the request and check the requested JMAP version and extensions are supported by all the accounts referenced by the methods (unknown account ids MUST be skipped; these method calls will error out when processed). If there are any accounts that do not support the requested version and extensions, this HTTP error code is returned and the server MUST NOT process any of the methods.
+This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by the server.
 
 #### `500`: Internal Server Error
 
