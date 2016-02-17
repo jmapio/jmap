@@ -169,7 +169,7 @@ When the state of the set of Foo records changes on the server (whether due to c
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *foos* response. The server will return the changes made since this state.
 - **maxChanges**: `Number|null`
-  The maximum number of Foo ids to return in the response. The server MAY choose to override this value to a particular maximum or set a maximum if none is given by the client. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
+  The maximum number of Foo ids to return in the response. The server MAY choose to return fewer than this value, but MUST NOT return more. If not given by the client, the server may choose how many to return. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
 - **fetchRecords**: `Boolean|null`
   If `true`, immediately after outputting the *fooUpdates* response, the server will make an implicit call to *getFoos* with the *changed* property of the response as the *ids* argument. If `false` or `null`, no implicit call will be made.
 - **fetchRecordProperties**: `String[]|null`
