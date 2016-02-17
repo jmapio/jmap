@@ -109,7 +109,7 @@ The *getMailboxUpdates* call allows a client to efficiently update the state of 
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *mailboxes* response. The server will return the changes made since this state.
 - **fetchRecords**: `Boolean|null`
-  If `true`, after outputting a *mailboxUpdates* response, an implicit call will be made to *getMailboxes* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument. If `false` or `null`, no implicit call will be made.
+  If `true`, immediately after outputting a *mailboxUpdates* response, an implicit call will be made to *getMailboxes* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument. If `false` or `null`, no implicit call will be made.
 - **fetchRecordProperties**: `String[]|null`
   If `null`, all Mailbox properties will be fetched unless *onlyCountsChanged* in the *mailboxUpdates* response is `true`, in which case only the 4 counts properties will be returned (*totalMessages*, *unreadMessages*, *totalThreads* and *unreadThreads*). If not `null`, this value will be passed through to the *getMailboxes* call regardless of the *onlyCountsChanged* value in the *mailboxUpdates* response.
 
