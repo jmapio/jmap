@@ -4,6 +4,10 @@ Before connecting to any JMAP service, the client must first gain an access toke
 
 The server may support multiple different mechanisms for authenticating a user to gain the access token. It is expected that further types may be added in future extensions to the JMAP specification (for example [FIDO](https://fidoalliance.org/)).
 
+### Authenticating HTTP requests
+
+All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request with the value being the access token. This applies to OAuth tokens too, but see the provider's documentation for the details of what value to use for the header.
+
 ### Service autodiscovery
 
 There are three common autodiscovery methods in use for internet protocols:
@@ -181,7 +185,3 @@ A client may revoke an access token at any time by making a DELETE HTTP request 
 No content is returned in either case.
 
 For OAuth, see the provider's documentation on revoking access tokens.
-
-### Authenticating HTTP requests
-
-All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request with the value being the access token. This applies to OAuth tokens too, but see the provider's documentation for the details of what value to use for the header.
