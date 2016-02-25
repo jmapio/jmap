@@ -99,7 +99,7 @@ Note, if authentication is done via IP or mobile subscriber ID or some similar m
 
 #### `400`: Malformed request
 
-The request is of the wrong content type, or does not contain data in the expected format. The client MUST NOT retry the same request.
+The request is of the wrong content type, or does not contain data in the expected format. The client MUST NOT retry the same request. There is no content in the response.
 
 #### `401`: Authentication step failed
 
@@ -107,7 +107,7 @@ Returned in response to a continuation request which failed (e.g. the password e
 
 #### `403`: Restart authentication
 
-This normally means the continuation token has expired, but it can be returned for any other reason. The client MUST restart authentication (go back to sending the username and client info to the server).
+This normally means the continuation token has expired, but it can be returned for any other reason. The client MUST restart authentication (go back to sending the username and client info to the server). There is no content in the response.
 
 #### `404`: Not found
 
@@ -115,7 +115,7 @@ The JMAP server is no longer here. There is no content in the response.
 
 #### `429`: Rate limited
 
-Returned if the server is temporarily blocking this IP/client from authenticating. This may be due to too many failed password attempts, or detected username enumeration attempts, or any other reason. (Legitimate) clients should wait a while then try again.
+Returned if the server is temporarily blocking this IP/client from authenticating. This may be due to too many failed password attempts, or detected username enumeration attempts, or any other reason. (Legitimate) clients should wait a while then try again. There is no content in the response.
 
 #### `500`: Internal server error
 
