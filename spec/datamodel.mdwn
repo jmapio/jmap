@@ -6,17 +6,17 @@ All data belongs to an account. An account may provide access to mail, contacts 
 
 ### Ids
 
-All ids for messages, contacts, etc. are assigned by the server and are immutable. They MUST be unique among all records of the **same type** within the **same account**. Ids may clash across accounts, or for two records of different types within the same account.
+All record ids are assigned by the server, and are immutable. They MUST be unique among all records of the **same type** within the **same account**. Ids may clash across accounts, or for two records of different types within the same account.
 
 ### Mail
 
-As for all data types, each message has a unique, immutable id. This id does not change if the message changes mailboxes. A mailbox is a named, arbitrary set of emails. For compatibility with IMAP, a message MUST always belong to at least one mailbox at any time.
+A mailbox is a named, arbitrary set of messages. For compatibility with IMAP, a message MUST belong to one or more mailboxes. The message id does not change if the message changes mailboxes.
 
 Each message has 4 mutable boolean "flags" stored with it, each with a direct
 equivalent in IMAP. In JMAP these flags are called:
 
 * **isUnread**: Has the email not yet been read?
-* **isFlagged**: Has the email been flagged (starred, or pinned)?
+* **isFlagged**: Has the email been flagged (also known as starred, or pinned)?
 * **isDraft**: Is the email a draft?
 * **isAnswered**: Has the email been answered (replied to)?
 
@@ -26,8 +26,8 @@ Related messages are grouped into threads. When getting a message list you can c
 
 ### Contacts
 
-The contacts API is designed to be compatible with existing CardDAV systems. Each contact must have a unique, immutable id. A contact can be assigned to contact groups in a many-to-many relationship. A group is simply a named set of contacts. Contacts are completely mutable.
+The contacts API is designed to be compatible with existing CardDAV systems. Each contact must have a unique, immutable id. A contact can be assigned to contact groups in a many-to-many relationship. A group is simply a named set of contacts.
 
 ### Calendars
 
-The calendars API is designed to be compatible with existing CalDAV systems. Each event must have a unique, immutable id. An event must belong to a single calendar. Events are completely mutable.
+The calendars API is designed to be compatible with existing CalDAV systems. An event must belong to a single calendar.

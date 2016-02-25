@@ -4,6 +4,10 @@ Before connecting to any JMAP service, the client must first gain an access toke
 
 The server may support multiple different mechanisms for authenticating a user to gain the access token. It is expected that further types may be added in future extensions to the JMAP specification (for example [FIDO](https://fidoalliance.org/)).
 
+### Authenticating HTTP requests
+
+All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request with the value being the access token. This applies to OAuth tokens too, but see the provider's documentation for the details of what value to use for the header.
+
 ### Service autodiscovery
 
 There are three common autodiscovery methods in use for internet protocols:
@@ -52,7 +56,7 @@ The response body will be a single JSON object with the following properties.
 This is the standard response to an initial request. Note, a server may return this even if the username is not actually active, to prevent enumeration. The client should then pick one of the *methods* from the list in the response to continue with authentication (if no methods supported by the client are in the list, it will not be able to log in to this account):
 
 - `"password"`: the client should prompt the user for a password. If the `prompt` property is non-null, this message should be displayed to the user to explain what input is required. The prompt MUST be treated as plain text, but the client SHOULD automatically hyperlink any URLs it finds in the text if a system browser is available. If `prompt == null`, the client SHOULD just show a generic password prompt message.
-- `"external"`: the user must do something out-of-band to authorize the app. The server SHOULD return a prompt string to display to the user to tell them what they need to do. Again, the client MUST treat the prompt as plain text, but SHOULD automatically hyperlink any URLs it finds if a system browser is available. The client MUST also offer a continue button (or similar) for the user to indicate to the client when they have completed the out-of-band authentication.
+- `"external"`: the user must do something out-of-band to authorize the app. The server SHOULD return a prompt string to display to the user to tell them what they need to do. Again, the client MUST treat the prompt as plain text, but SHOULD automatically hyperlink any URLs it finds if a system browser is available. The client MUST also offer a mechanism for the user to indicate to the client when they have completed the out-of-band authentication.
 - `"oauth"`: OAuth based authentication. For OAuth integration, see the docs of the service in question, since every service implements it slightly differently and the client must register with the service beforehand to use it. If using this method, an access token is obtained entirely through the OAuth mechanism. See the "Refetching URL endpoints" section below for how to obtain the URL endpoints after successfully authenticating using OAuth.
 
 If using `"password"` or `"external"`, the user will at some point indicate to the client to continue authentication. At this point the client submits a POST request to the same URL as before, with the body being a single JSON object with the following properties:
@@ -73,7 +77,7 @@ The response body will be a single JSON object with the following properties.
 - **username**: `String`
   The username that was successfully authenticated.
 - **versions**: `Number[]`
-  The list of supported JMAP-spec versions. If the client does not opt in to a particular version, then the lowest/oldest version in the list will be used by the server.
+  The list of supported JMAP-spec versions. If the client does not opt in to a particular version, then the lowest version in the list will be used by the server.
 - **extensions**: `String[Number[]]`
   As described in the API Model, specific vendors may need to add custom extensions to the JMAP protocol, including new datatypes, extra properties on existing datatypes and extra methods. To ensure compability, these extensions must be explicitly opted into by the client.
 
@@ -99,7 +103,7 @@ Note, if authentication is done via IP or mobile subscriber ID or some similar m
 
 #### `400`: Malformed request
 
-The request is of the wrong content type, or does not contain data in the expected format. The client MUST NOT retry the same request.
+The request is of the wrong content type, or does not contain data in the expected format. The client MUST NOT retry the same request. There is no content in the response.
 
 #### `401`: Authentication step failed
 
@@ -107,7 +111,7 @@ Returned in response to a continuation request which failed (e.g. the password e
 
 #### `403`: Restart authentication
 
-This normally means the continuation token has expired, but it can be returned for any other reason. The client MUST restart authentication (go back to sending the username and client info to the server).
+This normally means the continuation token has expired, but it can be returned for any other reason. The client MUST restart authentication (go back to sending the username and client info to the server). There is no content in the response.
 
 #### `404`: Not found
 
@@ -115,7 +119,7 @@ The JMAP server is no longer here. There is no content in the response.
 
 #### `429`: Rate limited
 
-Returned if the server is temporarily blocking this IP/client from authenticating. This may be due to too many failed password attempts, or detected username enumeration attempts, or any other reason. (Legitimate) clients should wait a while then try again.
+Returned if the server is temporarily blocking this IP/client from authenticating. This may be due to too many failed password attempts, or detected username enumeration attempts, or any other reason. (Legitimate) clients should wait a while then try again. There is no content in the response.
 
 #### `500`: Internal server error
 
@@ -181,7 +185,3 @@ A client may revoke an access token at any time by making a DELETE HTTP request 
 No content is returned in either case.
 
 For OAuth, see the provider's documentation on revoking access tokens.
-
-### Authenticating HTTP requests
-
-All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request with the value being the access token. This applies to OAuth tokens too, but see the provider's documentation for the details of what value to use for the header.

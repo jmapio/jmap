@@ -107,7 +107,7 @@ The response to *getThreadUpdates* is called *threadUpdates*. It has the followi
 
 If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getThreadUpdates* until it is fully up to date. The server MAY return more ids than the *maxChanges* total if this is required for it to be able to produce an update to an intermediate state, but it SHOULD try to keep it close to the maximum requested.
 
-If a thread has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a thread has been created AND deleted since the oldState, the server should remove the thread id from the response entirely, but MAY include it in the *removed* response, and optionally the *changed* response as well.
+If a thread has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a thread has been created AND deleted since the oldState, the server should remove the thread id from the response entirely, but MAY include it in the *removed* response.
 
 The following errors may be returned instead of the *threadUpdates* response:
 

@@ -10,7 +10,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## The JSON API model
 
-JSON is a text-based data interchange format as specified in [RFC7159](https://tools.ietf.org/html/rfc7159). The I-JSON format defined in [RFC7493](https://tools.ietf.org/html/rfc7493) is a strict subset of this, adding restrictions to avoid potentially confusing scenarios (for example, it mandates that an object MUST NOT have two properties with the same key). All data sent from the client to the server or from the server to the client MUST be valid I-JSON according to the RFC, encoded in UTF-8.
+JSON is a text-based data interchange format as specified in [RFC7159](https://tools.ietf.org/html/rfc7159). The I-JSON format defined in [RFC7493](https://tools.ietf.org/html/rfc7493) is a strict subset of this, adding restrictions to avoid potentially confusing scenarios (for example, it mandates that an object MUST NOT have two properties with the same key). All data sent from the client to the server or from the server to the client MUST be valid I-JSON according to the RFC, is case-sensitive, and encoded in UTF-8.
 
 ### The structure of an exchange
 
@@ -88,7 +88,7 @@ The API request was successful. The response will be of type `application/json` 
 
 #### `400`: Bad Request
 
-The request was malformed. For example, it may have had the wrong content type, or have had a JSON object that did not conform to the API calling structure (see *The structure of an exchange* above). The client SHOULD NOT retry the same request.
+The request was malformed. For example, it may have had the wrong content type, or have had a JSON object that did not conform to the API calling structure (see *The structure of an exchange* above). The client SHOULD NOT retry the same request. There is no content in the response.
 
 #### `401`: Unauthorized
 
@@ -100,7 +100,7 @@ The API endpoint has moved. See the Authentication section of the spec for how t
 
 #### `412`: Precondition Failed
 
-This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by the server.
+This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by the server. There is no content in the response.
 
 #### `500`: Internal Server Error
 
@@ -190,7 +190,7 @@ The response to *getFooUpdates* is called *fooUpdates*. It has the following arg
 
 The *maxChanges* argument (and *hasMoreUpdates* response argument) is available for data types with potentially large amounts of data (i.e. those for which there is a *getFooList* method available for loading the data in pages).  If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getFooUpdates* until it is fully up to date. The server MAY return more ids than the *maxChanges* total if this is required for it to be able to produce an update to an intermediate state, but it SHOULD try to keep it close to the maximum requested.
 
-If a Foo record has been modified AND deleted since the oldState, the server should just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server should remove the Foo id from the response entirely, but MAY include it in the *removed* response, and optionally the *changed* response as well.
+If a Foo record has been modified AND deleted since the oldState, the server should just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server should remove the Foo id from the response entirely, but MAY include it in the *removed* response.
 
 The following errors may be returned instead of the *fooUpdates* response:
 
