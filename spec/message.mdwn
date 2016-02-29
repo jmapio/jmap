@@ -29,18 +29,18 @@ A **Message** object has the following properties:
   Does the message have any attachments?
 - **headers**: `String[String]`
   A map of header name to (decoded) header value for all headers in the message. For headers that occur multiple times (e.g. `Received`), the values are concatenated with a single new line (`\n`) character in between each one.
-- **from**: `Emailer|null`
-  An Emailer object (see below) containing the name/email from the parsed `From` header of the email. If the email doesn't have a `From` header, this is `null`.
 - **sender**: `Emailer|null`
   An Emailer object (see below) containing the name/email from the parsed `Sender` header of the email. If the email doesn't have a `Sender` header, this is `null`.
+- **from**: `Emailer[]|null`
+  An array of name/email objects (see below) representing the parsed `From` header of the email, in the same order as they appear in the header. If the email doesn't have a `From` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
 - **to**:  `Emailer[]|null`
   An array of name/email objects (see below) representing the parsed `To` header of the email, in the same order as they appear in the header. If the email doesn't have a `To` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
 - **cc**:  `Emailer[]|null`
   An array of name/email objects (see below) representing the parsed `Cc` header of the email, in the same order as they appear in the header. If the email doesn't have a `Cc` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
 - **bcc**:  `Emailer[]|null`
   An array of name/email objects (see below) representing the parsed `Bcc` header of the email. If the email doesn't have a `Bcc` header (which will be true for most emails outside of the Sent mailbox), this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **replyTo**: `Emailer|null`
-  An Emailer object (see below) containing the name/email from the parsed `Reply-To` header of the email. If the email doesn't have a `Reply-To` header, this is `null`.
+- **replyTo**: `Emailer[]|null`
+  An array of name/email objects (see below) representing the parsed `Reply-To` header of the email, in the same order as they appear in the header. If the email doesn't have a `Reply-To` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
 - **subject**: `String`
   The subject of the message.
 - **date**: `Date`
@@ -77,7 +77,9 @@ An **Emailer** object has the following properties:
 - **email**: `String`
   The email address of the sender/recipient. This MUST be of the form `"<mailbox>@<host>"` If a `host` or even `mailbox` cannot be extracted for an email, the empty string should be used for this part (so the result will always still contain an `"@"`).
 
-Example Emailer object:
+Group information and comments from the RFC 2822 header MUST be discarded when converting into an Emailer object.
+
+Example array of Emailer objects:
 
     [
         {name:"Joe Bloggs", email:"joeb@example.com"},
