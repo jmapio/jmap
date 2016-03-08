@@ -13,7 +13,7 @@ When a user first logs in and you have no data cached for them, first call:
         [ "getMailboxes", {}, "#0" ]
     ]
 
-This will fetch the list of mailboxes (folders or labels) for the user, and the permissions and roles for each. Here's an example of the response you might receive:
+This will fetch the list of mailboxes for the user, and the permissions and roles for each. Here's an example of the response you might receive:
 
     [
         [ "mailboxes", {
@@ -509,7 +509,7 @@ Here's how we apply this information to our current state to stay in sync:
 1. `mailboxUpdates`/`mailboxes`: The inbox is the only mailbox to have changed, and only the counts have changed. The new counts are returned in the `mailboxes` response, so we just need to update our cache with the new properties to bring us fully in sync.
 2. `messageListUpdates`: This is more interesting.
 
-    Suppose the client has a sparse list of messageIds (for example, the user opened the folder, loading the first section, then jumped to the middle):
+    Suppose the client has a sparse list of messageIds (for example, the user opened the mailbox, loading the first section, then jumped to the middle):
 
         [ 'm1u1', 'm1u2', 'm1u3', 'm1u4', -, -, -, 'm1u8', -, ...]
 
