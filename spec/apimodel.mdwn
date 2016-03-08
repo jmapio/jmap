@@ -76,7 +76,7 @@ The request MUST have a content type of `application/json` and be encoded in utf
 
 The request MAY include an `X-JMAP-Version` header, the value of which is a number for the spec version the client would like to use. If omitted, the server MUST presume a value equal to the *lowest* version the server supports.
 
-The request MAY include an 'X-JMAP-Extensions' header, the value of which is a comma-separated list of 'vendor-extension-name:extension-version` the client would like to use. For example, "com.fastmail.message:1,com.fastmail.savedSearch:4". Any white-space should be ignored when evaluating this header.
+The request MAY include an 'X-JMAP-Extensions' header, the value of which is a comma-separated list of 'vendor-extension-name:extension-version` the client would like to use. For example, "com.fastmail.message:1,com.fastmail.savedSearch:4". Any white-space SHOULD be ignored when evaluating this header.
 
 The list of versions and extensions supported by the server is returned upon successful authentication.
 
@@ -112,7 +112,7 @@ The server is currently down. Try again later with exponential backoff. There is
 
 ### Security
 
-As always, the server must be strict about data received from the client. Arguments need to be checked for validity; a malicious user could attempt to find an exploit through the API. In case of invalid arguments (unknown/insufficient/wrong type for data etc.) the method should return an `invalidArguments` error and terminate.
+As always, the server must be strict about data received from the client. Arguments need to be checked for validity; a malicious user could attempt to find an exploit through the API. In case of invalid arguments (unknown/insufficient/wrong type for data etc.) the method SHOULD return an `invalidArguments` error and terminate.
 
 ### Concurrency
 
@@ -190,7 +190,7 @@ The response to *getFooUpdates* is called *fooUpdates*. It has the following arg
 
 The *maxChanges* argument (and *hasMoreUpdates* response argument) is available for data types with potentially large amounts of data (i.e. those for which there is a *getFooList* method available for loading the data in pages).  If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getFooUpdates* until it is fully up to date. The server MAY return more ids than the *maxChanges* total if this is required for it to be able to produce an update to an intermediate state, but it SHOULD try to keep it close to the maximum requested.
 
-If a Foo record has been modified AND deleted since the oldState, the server should just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server should remove the Foo id from the response entirely, but MAY include it in the *removed* response.
+If a Foo record has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server SHOULD remove the Foo id from the response entirely, but MAY include it in the *removed* response.
 
 The following errors may be returned instead of the *fooUpdates* response:
 
@@ -218,7 +218,7 @@ The *setFoos* method takes the following arguments:
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
 
-If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+If a create, update or destroy is rejected, the appropriate error SHOULD be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
 
