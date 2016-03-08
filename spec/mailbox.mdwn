@@ -161,6 +161,16 @@ Each create, update or destroy is considered an atomic unit. The server MAY comm
 
 If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
+#### Ordering of changes
+
+Each individual create, update or destroy MUST take the server from one valid state to another valid state, so the changes can be processed linearly without need to undo or backtrack. However the order of the changes may affect the validity of the change. The server MUST process the changes in a manner which is indistinguishable from an order following these rules:
+
+1. Creates comes before any other changes.
+2. Creates with a parentId that is not a *creation id* reference come before those that reference another newly created mailbox.
+3. Creation of a mailbox X comes before creation of a mailbox Y if Y will be a descendent of X.
+4. Updates come before destroying mailboxes.
+5. Update/Destroy X comes before update/destroy Y if X is a descendent of Y.
+
 ####  Creating mailboxes
 
 The properties of the Mailbox object submitted for creation MUST conform to the following conditions:
@@ -212,16 +222,6 @@ A mailbox MAY NOT be destroyed if it still has any child mailboxes. Attempting t
 Destroying a mailbox MUST NOT delete any messages still contained within it. It only removes them from the mailbox. Since messages MUST always be in at least one mailbox, if the last mailbox they are in is deleted the messages must be added to the mailbox with `role == "inbox"`. If no Inbox exists, the messages must be moved to any other mailbox; this is server dependent.
 
 There MUST always be **at least one** mailbox. It is expected that the server will enforce this by setting `mayDeleteMailbox == false` on at least the Inbox, if not all system mailboxes. However, if this is not the case, an attempt to destroy the last mailbox MUST still be rejected with a `mailboxRequired` error.
-
-#### Ordering of changes
-
-Each individual create, update or destroy MUST take the server from one valid state to another valid state, so the changes can be processed linearly without need to undo or backtrack. However the order of the changes may affect the validity of the change. The server MUST process the changes in a manner which is indistinguishable from an order following these rules:
-
-1. Creates comes before any other changes.
-2. Creates with a parentId that is not a *creation id* reference come before those that reference another newly created mailbox.
-3. Creation of a mailbox X comes before creation of a mailbox Y if Y will be a descendent of X.
-4. Updates come before destroying mailboxes.
-5. Update/Destroy X comes before update/destroy Y if X is a descendent of Y.
 
 #### Response
 
