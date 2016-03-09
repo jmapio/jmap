@@ -53,15 +53,12 @@ The AccountCapabilities, MailCapabilities, ContactsCapabilities and CalendarsCap
 
 ### getAccounts
 
-To fetch the complete list of accounts to which the user has access, make a call to `getAccounts`. It takes a sole, optional argument:
-
-- **sinceState**: `String|null`
-  This is the `state` string from a previous call to *getAccounts*.
+To fetch the complete list of accounts to which the user has access, make a call to `getAccounts`. It takes no arguments.
 
 The response to *getAccounts* is called *accounts*. It has the following arguments:
 
 - **state**: `String`
-   A string representing the state on the server for **all** the data contained within the Account objects. If the data changes, this string will change.
+   A string encoding the current state of the Account records on the server. This string will change if any Account records accessible to client changes.
 - **list**: `Account[]|null`
   An array of all Account objects. If *sinceState* was supplied and it is identical to the current state, this property is `null`.
 
