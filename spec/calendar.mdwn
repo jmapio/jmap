@@ -11,7 +11,7 @@ A **Calendar** object has the following properties:
 - **color**: `String`
   Any valid CSS color value. The color to be used when displaying events associated with the calendar. The color SHOULD have sufficient contrast to be used as text on a white background.
 - **sortOrder**: `Number`
-  Defines the sort order of calendars when presented in the UI, so it is
+  Defines the sort order of calendars when presented in the client's UI, so it is
   consistent between devices. The number MUST be an integer in the range
   0 <= sortOrder < 2^31.
 
@@ -76,7 +76,7 @@ The response to *getCalendars* is called *calendars*. It has the following argum
 - **list**: `Calendar[]`
   An array of the Calendar objects requested. This will be the **empty array** if the *ids* argument was the empty array, or contained only ids for calendars that could not be found.
 - **notFound**: `String[]|null`
-  This array contains the ids passed to the method for calendars that do not exist, or `null` if all requested ids were found. It will always be `null` if the *ids* argument in the call was `null`.
+  This array contains the ids passed to the method for calendars that do not exist, or `null` if all requested ids were found. It MUST be `null` if the *ids* argument in the call was `null`.
 
 The following errors may be returned instead of the *calendars* response:
 
@@ -131,11 +131,11 @@ The *setCalendars* method takes the following arguments:
 - **accountId**: `String|null`
   The id of the account to use for this call. If `null`, the primary account will be used.
 - **ifInState**: `String|null`
-  This is a state string as returned by the *getCalendars* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
+  This is a state string as returned by the *getCalendars* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **create**: `String[Calendar]|null`
   A map of *creation id* (an arbitrary string set by the client) to Calendar objects (containing all properties except the id).
 - **update**: `String[Calendar]|null`
-  A map of id to a Calendar object. The object may omit any property; only properties that have changed need be included.
+  A map of id to Calendar objects. The object may omit any property; only properties that have changed need be included.
 - **destroy**: `String[]|null`
   A list of ids for Calendar objects to permanently delete.
 

@@ -1,8 +1,8 @@
 ## Accounts
 
-A single login may provide access to multiple accounts, for example if another user is sharing their mail with the logged in user, or if there is an account that contains data for a group or business.
+A single access token may provide access to multiple accounts, for example if another user is sharing their mail with the logged in user, or if there is an account that contains data for a group or business.
 
-All data belongs to an account. With the exception of a few explicit operations to copy data between accounts, all methods take an *accountId* argument that specifies on which account the operations are to take place. This argument is always optional; if not specified, the primary account is used. All ids (other than Account ids of course) are only unique within their account.
+All records, other than the account records themselves, belong to a single account. With the exception of a few explicit operations to copy data between accounts, all methods take an *accountId* argument that specifies on which account the operations are to take place. This argument is always optional; if not specified, the primary account is used. All ids (other than Account ids of course) are only unique within their account.
 
 In the event of a severe internal error, a server may have to reallocate ids or do something else that violates standard JMAP data constraints. In this situation, the data on the server is no longer compatible with cached data the client may have from before. The server MUST treat this as though the account has been deleted and then recreated with a new account id. Clients will then be forced to throw away any data with the old account id and refetch all data from scratch.
 
@@ -11,7 +11,7 @@ An **Account** object has the following properties:
 - **id**: `String`
   The id of the account. This property is immutable.
 - **name**: `String`
-  A user-friendly string to show when presenting content from this account. e.g. the email address of the account.
+  A user-friendly string to show when presenting content from this account, e.g. the email address of the account.
 - **isPrimary**: `Boolean`
   This MUST be true for exactly one of the accounts returned.
 - **capabilities**: `AccountCapabilities`
@@ -49,19 +49,16 @@ A **CalendarsCapabilities** object has the following properties:
 - **isReadOnly**: `Boolean`
   True if the user has read-only access to the calendars in this account. The user may not use the `set`-type calendar methods with this account.
 
-The AccountCapabilities, MailCapabilities, ContactsCapabilities and CalendarsCapabilities objects MAY also contain one or more properties prefixed with "vnd-" + a name that uniquely identifies the vendor. For example `"vnd-com.fastmail"`. The value type for these properties is undefined. These properties allow vendors to be able to inform their own clients of custom capabilities. Unknown properties of this form MUST be ignored by clients.
+The AccountCapabilities, MailCapabilities, ContactsCapabilities and CalendarsCapabilities objects MAY also contain one or more properties prefixed with "vnd-" + a name that uniquely identifies the vendor, e.g. `"vnd-com.fastmail"`. The value type for these properties is undefined. These properties allow vendors to be able to inform their own clients of custom capabilities. Unknown properties of this form MUST be ignored by clients.
 
 ### getAccounts
 
-To fetch the complete list of accounts to which the user has access, make a call to `getAccounts`. It takes a sole, optional argument:
-
-- **sinceState**: `String|null`
-  This is the `state` string from a previous call to *getAccounts*.
+To fetch the complete list of accounts to which the user has access, make a call to `getAccounts`. It takes no arguments.
 
 The response to *getAccounts* is called *accounts*. It has the following arguments:
 
 - **state**: `String`
-   A string representing the state on the server for **all** the data contained within the Account objects. If the data changes, this string will change.
+   A string encoding the current state of the Account records on the server. This string will change if any Account records accessible to client changes.
 - **list**: `Account[]|null`
   An array of all Account objects. If *sinceState* was supplied and it is identical to the current state, this property is `null`.
 

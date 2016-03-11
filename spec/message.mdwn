@@ -73,9 +73,9 @@ A **Message** object has the following properties:
 An **Emailer** object has the following properties:
 
 - **name**: `String`
-  The name of the sender/recipient. If a name cannot be extracted for an email, this property should be the empty string.
+  The name of the sender/recipient. If a name cannot be extracted for an email, this property SHOULD be the empty string.
 - **email**: `String`
-  The email address of the sender/recipient. This MUST be of the form `"<mailbox>@<host>"` If a `host` or even `mailbox` cannot be extracted for an email, the empty string should be used for this part (so the result will always still contain an `"@"`).
+  The email address of the sender/recipient. This MUST be of the form `"<mailbox>@<host>"` If a `host` or even `mailbox` cannot be extracted for an email, the empty string SHOULD be used for this part (so the result will always still contain an `"@"`).
 
 Group information and comments from the RFC 2822 header MUST be discarded when converting into an Emailer object.
 
@@ -202,7 +202,7 @@ The response to *getMessageUpdates* is called *messageUpdates*. It has the follo
 
 If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getMessageUpdates* until it is fully up to date. The server MAY return more ids than the *maxChanges* total if this is required for it to be able to produce an update to an intermediate state, but it SHOULD try to keep it close to the maximum requested.
 
-If a message has been modified AND deleted since the oldState, the server should just return the id in the *removed* response, but MAY return it in the changed response as well. If a message has been created AND deleted since the oldState, the server should remove the message id from the response entirely, but MAY include it in the *removed* response, and (if in the *removed* response) MAY included it in the *changed* response as well.
+If a message has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a message has been created AND deleted since the oldState, the server SHOULD remove the message id from the response entirely, but MAY include it in the *removed* response, and (if in the *removed* response) MAY included it in the *changed* response as well.
 
 The following errors may be returned instead of the *messageUpdates* response:
 
@@ -229,17 +229,17 @@ It takes the following arguments:
 - **accountId**: `String|null`
   The id of the account to use for this call. If not given, defaults to the primary account.
 - **ifInState**: `String|null`
-  This is a state string as returned by the *getMessages* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned.
+  This is a state string as returned by the *getMessages* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **create**: `String[Message]|null`
   A map of *creation id* (an arbitrary string set by the client) to Message objects (see below for a detailed description).
 - **update**: `String[Message]|null`
-  A map of id to a an object containing the properties to update for that Message.
+  A map of message id to objects containing the properties to update for that Message.
 - **destroy**: `String[]|null`
   A list of ids for Message objects to permanently delete.
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update the *isFlagged* field but not the *mailboxIds* field, if both are supplied in the update object for a message).
 
-If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+If a create, update or destroy is rejected, the appropriate error SHOULD be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
 
@@ -266,14 +266,14 @@ The properties of the Message object submitted for creation MUST conform to the 
 - **bcc**:  Optional. Overrides a "Bcc" in the *headers*.
 - **replyTo**: Optional. Overrides a "Reply-To" in the *headers*.
 - **subject**: Optional. Defaults to the empty string (`""`).
-- **date**: Optional. If included, the server SHOULD wait until this time to send the message (once moved to the outbox folder). Until it is sent, the send may be cancelled by moving the message back out of the outbox folder. If the date is in the past, the message must be sent immediately. A client may find out if the server supports delayed sending by querying the capabilities property of the Account object.
+- **date**: Optional. If included, the server SHOULD wait until this time to send the message (once moved to the outbox mailbox). Until it is sent, the send may be cancelled by moving the message back out of the outbox mailbox. If the date is in the past, the message must be sent immediately. A client may find out if the server supports delayed sending by querying the capabilities property of the Account object.
 - **size**: This MUST NOT be included. It is set by the server upon creation.
 - **preview**: This MUST NOT be included. It is set by the server upon creation.
 - **textBody**: Optional. If not supplied and an htmlBody is, the server SHOULD generate a text version for the message from this.
-- **htmlBody**: Optional. If this contains internal links (cid:) the cid value should be the attachment id.
+- **htmlBody**: Optional. If this contains internal links (cid:) the cid value SHOULD be the attachment id.
 - **attachments**: Optional. An array of Attachment objects detailing all the attachments to the message. To add an attachment, the file must first be uploaded using the standard upload mechanism; this will give the client a URL that may be used to identify the file. The `id` property may be assigned by the client, and is solely used for matching up with `cid:<id>` links inside the `htmlBody`. The server MAY (and probably will) change the ids upon sending.
 
-  If one of the attachments is not found, the creation MUST be rejected with an `invalidProperties` error. An extra property SHOULD be included in the error object called `attachmentsNotFound`, of type `String[]`, which should be an array of the ids of any attachments that could not be found on the server.
+  If one of the attachments is not found, the creation MUST be rejected with an `invalidProperties` error. An extra property SHOULD be included in the error object called `attachmentsNotFound`, of type `String[]`, which SHOULD be an array of the ids of any attachments that could not be found on the server.
 - **attachedMessages**: This MUST NOT be included.
 
 All optional properties default to `null` unless otherwise stated. Where included, properties MUST conform to the type given in the Message object definition.
@@ -307,7 +307,7 @@ To **delete a message** to trash, simply change the `mailboxIds` property so it 
 
 To send a message, either create a new message directly into the mailbox with `role == "outbox"` or move an existing draft into this mailbox. At this point the server will check that it has everything it needs for a valid message. In particular, that it has a valid "From" address, it has at least one address to send to, and all addresses in To/Cc/Bcc are valid email addresses. If it cannot send, it will reject the creation/update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object SHOULD also contain a *description* property of type `String` with a user-friendly description of the problems to present to the user.
 
-If the message is accepted, the server should **asynchronously** schedule the message to be sent **after** this method call is complete (note, this MAY occur before the next method in the same API request or after the whole API request is complete). This means that the `newState` string in the response represents a state where the message is still in the outbox. When the message is sent, the server MUST delete the message from the **outbox** and SHOULD create a **new** copy of the sent message (with a new id) in the **sent** mailbox, unless the user has indicated another preference. If `inReplyToMessageId` was set, the server SHOULD mark this message as `isAnswered: true` at this point, if found.
+If the message is accepted, the server SHOULD **asynchronously** schedule the message to be sent **after** this method call is complete (note, this MAY occur before the next method in the same API request or after the whole API request is complete). This means that the `newState` string in the response represents a state where the message is still in the outbox. When the message is sent, the server MUST delete the message from the **outbox** and SHOULD create a **new** copy of the sent message (with a new id) in the **sent** mailbox, unless the user has indicated another preference. If `inReplyToMessageId` was set, the server SHOULD mark this message as `isAnswered: true` at this point, if found.
 
 #### Cancelling a send
 
