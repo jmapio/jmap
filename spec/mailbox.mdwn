@@ -13,7 +13,7 @@ A **Mailbox** object has the following properties:
 - **role**: `String|null`
   Identifies system mailboxes. This property can only be set on create. After the record has been created, this property is immutable.
 
-  The following values SHOULD be used for the relevant mailboxes:
+  The following values MUST be used for the relevant mailboxes:
 
   - `inbox` – the mailbox to which new mail is delivered by default, unless diverted by a rule or spam filter etc.
   - `archive` – messages the user does not need right now, but does not wish to delete.
@@ -159,7 +159,7 @@ Mailboxes can be created, updated and destroyed using the *setMailboxes* method.
 
 Each create, update or destroy is considered an atomic unit. The server MAY commit some of the changes but not others, however MAY NOT only commit part of an update to a single record (e.g. update the *name* field but not the *parentId* field, if both are supplied in the update object).
 
-If a create, update or destroy is rejected, the appropriate error should be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 #### Ordering of changes
 

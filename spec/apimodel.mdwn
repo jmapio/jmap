@@ -1,6 +1,6 @@
 # JMAP: The Spec
 
-<div id="last-update">Last updated 2016-02-29</div>
+<div id="last-update">Last updated 2016-03-11</div>
 
 This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the [guide for client developers](client.html) first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.
 
@@ -76,7 +76,7 @@ The request MUST have a content type of `application/json` and be encoded in UTF
 
 The request MAY include an `X-JMAP-Version` header, the value of which is a number for the spec version the client would like to use. If omitted, the server MUST presume a value equal to the *lowest* version the server supports.
 
-The request MAY include an 'X-JMAP-Extensions' header, the value of which is a comma-separated list of 'vendor-extension-name:extension-version` the client would like to use. For example, "com.fastmail.message:1,com.fastmail.savedSearch:4". Any white-space SHOULD be ignored when evaluating this header.
+The request MAY include an 'X-JMAP-Extensions' header, the value of which is a comma-separated list of 'vendor-extension-name:extension-version` the client would like to use. For example, "com.fastmail.message:1,com.fastmail.savedSearch:4". Any white-space MUST be ignored when evaluating this header.
 
 The list of versions and extensions supported by the server is returned upon successful authentication.
 
@@ -112,7 +112,7 @@ The server is currently down. Try again later with exponential backoff. There is
 
 ### Security
 
-As always, the server must be strict about data received from the client. Arguments need to be checked for validity; a malicious user could attempt to find an exploit through the API. In case of invalid arguments (unknown/insufficient/wrong type for data etc.) the method SHOULD return an `invalidArguments` error and terminate.
+As always, the server must be strict about data received from the client. Arguments need to be checked for validity; a malicious user could attempt to find an exploit through the API. In case of invalid arguments (unknown/insufficient/wrong type for data etc.) the method MUST return an `invalidArguments` error and terminate.
 
 ### Concurrency
 
@@ -216,7 +216,7 @@ The *setFoos* method takes the following arguments:
 
 Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
 
-If a create, update or destroy is rejected, the appropriate error SHOULD be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
 
