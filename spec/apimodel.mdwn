@@ -146,15 +146,13 @@ This method may take some or all of the following arguments; see the definition 
   The ids of the Foo objects to return. If `null` then **all** records of the data type are returned.
 - **properties**: `String[]|null`
   If supplied, only the properties listed in the array are returned for each Foo object. If `null`, all properties of the object are returned. The id of the object is **always** returned, even if not explicitly requested.
-- **sinceState**: `String|null`
-  The *state* argument from a *foos* response may be passed back to future *getFoos* calls as the *sinceState* argument. If the current state is the same, the server SHOULD skip fetching the records and return a result indicating there is no change (this is essentially like an ETag). Most types support the more sophisticated *getFooUpdates* call instead to allow for delta updates. However, for small collections of data that change infrequently, this might be used. If available, this argument is always optional.
 
 The response to `getFoos` is called `foos`. It has the following arguments:
 
 - **state**: `String`
   A string representing the state on the server for **all** the data of this type. If the data changes, this string will change. It is used to get delta updates, if supported for the type.
-- **list**: `Foo[]|null`
-  An array of the Foo objects requested. This is the **empty array** if no objects were found, or if the *ids* argument passed in was also the empty array. If *sinceState* was supplied and it is identical to the current state, this property is `null` (as the client already has up-to-date data).
+- **list**: `Foo[]`
+  An array of the Foo objects requested. This is the **empty array** if no objects were found, or if the *ids* argument passed in was also the empty array.
 - **notFound**: `String[]|null`
   This array contains the ids passed to the method for records that do not exist. This property is `null` if all requested ids were found, or if the *ids* argument passed in was either `null` or the empty array.
 
