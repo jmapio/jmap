@@ -1,0 +1,71 @@
+## Vacation Response
+
+The **VacationResponse** object represents the state of vacation-response
+related settings for an account. It has the following properties:
+
+- **id**: `String`
+  The id of the object. This property is immutable. There is only ever one
+  vacation response object, and its id is `"singleton"`.
+- **isEnabled** `Boolean`
+  Is the vacation response enabled?
+- **fromDate**: `Date|null`
+  If *isEnabled* is `true`, the date/time after which messages that arrive should receive the user's vacation response, in UTC. If `null`, the vacation response is effective immediately.
+- **toDate**: `Date|null`
+  If *isEnabled* is `true`, the date/time after which messages that arrive should no longer receive the user's vacation response, in UTC. If `null`, the vacation response is effective indefinitely.
+- **textBody**: `String`
+  The plain text message to send in response to messages when the vacation response is enabled.
+
+### getVacationResponse
+
+There MUST only be exactly one VacationResponse object in an account. It MUST have the id `"singleton"`.
+
+To fetch the vacation response object, make a call to `getVacationResponse`. It takes the following argument:
+
+- **accountId**: `String|null`
+  The Account to get the vacation response for. If `null`, the primary account is used.
+
+The response to *getVacationResponse* is called *vacationResponse*. It has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **list**: `VacationResponse[]`
+  An array containing the single VacationResponse object.
+
+The following errors may be returned instead of the *vacationResponse* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+
+### setVacationResponse
+
+Sets properties on the vacation response object. It takes the following arguments:
+
+- **accountId**: `String|null`
+  The Account to set the vacation response for. If `null`, the primary account is used.
+- **update**: `String[VacationResponse]|null`
+  A map of id ("singleton") to the VacationResponse object with new values for the properties you wish to change. The object may omit any property; only properties that have changed need be included.
+
+If any of the properties in the update are invalid (immutable and different to the current server value, wrong type), the server MUST reject the update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+
+The response is called *vacationResponseSet*. It has the following arguments:
+
+- **updated**: `String[]`
+  Contains the single id ("singleton") if the vacation response was successfully updated.
+- **notUpdated**: `String[SetError]`
+  A map of id ("singleton") to a SetError object if the update failed.
+
+A **SetError** object has the following properties:
+
+- **type**: `String`
+  The type of error.
+- **description**: `String|null`
+  A description of the error to display to the user.
+
+The following errors may be returned instead of the *vacationResponseSet* response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+
+`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid (including using an id other than `"singleton"`). A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
