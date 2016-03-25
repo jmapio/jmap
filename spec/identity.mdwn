@@ -10,6 +10,10 @@ A **Identity** object stores information about an email address (or domain) the 
   The "From" email address the client MUST use when creating a new message from this identity. This property is immutable. The `email` property MAY alternatively be of the form `*@example.com`, in which case the client may use any valid email address ending in `@example.com`.
 - **replyTo**: `String`
   The Reply-To value the client SHOULD set when creating a new message from this identity.
+- **bcc**: `String`
+  The Bcc value the client SHOULD set when creating a new message with this identity.
+- **organization**: `String`
+  The Organization header the client SHOULD set to new message sent with this identity.
 - **textSignature**: `String`
   Signature the client SHOULD insert into new rich-text messages that will be sending from this identity. Clients MAY ignore this and/or combine this with a client-specific signature preference.
 - **htmlSignature**: `String`
@@ -17,6 +21,8 @@ A **Identity** object stores information about an email address (or domain) the 
 - **mayDeleteIdentity**: `Boolean`
   Is the user allowed to delete this identity? Servers may wish to set this to
   false for the user's username or other default address.
+- **isDefault** `Boolean`
+  Use this identity as the default for new messages. A server MUST NOT return more than one (1) identity with `isDefault=true`.
 
 Multiple identities with the same email address MAY exist, to allow for different settings the user wants to pick between (for example with different names/signatures).
 
@@ -45,7 +51,7 @@ The following errors may be returned instead of the *identities* response:
 
 `accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`accountNoMail`: Returned if the *accountId* given corresponds to a valid account, but does not contain any mail data.
+`accountNoIdentites`: Returned if the *accountId* given corresponds to a valid account, but the account does not support identities at all.
 
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
