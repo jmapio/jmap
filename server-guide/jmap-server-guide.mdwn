@@ -317,3 +317,13 @@ As mentionned in [RFC-5230 Sieve Vacation extension](https://tools.ietf.org/html
 
 Also, be careful about infinite loops. Vacation notifications should not be sent in response to vacation responses. To avoid doing so, as specified in [RFC-5230](https://tools.ietf.org/html/rfc5230), an Auto-Submitted field with a value of "auto-replied" should be included in the message header of any vacation message sent. Implementations should not send notification to e-mail with an Auto-Submitted header with a value of "auto-replied".
 
+Finaly, implementations are encouraged to comply with [RFC-3824](https://tools.ietf.org/html/rfc3834), which defines a personal responder. To do so:
+
+ - The Date field should be set to the date and time when the vacation response was generated. Note that this may not be the same as the time the message was delivered to the user. 
+ - The From field should be set to the address of the given account.
+ - The To field should be set to the address of the recipient of the response.
+ - An Auto-Submitted field with a value of "auto-replied" should be included in the message header of any vacation message sent.
+ - Replies must have the In-Reply-To field set to the Message-ID of the original message, and the References field should be updated with the Message-ID of the original message.
+
+If the original message lacks a Message-ID, an In-Reply-To need not be generated, and References need not be changed. [RFC-2822 section 3.6.4](https://tools.ietf.org/html/rfc2822#section-3.6.4) provides a complete description of how References fields should be generated.
+
