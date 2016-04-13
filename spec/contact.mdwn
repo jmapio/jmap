@@ -198,6 +198,8 @@ If a create, update or destroy is rejected, the appropriate error MUST be added 
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
 
+If any of the properties in a create or update are invalid, the server MUST reject the create/update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+
 To set a new avatar, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid blobId/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the avatar for a contact.
 
 The response to *setContacts* is called *contactsSet*. It has the following arguments:
