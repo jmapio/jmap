@@ -28,15 +28,15 @@ A **Mailbox** object has the following properties:
 
   An account is not required to have mailboxes with any of the above roles. A client MAY create new mailboxes with a role property to help them keep track of a use-case not covered by the above list. To avoid potential conflict with any special behaviour a server might apply to mailboxes with certain roles in the future, any roles not in the above list created by the client must begin with `"x-"`. The client MAY attempt to create mailboxes with the standard roles if not already present, but the server MAY reject these.
 - **sortOrder**: `Number`
-  Defines the sort order of mailboxes when presented in the client's UI, so it is
-  consistent between devices. The number MUST be an integer in the range
+  Defines the sort order of mailboxes when presented in the client's UI, so it
+  is consistent between devices. The number MUST be an integer in the range
   0 <= sortOrder < 2^31.
 
   A mailbox with a lower order should be displayed before a mailbox with
   a higher order (that has the same parent) in any mailbox listing in the
-  client's UI. Mailboxes with equal order should be sorted in
-  alphabetical order by name. The sorting should take into locale-specific
-  character order convention.
+  client's UI. Mailboxes with equal order should be sorted in alphabetical
+  order by name. The sorting should take into locale-specific character order
+  convention.
 - **mustBeOnlyMailbox**: `Boolean`
   If `true`, messages in this mailbox may not also be in any other mailbox that also has `mustBeOnlyMailbox: true`. If `false`, messages may be added to this mailbox in addition to any other mailbox (i.e. it's a label).
 - **mayReadItems**: `Boolean`
