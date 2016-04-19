@@ -310,3 +310,22 @@ If the client id is lower than the low watermark ModSeq for the Thread Log (as f
 ## getMessageUpdates
 
 If the client id is lower than the low watermark ModSeq for the Message Log (as found in the User object), reject with a `cannotCalculateUpdates` error. Otherwise, binary search the Message log looking for the client modseq, then read sequentially from there to get the changes.
+
+## Vacation
+
+As mentionned in [RFC-5230 Sieve Vacation extension](https://tools.ietf.org/html/rfc5230), the implementers might avoid sending vacation notifications to mailing lists. Thus, implementations are encouraged to not send notifications to well-known addresses like "MAILER-DAEMON", "LISTSERV", "majordomo", and other addresses typically used only by automated systems.  Additionally, addresses ending in "-request" or begining in "owner-", i.e., reserved for mailing list software, are also suggested. Implementations should not respond to any message that contains a "List-Id" [RFC-2919](https://www.ietf.org/rfc/rfc2919.txt), "List-Help", "List-Subscribe", "List-Unsubscribe", "List-Post", "List-Owner", or "List-Archive" [RFC-2369](https://www.ietf.org/rfc/rfc2369.txt) header field.
+
+Also, be careful about infinite loops. Vacation notifications should not be sent in response to vacation responses. To avoid doing so, as specified in [RFC-5230](https://tools.ietf.org/html/rfc5230), an Auto-Submitted field with a value of "auto-replied" should be included in the message header of any vacation message sent. Implementations should not send notification to e-mail with an Auto-Submitted header with a value of "auto-replied".
+
+The server must keep track of sent notifications, in order to avoid sending notifications twice to the same recipient during the duration of a given vacation. Implementers must take care that if the vacation is modified, previous tracking information should be discarded.
+
+Finaly, implementations are encouraged to comply with [RFC-3824](https://tools.ietf.org/html/rfc3834), which defines a personal responder. To do so:
+
+ - The Date field should be set to the date and time when the vacation response was generated. Note that this may not be the same as the time the message was delivered to the user. 
+ - The From field should be set to the address of the given account.
+ - The To field should be set to the address of the recipient of the response.
+ - An Auto-Submitted field with a value of "auto-replied" should be included in the message header of any vacation message sent.
+ - Replies must have the In-Reply-To field set to the Message-ID of the original message, and the References field should be updated with the Message-ID of the original message.
+
+If the original message lacks a Message-ID, an In-Reply-To need not be generated, and References need not be changed. [RFC-2822 section 3.6.4](https://tools.ietf.org/html/rfc2822#section-3.6.4) provides a complete description of how References fields should be generated.
+
