@@ -3,7 +3,7 @@
 This document describes a recommended set of data structures and algorithms for efficiently implementing JMAP. It is intended to serve as suggestions only; there may well be better ways to do it. The spec is the authoritative guide on what constitutes a conformant JMAP implementation.
 
 ## Assigning Message Ids
- 
+
 A good way of assigning a message id is to sha1 the RFC2822 message and take the first 80 bits (this is sufficient for avoiding collisions in any reasonable sized instance, but the server may choose any length it likes). If this is already in use (i.e. another copy of the message already exists), sha1 the GUID. Repeat until there is no collision. The bytes can be represented in any reasonable encoding for transmission as a `String` within the API.
 
 ## Modification sequences
@@ -41,7 +41,7 @@ This is a simple collection of important top-level values for the user (kept in 
 - Quota available in bytes (63 bits. -1 => Don't care)
 - Quota used in bytes `63 bits`
 - List of other users with mailboxes made available to this user (shared mailboxes) (var length).
- 
+
 ### 2. Mailboxes
 
 A map of Mailbox Id to all of the mailbox object values (as defined in the spec, including the counts). For the purposes of calculating `getMailboxUpdates`, also include the following for each mailbox:
@@ -64,11 +64,11 @@ One of these should exist for each mailbox. It is an ordered list of fixed size 
 - **Thread Id** `64 bits`
 - **Deleted** `64 bits` Time stamp from epoch of when the message was removed the mailbox. `0` means not deleted. See below
 - **Message Date** `64 bits`
- 
+
 Given that most message list fetches are of the first section of a single mailbox in date descending order, if we keep it stored in this order on disk we can just read the first few bytes to return the desired information; no sorting required (we don't even have to look up anything in the message cache). The date is included in each record so we can insert a new one in the correct position without having to reference any other data.
 
 When a message is removed from the mailbox we don't remove it immediately from the message list. Instead we just set the Deleted field to the time stamp of when it was deleted. This allows the delta update algorithm to work to efficiently update the client to the new list state. At certain intervals (either based on how many deleted nodes there are or how long since they were deleted) this needs to be cleaned up and the deleted objects fully expunged from the message list. At this point the low watermark ModSeq needs to be updated on the Mailbox data structure.
- 
+
 ### 4. Message cache
 
 A map of Message Id to flags, mailboxes and common header information for that message (variable length). This lets the server optimise calls to `getMessages` that only fetch this information (common when fetching the required information for a mailbox listing). It also allows optimisation of `getMessageList` as most, even quite complex filters will only require checking this cache (which should be relatively fast) rather than looking up and parsing the whole message (which could be quite slow).
@@ -88,7 +88,7 @@ For each message, store:
 - **Preview** (see spec)
 - **Attachments** (list of file names only; also used for hasAttachments)
 - **GUID** (sha1 of raw email)
- 
+
 ### 5. Message index
 
 For searching messages at any reasonable speed, an index is required from textual content within the message to the message id. Describing how this should work is beyond the scope of this guide.
@@ -96,16 +96,16 @@ For searching messages at any reasonable speed, an index is required from textua
 ### 6. Messages
 
 A map of GUID (sha1 of the message contents) to the raw RFC2822 message itself. This is the bulk of the data to be stored for each user. As this data is immutable and referenced by its sha1, there are many possibilities for how to store it. Each message could be stored as a separate file using its GUID as the name. Or on a separate networked object store etc. etc.
- 
+
 ### 7. Message log
 
 An append only log of changes made to the message cache. Each entry consists of:
 
 - **ModSeq** of change `63 bits`
 - List of **Message ids** which were affected by the change (to save extra lookups when the client is fetching these changes, should probably include a bit to say whether the message was destroyed by the change or created/modified).
- 
+
 Periodically, truncate the log by chopping records off the beginning. At this point you need to update the low watermark ModSeq for the log in the User object (data structure 1).
- 
+
 ### 8. Threads
 
 A map of thread id to an object containing information about the thread (variable length). The information stored for each thread is:
@@ -117,16 +117,16 @@ A map of thread id to an object containing information about the thread (variabl
   - **isFlagged** `1 bit` For sorting a message list by thread unread/thread flagged purposes only.
 - **ModSeq of last change** to isRead/isFlagged for any message in the thread (for sorting a message list by thread unread/thread flagged purposes only).
 - **Sha1 of subject** after stripping Fwd/Re etc. (for checking whether we need to split a new conversation out later; see threading algorithm in data structure 10).
- 
+
 ### 9. Thread log
 
 An append only log of changes made to the **membership** of threads (in data structure 7; changes to only the isRead/isFlagged/Mailboxes of a message in a thread do not need to go in the log). Each entry consists of:
 
 - **ModSeq** of change
 - **List of thread ids** which were affected by the change (to save extra lookups when the client is fetching these changes, should probably include a bit to say whether the thread was destroyed by the change or created/modified).
- 
+
 As with the message log, periodically truncate the log by chopping records off the beginning; at this point you need to update the low watermark ModSeq for the log in the user object.
- 
+
 ### 10. Refs to ThreadId
 
 This is solely used to look up the conversation to assign to a message on creation/import/delivery. Maps the RFC2822 Message Id (eughh, so many different types of id!) to the thread id.
@@ -273,7 +273,7 @@ With the suggested data structures, we can do delta updates for any standard mai
         let modSeq = collapseThreads ?
               msg.modSeq :
               getThread( msg.threadId ).modSeq
-        # If so, we need to remove the exemplar from the client view and add 
+        # If so, we need to remove the exemplar from the client view and add
         # it back in at the correct position.
         if modSeq > args.modSeq {
           removed.push({
@@ -292,7 +292,7 @@ With the suggested data structures, we can do delta updates for any standard mai
       # count for this message list as we keep it pre calculated and cached in
       # the Mailbox object.
       #
-      # However, if the sort is mutable we can't break early, as messages may 
+      # However, if the sort is mutable we can't break early, as messages may
       # have moved from the region we care about to lower down the list.
       if !isMutable && msg.uid == args.upto {
         break
@@ -313,19 +313,18 @@ If the client id is lower than the low watermark ModSeq for the Message Log (as 
 
 ## Vacation
 
-As mentionned in [RFC-5230 Sieve Vacation extension](https://tools.ietf.org/html/rfc5230), the implementers might avoid sending vacation notifications to mailing lists. Thus, implementations are encouraged to not send notifications to well-known addresses like "MAILER-DAEMON", "LISTSERV", "majordomo", and other addresses typically used only by automated systems.  Additionally, addresses ending in "-request" or begining in "owner-", i.e., reserved for mailing list software, are also suggested. Implementations should not respond to any message that contains a "List-Id" [RFC-2919](https://www.ietf.org/rfc/rfc2919.txt), "List-Help", "List-Subscribe", "List-Unsubscribe", "List-Post", "List-Owner", or "List-Archive" [RFC-2369](https://www.ietf.org/rfc/rfc2369.txt) header field.
+As mentioned in [RFC-5230 Sieve Vacation extension](https://tools.ietf.org/html/rfc5230), implementations should avoid sending vacation responses to mailing lists. Implementations should also avoid sending responses to well-known addresses like "MAILER-DAEMON", "LISTSERV", "majordomo", and other addresses typically used only by automated systems.  Additionally, addresses ending in "-request" or begining in "owner-", i.e., reserved for mailing list software, should also not receive vacation responses. Implementations should not respond to any message that contains a "List-Id" [RFC-2919](https://www.ietf.org/rfc/rfc2919.txt), "List-Help", "List-Subscribe", "List-Unsubscribe", "List-Post", "List-Owner", or "List-Archive" [RFC-2369](https://www.ietf.org/rfc/rfc2369.txt) header field.
 
-Also, be careful about infinite loops. Vacation notifications should not be sent in response to vacation responses. To avoid doing so, as specified in [RFC-5230](https://tools.ietf.org/html/rfc5230), an Auto-Submitted field with a value of "auto-replied" should be included in the message header of any vacation message sent. Implementations should not send notification to e-mail with an Auto-Submitted header with a value of "auto-replied".
+Also, be careful about infinite loops. Vacation responses should not be sent in response to another vacation response. To avoid doing so, as specified in [RFC-5230](https://tools.ietf.org/html/rfc5230), an Auto-Submitted header with a value of "auto-replied" should be included in any vacation message sent. Implementations should not send responses to email with an Auto-Submitted header with a value of "auto-replied".
 
 The server must keep track of sent notifications, in order to avoid sending notifications twice to the same recipient during the duration of a given vacation. Implementers must take care that if the vacation is modified, previous tracking information should be discarded.
 
 Finaly, implementations are encouraged to comply with [RFC-3824](https://tools.ietf.org/html/rfc3834), which defines a personal responder. To do so:
 
- - The Date field should be set to the date and time when the vacation response was generated. Note that this may not be the same as the time the message was delivered to the user. 
+ - The Date field should be set to the date and time when the vacation response was generated. Note that this may not be the same as the time the message was delivered to the user.
  - The From field should be set to the address of the given account.
  - The To field should be set to the address of the recipient of the response.
  - An Auto-Submitted field with a value of "auto-replied" should be included in the message header of any vacation message sent.
  - Replies must have the In-Reply-To field set to the Message-ID of the original message, and the References field should be updated with the Message-ID of the original message.
 
 If the original message lacks a Message-ID, an In-Reply-To need not be generated, and References need not be changed. [RFC-2822 section 3.6.4](https://tools.ietf.org/html/rfc2822#section-3.6.4) provides a complete description of how References fields should be generated.
-
