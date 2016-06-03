@@ -6,7 +6,13 @@ The server may support multiple different mechanisms for authenticating a user t
 
 ### Authenticating HTTP requests
 
-All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request with the value being the access token. This applies to OAuth tokens too, but see the provider's documentation for the details of what value to use for the header.
+All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request.
+
+If the user authenticated via OAuth, requests should be authenticated with the authentication scheme as specified by the OAuth provider.
+
+If the user authenticated via the JMAP auth protocol (see "Getting an access token" below), the authentication scheme is called `X-JMAP`, with a value of the *accessToken* returned after successful authentication. For example, if *user@example.com* successfully logged in and the client received an *accessToken* of `abcdef1234567890`, to authenticate requests you would add the following header:
+
+    Authorization: X-JMAP abcdef1234567890
 
 ### Service autodiscovery
 
@@ -58,7 +64,7 @@ This is the standard response to an initial request. Note, a server may return t
 An **AuthMethod** object MUST have a **type** property. This is a `String` representing the method of authentication. For some types, there may be other values required on the AuthMethod object in addition; see the description of types below. The following types are currently defined, but more may be added in the future. A client SHOULD offer the user the option to choose any of the method types returned that the client supports. The server MUST ignore any types it does not understand:
 
 - `external`: The user must do something out-of-band to authorize the app. The server SHOULD use the *prompt* property of the response to tell the user what they need to do. A client that supports the *external* authorisation type MUST offer a mechanism for the user to indicate to the client when they have completed the out-of-band authentication.
-- `oauth`: OAuth based authentication. For OAuth integration, see the docs of the service in question, since every service implements it slightly differently and the client must register with the service beforehand to use it. If using this method, an access token is obtained entirely through the OAuth mechanism from this point on. See the "Refetching URL endpoints" section below for how to obtain the URL endpoints after successfully authenticating using OAuth.
+- `oauth`: OAuth based authentication. For OAuth integration, see the docs of the service in question, since every service implements it slightly differently and the client must register with the service beforehand to use it. If using this method, an access token is obtained entirely through the OAuth mechanism from this point on, and requests will be authenticated as per the OAuth spec. See the "Refetching URL endpoints" section below for how to obtain the URL endpoints after successfully authenticating using OAuth.
 - `password`: The user must input their current password for the account.
 - `totp`: The user must input a [TOTP](https://tools.ietf.org/html/rfc6238) code from a device registered with the account.
 - `yubikeyotp`: The user must input a [Yubico OTP](https://developers.yubico.com/OTP/) code from a Yubikey registered with the account.
@@ -221,11 +227,11 @@ The server is currently down. Try again later with exponential backoff. There is
 
 The validity of an access token is determined by the server. It may be valid for a limited time only, or expire after a certain time of inactivity, or be valid indefinitely etc. If an access token expires, it MUST NOT be resurrected. The client MUST restart the authentication process to get a new access token.
 
-A client may revoke an access token at any time by making a DELETE HTTP request to the authentication URL (used to get the token in the first place), with the correct `Authorization` header (see below). The response from the server will be one of the following:
+A client may revoke an access token at any time by making an authenticated DELETE HTTP request to the authentication URL (the one used to get the token in the first place). The response from the server will be one of the following:
 
 `204`: Success (the access token has now been revoked).
 
-`401`: Failed due to no `Authorization` header, or `Authorization` header is not a valid access token.
+`401`: Failed due to no `Authorization` header, or `Authorization` header is not a valid access token. As per the HTTP spec, the response MUST have a `WWW-Authenticate: X-JMAP` header.
 
 No content is returned in either case.
 
