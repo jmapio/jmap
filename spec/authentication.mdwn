@@ -156,17 +156,17 @@ Note, if authentication is done via IP or mobile subscriber ID or some similar m
 
 The request is of the wrong content type, or does not contain data in the expected format. The client MUST NOT retry the same request. There is no content in the response.
 
-#### `401`: Authentication step failed, but client may try again
+#### `403`: Authentication step failed, but client may try again
 
 Returned in response to a continuation request which failed (e.g. the password entered was not correct, or the out-of-band step was not completed successfully). The response body will be a single JSON object with the same properties as the `200` response, and the client may try again.
-
-#### `403`: Restart authentication
-
-The login attempt has failed permanently. This may be due to a password being incorrect, the login id expiring, or any other reason. The client MUST restart authentication (go back to sending the username and client info to the server). There is no content in the response.
 
 #### `404`: Not found
 
 The JMAP server is no longer here. There is no content in the response.
+
+#### `410`: Restart authentication
+
+The login attempt has failed permanently. This may be due to a password being incorrect, the login id expiring, or any other reason. The client MUST restart authentication (go back to sending the username and client info to the server). There is no content in the response.
 
 #### `429`: Rate limited
 
