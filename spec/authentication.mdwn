@@ -146,11 +146,45 @@ The response body will be a single JSON object with the following properties.
 - **uploadUrl**: `String`
   The URL endpoint to use when uploading files (see the Upload section of this spec).
 - **downloadUrl**: `String`
-  The URL endpoint to use when downloading files, in [RFC6570 URI Template](https://tools.ietf.org/html/rfc6570) (level 1) format. The URL MUST contain a variable called `blobId`. The URL SHOULD contain a variable called `name`. The client may use this template in combination with a blobId to download any binary data (files) referenced by other objects. Since a blob is not associated with a particular name, the template SHOULD allow a name to be substituted in as well; the server will return this as the filename if it sets a `Content-Disposition` header. To download the data the client MUST make an authenticated GET request (see below for how to authenticate requests) to the expanded URL, and then follow any redirects.
+  The URL endpoint to use when downloading files, in [RFC6570 URI Template](https://tools.ietf.org/html/rfc6570) (level 1) format. The URL MUST contain a variable called `blobId`. The URL SHOULD contain a variable called `name`. The client may use this template in combination with a blobId to download any binary data (files) referenced by other objects. Since a blob is not associated with a particular name, the template SHOULD allow a name to be substituted in as well; the server will return this as the filename if it sets a `Content-Disposition` header. To download the data the client MUST make an authenticated GET request (see below for how to authenticate requests) to the expanded URL, and then follow any redirects. In situations where it's not easy to authenticate the attachment download request (e.g.: when downloading a file through a link in a HTML document), the client SHOULD use a signed request (see below for how to issue a signed request).
 
 URLs are returned only after logging in. This allows different URLs to be used for users located in different geographic datacentres within the same service.
 
 Note, if authentication is done via IP or mobile subscriber ID or some similar mechanism, a `201` response MAY be returned in response to the initial request (with just the username and client info).
+
+##### Downloading an attachment through a signed request
+
+Sometimes, authenticating a GET request using the usual `Authorization` header is not easily applicable. In such situations, a client SHOULD use a signed request to download the attachment. A signed request is an unauthenticated GET request containing a special query string parameter (a so-called `token`). The process below describes how a client can obtain such a token, then use it to download the file:
+
+* The client makes an authenticated POST request to the interpolated `downloadUrl` (see above for how to obtain this URL), that is, with all variables substituted with actual values. If authorization is granted, the server MUST send back a `text/plain` response with the signing `token` as the response body.
+* The client downloads the file by making an unauthenticated GET request to a URL formed by appending a parameter `token=<response to the previous request>` to the query part (see [RFC 3986](https://tools.ietf.org/html/rfc3986#section-3.4) for details) of the `downloadUrl`. If no query part was present in the `downloadUrl` before this operation, a new query part is created. The server MUST send back the contents of the requested attachment, as if it was requested through an authenticated GET request on the raw `downloadUrl`.
+
+The server SHOULD expire any given signing `token` quickly for obvious security reasons, but the actual expiration policy is up to the server implementation.
+  
+Sample HTTP exchange demonstrating the use of a signed request to download an attachment:
+
+* Obtain a token
+
+      POST /jmap/download/1234 HTTP/1.1
+      Host: server.jmap.io
+      Authorization: Bearer a3f5b6af745c9820264b6664d7c2c489adafd99f0f21a686c43aabfebf65418b
+
+      HTTP/1.1 200 OK
+      Content-Type: text/plain
+      Content-Length: 10
+
+      abcDEfGhIJ
+
+* Download the file
+
+      GET /jmap/download/1234?token=abcDEfGhIJ HTTP/1.1
+      Host: server.jmap.io
+
+      HTTP/1.1 200 OK
+      Content-Type: application/octet- stream
+      Content-Length: 987654
+
+      << binary content >>
 
 #### `400`: Malformed request
 
