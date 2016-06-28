@@ -156,13 +156,13 @@ Note, if authentication is done via IP or mobile subscriber ID or some similar m
 
 Sometimes, authenticating a GET request using the usual `Authorization` header is not easily applicable. In such situations, a client SHOULD use a signed request to download the attachment. A signed request is an unauthenticated GET request containing a special query string parameter (a so-called `token`). The process below describes how a client can obtain such a token, then use it to download the file:
 
-* The client makes an authenticated POST request to the interpolated `downloadUrl` (see above for how to obtain this URL), that is, with all variables substituted with actual values. If authorization is granted, the server MUST send the token back as the body of the response, in one of the following form:
+* The client makes an authenticated POST request to the interpolated `downloadUrl` (see above for how to obtain this URL), that is, with all variables substituted with actual values. If authorization is granted, the server MUST send the token back as the body of the response, in one of the following forms:
   * A [JSON Web Token](https://jwt.io/), in this case the response MUST have a `Content-Type` of `application/jwt`.
   * A plain `String` or any other data structure, in this case the response SHOULD have a `Content-Type` of `text/plain` unless another standardised MIME type is applicable.
-* The client downloads the file by making an unauthenticated GET request to a URL formed by appending a parameter `access_token=<response to the previous request>` to the query part (see [RFC 3986](https://tools.ietf.org/html/rfc3986#section-3.4) for details) of the `downloadUrl`. If no query part was present in the `downloadUrl` before this operation, a new query part is created. The server MUST send back the contents of the requested attachment, as if it was requested through an authenticated GET request on the raw `downloadUrl`.
+* The client downloads the file by making an unauthenticated GET request to a URL formed by appending a parameter `access_token=<response to the previous request>` to the query part (see [RFC 3986](https://tools.ietf.org/html/rfc3986#section-3.4) for details) of the `downloadUrl`. If no query part was present in the `downloadUrl` before this operation, a new query part is created. The server MUST send back the contents of the requested attachment, as if it were requested through an authenticated GET request on the raw `downloadUrl`.
 
 The server SHOULD expire any given signing `token` quickly for obvious security reasons, but the actual expiration policy is up to the server implementation.
-  
+
 Sample HTTP exchange demonstrating the use of a signed request to download an attachment:
 
 * Obtain a token
