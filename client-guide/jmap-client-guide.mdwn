@@ -307,7 +307,7 @@ Alternatively, a client may want to just request the "rawUrl" property, then dow
 
 ## Staying in sync
 
-Suppose a new message arrives, or the user performs some actions on their messages using a different client. A push notification comes in to indicate the state has changed on the server, or you get a response back to a method call with a different state string to the previous call. We now need efficiently work out exactly what has changed so that we can update the model in the client and keep it in sync, without throwing away all of our data and starting again.
+Suppose a new message arrives, or the user performs some actions on their messages using a different client. A push notification comes in to indicate the state has changed on the server, or you get a response back to a method call with a different state string to the previous call. We now need to efficiently work out exactly what has changed so that we can update the model in the client and keep it in sync, without throwing away all of our data and starting again.
 
 To efficiently stay in sync, we can call:
 
@@ -533,7 +533,7 @@ Here's how we apply this information to our current state to stay in sync:
 4. `messages`: Because we specified a `fetchMessages` argument to `getMessageUpdates`, this response contains the requested data for the messages that have been modified or added. The first two are new messages, and we can add this data to our header cache information so we have the info we need to display the mailbox. The final message is one we already have in cache, but a property of it has now changed (in this case, it is no longer unread). We can update this data and clear the flag we set in step 3 indicating it needs refreshing (the reason we set the flag is so the `messageUpdates` response is correctly handled regardless of whether we specified `fetchMessages` or not.
 5. `threadUpdates`: There are two changed threads here. One existing thread has a new message in it, the other is a brand new thread to create in our cache.
 
-After applying these changes, or cache is completely in sync with the server, even though we only have a partial data set cached, and we only made a single HTTP request.
+After applying these changes, our cache is completely in sync with the server, even though we only have a partial data set cached, and we only made a single HTTP request.
 
 Now let's look at the more difficult cases, when errors occur.
 
@@ -636,7 +636,7 @@ JMAP can also be used to efficiently download and keep in sync the entire set of
                 "date",
                 "preview"
             ]
-        }, "call3" ],
+        }, "call2" ],
         [ "getMessageList", {
             filter: {
                 inMailboxes: [ "${inboxId}" ]
@@ -645,7 +645,7 @@ JMAP can also be used to efficiently download and keep in sync the entire set of
             collapseThreads: false,
             position: 0,
             limit: 100
-        }, "call2" ]
+        }, "call3" ]
     ]
 
 The first two calls get the delta updates to mailboxes and messages (if the client has a copy of all messages locally, it has no need to use the server to get threads as it already has all the information). In the common case where there are fewer than 50 message changes since last time, this will bring the client fully up to date (barring downloading new message bodies, attachments and other details, which it can easily schedule at its leisure).
