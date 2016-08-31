@@ -40,17 +40,17 @@ A **FilterCondition** object has the following properties:
 - **before**: `Date|null`
   The start of the event, or any recurrence of the event, in UTC time must be before this date to match the condition.
 - **text**: `String|null`
-  Looks for the text in the *summary*, *description*, *location*, *organizer*, *attendees* properties of the event or any recurrence of the event (matching either name or email in the organizer/attendee case).
-- **summary**: `String|null`
-  Looks for the text in the *summary* property of the event, or the overridden *summary* property of a recurrence.
+  Looks for the text in the *title*, *description*, *locations* (matching name/accessInstructions/address), or *participants* (matching name/email) properties of the event or any recurrence of the event.
+- **title**: `String|null`
+  Looks for the text in the *title* property of the event, or the overridden *title* property of a recurrence.
 - **description**: `String|null`
   Looks for the text in the *description* property of the event, or the overridden *description* property of a recurrence.
 - **location**: `String|null`
-  Looks for the text in the *location* property of the event, or the overridden *location* property of a recurrence.
-- **organizer**: `String|null`
-  Looks for the text in the name or email fields of the *organizer* property of the event, or the overridden *organizer* property of a recurrence.
+  Looks for the text in the *locations* property of the event (matching name/accessInstructions/address), or the overridden *locations* property of a recurrence.
+- **owner**: `String|null`
+  Looks for the text in the name or email fields of a participant in the *participants* property of the event, or the overridden *participants* property of a recurrence, where the participant has a role of "owner".
 - **attendee**: `String|null`
-  Looks for the text in the name or email of any item in the *attendees* property of the event, or the overridden *attendees* property of a recurrence.
+  Looks for the text in the name or email fields of a participant in the *participants* property of the event, or the overridden *participants* property of a recurrence, where the participant has a role of "attendee".
 
 If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
 

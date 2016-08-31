@@ -6,140 +6,346 @@ A **CalendarEvent** object has the following properties:
 
 - **id**: `String`
   The id of the event. This property is immutable.
+
 - **calendarId**: `String`
   The id of the calendar this event belongs to.
-- **summary**: `String`
+
+- **uid**: `String`
+  The UID from iCalendar. Used to associate the event as the same across different systems, calendars and views.
+
+- **relatedTo**: `String[]|null`
+  A list of UIDs that are part of the same series as this event. For example, if an event is split to make a "this and future" change to a recurrence, each new event should include the other's uid in its *relatedTo* property. Clients can then follow these UIDs to get the complete set of events if the user wishes to modify them all at once. Maps to the RELATED-TO field in iCalendar.
+
+- **prodId**: `String|null`
+  The identifier for the product that created the Event object. The vendor of the implementation SHOULD ensure that this is a globally unique identifier.
+
+- **created**: `UTCDate|null`
+  The time this event was created. Maps to the CREATED field in iCalendar.
+
+- **updated**: `UTCDate`
+  The time this event was last changed. If part of an iMIP message (i.e. the event has a *method* property), this is when the iMIP message was created.
+  Maps to the DTSTAMP field in iCalendar.
+
+- **sequence**: `Number` (Defaults to `0` if omitted)
+  The SEQUENCE field from iCalendar.
+
+- **title**: `String` (Defaults to `''` (the empty string) if omitted)
   A short summary of the event. This maps to the SUMMARY property in iCalendar.
-- **description**: `String`
+
+- **description**: `String` (Defaults to `''` (the empty string) if omitted)
   A longer form description of the event. This is plain text, not HTML, but
-  a client *should* attempt to mark up URLs. This maps to the DESCRIPTION property in iCalendar.
-- **location**: `String`
-  Where the event is to take place. This maps to the LOCATION property in iCalendar.
-- **showAsFree**: `Boolean`
-  If true, the even should be ignored when calculating free/busy data for the
-  user. This maps to the TRANSP property in iCalendar (`false <=> OPAQUE`, `true <=> TRANSPARENT`).
-- **isAllDay**: `Boolean`
-  Is the event an all day event, such as a birthday or public holiday? This corresponds to the type (DATE or DATE-TIME) of the DTSTART property in iCalendar.
-- **start**: `LocalDate`
-  The date/time the event would start in the event's time zone. This corresponds to the DTSTART property in iCalendar.
-- **end**: `LocalDate`
-  The date/time the event would end in the event's time zone. This corresponds to the DTSTART/DURATION or DTEND property in iCalendar.
-- **startTimeZone**: `String|null`
-  The [Olsen Time Zone Database](http://www.iana.org/time-zones) name for the timezone the start of the event is actually in, or `null` for floating time. This corresponds to the TZID part of the DTSTART property; if the underlying iCalendar file does not use an Olsen name, the server SHOULD try to guess the correct time zone based on the VTIMEZONE information, or fallback to floating time.
-- **endTimeZone**: `String|null`
-  The [Olsen Time Zone Database](http://www.iana.org/time-zones) name for the timezone the end of the event is actually in, or `null` for floating time. This corresponds to the TZID part of the DTEND property (or DTSTART if not present); if the underlying iCalendar file does not use an Olsen name, the server SHOULD try to guess the correct time zone based on the VTIMEZONE information, or fallback to floating time.
-- **recurrence**: `Recurrence|null`
-  The recurrence rule for the event, or `null` if it does not recur. This corresponds to the RRULE property in iCalendar.
-- **inclusions**: `LocalDate[]|null`
-  List of extra **local** start times to recur on. The list MUST be sorted in date order (oldest first). This corresponds to the RDATE property in iCalendar.
-- **exceptions**: `LocalDate[null|CalendarEvent]|null`
-  An object mapping an occurrence start time (in **local time**, not UTC) to either:
-  - `null`: The occurrence has been deleted. This corresponds to the EXDATE property in iCalendar.
-  - `CalendarEvent`: A partial CalendarEvent object. Any properties in the object override the property of the same name for this occurrence. This corresponds to extra VEVENTs with RECURRENCE-IDs in iCalendar. Allowed properties are:
-    - summary
-    - description
-    - location
-    - showAsFree
-    - start
-    - end
-    - startTimeZone
-    - endTimeZone
-    - alerts
-    - organizer
-    - attendees
-- **alerts**: `Alert[]|null`
-  A list of alerts to display or send the user for this event. This maps to the VALARM property in iCalendar.
-- **organizer**: `Participant|null`
-  The organizer of the event. This maps to the ORGANIZER property in iCalendar
-- **attendees**: `Participant[]|null`
-  A list of attendees at the event. This maps to the ATTENDEE property in iCalendar.
+  a client SHOULD attempt to hyperlink URLs when displaying it. This maps to the DESCRIPTION property in iCalendar.
+
+- **htmlDescription**: `String` (Defaults to `''` (the empty string) if omitted)
+  This is an alternative to the *description* property, marked up in HTML. The
+  semantic content of the two properties SHOULD be equivalent if both are
+  specified.
+
+- **links**: `Link[]|null`
+  A list of URIs of related resources for this event.
+
+    A **Link** object has the following properties:
+
+    - **uri**: `String`
+      The URI for the link
+    - **name**: `String|null` (optional, defaults to `null`)
+      A human-readable description.
+
 - **attachments**: `File[]|null`
   A list of file attachments to the event. This maps to the ATTACH property in iCalendar.
 
-Conditions:
+    A **File** Object has the following properties:
 
-- The *end* date MUST be equal to or after the *start* date when both are converted to UTC time (the event MUST NOT have a negative duration).
-- if *isAllDay* is `true`, the *start*/*end* properties MUST have a time component of `T00:00:00` and *startTimeZone*/*endTimeZone* properties MUST be `null`.
-- if *recurrence* is `null`, *inclusions* and *exceptions* MUST also be `null`.
-- either both organizer and attendees are `null`, or neither are.
-- any `null`able array/object property MUST be `null` rather than an empty array or object.
+    - **blobId**: `String`
+      The id of the binary data.
+    - **name**: `String|null` (optional, defaults to `null`)
+      The full file name, if known. e.g. "myworddocument.doc"
+    - **type**: `String|null` (optional, defaults to `null`)
+      The content-type of the attachment, if known.
+    - **size**: `Number|null` (optional, defaults to `null`)
+      The size, in bytes, of the attachment when fully decoded (i.e. the number of bytes in the file the user would download), if known.
 
-A **Recurrence** object is a JSON object mapping of a RECUR value type in iCalendar. To make it easier to check if two recurrence rules are identical, optional properties MUST NOT be included if the value is the default. A Recurrence object has the following properties:
+- **language**: `String|null`
+  The [RFC5646](https://tools.ietf.org/html/rfc5646) language tag that best describes the language used for the *title* and *description* properties in
+  this event, if known.
 
-- **frequency**: `String`
-  This MUST be one of the following values:
-  - `"yearly"`
-  - `"monthly"`
-  - `"weekly"`
-  - `"daily"`
-  - `"hourly"`
-  - `"minutely"`
-  - `"secondly"`
-  To convert from iCal, simply lower-case the FREQ part.
-- **interval**: `Number` (optional)
-  The INTERVAL part from iCal. Defaults to `1` if not present. This MUST NOT be included if the interval == 1, to ensure a canonical representation. If included, it MUST be an integer `x > 1`.
-- **firstDayOfWeek**: `Number` (optional)
-  The WKST part from iCal. Defaults to `1` (Monday) if not present. This MUST NOT be included if == 1 (Monday), to ensure a canonical representation. It MUST be an integer in the range (0,6), where SU => 0, TU => 2, WE => 3 etc.
-- **byDay**: `Number[]` (optional)
-  The BYDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order. To convert from the iCal string format (e.g. SU,+1MO):
-  1. Convert SU/MO/TU… <-> 0/1/2…
-  2. If it has a number attached (+1, -2 etc.), add on 7 * the attached number.
-  e.g. `+1MO => 1 + (7 * +1) => 8`, `-2TH => 4 + (7 * -2) => -10`
-- **byDate**: `Number[]` (optional)
-  The BYMONTHDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
-- **byMonth**: `Number[]` (optional)
-  The BYMONTH part from iCal, but with Jan == 0, Feb == 1 etc. (Jan == 1 in iCal). The array MUST have at least one entry if included and MUST be sorted in ascending order.
-- **byYearDay**: `Number[]` (optional)
-  The BYYEARDAY part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
-- **byWeekNo**: `Number[]` (optional)
-  The BYWEEKNO part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
-- **byHour**: `Number[]` (optional)
-  The BYHOUR part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
-- **byMinute**: `Number[]` (optional)
-  The BYMINUTE part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
-- **bySecond**: `Number[]` (optional)
-  The BYSECOND part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
-- **bySetPosition**: `Number[]` (optional)
-  The BYSETPOS part from iCal. The array MUST have at least one entry if included and MUST be sorted in ascending order.
-- **count**: `Number` (optional)
-  The COUNT part from iCal. This MUST NOT be included if an *until* property is specified.
-- **until**: `LocalDate` (optional)
-  The UNTIL part from iCal. This MUST NOT be included if a *count* property is specified.
+- **translations**: `String[Translation]|null`
+  A map of [RFC5646](https://tools.ietf.org/html/rfc5646) language tag to an object with translations into that language of the *title* and/or *description* properties of the event.
 
-An **Alert** Object has the following properties:
+    A **Translation** Object has the following properties, all optional:
 
-- **minutesBefore**: `Number`
-  The number of minutes before the start time of the event to show the alert. The number MAY be negative for an alert after the event start. Note, if the event is in floating time (including all-day events), the server SHOULD use the user's default time zone when determining the start time.
-- **type**: `String`
-  The value MUST be one of the following:
-  - `"email"` – the server will send an email to the user at the specified time. The format of this email is service-specific.
-  - `"alert"` – a message should be shown to the user on any client connected to this account at the specified time.
+    - **title**: `String` (Defaults to `''` (the empty string) if omitted)
+      A translation of the event's title.
+    - **description**: `String` (Defaults to `''` (the empty string) if omitted)
+      A translation of the event's description.
+    - **locations**: `String[LocationTranslation]|null`
+      A map of location id to a translation of human-readable components of the location.
 
-A **Participant** Object has the following properties:
+      A **LocationTranslation** Object has the following properties, all optional:
 
-- **name**: `String`
-  The name of the participant.
-- **email**: `String`
-  The email address of the participant.
-- **isYou**: `Boolean`
-  This is `true` if the participant is the logged in user (determining this is not defined and is server dependent).
-- **rsvp**: `String`
-  The value MUST be one of:
-  - `""`: no RSVP made.
-  - `"yes"`: the participant is attending
-  - `"maybe"`: the participant may be attending
-  - `"no"`: the participant is not attending
+      - **name**: `String`
+        A translation of the name of the location.
+      - **accessInstructions**: `String`
+        A translation of the instructions for accessing this location.
 
-A **File** Object has the following properties:
+- **locations**: `String[Location]|null`
+  A map of of location id to Location objects, representing locations associated with the event. A location id may be any string and need only be unique to this event, although a UUID is a practical choice.
 
-- **blobId**: `String`
-  The id of the binary data.
-- **type**: `String|null`
-  The content-type of the attachment, if known.
-- **name**: `String|null`
-  The full file name, if known. e.g. "myworddocument.doc"
-- **size**: `Number|null`
-  The size, in bytes, of the attachment when fully decoded (i.e. the number of bytes in the file the user would download), if known.
+    A **Location** object has the following properties. All properties are optional, but every Location object MUST have at least one property:
+
+    - **name**: `String`
+      The human-readable name of the location.
+    - **accessInstructions**: `String`
+      Human-readable instructions for accessing this location. This may be a set of directions, door access code, etc.
+    - **rel**: `String`
+      The relation type of this location to the event. This MUST be either one of the following values, registered in a future RFC, or a vendor-specific value. Vendor specific values MUST be prefixed with a domain name controlled by the vendor, e.g. `fastmail.com/customrel`. Any value the client or server doesn't understand should be treated the same as `unknown`.
+      - `start`: The event starts at this location.
+      - `end`: The event ends at this location.
+      - `virtual`: This is not a physical location (e.g. this location is an online chat room where people will meet.)
+      - `unknown`: The relation of this location to the event is unknown.
+    - **timeZone**: `String` (IANA TZ name)
+      A time zone for this location. If omitted, the event time zone MUST be used for this location.
+    - **address**: `Address`
+      The structured address of this location.
+
+        An **Address** object has the following properties. All properties MUST
+        be included, but may be the empty string:
+
+        - **street**: `String`
+          The street address. This MAY be multiple lines; newlines MUST be preserved.
+        - **locality**: `String`
+          The city, town, village, post town, or other locality within which the street address may be found.
+        - **region**: `String`
+          The province, such as a state, county, or canton within which the locality may be found.
+        - **postcode**: `String`
+          The postal code, post code, ZIP code or other short code associated with the address by the relevant country's postal system.
+        - **country**: `String`
+          The country name.
+
+    - **coordinates**: `String`
+      An [RFC 5870](https://tools.ietf.org/html/rfc5870) `geo:` URI for the location.
+    - **uri**: `String`
+      A URI that represents how to connect to the event from this location. This may be a telephone number (represented as `tel:+1-555-555-555`) for a teleconference, a web address for online chat, or a custom URI for something like Skype (e.g. `skype:username`).
+
+When mapping from iCalendar, the LOCATION property should become a single location with just a *name* property. If the event has a different end time zone to start time zone, this should be added as a second location with just a *timeZone* property.
+
+- **isAllDay**: `Boolean`
+  Is the event an all day event, such as a birthday or public holiday? This corresponds to the type (DATE or DATE-TIME) of the DTSTART property in iCalendar.
+
+- **start**: `LocalDate` e.g. `2015-09-02T00:00:00`
+  The date/time the event would start in the event's time zone. This corresponds to the DTSTART property in iCalendar.
+
+- **timeZone**: `String|null`
+  The [IANA Time Zone Database](http://www.iana.org/time-zones) name for the event, or `null` for floating time. This corresponds to the TZID part of the DTSTART property. If omitted, this MUST be presumed to be `null`.
+
+- **duration**: `Duration`, e.g. `P2DT3H` (Defaults to `P0D` if omitted)
+  The duration of the event in absolute time (i.e. ignoring DST shifts, or UTC). To get the end date in the event time zone, convert start into UTC, then apply the duration, then convert the result into the appropriate time zone.
+
+If *isAllDay* is `true`, then the following restrictions apply:
+
+* the *start* property MUST have a time component of `T00:00:00`.
+* the *timeZone* property MUST be `null`.
+* the *duration* MUST only include a day component.
+
+- **recurrenceRule**: `Recurrence|null`
+  A recurrence rule for the event. This corresponds to the RRULE property in iCalendar.
+
+    A **Recurrence** object is a JSON object mapping of a RECUR value type in iCalendar. A Recurrence object has the following properties:
+
+    - **frequency**: `String`
+      This MUST be one of the following values:
+      - `"yearly"`
+      - `"monthly"`
+      - `"weekly"`
+      - `"daily"`
+      - `"hourly"`
+      - `"minutely"`
+      - `"secondly"`
+      To convert from iCal, simply lower-case the FREQ part.
+    - **interval**: `Number` (optional, defaults to `1`)
+      The INTERVAL part from iCal. If included, it MUST be an integer `x >= 1`.
+    - **rscale**: `String` (optional, defaults to `"gregorian"`)
+      The RSCALE part from iCal RSCALE (RFC7529), converted to lower-case.
+    - **skip**: `String` (optional, defaults to `"omit"`)
+      The SKIP part from iCal RSCALE (RFC7529), converted to lower-case.
+    - **firstDayOfWeek**: `String` (optional, defaults to `"monday"`)
+      The WKST part from iCal, represented as a lower-case unabbreviated English day of the week. If included, it MUST be one of the following values:
+
+          "monday"|"tuesday"|"wednesday"|"thursday"|"friday"|"saturday"|"sunday"
+
+    - **byDay**: `NDay[]` (optional)
+      The BYDAY part from iCal. The array MUST have at least one entry if included.
+
+      An **NDay** object has the following properties:
+
+      - **day**: `String`
+        "monday"|"tuesday"|"wednesday"|"thursday"|"friday"|"saturday"|"sunday"
+      - **nthOfPeriod**: `Number` (optional)
+        If present, rather than representing *every* Friday (for example), it represents only a specific instance within the period (month for monthly recurrences, year for yearly recurrences). Must be a non-zero integer, negative integers means nth-last of period. This is the `"+1"` or `"-3"` etc. prefix from the BYDAY values in iCal.
+
+    - **byDate**: `Number[]` (optional)
+      The BYMONTHDAY part from iCal. The array MUST have at least one entry if included.
+    - **byMonth**: `String[]` (optional)
+      The BYMONTH part from iCal. Each entry is a string representation of a number, starting from "1" for the first month in the calendar (e.g. "1" means "January" with Gregorian calendar), with an optional "L" suffix for leap months (this MUST be upper-case, e.g. "3L"). The array MUST have at least one entry if included.
+    - **byYearDay**: `Number[]` (optional)
+      The BYYEARDAY part from iCal. The array MUST have at least one entry if included.
+    - **byWeekNo**: `Number[]` (optional)
+      The BYWEEKNO part from iCal. The array MUST have at least one entry if included.
+    - **byHour**: `Number[]` (optional)
+      The BYHOUR part from iCal. The array MUST have at least one entry if included.
+    - **byMinute**: `Number[]` (optional)
+      The BYMINUTE part from iCal. The array MUST have at least one entry if included.
+    - **bySecond**: `Number[]` (optional)
+      The BYSECOND part from iCal. The array MUST have at least one entry if included.
+    - **bySetPosition**: `Number[]` (optional)
+      The BYSETPOS part from iCal. The array MUST have at least one entry if included.
+    - **count**: `Number` (optional)
+      The COUNT part from iCal. This MUST NOT be included if an *until* property is specified.
+    - **until**: `LocalDate` (optional)
+      The UNTIL part from iCal. This MUST NOT be included if a *count* property is specified. Note, as in iCal, this date is presumed to be in the timezone specified in *timeZone*. It is not a UTC time.
+
+- **recurrenceOverrides**: `LocalDate[JSONPointer[*|null]|null]|null`
+  A combination of RDATE and EXDATE from iCalendar, and event instances with recurrence ids.
+
+    The object is a map of the Recurrence-Id (i.e. the date-time of the start of the occurrence) to either `null`, to indicate the occurrence should be deleted, or an object of patches to apply to the generated Event occurrence object.
+
+    If the recurrence-id does not match an expanded start date from a recurrence rule, it is to be treated as an additional occurrence (like an RDATE from iCalendar). The patch object may often be empty in this case.
+
+    By default, an occurrence inherits all properties from the main event except the start time, which is shifted to the new start time. However, individual properties of the occurrence can be modified by a patch, or multiple patches.
+
+    A PatchObject consists of keys in JSON pointer format ([RFC 6901](https://tools.ietf.org/html/rfc6901)) and a value of either `null` or the value to set there.
+
+    A pointer MUST NOT be the empty string, and MUST NOT start with one of the following prefixes:
+
+    - `/uid`
+    - `/relatedTo`
+    - `/prodId`
+    - `/isAllDay`
+    - `/recurrenceRule`
+    - `/recurrenceOverrides`
+    - `/replyTo`
+
+    There MUST NOT be two pointers where one is the prefix of the other, e.g. `/alerts/1` AND `/alerts`. The result in this case is undefined.
+
+- **status**: `String` (Defaults to `confirmed` if omitted)
+  The status of the event. MUST be one of:
+
+    - `"confirmed"`: Indicates event is definite
+    - `"cancelled"`: Indicates event was cancelled.
+    - `"tentative"`: Indicates event is tentative.
+
+    This maps from the STATUS property from iCalendar, converted to lower-case.
+
+- **showAsFree**: `Boolean` (Defaults to `false` if omitted)
+  If true, the event should be ignored when calculating free/busy data for the
+  user. This maps to the TRANSP property in iCalendar (`false <=> OPAQUE`, `true <=> TRANSPARENT`).
+
+- **replyTo**: `String|null`
+  The email to send scheduling (iMIP) replies to. This maps to the email address of the ORGANIZER in iCalendar.
+
+- **participants**: `String[Participant]|null`
+  A map of calendar-user-id to an object describing their participation in the event. This is a combination of the ORGANIZER and ATTENDEES properties from iCalendar.
+
+    A **Participant** object has the following properties. Properties are mandatory unless marked otherwise:
+
+    - **name**: `String`
+      The display name of the calendar user (e.g. "Joe Bloggs").
+    - **email**: `String`
+      The email address for the calendar user (in many systems, but not in all – but not all – this is the same as the calendar user id, the key for this object in the participants map).
+    - **kind**: `String` (optional, defaults to "unknown")
+      What kind of entity this participant is. This is the CUTYPE parameter in iCalendar. This MUST be either one of the following values, registered in a future RFC, or a vendor-specific value. Vendor specific values MUST be prefixed with a domain name controlled by the vendor, e.g. `fastmail.com/specialkind`. Any value the client or server doesn't understand should be treated the same as `unknown`.
+      - `individual`: a single person
+      - `group`: a collection of people invited as a whole
+      - `resource`: a non-human resource, e.g. a projector
+      - `location`: a physical location involved in the event that needs to be scheduled, e.g. a conference room.
+      - `unknown`: no information is available about the kind of this participant.
+    - **roles**: `String[]`
+      A list of roles that this participant fulfils. At least one value MUST be specified for the participant. This MUST be either one of the following values, registered in a future RFC, or a vendor-specific value. Vendor specific values MUST be prefixed with a domain name controlled by the vendor, e.g. `fastmail.com/specialkind`. Any value the client or server doesn't understand should be preserved but ignored.
+      - `owner`: The participant is an organizer of the event, and allowed to make alterations to any part of the event.
+      - `attendee`: The participant is an attendee of the event.
+      - `chair`: The participant is in charge of the event when it occurs.
+    - **locationId**: `String|null` (optional, defaults to `null`)
+      The location at which this person is expected to be attending this event.
+      If the value does not correspond to any location id in the *locations*
+      property of the instance, this MUST be treated the same as if the
+      participant's *locationId* were specified as `null`.
+    - **scheduleStatus**: `String` (optional, defaults to 'needs-action')
+      This maps to the PARTSTAT parameter in iCalendar, converted to lower case. The value MUST be one of the following, or defined in a future RFC or extension to iCalendar:
+      - `needs-action`: No status yet set by the participant.
+      - `accepted`: The participant will attend the event.
+      - `declined`: The participant may attend the event.
+      - `tentative`: The participant will not attend the event.
+    - **schedulePriority**: `String` (optional, defaults to "required")
+      This maps to the ROLE parameter in iCalendar. It MUST be either one of the following values, registered in a future RFC, or a vendor-specific value. Vendor specific values MUST be prefixed with a domain name controlled by the vendor, e.g. `fastmail.com/specialkind`. Any value the client or server doesn't understand should be treated the same as `required`.
+      - `non-participant`: Indicates a participant who is copied for information purposes only.
+      - `optional`: Indicates a participant whose participation is optional.
+      - `required`: Indicates a participant whose participation is required.
+    - **scheduleRSVP**: `Boolean` (optional, defaults to `false`)
+      If `true`, the organizer is expecting the participant to notify them of their status. This maps to the RSVP parameter in iCalendar.
+    - **scheduleUpdated**: `UTCDate|null` (optional, defaults to `null`)
+      The *updated* property of the last response from the user. This can be
+      compared to the *updated* timestamp in future iMIP responses to determine
+      if the response is older or newer than the current data.
+    - **memberOf**: `String[]` (optional)
+      A list of group addresses that were invited to this event, which caused this participant to be invited due to their membership of the group(s). MUST be omitted if none (rather than an empty array).
+
+- **participantId**: `String|null`
+  The id of the participant in the *participants* object which belongs to the account this event belongs to.
+
+- **useDefaultAlerts**: `Boolean` (Defaults to `false` if omitted)
+  If `true`, use the user's default alerts for this event and ignore the
+  *alerts* property.
+
+- **alerts**: `String[Alert]|null`
+  A map of of alert id to Alert objects, representing alerts/reminders to display or send the user for this event. This maps to the VALARM property in iCalendar. An alert id may be any string and need only be unique to this event, although a UUID is a practical choice.
+
+    An **Alert** Object has the following properties:
+
+    - **relativeTo**: `String` (optional, defaults to `"before-start"`)
+      This specifies where the offset is relative to for the alarm to trigger.
+      The value MUST be one of:
+      - `"before-start"`
+      - `"after-start"`
+      - `"before-end"`
+      - `"after-end"`
+    - **offset**: `Duration`
+      The offset from the start/end of the event to fire the alert. A positive value means an alert *after* the start/end; a negative value indicates an alert *before*. Note, if the event is in floating time (including all-day events), the server SHOULD use the user's default time zone when determining the start time.
+    - **action**: `DisplayAction|EmailAction|UnknownAction`
+      How to alert the user. A *DisplayAction* means a message (which is service dependent, but SHOULD include the summary and start time of the event) SHOULD be shown to the user on any client connected to this account at the specified time. How this message is formatted (and any sound or other method of drawing the user's attention) is client specific. An *EmailAction* means the server MUST send an email as specified in the object at the specified time.
+
+      Where a **DisplayAction** object has the following properties:
+
+      - **type**: `String`
+        The value MUST be `"display"`.
+      - **acknowledgedUntil**: `LocalDate|null`
+        When the user has permanently dismissed the alert this SHOULD be set to
+        the *start* property **of the event, or occurrence if the event is recurring**. Other clients which sync this property can then automatically dismiss or suppress duplicate alerts (alerts with the same alert id for an occurrence of this event that starts on or before this date).
+      - **snoozedUntil**: `UTCDate|null`
+        If the user temporarily dismisses the alert, this is the UTC date-time
+        after which it should be reshown. This property MUST be ignored for
+        alerts which have been permanently dismissed (see the *acknowledgedUpto*
+        property).
+
+      Where an **EmailAction** object has the following properties:
+
+      - **type**: `String`
+        The value MUST be `"email"`.
+      - **to**: `Emailer[]`
+        An array of name/email objects to send the alert to. An **Emailer** object has the following properties:
+
+        - **name**: `String`
+          The name of the recipient. If not known, clients SHOULD use the empty string.
+        - **email**: `String`
+          The email address of the recipient.
+
+      - **subject**: `String` (optional)
+        The subject to use for the email. If omitted, this is implementation specific, but the server SHOULD try to choose an appropriate subject (such as "Event Summary: starting in 5 min").
+      - **textBody**: `String` (optional)
+        The plain-text body to use for the email. If omitted, the body of the email is implementation specific, but the server SHOULD include all pertinent details about the event, such as summary, location and start time.
+
+      An **UnknownAction** object is an object that contains a `type` property whose value is not `"email"` or `"string"`, plus zero or more other properties. This is for compatibility with client extensions and future RFCs. The client or server SHOULD NOT trigger any type of alert for action types they do not understand, but MUST preserve them.
+
+Any `null`able array/object property MUST be `null` rather than an empty array or object.
 
 ### getCalendarEvents
 
@@ -235,7 +441,7 @@ The *setCalendarEvents* method takes the following arguments:
 - **destroy**: `String[]|null`
   A list of ids for CalendarEvent objects to permanently delete.
 
-Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single event (e.g. update the *start* property but not the *startTimeZone* property if both are supplied in the update object).
+Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single event (e.g. update the *start* property but not the *timeZone* property if both are supplied in the update object).
 
 If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
@@ -248,16 +454,13 @@ To add new attachments, the file must first be uploaded using the standard uploa
 When an event is created, updated or destroyed, the server MUST also ensure the following:
 
 - Any alerts are scheduled/cancelled correctly..
-- If `organizer.isYou == true`:
-  - If an event is created with attendees, send a REQUEST iMIP email with the
-    event as an ICS attachment to all attendees with `isYou == false`.
-  - When an event is updated, email all attendees with `isYou == false` the
-    change with an appropriate iMIP email.
+- If there is a *participantId*, and the corresponding participant has a *role*
+  of `owner`:
+  - If an event is created/updated: send a REQUEST iMIP email with the event as
+    an ICS attachment to all participants that are not "you".
   - When an event is destroyed, if it is in the future, then email all
-    attendees with `isYou == false` to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
-- If `organizer.isYou != true` and one of the attendees of the event has `isYou == true`, then changing the RSVP status of this attendee MUST send the appropriate email to the organizer to inform them of the change in status, as per the iMIP standard.
-
-Note, for compatibility with CalDAV clients, when updating an attendee, the server SHOULD maintain any ROLE, CUTYPE, MEMBER, DELEGATED-TO, DELEGATED-FROM, SENT-BY etc. parameters currently in the iCalendar object for that attendee, even though this API does not currently care about it.
+    participants other than you the appropriate iMIP email to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
+- If there is a *participantId*, and the corresponding participant does not have a *role* of `owner`, and the *scheduleStatus* is updated for this participant, send the appropriate iMIP email to the *replyTo* address.
 
 The response to *setCalendarEvents* is called *calendarEventsSet*. It has the following arguments:
 
