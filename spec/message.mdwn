@@ -28,7 +28,7 @@ A **Message** object has the following properties:
 - **hasAttachment**: `Boolean`
   Does the message have any attachments?
 - **headers**: `String[String]`
-  A map of header name to (decoded) header value for all headers in the message. For headers that occur multiple times (e.g. `Received`), the values are concatenated with a single new line (`\n`) character in between each one.
+  A map of lower-cased header name to (decoded) header value for all headers in the message. For headers that occur multiple times (e.g. `Received`), the values are concatenated with a single new line (`\n`) character in between each one.
 - **sender**: `Emailer|null`
   An Emailer object (see below) containing the name/email from the parsed `Sender` header of the email. If the email doesn't have a `Sender` header, this is `null`.
 - **from**: `Emailer[]|null`
@@ -120,7 +120,7 @@ Messages can only be fetched explicitly by id. To fetch messages, make a call to
 The `id` property is always returned, regardless of whether it is in the list of requested properties. The possible values for `properties` can be found above in the description of the Message object. In addition to this, the client may request the following special values:
 
 - **body**: If `"body"` is included in the list of requested properties, it will be interpreted by the server as a request for `"htmlBody"` if the message has an HTML part, or `"textBody"` otherwise.
-- **headers.property**: Instead of requesting all the headers (by requesting the `"headers"` property, the client may specify the particular headers it wants using the `headers.property-name` syntax, e.g. `"headers.X-Spam-Score", "headers.X-Spam-Hits"`). The server will return a *headers* property but with just the requested headers in the object rather than all headers. If `"headers"` is requested, the server MUST ignore the individual header requests and just return all headers. If a requested header is not present in the message, it MUST not be present in the *headers* object. Header names are case-insensitive.
+- **headers.property**: Instead of requesting all the headers (by requesting the `"headers"` property, the client may specify the particular headers it wants using the `headers.property-name` syntax, e.g. `"headers.x-spam-score", "headers.x-spam-hits"`). The server will return a *headers* property but with just the requested headers in the object rather than all headers. If `"headers"` is requested, the server MUST ignore the individual header requests and just return all headers. If a requested header is not present in the message, it MUST not be present in the *headers* object. Header names are case-insensitive.
 
 The response to *getMessages* is called *messages*. It has the following arguments:
 
@@ -259,7 +259,8 @@ The properties of the Message object submitted for creation MUST conform to the 
 - **isAnswered**: Optional, defaults to `false`. If included this MUST be `false`.
 - **isDraft**: Optional, defaults to `true`. If included this MUST be `true`.
 - **hasAttachment**: This property MUST NOT be included. It is set by the server upon creation based on the attachments property.
-- **headers**: Optional. The keys MUST only contain the characters A-Z, a-z, 0-9 and hyphens.
+- **headers**: Optional. The keys MUST only contain the characters a-z
+  (lower-case only), 0-9 and hyphens.
 - **from**: Optional. Overrides a "From" in the *headers*.
 - **to**: Optional. Overrides a "To" in the *headers*.
 - **cc**: Optional. Overrides a "Cc" in the *headers*.
