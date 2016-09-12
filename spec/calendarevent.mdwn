@@ -205,29 +205,39 @@ If *isAllDay* is `true`, then the following restrictions apply:
     - **until**: `LocalDate` (optional)
       The UNTIL part from iCal. This MUST NOT be included if a *count* property is specified. Note, as in iCal, this date is presumed to be in the timezone specified in *timeZone*. It is not a UTC time.
 
-- **recurrenceOverrides**: `LocalDate[JSONPointer[*|null]|null]|null`
+- **recurrenceOverrides**: `LocalDate[PatchObject|null]|null`
   A combination of RDATE and EXDATE from iCalendar, and event instances with recurrence ids.
 
     The object is a map of the Recurrence-Id (i.e. the date-time of the start of the occurrence) to either `null`, to indicate the occurrence should be deleted, or an object of patches to apply to the generated Event occurrence object.
 
-    If the recurrence-id does not match an expanded start date from a recurrence rule, it is to be treated as an additional occurrence (like an RDATE from iCalendar). The patch object may often be empty in this case.
+    If the Recurrence-Id does not match an expanded start date from a recurrence rule, it is to be treated as an additional occurrence (like an RDATE from iCalendar). The patch object may often be empty in this case.
 
-    By default, an occurrence inherits all properties from the main event except the start time, which is shifted to the new start time. However, individual properties of the occurrence can be modified by a patch, or multiple patches.
+    By default, an occurrence inherits all properties from the main event except the *start* date-time, which is shifted to the new start time. However, individual properties of the occurrence can be modified by a patch, or multiple patches.
 
-    A PatchObject consists of keys in JSON pointer format ([RFC 6901](https://tools.ietf.org/html/rfc6901)) and a value of either `null` or the value to set there.
+    A **PatchObject** is of type `String[*|null]`, and represents an unordered set of patches to apply to the generated occurrence Event object.
 
-    A pointer MUST NOT be the empty string, and MUST NOT start with one of the following prefixes:
+    The keys are a path in a subset of [RFC 6901](https://tools.ietf.org/html/rfc6901) JSON pointer format, with an implicit leading `/` (i.e. prefix each key with `/` before applying the JSON pointer evaluation algorithm).
 
-    - `/uid`
-    - `/relatedTo`
-    - `/prodId`
-    - `/isAllDay`
-    - `/recurrenceRule`
-    - `/recurrenceOverrides`
-    - `/replyTo`
-    - `/participantId`
+    A pointer MUST NOT start with one of the following prefixes; any patch with a such a key MUST be ignored:
 
-    There MUST NOT be two pointers where one is the prefix of the other, e.g. `/alerts/1` AND `/alerts`. The result in this case is undefined.
+    - `uid`
+    - `relatedTo`
+    - `prodId`
+    - `isAllDay`
+    - `recurrenceRule`
+    - `recurrenceOverrides`
+    - `replyTo`
+    - `participantId`
+
+    The pointer MUST NOT reference inside an array (i.e. you MUST NOT insert/delete from an array; the array MUST be replaced in its entirety instead). Any patch with a key that attempts to do this MUST be ignored.
+
+    When evaluating a path, all parts prior to the last (i.e. the value after the final slash) MUST exist for the patch to be valid. If not, the patch MUST be ignored.
+
+    There MUST NOT be two patches in the PatchObject where the pointer of one is the prefix of the pointer of the other, e.g. `alerts/1/offset` AND `alerts`. The result in this case is undefined.
+
+    The value associated with each pointer is either:
+    - `null`: Remove the property. If not present in the parent, this a no-op.
+    - Anything else: The value to replace the inherited property on the occurrence with (if present) or add to the occurrence (if not present).
 
 - **status**: `String` (Defaults to `confirmed` if omitted)
   The status of the event. MUST be one of:
