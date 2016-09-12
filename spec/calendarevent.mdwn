@@ -41,29 +41,23 @@ A **CalendarEvent** object has the following properties:
   semantic content of the two properties SHOULD be equivalent if both are
   specified.
 
-- **links**: `Link[]|null`
-  A list of URIs of related resources for this event.
+- **links**: `String[Link]|null`
+  A map of of link id to Link objects, representing external resources associated with the event. A link id may be any string and need only be unique to this event, although a UUID is a practical choice. This maps to the ATTACH property in iCalendar.
 
     A **Link** object has the following properties:
 
-    - **uri**: `String`
-      The URI for the link
-    - **name**: `String|null` (optional, defaults to `null`)
-      A human-readable description.
-
-- **attachments**: `File[]|null`
-  A list of file attachments to the event. This maps to the ATTACH property in iCalendar.
-
-    A **File** Object has the following properties:
-
-    - **blobId**: `String`
-      The id of the binary data.
-    - **name**: `String|null` (optional, defaults to `null`)
-      The full file name, if known. e.g. "myworddocument.doc"
+    - **href**: `String`
+      A URI from which the resource may be fetched. This MAY be a `data:` URL, but it is recommended that the file be hosted on a server.
     - **type**: `String|null` (optional, defaults to `null`)
-      The content-type of the attachment, if known.
+      The content-type of the resource, if known.
     - **size**: `Number|null` (optional, defaults to `null`)
-      The size, in bytes, of the attachment when fully decoded (i.e. the number of bytes in the file the user would download), if known.
+      The size, in bytes, of the resource when fully decoded (i.e. the number of bytes in the file the user would download), if known.
+    - **rel**: `String` (optional, defaults to `related`)
+      The value of the "rel" member is a string that is a [registered relation type](http://www.iana.org/assignments/link-relations/link-relations.xhtml) (see RFC 5988). The value identifies the relation of the linked resource to the event.
+
+      Links with a *rel* of `enclosure` SHOULD be considered by the client as attachments for download.
+    - **title**: `String|null` (optional, defaults to `null`)
+      A human-readable description of the resource.
 
 - **language**: `String|null`
   The [RFC5646](https://tools.ietf.org/html/rfc5646) language tag that best describes the language used for the *title* and *description* properties in
@@ -78,7 +72,14 @@ A **CalendarEvent** object has the following properties:
       A translation of the event's title.
     - **description**: `String` (Defaults to `''` (the empty string) if omitted)
       A translation of the event's description.
-    - **locations**: `String[LocationTranslation]|null`
+    - **links**: `String[LinkTranslation]|null` (defaults to `null` if omitted)
+      A map of link id to a translation of human-readable components of the link.
+
+      A **LinkTranslation** Object has the following optional property
+
+      - **title**: `String`
+        A translation of the title of the link.
+    - **locations**: `String[LocationTranslation]|null` (defaults to `null` if omitted)
       A map of location id to a translation of human-readable components of the location.
 
       A **LocationTranslation** Object has the following properties, all optional:
