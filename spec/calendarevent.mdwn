@@ -57,35 +57,24 @@ A **CalendarEvent** object has the following properties:
     - **properties**: `String[String|null]|null` (optional, defaults to `null`)
       Extra metadata stored by a client about a link. The keys are URIs, which should be owned by the client author to avoid conflicts, and the values are strings or `null`.
 
-- **language**: `String|null`
-  The [RFC5646](https://tools.ietf.org/html/rfc5646) language tag that best describes the language used for the *title* and *description* properties in
-  this event, if known.
+- **locale**: `String|null`
+  The [RFC5646](https://tools.ietf.org/html/rfc5646) language tag that best describes the locale used for the event, if known.
 
-- **translations**: `String[Translation]|null`
-  A map of [RFC5646](https://tools.ietf.org/html/rfc5646) language tag to an object with translations into that language of the *title* and/or *description* properties of the event.
+- **localisations**: `String[PatchObject]|null`
+  A map of [RFC5646](https://tools.ietf.org/html/rfc5646) language tag to a patch object which localises the event into that locale.
 
-    A **Translation** Object has the following properties, all optional:
+  See the description of *recurrenceOverrides* for the structure of the PatchObject. The patches are applied to the top-level object. In **addition** to all the restrictions on patches specified there, the pointer also MUST NOT start with one of the following prefixes; any patch with a such a key MUST be ignored:
 
-    - **title**: `String` (Defaults to `''` (the empty string) if omitted)
-      A translation of the event's title.
-    - **description**: `String` (Defaults to `''` (the empty string) if omitted)
-      A translation of the event's description.
-    - **links**: `String[LinkTranslation]|null` (defaults to `null` if omitted)
-      A map of link id to a translation of human-readable components of the link.
-
-      A **LinkTranslation** Object has the following optional property
-
-      - **title**: `String`
-        A translation of the title of the link.
-    - **locations**: `String[LocationTranslation]|null` (defaults to `null` if omitted)
-      A map of location id to a translation of human-readable components of the location.
-
-      A **LocationTranslation** Object has the following properties, all optional:
-
-      - **name**: `String`
-        A translation of the name of the location.
-      - **accessInstructions**: `String`
-        A translation of the instructions for accessing this location.
+  - `sequence`
+  - `localisation`
+  - `start`
+  - `timeZone`
+  - `duration`
+  - `status`
+  - `showAsFree`
+  - `participants`
+  - `useDefaultAlerts`
+  - `alerts`
 
 - **locations**: `String[Location]|null`
   A map of of location id to Location objects, representing locations associated with the event. A location id may be any string and need only be unique to this event, although a UUID is a practical choice.
