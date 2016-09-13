@@ -33,13 +33,7 @@ A **CalendarEvent** object has the following properties:
   A short summary of the event. This maps to the SUMMARY property in iCalendar.
 
 - **description**: `String` (Defaults to `''` (the empty string) if omitted)
-  A longer form description of the event. This is plain text, not HTML, but
-  a client SHOULD attempt to hyperlink URLs when displaying it. This maps to the DESCRIPTION property in iCalendar.
-
-- **htmlDescription**: `String` (Defaults to `''` (the empty string) if omitted)
-  This is an alternative to the *description* property, marked up in HTML. The
-  semantic content of the two properties SHOULD be equivalent if both are
-  specified.
+  A longer form description of the event. This is plain text, but a client SHOULD attempt to hyperlink URLs when displaying it. This maps to the DESCRIPTION property in iCalendar.
 
 - **links**: `String[Link]|null`
   A map of of link id to Link objects, representing external resources associated with the event. A link id may be any string and need only be unique to this event, although the href or a UUID are practical choices. This maps to the ATTACH property in iCalendar.
@@ -53,9 +47,11 @@ A **CalendarEvent** object has the following properties:
     - **size**: `Number|null` (optional, defaults to `null`)
       The size, in bytes, of the resource when fully decoded (i.e. the number of bytes in the file the user would download), if known.
     - **rel**: `String` (optional, defaults to `related`)
-      The value of the "rel" member is a string that is a [registered relation type](http://www.iana.org/assignments/link-relations/link-relations.xhtml) (see RFC 5988). The value identifies the relation of the linked resource to the event.
+      The value of the "rel" member is a string that is a [registered relation type](http://www.iana.org/assignments/link-relations/link-relations.xhtml) (see RFC [5988](https://tools.ietf.org/html/rfc5988)). The value identifies the relation of the linked resource to the event.
 
       Links with a *rel* of `enclosure` SHOULD be considered by the client as attachments for download.
+
+      Links with a *rel* of `describedby` SHOULD be considered by the client to be an alternate representation of the *description*, for example an HTML page describing the event.
     - **title**: `String|null` (optional, defaults to `null`)
       A human-readable description of the resource.
 
