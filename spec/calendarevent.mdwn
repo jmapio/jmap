@@ -239,8 +239,13 @@ If *isAllDay* is `true`, then the following restrictions apply:
   If true, the event should be ignored when calculating free/busy data for the
   user. This maps to the TRANSP property in iCalendar (`false <=> OPAQUE`, `true <=> TRANSPARENT`).
 
-- **replyTo**: `String|null`
-  The email to send scheduling (iMIP) replies to. This maps to the email address of the ORGANIZER in iCalendar.
+- **replyTo**: `String[String]|null`
+  Represents methods by which a participant may RSVP to the organizer of the event. The keys in the object are the available methods. The value is a uri to use that method. Future methods may be defined in future specications; a calendar client MUST just ignore any method it does not understand.
+
+  The following methods are defined:
+
+  - `imip`: The organizer accepts an iMIP ([RFC 6047](https://tools.ietf.org/html/rfc6047)) response. The value MUST be a `mailto:` uri. This maps to the email address of the ORGANIZER in iCalendar.
+  - `web`: There is a web page where the user may submit an RSVP using their browser. The value MUST be an `http:` or `https:` uri.
 
 - **participants**: `String[Participant]|null`
   A map of calendar-user-id to an object describing their participation in the event. This is a combination of the ORGANIZER and ATTENDEES properties from iCalendar.
