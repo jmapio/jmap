@@ -73,7 +73,6 @@ A **CalendarEvent** object has the following properties:
   - `showAsFree`
   - `participants`
   - `useDefaultAlerts`
-  - `alerts`
 
 - **locations**: `String[Location]|null`
   A map of of location id to Location objects, representing locations associated with the event. A location id may be any string and need only be unique to this event, although a UUID is a practical choice.
@@ -321,14 +320,13 @@ If *isAllDay* is `true`, then the following restrictions apply:
 
       - **type**: `String`
         The value MUST be `"display"`.
-      - **acknowledgedUntil**: `LocalDate|null`
-        When the user has permanently dismissed the alert this SHOULD be set to
-        the *start* property **of the event, or occurrence if the event is recurring**. Other clients which sync this property can then automatically dismiss or suppress duplicate alerts (alerts with the same alert id for an occurrence of this event that starts on or before this date).
-      - **snoozedUntil**: `UTCDate|null`
+      - **acknowledged**: `UTCDate|null`
+        When the user has permanently dismissed the alert the client SHOULD set this to the current time in UTC. Other clients which sync this property can then automatically dismiss or suppress duplicate alerts (alerts with the same alert id that triggered on or before this date-time). For a recurring event, the *acknowledged* property of the parent event SHOULD be updated, unless the alert is already overriden in *recurrenceOverrides*.
+      - **snoozed**: `UTCDate|null`
         If the user temporarily dismisses the alert, this is the UTC date-time
-        after which it should be reshown. This property MUST be ignored for
-        alerts which have been permanently dismissed (see the *acknowledgedUpto*
-        property).
+        after which it should be reshown.
+
+        Clients displaying this alert SHOULD hide it if the *snoozed* property is updated to a time in the future. When that time is reached, the alert SHOULD be reshown unless *acknowledged* is now after the **original** trigger time.
 
       Where an **EmailAction** object has the following properties:
 
