@@ -155,17 +155,14 @@ If *isAllDay* is `true`, then the following restrictions apply:
     - **skip**: `String` (optional, defaults to `"omit"`)
       The SKIP part from iCal RSCALE (RFC7529), converted to lower-case.
     - **firstDayOfWeek**: `String` (optional, defaults to `"monday"`)
-      The WKST part from iCal, represented as a lower-case unabbreviated English day of the week. If included, it MUST be one of the following values:
-
-          "monday"|"tuesday"|"wednesday"|"thursday"|"friday"|"saturday"|"sunday"
-
+      The WKST part from iCal, represented as a lower-case two-letter English day of the week. If included, it MUST be one of the following values: `"mo"|"tu"|"we"|"th"|"fr"|"sa"|"su"`
     - **byDay**: `NDay[]` (optional)
       The BYDAY part from iCal. The array MUST have at least one entry if included.
 
       An **NDay** object has the following properties:
 
       - **day**: `String`
-        "monday"|"tuesday"|"wednesday"|"thursday"|"friday"|"saturday"|"sunday"
+        The day-of-the-week part of the BYDAY value in iCal, lower-cased. MUST be one of the following values: `"mo"|"tu"|"we"|"th"|"fr"|"sa"|"su"`.
       - **nthOfPeriod**: `Number` (optional)
         If present, rather than representing *every* Friday (for example), it represents only a specific instance within the period (month for monthly recurrences, year for yearly recurrences). Must be a non-zero integer, negative integers means nth-last of period. This is the `"+1"` or `"-3"` etc. prefix from the BYDAY values in iCal.
 
