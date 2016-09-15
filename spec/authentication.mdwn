@@ -8,11 +8,11 @@ The server may support multiple different mechanisms for authenticating a user t
 
 All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request.
 
-If the user authenticated via OAuth, requests should be authenticated with the authentication scheme as specified by the OAuth provider.
+Once authenticated (see "Getting an access token" below), the client will have an access token. This is used with the `Bearer` scheme as specified in [RFC 6750](https://tools.ietf.org/html/rfc6750) to authenticate HTTP requests.
 
-If the user authenticated via the JMAP auth protocol (see "Getting an access token" below), the authentication scheme is called `X-JMAP`, with a value of the *accessToken* returned after successful authentication. For example, if *user@example.com* successfully logged in and the client received an *accessToken* of `abcdef1234567890`, to authenticate requests you would add the following header:
+For example, if *user@example.com* successfully logged in and the client received an *accessToken* of `abcdef1234567890`, to authenticate requests you would add the following header:
 
-    Authorization: X-JMAP abcdef1234567890
+    Authorization: Bearer abcdef1234567890
 
 ### Service autodiscovery
 
@@ -170,7 +170,7 @@ Sample HTTP exchange demonstrating the use of a signed request to download an at
 ```
 POST /jmap/download/1234 HTTP/1.1
 Host: server.jmap.io
-Authorization: Bearer a3f5b6af745c9820264b6664d7c2c489adafd99f0f21a686c43aabfebf65418b
+Authorization: Bearer abcdef1234567890
 
 HTTP/1.1 200 OK
 Content-Type: text/plain
@@ -271,7 +271,7 @@ A client may revoke an access token at any time by making an authenticated DELET
 
 `204`: Success (the access token has now been revoked).
 
-`401`: Failed due to no `Authorization` header, or `Authorization` header is not a valid access token. As per the HTTP spec, the response MUST have a `WWW-Authenticate: X-JMAP` header.
+`401`: Failed due to no `Authorization` header, or `Authorization` header is not a valid access token. As per the HTTP spec, the response MUST have a `WWW-Authenticate: Bearer` header.
 
 No content is returned in either case.
 
