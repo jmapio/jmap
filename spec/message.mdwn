@@ -2,21 +2,21 @@
 
 Just like in IMAP, a message is **immutable** except for the boolean `isXXX` status properties and the set of mailboxes it is in. This allows for more efficient caching of messages, and gives easier backwards compatibility for servers implementing an IMAP interface to the same data.
 
-JMAP completely hides the complexities of MIME. All special encodings of either headers or the body, such as [base64](https://tools.ietf.org/html/rfc4648), or [RFC2047](http://tools.ietf.org/html/rfc2047) encoding of non-ASCII characters, MUST be fully decoded into standard UTF-8.
+JMAP completely hides the complexities of MIME. All special encodings of either headers or the body, such as [base64](https://tools.ietf.org/html/rfc4648), or [RFC 2047](http://tools.ietf.org/html/rfc2047) encoding of non-ASCII characters, MUST be fully decoded into standard UTF-8.
 
 A **Message** object has the following properties:
 
 - **id**: `String`
   The id of the message.
 - **blobId**: `String`
-  The id representing the raw RFC2822 message. This may be used to download
+  The id representing the raw [RFC5322](https://tools.ietf.org/html/rfc5322) message. This may be used to download
   the original message or to attach it directly to another message etc.
 - **threadId**: `String`
   The id of the thread to which this message belongs.
 - **mailboxIds**: `String[]` (Mutable)
   The ids of the mailboxes the message is in. A message MUST belong to one or more mailboxes at all times (until it is deleted).
 - **inReplyToMessageId**: `String|null`
-  The id of the Message this message is a reply to. This is primarily for drafts, but the server MAY support this for received messages as well by looking up the RFC2822 Message-Id referenced in the `In-Reply-To` header and searching for this message in the user's mail.
+  The id of the Message this message is a reply to. This is primarily for drafts, but the server MAY support this for received messages as well by looking up the [RFC5322](https://tools.ietf.org/html/rfc5322) Message-Id referenced in the `In-Reply-To` header and searching for this message in the user's mail.
 - **isUnread**: `Boolean` (Mutable)
   Has the message not yet been read? This corresponds to the **opposite** of the `\Seen` system flag in IMAP.
 - **isFlagged**: `Boolean` (Mutable)
@@ -56,7 +56,7 @@ A **Message** object has the following properties:
 - **attachments**: `Attachment[]|null`
   An array of attachment objects (see below) detailing all the attachments to the message.
 - **attachedMessages**: `String[Message]|null`
-  An object mapping attachment id (as found in the `attachments` property) to a **Message** object with the following properties, for each RFC2822 message attached to this one:
+  An object mapping attachment id (as found in the `attachments` property) to a **Message** object with the following properties, for each [RFC5322](https://tools.ietf.org/html/rfc5322) message attached to this one:
   - headers
   - from
   - to
@@ -77,7 +77,7 @@ An **Emailer** object has the following properties:
 - **email**: `String`
   The email address of the sender/recipient. This MUST be of the form `"<mailbox>@<host>"` If a `host` or even `mailbox` cannot be extracted for an email, the empty string SHOULD be used for this part (so the result MUST always still contain an `"@"` character).
 
-Group information and comments from the RFC 2822 header MUST be discarded when converting into an Emailer object.
+Group information and comments from the RFC 5322 header MUST be discarded when converting into an Emailer object.
 
 Example array of Emailer objects:
 
@@ -245,7 +245,7 @@ If an id given cannot be found, the update or destroy MUST be rejected with a `n
 
 #### Saving a draft
 
-Creating messages via the *setMessages* method is only for creating draft messages and sending them. For delivering/importing a complete RFC2822 message, use the `importMessages` method.
+Creating messages via the *setMessages* method is only for creating draft messages and sending them. For delivering/importing a complete [RFC5322](https://tools.ietf.org/html/rfc5322) message, use the `importMessages` method.
 
 The properties of the Message object submitted for creation MUST conform to the following conditions:
 
@@ -357,7 +357,7 @@ The following errors may be returned instead of the *messagesSet* response:
 
 ### importMessages
 
-The *importMessages* method adds RFC2822 messages to a user's set of messages. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
+The *importMessages* method adds [RFC5322](https://tools.ietf.org/html/rfc5322) messages to a user's set of messages. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the account to use for this call. If `null`, defaults to the primary account.
@@ -367,7 +367,7 @@ The *importMessages* method adds RFC2822 messages to a user's set of messages. T
 An **MessageImport** object has the following properties:
 
 - **blobId**: `String`
-  The id representing the raw RFC2822 message (see the file upload section).
+  The id representing the raw [RFC5322](https://tools.ietf.org/html/rfc5322) message (see the file upload section).
 - **mailboxIds** `String[]`
   The ids of the mailbox(es) to assign this message to.
 - **isUnread**: `Boolean`
