@@ -1,6 +1,8 @@
-## Mailboxes
+# Mailboxes
 
 A mailbox represents a named set of emails. This is the primary mechanism for organising messages within an account. It is analogous to a folder in IMAP or a label in other systems. A mailbox may perform a certain role in the system; see below for more details.
+
+For compatibility with IMAP, a message MUST belong to one or more mailboxes. The message id does not change if the message changes mailboxes.
 
 A **Mailbox** object has the following properties:
 
@@ -72,7 +74,7 @@ For example, suppose you have an account where the entire contents is a single c
 
 Destroying a mailbox MUST NOT delete any messages still contained within it. It only removes them from the mailbox. Since messages MUST always be in at least one mailbox, if the last mailbox they are in is deleted the messages must be added to the mailbox with `role == "inbox"`. If no Inbox exists, the messages must be moved to any other mailbox; this is server dependent.
 
-### getMailboxes
+## getMailboxes
 
 Mailboxes can either be fetched explicitly by id, or all of them at once. To fetch mailboxes, make a call to `getMailboxes`. It takes the following arguments:
 
@@ -102,7 +104,7 @@ The following errors may be returned instead of the *mailboxes* response:
 
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-### getMailboxUpdates
+## getMailboxUpdates
 
 The *getMailboxUpdates* call allows a client to efficiently update the state of its cached mailboxes to match the new state on the server. It takes the following arguments:
 
@@ -142,7 +144,7 @@ The following errors may be returned instead of the `mailboxUpdates` response:
 
 `cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its Mailbox cache. The error object MUST also include a `newState: String` property with the current state for the type.
 
-### setMailboxes
+## setMailboxes
 
 Mailboxes can be created, updated and destroyed using the *setMailboxes* method. The method takes the following arguments:
 
@@ -161,7 +163,7 @@ Each create, update or destroy is considered an atomic unit. The server MAY comm
 
 If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
-#### Ordering of changes
+### Ordering of changes
 
 Each individual create, update or destroy MUST take the server from one valid state to another valid state, so the changes can be processed linearly without need to undo or backtrack. However the order of the changes may affect the validity of the change. The server MUST process the changes in a manner which is indistinguishable from an order following these rules:
 
@@ -171,7 +173,7 @@ Each individual create, update or destroy MUST take the server from one valid st
 4. Updates come before destroying mailboxes.
 5. Update/Destroy X comes before update/destroy Y if X is a descendent of Y.
 
-####  Creating mailboxes
+###  Creating mailboxes
 
 The properties of the Mailbox object submitted for creation MUST conform to the following conditions:
 
@@ -186,7 +188,7 @@ If any of the properties are invalid, the server MUST reject the create with an 
 
 There may be a maximum number of mailboxes allowed on the server. If this is reached, any attempt at creation will be rejected with a `maxQuotaReached` error.
 
-####  Updating mailboxes
+###  Updating mailboxes
 
 If the *id* given does not correspond to a Mailbox in the given account, the update MUST be rejected with a `notFound` error.
 
@@ -211,7 +213,7 @@ All properties being updated must be of the correct type, not immutable or serve
 
 If any of the properties are invalid, the server MUST reject the update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
 
-#### Destroying mailboxes
+### Destroying mailboxes
 
 If the *id* given does not correspond to a Mailbox in the given account, the destruction MUST be rejected with a `notFound` error.
 
@@ -223,7 +225,7 @@ Destroying a mailbox MUST NOT delete any messages still contained within it. It 
 
 There MUST always be **at least one** mailbox. It is expected that the server will enforce this by setting `mayDeleteMailbox == false` on at least the Inbox, if not all system mailboxes. However, if this is not the case, an attempt to destroy the last mailbox MUST still be rejected with a `mailboxRequired` error.
 
-#### Response
+### Response
 
 The response to *setMailboxes* is called *mailboxesSet*. It has the following arguments:
 

@@ -1,6 +1,6 @@
 ## Calendar Events
 
-A CalendarEvent contains information about an event, or recurring series of events, that takes place at a particular time. The object is designed to be easily convertible to/from iCalendar format ([RFC 5545](https://tools.ietf.org/html/rfc5545)) for compatibility with existing calendaring systems.
+A CalendarEvent contains information about an event, or recurring series of events, that takes place at a particular time. The object is designed to be easily convertible to/from iCalendar format ([@!RFC5545]) for compatibility with existing calendaring systems.
 
 A **CalendarEvent** object has the following properties:
 
@@ -13,8 +13,15 @@ A **CalendarEvent** object has the following properties:
 - **uid**: `String`
   The UID from iCalendar. Used to associate the event as the same across different systems, calendars and views.
 
-- **relatedTo**: `String[]|null`
-  A list of UIDs that are part of the same series as this event. For example, if an event is split to make a "this and future" change to a recurrence, each new event should include the other's uid in its *relatedTo* property. Clients can then follow these UIDs to get the complete set of events if the user wishes to modify them all at once. Maps to the RELATED-TO field in iCalendar.
+- **relatedTo**: `String[String]|null`
+  A map of relation-type to UID of the related event. Specified relation types are:
+
+    - `first`: The first event in a series.
+    - `next`: The next event in a series.
+
+    If an event is split to make a "this and future" change to a recurrence, the original event should be truncated to end at the previous occurrence before this split, and a new event created to represent all the events after the split.
+
+    A `next` *relatedTo* property SHOULD be set on the original event with the UID of the new event. A `first` *relatedTo* property with the UID of the first event in the series SHOULD be set on the new event. Clients can then follow these UIDs to get the complete set of events if the user wishes to modify them all at once. Maps to the RELATED-TO field in iCalendar.
 
 - **prodId**: `String|null`
   The identifier for the product that created the Event object. The vendor of the implementation SHOULD ensure that this is a globally unique identifier.
@@ -57,10 +64,10 @@ A **CalendarEvent** object has the following properties:
       Extra metadata stored by a client about a link. The keys are URIs, which should be owned by the client author to avoid conflicts, and the values are strings or `null`.
 
 - **locale**: `String|null`
-  The [RFC5646](https://tools.ietf.org/html/rfc5646) language tag that best describes the locale used for the event, if known.
+  The [@!RFC5646] language tag that best describes the locale used for the event, if known.
 
 - **localizations**: `String[PatchObject]|null`
-  A map of [RFC5646](https://tools.ietf.org/html/rfc5646) language tag to a patch object which localises the event into that locale.
+  A map of [@!RFC5646] language tag to a patch object which localises the event into that locale.
 
   See the description of *recurrenceOverrides* for the structure of the PatchObject. The patches are applied to the top-level object. In **addition** to all the restrictions on patches specified there, the pointer also MUST NOT start with one of the following prefixes; any patch with a such a key MUST be ignored:
 
@@ -109,7 +116,7 @@ A **CalendarEvent** object has the following properties:
           The country name.
 
     - **coordinates**: `String`
-      An [RFC 5870](https://tools.ietf.org/html/rfc5870) `geo:` URI for the location.
+      An [@!RFC5870] `geo:` URI for the location.
     - **uri**: `String`
       A URI that represents how to connect to the event from this location. This may be a telephone number (represented as `tel:+1-555-555-555`) for a teleconference, a web address for online chat, or a custom URI for something like Skype (e.g. `skype:username`).
 
@@ -198,7 +205,7 @@ If *isAllDay* is `true`, then the following restrictions apply:
 
     A **PatchObject** is of type `String[*|null]`, and represents an unordered set of patches to apply to the generated occurrence Event object.
 
-    The keys are a path in a subset of [RFC 6901](https://tools.ietf.org/html/rfc6901) JSON pointer format, with an implicit leading `/` (i.e. prefix each key with `/` before applying the JSON pointer evaluation algorithm).
+    The keys are a path in a subset of [@!RFC6901] JSON pointer format, with an implicit leading `/` (i.e. prefix each key with `/` before applying the JSON pointer evaluation algorithm).
 
     A pointer MUST NOT start with one of the following prefixes; any patch with a such a key MUST be ignored:
 
@@ -240,7 +247,7 @@ If *isAllDay* is `true`, then the following restrictions apply:
 
   The following methods are defined:
 
-  - `imip`: The organizer accepts an iMIP ([RFC 6047](https://tools.ietf.org/html/rfc6047)) response. The value MUST be a `mailto:` uri. This maps to the email address of the ORGANIZER in iCalendar.
+  - `imip`: The organizer accepts an iMIP ([@!RFC6047]) response. The value MUST be a `mailto:` uri. This maps to the email address of the ORGANIZER in iCalendar.
   - `web`: There is a web page where the user may submit an RSVP using their browser. The value MUST be an `http:` or `https:` uri.
 
 - **participants**: `String[Participant]|null`

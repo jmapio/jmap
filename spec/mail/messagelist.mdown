@@ -1,4 +1,4 @@
-## MessageLists
+# MessageLists
 
 A **MessageList** is a sorted query on the set of messages in a user's account. Since it can be very long, the client must specify what section of the list to return. The client can optionally also fetch the threads and/or messages for this part of the list.
 
@@ -6,7 +6,7 @@ The same message may appear in multiple messages lists. For example, it may belo
 
 When the state changes on the server, a delta update can be requested to efficiently update the client's cache of this list to the new state. If the server doesn't support this, the client still only needs to fetch the message list again, not the messages themselves.
 
-### getMessageList
+## getMessageList
 
 To fetch a message list, make a call to *getMessageList*. It takes the following arguments:
 
@@ -35,7 +35,7 @@ To fetch a message list, make a call to *getMessageList*. It takes the following
 - **fetchSearchSnippets**: `Boolean|null`
   If `true`, then after outputting a *messageList* and making any other implicit calls, an implicit call will be made to *getSearchSnippets*. The *messageIds* array from the response will be used as the *messageIds* argument, and the *filter* argument will be passed straight through. If `false` or `null`, no implicit call will be made.
 
-#### Filtering
+### Filtering
 
 A **FilterOperator** object has the following properties:
 
@@ -102,7 +102,7 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 - Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for `bus` would match "buses" but not "business").
 - When searching inside the *htmlBody* property, HTML tags and attributes SHOULD be ignored.
 
-#### Sorting
+### Sorting
 
 The `sort` argument lists the properties to compare between two messages to determine which comes first in the sort. If two messages have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array or `null` is given as the argument), the sort order is server-dependent, but MUST be stable between calls to `getMessageList`.
 
@@ -132,11 +132,11 @@ The method of comparison depends on the type of the property:
 - `Date`: If sorting in ascending order, the earlier date MUST come first.
 - `Boolean`: If sorting in ascending order, a `false` value MUST come before a `true` value.
 
-#### Thread collapsing
+### Thread collapsing
 
 When `collapseThreads == true`, then after filtering and sorting the message list, the list is further winnowed by removing any messages for a thread id that has already been seen (when passing through the list sequentially). A thread will therefore only appear **once** in the `threadIds` list of the result, at the position of the first message in the list that belongs to the thread.
 
-#### Windowing
+### Windowing
 
 If a *position* offset is supplied, then this is the 0-based index of the first result to return in the list of messages after filtering, sorting and collapsing threads. If the index is greater than or equal to the total number of messages in the list, then there are no results to return, but this DOES NOT generate an error. If *position* is `null` (or, equivalently, omitted) this MUST be interpreted as `position: 0`.
 
@@ -144,7 +144,7 @@ Alternatively, a message id, called the **anchor** may be given. In this case, a
 
 If an *anchor* is specified, any position argument supplied by the client MUST be ignored. If *anchorOffset* is `null`, it defaults to `0`. If no *anchor* is supplied, any anchor offset argument MUST be ignored.
 
-#### Response
+### Response
 
 The response to a call to *getMessageList* is called *messageList*. It has the following arguments:
 
@@ -183,7 +183,7 @@ The following errors may be returned instead of the `messageList` response:
 
 `anchorNotFound`: Returned if an anchor argument was supplied, but it cannot be found in the message list.
 
-### getMessageListUpdates
+## getMessageListUpdates
 
 The `getMessageListUpdates` call allows a client to efficiently update the state of any cached message list to match the new state on the server. It takes the following arguments:
 

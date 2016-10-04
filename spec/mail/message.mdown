@@ -1,4 +1,4 @@
-## Messages
+# Messages
 
 Just like in IMAP, a message is **immutable** except for the boolean `isXXX` status properties and the set of mailboxes it is in. This allows for more efficient caching of messages, and gives easier backwards compatibility for servers implementing an IMAP interface to the same data.
 
@@ -9,14 +9,14 @@ A **Message** object has the following properties:
 - **id**: `String`
   The id of the message.
 - **blobId**: `String`
-  The id representing the raw [RFC5322](https://tools.ietf.org/html/rfc5322) message. This may be used to download
+  The id representing the raw [@!RFC5322] message. This may be used to download
   the original message or to attach it directly to another message etc.
 - **threadId**: `String`
   The id of the thread to which this message belongs.
 - **mailboxIds**: `String[]` (Mutable)
   The ids of the mailboxes the message is in. A message MUST belong to one or more mailboxes at all times (until it is deleted).
 - **inReplyToMessageId**: `String|null`
-  The id of the Message this message is a reply to. This is primarily for drafts, but the server MAY support this for received messages as well by looking up the [RFC5322](https://tools.ietf.org/html/rfc5322) Message-Id referenced in the `In-Reply-To` header and searching for this message in the user's mail.
+  The id of the Message this message is a reply to. This is primarily for drafts, but the server MAY support this for received messages as well by looking up the [@!RFC5322] Message-Id referenced in the `In-Reply-To` header and searching for this message in the user's mail.
 - **isUnread**: `Boolean` (Mutable)
   Has the message not yet been read? This corresponds to the **opposite** of the `\Seen` system flag in IMAP.
 - **isFlagged**: `Boolean` (Mutable)
@@ -56,7 +56,7 @@ A **Message** object has the following properties:
 - **attachments**: `Attachment[]|null`
   An array of attachment objects (see below) detailing all the attachments to the message.
 - **attachedMessages**: `String[Message]|null`
-  An object mapping attachment id (as found in the `attachments` property) to a **Message** object with the following properties, for each [RFC5322](https://tools.ietf.org/html/rfc5322) message attached to this one:
+  An object mapping attachment id (as found in the `attachments` property) to a **Message** object with the following properties, for each [@!RFC5322] message attached to this one:
   - headers
   - from
   - to
@@ -106,7 +106,7 @@ An **Attachment** object has the following properties:
 - **height**: `Number|null`
   The height (in px) of the image, if the attachment is an image.
 
-### getMessages
+## getMessages
 
 Messages can only be fetched explicitly by id. To fetch messages, make a call to `getMessages`. It takes the following arguments:
 
@@ -168,7 +168,7 @@ and response:
     }, "#1"]
 
 
-### getMessageUpdates
+## getMessageUpdates
 
 If a call to *getMessages* returns with a different *state* string in the response to a previous call, the state of the messages has changed on the server. For example, a new message may have been delivered, or an existing message may have changed mailboxes.
 
@@ -214,7 +214,7 @@ The following errors may be returned instead of the *messageUpdates* response:
 
 `cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Message cache. The error object MUST also include a `newState: String` property with the current state for the type.
 
-### setMessages
+## setMessages
 
 The *setMessages* method encompasses:
 
@@ -243,9 +243,9 @@ If a create, update or destroy is rejected, the appropriate error MUST be added 
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
 
-#### Saving a draft
+### Saving a draft
 
-Creating messages via the *setMessages* method is only for creating draft messages and sending them. For delivering/importing a complete [RFC5322](https://tools.ietf.org/html/rfc5322) message, use the `importMessages` method.
+Creating messages via the *setMessages* method is only for creating draft messages and sending them. For delivering/importing a complete [@!RFC5322] message, use the `importMessages` method.
 
 The properties of the Message object submitted for creation MUST conform to the following conditions:
 
@@ -285,7 +285,7 @@ Other than making sure it conforms to the correct type, the server MUST NOT atte
 
 If a draft cannot be saved due to the user reaching their maximum mail storage quota, the creation MUST be rejected with a `maxQuotaReached` error.
 
-#### Updating messages
+### Updating messages
 
 Messages are mainly immutable, so to update a draft the client must create a new message and delete the old one. This ensures that if the draft is also being edited elsewhere, the two will split into two different drafts to avoid data loss.
 
@@ -304,23 +304,23 @@ If the *id* given does not correspond to a Message in the given account, reject 
 
 To **delete a message** to trash, simply change the `mailboxIds` property so it is now in the mailbox with `role == "trash"`. If the mailbox has the property `mustBeOnlyMailbox == true`, it must be removed from all other mailboxes. Otherwise, leave it in those mailboxes so that it will be restored to its previous state if undeleted.
 
-#### Sending messages
+### Sending messages
 
 To send a message, either create a new message directly into the mailbox with `role == "outbox"` or move an existing draft into this mailbox. At this point the server will check that it has everything it needs for a valid message. In particular, that it has a valid "From" address (and the user has permission to use this From address), it has at least one address to send to, and all addresses in To/Cc/Bcc are valid email addresses. If it cannot send, it will reject the creation/update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object SHOULD also contain a *description* property of type `String` with a user-friendly description of the problems to present to the user.
 
 If the message is accepted, the server SHOULD **asynchronously** schedule the message to be sent **after** this method call is complete (note, this MAY occur before the next method in the same API request or after the whole API request is complete). This means that the `newState` string in the response represents a state where the message is still in the outbox. When the message is sent, the server MUST delete the message from the **outbox** and SHOULD create a **new** copy of the sent message (with a new id) in the **sent** mailbox, unless the user has indicated another preference. If `inReplyToMessageId` was set, the server SHOULD mark this message as `isAnswered: true` at this point, if found.
 
-#### Cancelling a send
+### Cancelling a send
 
 A message may be moved out of the **outbox** and back to the **drafts** mailbox using the standard update message mechanism, if it has not yet been sent at the time the method is called. This MUST cancel the queued send. If the message has already been sent then it will have been deleted from the outbox, so the update will fail with a standard `notFound` error.
 
-#### Destroying messages
+### Destroying messages
 
 If the *id* given does not correspond to a Message in the given account, the server MUST reject the destruction with a `notFound` error.
 
 Destroying a message removes it from all mailboxes to which it belonged.
 
-#### Response
+### Response
 
 The response to *setMessages* is called *messagesSet*. It has the following arguments:
 
@@ -355,9 +355,9 @@ The following errors may be returned instead of the *messagesSet* response:
 
 `stateMismatch`: Returned if an *ifInState* argument was supplied and it does not match the current state.
 
-### importMessages
+## importMessages
 
-The *importMessages* method adds [RFC5322](https://tools.ietf.org/html/rfc5322) messages to a user's set of messages. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
+The *importMessages* method adds [@!RFC5322] messages to a user's set of messages. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the account to use for this call. If `null`, defaults to the primary account.
@@ -367,7 +367,7 @@ The *importMessages* method adds [RFC5322](https://tools.ietf.org/html/rfc5322) 
 An **MessageImport** object has the following properties:
 
 - **blobId**: `String`
-  The id representing the raw [RFC5322](https://tools.ietf.org/html/rfc5322) message (see the file upload section).
+  The id representing the raw [@!RFC5322] message (see the file upload section).
 - **mailboxIds** `String[]`
   The ids of the mailbox(es) to assign this message to.
 - **isUnread**: `Boolean`
@@ -402,7 +402,7 @@ The following errors may be returned instead of the *messageImported* response:
 
 `maxQuotaReached`: Returned if the user has reached their mail quota so the message cannot be imported.
 
-### copyMessages
+## copyMessages
 
 The only way to move messages **between** two different accounts is to copy them using the *copyMessages* method, then once the copy has succeeded, delete the original. It takes the following arguments:
 
@@ -463,7 +463,7 @@ The following errors may be returned instead of the *messagesCopied* response:
 
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-### reportMessages
+## reportMessages
 
 Messages can be reported as spam or non-spam to help train the user's spam filter. This MUST NOT affect the state of the Message objects (it DOES NOT move a message into or out of the Spam mailbox).
 

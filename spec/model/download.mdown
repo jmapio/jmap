@@ -1,0 +1,29 @@
+# Downloading binary data
+
+Binary data is referenced by a *blobId* in JMAP. A blob id does not have a name inherent to it, but this is normally given in the same object that contains the blob id.
+
+After completing authentication, the client will receive a *downloadUrl* as part of the response. This is in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `accountId` and `blobId`. The URL SHOULD contain a variable called `name`.
+
+The client may use this template in combination with an accountId and blobId to download any binary data (files) referenced by other objects. Since a blob is not associated with a particular name, the template SHOULD allow a name to be substituted in as well; the server will return this as the filename if it sets a `Content-Disposition` header.
+
+To download the data the client MUST make an authenticated GET request to the download URL with the appropriate variables substituted in, and then follow any redirects. In situations where it's not easy to authenticate the download request (e.g.: when downloading a file through a link in a HTML document), the client MAY use a signed GET request (see below for how to issue a signed request).
+
+After following redirects, the server MUST return one of the following responses to a request to the download URL:
+
+## 200: OK
+
+Request successful. The binary data is returned. The `Content-Type` header SHOULD be set to the correct content type for the content.
+
+## 401: Unauthorized
+
+The `Authorization` header was missing or did not contain a valid token and there was no `access_token` query parameter, or it did not contain a valid token. Reauthenticate and then retry the request. As per the HTTP spec, the response MUST have a `WWW-Authenticate` header listing the available authentication schemes.
+
+The server MAY return an HTML page response, which clients MAY show to the user. This is primarily for when the URL is passed off to the browser, and the JMAP client may not see the actual response.
+
+## 404: Not Found
+
+The file was not found at this address.
+
+## 503: Service Unavailable
+
+The server is currently down. The client should try again later with exponential backoff. There is no content in the response.

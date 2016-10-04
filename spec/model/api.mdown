@@ -1,18 +1,54 @@
-# JMAP: The Spec
+# Structured data exchange
 
-<div id="last-update">Last updated 2016-09-15</div>
+The client may make an API request to the server to get or set structured data. This request consists of an ordered series of method calls. These are processed by the server, which then returns an ordered series of responses.
 
-This is a specification. It is meant to be readable but it also has to be comprehensive, so it can be dense in places. If you want to get a quick idea of how JMAP works, you should probably read the [guide for client developers](client.html) first. This has lots of example exchanges and should give you a good feel for what JMAP is all about. The spec is heavier going; it attempts to document exactly what each method should do, and what should happen in a myriad of edge cases.
+## Making an API request
 
-There are undoubtably edge cases that are not yet covered. If you find one, please email <editor@jmap.io> or make a pull request on GitHub if you have a proposed fix.
+To make an API request, the client makes an authenticated POST request to the API URL; see the Authentication section of the spec for how to discover this URL and how to authenticate requests.
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119](https://tools.ietf.org/html/rfc2119).
+The request MUST have a content type of `application/json` and be encoded in UTF-8.
 
-## The JSON API model
+The request MAY include an `X-JMAP-Version` header, the value of which is a number for the spec version the client would like to use. If omitted, the server MUST presume a value equal to the *lowest* version the server supports.
 
-JSON is a text-based data interchange format as specified in [RFC7159](https://tools.ietf.org/html/rfc7159). The I-JSON format defined in [RFC7493](https://tools.ietf.org/html/rfc7493) is a strict subset of this, adding restrictions to avoid potentially confusing scenarios (for example, it mandates that an object MUST NOT have two properties with the same key). All data sent from the client to the server or from the server to the client MUST be valid I-JSON according to the RFC, is case-sensitive, and encoded in UTF-8.
+The request MAY include an `X-JMAP-Extensions` header, the value of which is a comma-separated list of `vendor-extension-name:extension-version` the client would like to use. For example:
 
-### The structure of an exchange
+    X-JMAP-Extensions: com.fastmail.message:1, com.fastmail.savedSearch:4
+
+Any white-space MUST be ignored when evaluating this header.
+
+The list of versions and extensions supported by the server is returned upon successful authentication.
+
+The server will respond with one of the following HTTP response codes:
+
+### 200: OK
+
+The API request was successful. The response will be of type `application/json` and consists of the response to the API calls, as described below.
+
+### 400: Bad Request
+
+The request was malformed. For example, it may have had the wrong content type, or have had a JSON object that did not conform to the API calling structure (see *The structure of an API request* below). The client SHOULD NOT retry the same request. There is no content in the response.
+
+### 401: Unauthorized
+
+The `Authorization` header was missing or did not contain a valid token. Reauthenticate and then retry the request. As per the HTTP spec, the response MUST have a `WWW-Authenticate` header listing the available authentication schemes. There is no content in the response.
+
+### 404: Not Found
+
+The API endpoint has moved. See the Authentication section of the spec for how to rediscover the current URL to use. There is no content in the response.
+
+### 412: Precondition Failed
+
+This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by the server. There is no content in the response.
+
+### 500: Internal Server Error
+
+Something has gone wrong internally, and the server is in a broken state. Don't automatically retry. There is no content in the response.
+
+### 503: Service Unavailable
+
+The server is currently down. Try again later with exponential backoff. There is no content in the response.
+
+## The structure of an API request
 
 The client initiates an API request by sending the server a JSON array. Each element in this array is another array representing a method invocation on the server. The server will process the method calls and return a response consisting of an array in the same format. Each method call always contains three elements:
 
@@ -38,11 +74,14 @@ Example response:
     [
       ["responseFromMethod1", {"arg1": 3, "arg2": "foo"}, "#1"],
       ["responseFromMethod2", {"isBlah": true}, "#2"],
-      ["anotherResponseFromMethod2", {"data": 10, "yetmoredata": "Hello"}, "#2"],
+      ["anotherResponseFromMethod2", {
+        "data": 10,
+        "yetmoredata": "Hello"
+      }, "#2"],
       ["aResponseFromMethod3", {}, "#3"]
     ]
 
-### Errors
+## Errors
 
 If the data sent as an API request is not valid JSON or does not match the structure above, an error will be returned at the transport level. For example, when using JMAP over HTTP, a `400 Bad Request` error will be returned at the HTTP level.
 
@@ -62,79 +101,41 @@ If an unknown method is called, an `unknownMethod` error (this is the type shown
 
 If an unknown argument or invalid arguments (wrong type, or in violation of other specified constraints) are supplied to a method, an `invalidArguments` error MUST be inserted and then the next method call MUST be processed as normal.
 
-### Vendor-specific extensions
+## Vendor-specific extensions
 
 Individual services will have custom features they wish to expose over JMAP. This may take the form of extra datatypes and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names). To ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP, the server MUST ONLY expose these extensions if the client explicitly opts in. Without opt-in, the server MUST follow the spec and reject anything that does not conform to it as specified.
 
-Any vendor extensions supported by the server are advertised to the client in the capabilities property on the Account object. The client opt-in happens at the transport layer (see the next section).
+Any vendor extensions supported by the server are advertised to the client in the capabilities property on the Account object. The client opt-in happens at the transport layer.
 
-### JMAP over HTTPS
-
-To make an API request over HTTP (support for other protocols may be added in future extensions to the spec), the client makes an authenticated POST request to the API URL; see the Authentication section of the spec for how to discover this URL and how to authenticate requests.
-
-The request MUST have a content type of `application/json` and be encoded in UTF-8.
-
-The request MAY include an `X-JMAP-Version` header, the value of which is a number for the spec version the client would like to use. If omitted, the server MUST presume a value equal to the *lowest* version the server supports.
-
-The request MAY include an 'X-JMAP-Extensions' header, the value of which is a comma-separated list of 'vendor-extension-name:extension-version` the client would like to use. For example, "com.fastmail.message:1,com.fastmail.savedSearch:4". Any white-space MUST be ignored when evaluating this header.
-
-The list of versions and extensions supported by the server is returned upon successful authentication.
-
-The server will respond with one of the following HTTP response codes:
-
-#### `200`: OK
-
-The API request was successful. The response will be of type `application/json` and consists of the response to the API calls, as described above.
-
-#### `400`: Bad Request
-
-The request was malformed. For example, it may have had the wrong content type, or have had a JSON object that did not conform to the API calling structure (see *The structure of an exchange* above). The client SHOULD NOT retry the same request. There is no content in the response.
-
-#### `401`: Unauthorized
-
-The `Authorization` header was missing or did not contain a valid token. Reauthenticate and then retry the request. As per the HTTP spec, the response MUST have a `WWW-Authenticate` header listing the available authentication schemes. There is no content in the response.
-
-#### `404`: Not Found
-
-The API endpoint has moved. See the Authentication section of the spec for how to rediscover the current URL to use. There is no content in the response.
-
-#### `412`: Precondition Failed
-
-This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by the server. There is no content in the response.
-
-#### `500`: Internal Server Error
-
-Something has gone wrong internally, and the server is in a broken state. Don't automatically retry. There is no content in the response.
-
-#### `503`: Service Unavailable
-
-The server is currently down. Try again later with exponential backoff. There is no content in the response.
-
-### Security
+## Security
 
 As always, the server must be strict about data received from the client. Arguments need to be checked for validity; a malicious user could attempt to find an exploit through the API. In case of invalid arguments (unknown/insufficient/wrong type for data etc.) the method MUST return an `invalidArguments` error and terminate.
 
-### Concurrency
+## Concurrency
 
 To ensure the client always sees a consistent view of the data, the state accessed by a method call MUST NOT change during the execution of the method, except due to actions by the method call itself. The state MAY change in-between method calls (even within a single API request).
 
-### The Number datatype
+## The Number datatype
 
 The JSON datatypes are limited to those found in JavaScript. A `Number` in JavaScript is represented as a signed double (64-bit floating point). However, except where explicitly specified, all numbers used in this API are unsigned integers <= 2^53 (the maximum integer that may be reliably stored in a double). This implicitly limits the maximum length of message lists in queries and the like.
 
-### The Date datatypes
+## The Date datatypes
 
-Where the API specifies `Date` as a type, it means a string in [RFC3339](https://tools.ietf.org/html/rfc3339) *date-time* format, with the *time-offset* component always `Z` (i.e. the date-time MUST be in UTC time) and *time-secfrac* always omitted. The "T" and "Z" MUST always be upper-case. For example, `"2014-10-30T14:12:00Z"`.
+Where a JMAP API specifies `Date` as a type, it means a string in [@!RFC3339] *date-time* format, with the *time-offset* component always `Z` (i.e. the date-time MUST be in UTC time) and *time-secfrac* always omitted. The "T" and "Z" MUST always be upper-case. For example, `"2014-10-30T14:12:00Z"`.
 
-Where the API specifies `LocalDate` as a type, it means a string in the same format as `Date`, but with the `Z` omitted from the end. This only occurs in relation to calendar events. The interpretation in absolute time depends upon the time zone for the event, which MAY not be a fixed offset (for example when daylight saving time occurs).
+## Use of null
 
-### Use of `null`
+Unless otherwise specified, a missing property in the arguments object of a request (from the client), or a response (from the server) MUST be intepreted exactly the same as that property having the value `null`.
 
-Unless otherwise specified, a missing property in a request, response or object MUST be intepreted exactly the same as that property having the value `null`. This rule does not apply to the [top-level datatypes](#data-model-overview), where a missing property usually indicates that the sender wants to leave the existing property value untouched (e.g. in a [*setFoos*](#setfoos) request or a [*getFooUpdates*](#getfooupdates) response).
+Unless otherwise specified, a missing property in a data object MUST be interpreted in the following ways:
+- In the response to a *getFoos* style call, or when **creating** an object in a *setFoos* style call, a missing property MUST be interpreted as though it had the default value for that type, or `null` if no default is specified.
+- When **updating** an object in a *setFoos* style call, a missing property MUST be interpreted as the existing value for that property (i.e. don't update it).
 
-### CRUD methods
+For network efficiency, when fetching the server and client may make use of the above and omit properties which have the default value for the data type.
 
-JMAP defines various types of objects and provides a uniform interface for creating, retrieving, updating and deleting them. A **data type** is a collection of named, typed properties, just like the schema for a database table. Each instance of a data type is called a **record**. For a `Foo` data type, records of that type would be fetched via a `getFoos` call and modified via a `setFoos` call. Delta updates may be fetched via a `getFooUpdates` call. These methods all follow a standard format as described below.
+## CRUD methods
+
+JMAP provides a uniform interface for creating, retrieving, updating and deleting various types of objects. For a `Foo` data type, records of that type would be fetched via a `getFoos` call and modified via a `setFoos` call. Delta updates may be fetched via a `getFooUpdates` call. These methods all follow a standard format as described below.
 
 ### getFoos
 
@@ -142,13 +143,17 @@ Objects of type **Foo** are fetched via a call to *getFoos*. Methods with a name
 
 This method may take some or all of the following arguments; see the definition of the data type in question. However, if one of the following arguments is available, it will behave exactly as specified below.
 
+- **accountId**: `String|null`
+  The id of the Account to use. If `null`, the primary account is used.
 - **ids**: `String[]|null`
-  The ids of the Foo objects to return. If `null` then **all** records of the data type are returned.
+  The ids of the Foo objects to return. If `null` then **all** records of the data type are returned, if this is supported for that data type.
 - **properties**: `String[]|null`
   If supplied, only the properties listed in the array are returned for each Foo object. If `null`, all properties of the object are returned. The id of the object is **always** returned, even if not explicitly requested.
 
 The response to `getFoos` is called `foos`. It has the following arguments:
 
+- **accountId**: `String`
+  The id of the account used for the call.
 - **state**: `String`
   A string representing the state on the server for **all** the data of this type. If the data changes, this string will change. It is used to get delta updates, if supported for the type.
 - **list**: `Foo[]`
@@ -158,12 +163,18 @@ The response to `getFoos` is called `foos`. It has the following arguments:
 
 The following error may be returned instead of the `foos` response:
 
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 ### getFooUpdates
 
 When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *foos* response will change. The *getFooUpdates* call allows a client to efficiently update the state of any its Foo cache to match the new state on the server. It takes the following arguments:
 
+- **accountId**: `String|null`
+  The id of the Account to use. If `null`, the primary account is used.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *foos* response. The server will return the changes made since this state.
 - **maxChanges**: `Number|null`
@@ -175,6 +186,8 @@ When the state of the set of Foo records changes on the server (whether due to c
 
 The response to *getFooUpdates* is called *fooUpdates*. It has the following arguments:
 
+- **accountId**: `String`
+  The id of the account used for the call.
 - **oldState**: `String`
   This is the *sinceState* argument echoed back; the state from which the server is returning changes.
 - **newState**: `String`
@@ -192,6 +205,10 @@ If a Foo record has been modified AND deleted since the oldState, the server SHO
 
 The following errors may be returned instead of the *fooUpdates* response:
 
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 `cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Foo cache. The error object MUST also include a `newState: String` property with the current state for the type.
@@ -205,6 +222,8 @@ Modifying the state of Foo objects on the server is done via the *setFoos* metho
 
 The *setFoos* method takes the following arguments:
 
+- **accountId**: `String|null`
+  The id of the Account to use. If `null`, the primary account is used.
 - **ifInState**: `String|null`
   This is a state string as returned by the *getFoos* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **create**: `String[Foo]|null`
@@ -224,6 +243,8 @@ Some record objects may hold references to others (foreign keys). When records a
 
 The response to *setFoos* is called *foosSet*. It has the following arguments:
 
+- **accountId**: `String`
+  The id of the account used for the call.
 - **oldState**: `String|null`
   The state string that would have been returned by *getFoos* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
@@ -251,6 +272,10 @@ A **SetError** object has the following properties:
 Other properties may also be present on the object, as described in the relevant methods.
 
 The following errors may be returned instead of the `foosSet` response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
 
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 

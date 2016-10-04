@@ -1,4 +1,4 @@
-## Identities
+# Identities
 
 A **Identity** object stores information about an email address (or domain) the user may send from. It has the following properties:
 
@@ -22,7 +22,7 @@ A **Identity** object stores information about an email address (or domain) the 
 
 Multiple identities with the same email address MAY exist, to allow for different settings the user wants to pick between (for example with different names/signatures).
 
-### getIdentities
+## getIdentities
 
 Identities can either be fetched explicitly by id, or all of them at once. To fetch identities, make a call to `getIdentities`. It takes the following arguments:
 
@@ -51,7 +51,7 @@ The following errors may be returned instead of the *identities* response:
 
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-### getIdentityUpdates
+## getIdentityUpdates
 
 The *getIdentityUpdates* call allows a client to efficiently update the state of its cached identities to match the new state on the server. It takes the following arguments:
 
@@ -93,7 +93,7 @@ The following errors may be returned instead of the `identityUpdates` response:
 
 `cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Identity cache. The error object MUST also include a `newState: String` property with the current state for the type.
 
-### setIdentities
+## setIdentities
 
 Modifying the state of Identity objects on the server is done via the *setIdentities* method. This encompasses creating, updating and destroying Identity records.
 

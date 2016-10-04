@@ -1,37 +1,29 @@
-## Authentication
+# Authentication
 
-Before connecting to any JMAP service, the client must first gain an access token. It cannot just use a username/password directly. This allows the server to know (and show the user) which clients currently have access to the account, and to be able to revoke access individually.
+When connecting to any JMAP server, the client must first gain an access token. It cannot just use a username/password directly. This allows the server to know (and show the user) which clients currently have access to the account, and to be able to revoke access individually.
 
 The server may support multiple different mechanisms for authenticating a user to gain the access token. It is expected that further types may be added in future extensions to the JMAP specification.
 
-### Authenticating HTTP requests
 
-All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request.
+## Service autodiscovery
 
-Once authenticated (see "Getting an access token" below), the client will have an access token. This is used with the `Bearer` scheme as specified in [RFC 6750](https://tools.ietf.org/html/rfc6750) to authenticate HTTP requests.
+To begin authentication, the client needs to know the authentication URL for the JMAP server.
 
-For example, if *user@example.com* successfully logged in and the client received an *accessToken* of `abcdef1234567890`, to authenticate requests you would add the following header:
-
-    Authorization: Bearer abcdef1234567890
-
-### Service autodiscovery
-
-There are three common autodiscovery methods in use for internet protocols:
+There are two standardised autodiscovery methods in use for internet protocols:
 
 - **DNS srv**
-  See [RFC6186](https://tools.ietf.org/html/rfc6186) and [RFC6764](https://tools.ietf.org/html/rfc6764)
-- **.well-known/`servicename`**
-  See [RFC5785](https://tools.ietf.org/html/rfc5785)
-- **autoconfig.example.com**/**autodiscover.example.com**
-  Used by [Thunderbird](https://developer.mozilla.org/en-US/docs/Mozilla/Thunderbird/Autoconfiguration/FileFormat/HowTo) and Outlook.
+  See [@!RFC6186] and [@!RFC6764]
+- **.well-known/servicename**
+  See [@!RFC5785]
 
-A JMAP-supporting email host for the domain `example.com` SHOULD publish a SRV record `_jmaps._tcp.example.com` which gives a hostname and port (usually port `443`).
+A JMAP-supporting host for the domain `example.com` SHOULD publish a SRV record `_jmaps._tcp.example.com` which gives a *hostname* and *port* (usually port `443`). The authentication URL is then `https://${hostname}[:${port}]/.well-known/jmap` (following any redirects).
 
-The authentication URL is `https://hostname/.well-known/jmap` (following any redirects).
+If the client has a username in the form of an email address, it MAY use the domain portion of this to attempt autodiscovery of the JMAP server.
 
-Other autodiscovery options using `autoconfig.example.com` or `autodiscover.example.com` may be added to a future version of JMAP to support clients which can't use SRV lookup.
+To support clients that are unable to do SRV lookups, the server SHOULD make the *hostname* the same domain as the username if possible.
 
-### Getting an access token
+
+## Getting an access token
 
 Authorization always starts with the client making a POST request to the authentication URL (found either via service autodiscovery or manual entry). The request MUST be of type `application/json` and specify an `Accept: application/json` header. The body of the request MUST be a single JSON object, encoded in UTF-8, with the following properties:
 
@@ -48,7 +40,7 @@ The server may use the client/device information to help identify the login to t
 
 The server will respond with one of the following HTTP status codes:
 
-#### `200`: Success, but more authorization required.
+### 200: Success, but more authorization required.
 
 The response body will be a single JSON object with the following properties.
 
@@ -61,7 +53,7 @@ The response body will be a single JSON object with the following properties.
 
 This is the standard response to an initial request. Note, a server may return this even if the username is not actually active, to prevent enumeration. The client should then pick one of the *methods* from the list in the response to continue with authentication (if no methods supported by the client are in the list, it will not be able to get an access token).
 
-An **AuthMethod** object MUST have a **type** property. This is a `String` representing the method of authentication. For some types, there may be other values required on the AuthMethod object in addition; see the description of types below. The following types are currently defined, but more may be added in the future. A client SHOULD offer the user the option to choose any of the method types returned that the client supports. The server MUST ignore any types it does not understand:
+An **AuthMethod** object MUST have a **type** property. This is a `String` representing the method of authentication. For some types, there may be other values required on the AuthMethod object in addition; see the description of types below. The following types are currently defined, but more may be added in the future. A client SHOULD offer the user the option to choose any of the method types returned that the client supports. The client MUST ignore any types it does not understand:
 
 - `external`: The user must do something out-of-band to authorize the app. The server SHOULD use the *prompt* property of the response to tell the user what they need to do. A client that supports the *external* authorisation type MUST offer a mechanism for the user to indicate to the client when they have completed the out-of-band authentication.
 - `oauth`: OAuth based authentication. For OAuth integration, see the docs of the service in question, since every service implements it slightly differently and the client must register with the service beforehand to use it. If using this method, an access token is obtained entirely through the OAuth mechanism from this point on, and requests will be authenticated as per the OAuth spec. See the "Refetching URL endpoints" section below for how to obtain the URL endpoints after successfully authenticating using OAuth.
@@ -88,13 +80,13 @@ An **AuthMethod** object MUST have a **type** property. This is a `String` repre
   - **phoneNumbers**: `LoginPhone[]|null`
     An array of **LoginPhone** objects, each of which represents a phone registered with the account. A **LoginPhone** object has the following properties:
 
-    - **id**: `String`
-      The id of the phone. This is used when asking the server to send a code.
-    - **number**: `String`
-      The phone number to display to the user to remind them which number the SMS will be/was sent to. This MAY have some characters replaced with an `X` or other "blanked-out" character if the server does not wish to disclose the full phone number at this point. e.g. if the phone registered with the account is `+61 123 456 789`, the server might return
-      `+61 1XX XXX X89` as the number.
-    - **isCodeSent**: `Boolean`
-      Has the verification code been sent to this number yet? The server MAY choose to send the SMS before the first time this auth option is returned, or may wait for the user to explicitly request it.
+      - **id**: `String`
+        The id of the phone. This is used when asking the server to send a code.
+      - **number**: `String`
+        The phone number to display to the user to remind them which number the SMS will be/was sent to. This MAY have some characters replaced with an `X` or other "blanked-out" character if the server does not wish to disclose the full phone number at this point. e.g. if the phone registered with the account is `+61 123 456 789`, the server might return
+        `+61 1XX XXX X89` as the number.
+      - **isCodeSent**: `Boolean`
+        Has the verification code been sent to this number yet? The server MAY choose to send the SMS before the first time this auth option is returned, or may wait for the user to explicitly request it.
 
 If not using `"oauth"`, the user will at some point indicate to the client to continue authentication (after inputing any required token/code/password dependent on the auth method chosed). At this point the client submits a POST request to the same URL as before, with the body being a single JSON object with the following properties:
 
@@ -121,7 +113,7 @@ If the user chooses to authenticate using SMS, they may need to request the serv
 
 The server SHOULD send the code to the given phone if the phone id is valid. If the code has already been sent, it is server-dependent whether it is sent again or ignored. The server MUST return one of the same set of responses as before, which should be handled the same (in most cases this will be a `200` response identical to before except that the *isCodeSent* property for the phone will now be `true`).
 
-#### `201`: Authentication is complete, access token created.
+### 201: Authentication is complete, access token created.
 
 The response body will be a single JSON object with the following properties.
 
@@ -134,93 +126,54 @@ The response body will be a single JSON object with the following properties.
 
   The *extensions* property is a map of a name that uniquely identifies the extension (including a unique string identifying the vendor) to a list of version numbers supported for that extension. e.g. `"com.fastmail.message": [ 1 ]`.
 
-  A client may opt in to an extension by sending `"extension-name:extension-version"` in the `X-JMAP-Extensions` header of the request (or as specified for any future non-HTTP transport). It is up to the vendor to document exactly what the extension provides.
+  A client may opt in to an extension by sending `"extension-name:extension-version"` in an `X-JMAP-Extensions` header of the API request. It is up to the vendor to document exactly what the extension provides.
 
   It is expected that this mechanism is mainly used for custom clients by the vendor for their own server. Where features are added that are more universally useful, it is hoped they will quickly be standardised in a future version of this spec, to maintain open compatibility between vendors.
 - **accessToken**: `String`
   The secret token to be used by the client to authenticate all future JMAP requests. The client should keep this secure, preferably in an OS keychain or the like. Since tokens should not be reused across devices or clients, the client SHOULD NOT reveal this token to the user.
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
-- **eventSourceUrl**: `String`
-  The URL to connect to for push events (see the Push section of this spec).
+- **downloadUrl**: `String`
+  The URL endpoint to use when downloading files (see the Download section of this spec), in [@!RFC6570] URI Template (level 1) format. The URL MUST contain a variable called `blobId`. The URL SHOULD contain a variable called `name`.
 - **uploadUrl**: `String`
   The URL endpoint to use when uploading files (see the Upload section of this spec).
-- **downloadUrl**: `String`
-  The URL endpoint to use when downloading files, in [RFC6570 URI Template](https://tools.ietf.org/html/rfc6570) (level 1) format. The URL MUST contain a variable called `blobId`. The URL SHOULD contain a variable called `name`. The client may use this template in combination with a blobId to download any binary data (files) referenced by other objects. Since a blob is not associated with a particular name, the template SHOULD allow a name to be substituted in as well; the server will return this as the filename if it sets a `Content-Disposition` header. To download the data the client MUST make an authenticated GET request (see below for how to authenticate requests) to the expanded URL, and then follow any redirects. In situations where it's not easy to authenticate the attachment download request (e.g.: when downloading a file through a link in a HTML document), the client SHOULD use a signed request (see below for how to issue a signed request).
+- **eventSourceUrl**: `String`
+  The URL to connect to for push events (see the Push section of this spec).
 
 URLs are returned only after logging in. This allows different URLs to be used for users located in different geographic datacentres within the same service.
 
 Note, if authentication is done via IP or mobile subscriber ID or some similar mechanism, a `201` response MAY be returned in response to the initial request (with just the username and client info).
 
-##### Downloading an attachment through a signed request
-
-Sometimes, authenticating a GET request using the usual `Authorization` header is not easily applicable. In such situations, a client SHOULD use a signed request to download the attachment. A signed request is an unauthenticated GET request containing a special query string parameter (a so-called `token`). The process below describes how a client can obtain such a token, then use it to download the file:
-
-* The client makes an authenticated POST request to the interpolated `downloadUrl` (see above for how to obtain this URL), that is, with all variables substituted with actual values. If authorization is granted, the server MUST send the token back as the body of the response, in one of the following forms:
-  * A [JSON Web Token](https://jwt.io/), in this case the response MUST have a `Content-Type` of `application/jwt`.
-  * A plain `String` or any other data structure, in this case the response SHOULD have a `Content-Type` of `text/plain` unless another standardised MIME type is applicable.
-* The client downloads the file by making an unauthenticated GET request to a URL formed by appending a parameter `access_token=<response to the previous request>` to the query part (see [RFC 3986](https://tools.ietf.org/html/rfc3986#section-3.4) for details) of the `downloadUrl`. If no query part was present in the `downloadUrl` before this operation, a new query part is created. The server MUST send back the contents of the requested attachment, as if it were requested through an authenticated GET request on the raw `downloadUrl`.
-
-The server SHOULD expire any given signing `token` quickly for obvious security reasons, but the actual expiration policy is up to the server implementation.
-
-Sample HTTP exchange demonstrating the use of a signed request to download an attachment:
-
-* Obtain a token
-
-```
-POST /jmap/download/1234 HTTP/1.1
-Host: server.jmap.io
-Authorization: Bearer abcdef1234567890
-
-HTTP/1.1 200 OK
-Content-Type: text/plain
-Content-Length: 25
-
-abcDEfGhIJ
-```
-
-* Download the file
-
-```
-GET /jmap/download/1234?access_token=abcDEfGhIJ HTTP/1.1
-Host: server.jmap.io
-
-HTTP/1.1 200 OK
-Content-Type: application/octet- stream
-Content-Length: 987654
-
-<< binary content >>
-```
-
-#### `400`: Malformed request
+### 400: Malformed request
 
 The request is of the wrong content type, or does not contain data in the expected format. The client MUST NOT retry the same request. There is no content in the response.
 
-#### `403`: Authentication step failed, but client may try again
+### 403: Authentication step failed, but client may try again
 
 Returned in response to a continuation request which failed (e.g. the password entered was not correct, or the out-of-band step was not completed successfully). The response body will be a single JSON object with the same properties as the `200` response, and the client may try again.
 
-#### `404`: Not found
+### 404: Not found
 
-The JMAP server is no longer here. There is no content in the response.
+The JMAP authentication server is not available at this address. The client needs to rediscover the authentication URL. There is no content in the response.
 
-#### `410`: Restart authentication
+### 410: Restart authentication
 
 The login attempt has failed permanently. This may be due to a password being incorrect, the login id expiring, or any other reason. The client MUST restart authentication (go back to sending the username and client info to the server). There is no content in the response.
 
-#### `429`: Rate limited
+### 429: Rate limited
 
 Returned if the server is temporarily blocking this IP/client from authenticating. This may be due to too many failed password attempts, or detected username enumeration attempts, or any other reason. (Legitimate) clients should wait a while then try again. There is no content in the response.
 
-#### `500`: Internal server error
+### 500: Internal server error
 
 Something has gone wrong internally, and the server is in a broken state. Don't automatically retry. There is no content in the response.
 
-#### `503`: Service unavailable
+### 503: Service unavailable
 
 The server is currently down. Try again later with exponential backoff. There is no content in the response.
 
-### Refetching URL endpoints
+
+## Refetching URL endpoints
 
 A server MAY (although SHOULD NOT) move end points for any services other than authentication at any time. If a request to the API/file upload/event source endpoint returns a `404`, the client MUST refetch the URL endpoints. To do this, it should make an authenticated GET request to the authentication URL (see below for how to authenticate requests).
 
@@ -228,7 +181,7 @@ For OAuth logins, this is how the URLs may be fetched initially as well.
 
 The server MUST respond with one of the following status codes:
 
-#### `201`: Authentication is complete, access token created.
+### 201: Authentication is complete, access token created.
 
 The request was successful. The response will be of type `application/json` and consists of a single JSON object containing the following properties:
 
@@ -240,39 +193,94 @@ The request was successful. The response will be of type `application/json` and 
   Map of extension names to version number of that extension (see above).
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
-- **eventSourceUrl**: `String`
-  The URL to connect to for push events (see the Push section of this spec).
-- **uploadUrl**: `String`
-  The URL endpoint to use when uploading files (see the Upload section of this spec).
 - **downloadUrl**: `String`
   The URL endpoint to use when downloading files (see above).
+- **uploadUrl**: `String`
+  The URL endpoint to use when uploading files (see the Upload section of this spec).
+- **eventSourceUrl**: `String`
+  The URL to connect to for push events (see the Push section of this spec).
 
-#### `403`: Restart authentication
+### 403: Restart authentication
 
 The `Authorization` header was missing or did not contain a valid token. Reauthenticate and then retry the request. There is no content in the response.
 
-#### `404`: Not found
+### 404: Not found
 
 The JMAP server is no longer here. There is no content in the response.
 
-#### `500`: Internal server error
+### 500: Internal server error
 
 Something has gone wrong internally, and the server is in a broken state. Don't automatically retry. There is no content in the response.
 
-#### `503`: Service unavailable
+### 503: Service unavailable
 
 The server is currently down. Try again later with exponential backoff. There is no content in the response.
 
-### Revoking an access token
+
+## Revoking an access token
 
 The validity of an access token is determined by the server. It may be valid for a limited time only, or expire after a certain time of inactivity, or be valid indefinitely etc. If an access token expires, it MUST NOT be resurrected. The client MUST restart the authentication process to get a new access token.
 
-A client may revoke an access token at any time by making an authenticated DELETE HTTP request to the authentication URL (the one used to get the token in the first place). The response from the server will be one of the following:
-
-`204`: Success (the access token has now been revoked).
-
-`401`: Failed due to no `Authorization` header, or `Authorization` header is not a valid access token. As per the HTTP spec, the response MUST have a `WWW-Authenticate: Bearer` header.
-
-No content is returned in either case.
-
 For OAuth, see the provider's documentation on revoking access tokens.
+
+Otherwise, a client may revoke an access token at any time by making an authenticated DELETE HTTP request to the authentication URL (the one used to get the token in the first place). The response from the server will be one of the following:
+
+### 204: Success
+
+The access token has now been revoked. There is no content in the response.
+
+### 401: Unauthorized
+
+Failed due to missing `Authorization` header, or the `Authorization` header did not contain a valid access token. As per the HTTP spec, the response MUST have a `WWW-Authenticate: Bearer` header. There is no content in the response.
+
+
+## Authenticating HTTP requests
+
+All HTTP requests other than to the authentication URL must be authenticated. To do this, the client MUST add an `Authorization` header to each request.
+
+Once authenticated, the client will have an access token. This is used with the `Bearer` scheme as specified in [@!RFC6750] to authenticate HTTP requests.
+
+For example, if *user@example.com* successfully logged in and the client received an *accessToken* of `abcdef1234567890`, to authenticate requests you would add the following header:
+
+    Authorization: Bearer abcdef1234567890
+
+### Signed GET requests
+
+Sometimes, particularly in the browser context, authenticating a GET request using the usual `Authorization` header is not easily implemented. In such situations, a client may use a signed request instead. A signed request is an unauthenticated GET request containing a special query string parameter (a so-called `token`). The process below describes how a client can obtain such a token, then use it to download the file:
+
+1. The client makes an authenticated POST request to the URL for which it is unable to make an authenticated GET request. If authorization is granted, the server MUST send the token back as the body of the response, in one of the following forms:
+  * A [JSON Web Token](https://jwt.io/), in this case the response MUST have a `Content-Type` of `application/jwt`.
+  * A plain `String` or any other data structure, in this case the response SHOULD have a `Content-Type` of `text/plain` unless another standardised MIME type is applicable.
+
+2. The client makes an unauthenticated GET request to the same URL but with `access_token=<response to the previous request>` appended to the query part (see [@!RFC3986] section 3.4 for details). If no query part was present in the URL before this operation, a new query part is created. The server MUST send back the contents of the requested file, as if it were requested through a standard authenticated GET request to the URL.
+
+The server SHOULD expire any given signing `token` quickly for obvious security reasons, but the actual expiration policy is up to the server implementation.
+
+Sample HTTP exchange demonstrating the use of a signed request to download a file:
+
+* Obtain a token
+
+```
+POST /jmap/download/act1/blob2/mydocument.pdf HTTP/1.1
+Host: server.example.com
+Authorization: Bearer abcdef1234567890
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Content-Length: 10
+
+abcDEfGhIJ
+```
+
+* Download the file
+
+```
+GET /jmap/download/act1/blob2/mydocument.pdf?access_token=abcDEfGhIJ HTTP/1.1
+Host: server.example.com
+
+HTTP/1.1 200 OK
+Content-Type: application/pdf
+Content-Length: 987654
+
+<< binary content >>
+```
