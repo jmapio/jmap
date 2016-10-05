@@ -18,7 +18,7 @@ Any white-space MUST be ignored when evaluating this header.
 
 The list of versions and extensions supported by the server is returned upon successful authentication.
 
-The server will respond with one of the following HTTP response codes:
+The server SHOULD respond with one of the following HTTP response codes:
 
 ### 200: OK
 
@@ -39,6 +39,10 @@ The API endpoint has moved. See the Authentication section of the spec for how t
 ### 412: Precondition Failed
 
 This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by the server. There is no content in the response.
+
+### 429: Rate limited
+
+Returned if the client has made too many requests recently, or has too many concurrent requests currently in progress. Clients SHOULD wait a while then try again. The response MAY include a `Retry-After` header indicating how long to wait before making a new request.
 
 ### 500: Internal Server Error
 
