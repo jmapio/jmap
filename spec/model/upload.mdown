@@ -47,6 +47,10 @@ The file is larger than the maximum size the server is willing to accept for a s
 
 The server MAY choose to not allow certain content types to be uploaded, such as executable files. This error response is returned if an unacceptable type is uploaded. The client SHOULD NOT retry uploading the same file. There is no content in the response.
 
+### 429: Rate limited
+
+Returned if the client has made too many upload requests recently, or has too many concurrent uploads currently in progress. Clients SHOULD wait a while then try again. The response MAY include a `Retry-After` header indicating how long to wait before making a new request.
+
 ## 503: Service Unavailable
 
 The server is currently down. The client should try again later with exponential backoff. There is no content in the response.
