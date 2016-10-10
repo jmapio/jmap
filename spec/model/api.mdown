@@ -8,16 +8,6 @@ To make an API request, the client makes an authenticated POST request to the AP
 
 The request MUST have a content type of `application/json` and be encoded in UTF-8.
 
-The request MAY include an `X-JMAP-Version` header, the value of which is a number for the spec version the client would like to use. If omitted, the server MUST presume a value equal to the *lowest* version the server supports.
-
-The request MAY include an `X-JMAP-Extensions` header, the value of which is a comma-separated list of `vendor-extension-name:extension-version` the client would like to use. For example:
-
-    X-JMAP-Extensions: com.fastmail.message:1, com.fastmail.savedSearch:4
-
-Any white-space MUST be ignored when evaluating this header.
-
-The list of versions and extensions supported by the server is returned upon successful authentication.
-
 The server SHOULD respond with one of the following HTTP response codes:
 
 ### 200: OK
@@ -36,9 +26,7 @@ The `Authorization` header was missing or did not contain a valid token. Reauthe
 
 The API endpoint has moved. See the Authentication section of the spec for how to rediscover the current URL to use. There is no content in the response.
 
-### 412: Precondition Failed
 
-This means either the JMAP version specified in an `X-JMAP-Version` header, or an extension/version specified in an `X-JMAP-Extensions` header is not supported by the server. There is no content in the response.
 
 ### 429: Rate limited
 
@@ -110,8 +98,6 @@ If an unknown argument or invalid arguments (wrong type, or in violation of othe
 ## Vendor-specific extensions
 
 Individual services will have custom features they wish to expose over JMAP. This may take the form of extra datatypes and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names). To ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP, the server MUST ONLY expose these extensions if the client explicitly opts in. Without opt-in, the server MUST follow the spec and reject anything that does not conform to it as specified.
-
-Any vendor extensions supported by the server are advertised to the client in the capabilities property on the Account object. The client opt-in happens at the transport layer.
 
 ## Security
 
