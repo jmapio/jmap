@@ -9,7 +9,7 @@ A **Mailbox** object has the following properties:
 - **id**: `String`
   The id of the mailbox. This property is immutable.
 - **name**: `String`
-  User-visible name for the mailbox, e.g. "Inbox". This may be any UTF-8 string of at least 1 character in length and maximum 256 bytes in size. Mailboxes MAY have the same name as a sibling Mailbox.
+  User-visible name for the mailbox, e.g. "Inbox". This may be any UTF-8 string of at least 1 character in length and maximum 256 bytes in size. Servers SHOULD forbid sibling Mailboxes with the same name.
 - **parentId**: `String|null`
   The mailbox id for the parent of this mailbox, or `null` if this mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.
 - **role**: `String|null`
@@ -157,19 +157,17 @@ Mailboxes can be created, updated and destroyed using the *setMailboxes* method.
 - **destroy**: `String[]|null`
   A list of ids for Mailboxes to permanently delete. If `null`, no objects will be deleted.
 
-Each create, update or destroy is considered an atomic unit. The server MAY commit some of the changes but not others, however MAY NOT only commit part of an update to a single record (e.g. update the *name* field but not the *parentId* field, if both are supplied in the update object).
-
 If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 ### Ordering of changes
 
-Each individual create, update or destroy MUST take the server from one valid state to another valid state, so the changes can be processed linearly without need to undo or backtrack. However the order of the changes may affect the validity of the change. The server MUST process the changes in a manner which is indistinguishable from an order following these rules:
+Each create, update or destroy is considered an atomic unit. The server MAY commit some of the changes but not others, however MUST NOT only commit part of an update to a single record (e.g. update the *name* field but not the *parentId* field, if both are supplied in the update object).
 
-1. Creates comes before any other changes.
-2. Creates with a parentId that is not a *creation id* reference come before those that reference another newly created mailbox.
-3. Creation of a mailbox X comes before creation of a mailbox Y if Y will be a descendent of X.
-4. Updates come before destroying mailboxes.
-5. Update/Destroy X comes before update/destroy Y if X is a descendent of Y.
+The final state MUST be valid after the setMailboxes is finished, however the server MAY have to transition through invalid intermediate states (not exposed to the client) while processing the individual create/update/destroy requests. For example, a single method call could rename Mailbox A => B, and simultaneously rename Mailbox B => A. The final state is valid, so this is allowed, however if processed sequentially there will be an internal state where temporarily both mailboxes have the same name.
+
+A Mailbox may reference another Mailbox object as a parent. When a Mailbox is created or modified, it may reference another Mailbox being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the mailbox being referenced is created in **either the same or an earlier method call**. If within the same method call, the server MUST process the parent create first, as if this fails the create/update that references it will also fail.
+
+Creation ids sent by the client SHOULD be unique within the single API request for a particular data type. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id.
 
 ###  Creating mailboxes
 
