@@ -15,30 +15,26 @@ A **Mailbox** object has the following properties:
 - **role**: `String|null`
   Identifies system mailboxes. This property can only be set on create. After the record has been created, this property is immutable.
 
-  The following values MUST be used for the relevant mailboxes:
+    The following values MUST be used for the relevant mailboxes:
 
-  - `inbox` – the mailbox to which new mail is delivered by default, unless diverted by a rule or spam filter etc.
-  - `archive` – messages the user does not need right now, but does not wish to delete.
-  - `drafts` – messages the user is currently writing and are not yet sent.
-  - `outbox` – messages the user has finished writing and wishes to send (see the `setMessages` method description for more information). A mailbox with this role MUST be present if the user is allowed to send mail through an account. If not present, the user MAY NOT send mail with that account.
-  - `sent` – messages the user has sent.
-  - `trash` – messages the user has deleted.
-  - `spam` – messages considered spam by the server.
-  - `templates` – drafts which should be used as templates (i.e. used as the basis for creating new drafts).
+    - `inbox` – the mailbox to which new mail is delivered by default, unless diverted by a rule or spam filter etc.
+    - `archive` – messages the user does not need right now, but does not wish to delete.
+    - `drafts` – messages the user is currently writing and are not yet sent.
+    - `outbox` – messages the user has finished writing and wishes to send (see the `setMessages` method description for more information). A mailbox with this role MUST be present if the user is allowed to send mail through an account. If not present, the user MAY NOT send mail with that account.
+    - `sent` – messages the user has sent.
+    - `trash` – messages the user has deleted.
+    - `spam` – messages considered spam by the server.
+    - `templates` – drafts which should be used as templates (i.e. used as the basis for creating new drafts).
 
-  No two mailboxes may have the same role. Mailboxes without a known purpose MUST have a role of `null`.
+    No two mailboxes may have the same role. Mailboxes without a known purpose MUST have a role of `null`.
 
-  An account is not required to have mailboxes with any of the above roles. A client MAY create new mailboxes with a role property to help them keep track of a use-case not covered by the above list. To avoid potential conflict with any special behaviour a server might apply to mailboxes with certain roles in the future, any roles not in the above list created by the client must begin with `"x-"`. The client MAY attempt to create mailboxes with the standard roles if not already present, but the server MAY reject these.
+    An account is not required to have mailboxes with any of the above roles. A client MAY create new mailboxes with a role property to help them keep track of a use-case not covered by the above list. To avoid potential conflict with any special behaviour a server might apply to mailboxes with certain roles in the future, any roles not in the above list created by the client must begin with `"x-"`. The client MAY attempt to create mailboxes with the standard roles if not already present, but the server MAY reject these.
 - **sortOrder**: `Number`
   Defines the sort order of mailboxes when presented in the client's UI, so it
   is consistent between devices. The number MUST be an integer in the range
   0 <= sortOrder < 2^31.
 
-  A mailbox with a lower order should be displayed before a mailbox with
-  a higher order (that has the same parent) in any mailbox listing in the
-  client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical
-  order by name. The sorting SHOULD take into account locale-specific character
-  order convention.
+    A mailbox with a lower order should be displayed before a mailbox with a higher order (that has the same parent) in any mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting SHOULD take into account locale-specific character order convention.
 - **mustBeOnlyMailbox**: `Boolean`
   If `true`, messages in this mailbox may not also be in any other mailbox that also has `mustBeOnlyMailbox: true`. If `false`, messages may be added to this mailbox in addition to any other mailbox (i.e. it's a label). This property is immutable.
 - **mayReadItems**: `Boolean`

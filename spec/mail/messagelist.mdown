@@ -159,7 +159,7 @@ The response to a call to *getMessageList* is called *messageList*. It has the f
 - **state**: `String`
   A string encoding the current state on the server. This string will change if the results of the message list MAY have changed (for example, there has been a change to the state of the set of Messages; it does not guarantee that anything in the list has changed). It may be passed to *getMessageListUpdates* to efficiently get the set of changes from the previous state.
 
-  Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached list and fetch it again (note, this does not require fetching the messages again, just the list of ids) or, if the server supports it, call *getMessageListUpdates* to get the delta difference.
+    Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached list and fetch it again (note, this does not require fetching the messages again, just the list of ids) or, if the server supports it, call *getMessageListUpdates* to get the delta difference.
 - **canCalculateUpdates**: `Boolean`
   This is `true` if the server supports calling `getMessageListUpdates` with these `filter`/`sort`/`collapseThreads` parameters. Note, this does not guarantee that the getMessageListUpdates call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
 - **position**: `Number`
@@ -225,14 +225,14 @@ The response to *getMessageListUpdates* is called *messageListUpdates* It has th
 - **removed**: `RemovedItem[]`
   The *messageId* and *threadId* for every message that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra messages in addition that MAY have been in the old list but are not in the new list.
 
-  If an *uptoMessageId* was given AND this id was found in the list, only messages positioned before this message that were removed need be returned.
+    If an *uptoMessageId* was given AND this id was found in the list, only messages positioned before this message that were removed need be returned.
 
-  In addition, if the sort includes the property *isUnread* or *isFlagged*, the server MUST include all messages in the current list for which this property MAY have changed. If `collapseThreads == true`, then the server MUST include all messages in the current list for which this property MAY have changed **on any of the messages in the thread**.
+    In addition, if the sort includes the property *isUnread* or *isFlagged*, the server MUST include all messages in the current list for which this property MAY have changed. If `collapseThreads == true`, then the server MUST include all messages in the current list for which this property MAY have changed **on any of the messages in the thread**.
 
 - **added**: `AddedItem[]`
   The messageId and threadId and index in the list (in the new state) for every message that has been added to the list since the old state AND every message in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.
 
-  If an *uptoMessageId* was given AND this id was found in the list, only messages positioned before this message that have been added need be returned.
+    If an *uptoMessageId* was given AND this id was found in the list, only messages positioned before this message that have been added need be returned.
 
 A **RemovedItem** object has the following properties:
 
