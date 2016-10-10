@@ -418,7 +418,7 @@ The response to *getCalendarEventUpdates* is called *calendarEventUpdates*. It h
 - **removed**: `String[]`
   An array of CalendarEvent ids for events which have been destroyed since the old state.
 
-If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getCalendarEventUpdates* until it is fully up to date. The server MAY return more ids than the *maxChanges* total if this is required for it to be able to produce an update to an intermediate state, but it SHOULD try to keep it close to the maximum requested.
+If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getCalendarEventUpdates* until it is fully up to date. If it is unable to calculat an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
 
 If an event has been modified AND deleted since the oldState, the server should just return the id in the *removed* array, but MAY return it in the *changed* array as well. If an event has been created AND deleted since the oldState, the server SHOULD remove the event id from the response entirely, but MAY include it in the *removed* array.
 
