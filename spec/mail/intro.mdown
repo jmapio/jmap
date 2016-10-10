@@ -23,20 +23,13 @@ Types signatures are given for all JSON objects in this document. The following 
 
 The same terminology is used in this document as in the core JMAP specification.
 
-## Extensions to the Account capabilities object
+## Addition to the capabilities object
 
-The following extra property is defined for the *capabilities* object available on each Account object:
+The capabilities object is returned as part of the standard JMAP authentication response; see the JMAP spec. Servers supporting *this* specification MUST add a property called `{TODO: URI for this spec}` to the capabilities object. The value of this property is an object which SHOULD contain the following information on server capabilities:
 
-- **mail**: `MailCapabilities|null`
-  If `null`, this account does not support mail, and any use of the mail-related methods with this account will result in an `accountNotSupportedByMethod` error. Otherwise, it will be an object describing certain capabilities of the mail system.
-
-A **MailCapabilities** object has the following properties:
-
-- **isReadOnly**: `Boolean`
-  True if the user has read-only access to the mail in this account. The user may not use the `set`-type mail methods with this account.
 - **maxSizeMessageAttachments**: `Number`
   The maximum total size of attachments, in bytes, allowed for messages. A server MAY still reject messages with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
 - **canDelaySend**: `Boolean`
   Does the server support inserting a message into the outbox to be sent later at a user-specified time?
 - **messageListSortOptions**: `String[]`
-  A list of all the message properties the server supports for sorting by. This MAY include properties the client does not recognise (for example custom properties specified in the vendor extension). Clients MUST ignore any unknown properties in the list.
+  A list of all the message properties the server supports for sorting by. This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.

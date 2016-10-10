@@ -121,6 +121,31 @@ The response body will be a single JSON object with the following properties.
   The username that was successfully authenticated.
 - **accessToken**: `String`
   The secret token to be used by the client to authenticate all future JMAP requests. The client should keep this secure, preferably in an OS keychain or the like. Since tokens should not be reused across devices or clients, the client SHOULD NOT reveal this token to the user.
+- **capabilities**: `String[Object]`
+  An object specifying the capabilities of this server. The keys are URIs, which specify the specifications supported by the server. The value for each of these keys is an object that MAY include further information about the server's capabilities in relation to that spec.
+
+    The client MUST ignore any properties it does not understand.
+
+    The capabilities object MUST include a property called `{TODO: URI for this spec}`. The value of this property is an object which SHOULD contain the following information on server capabilities:
+
+    - **maxSizeUpload**: `Number`
+      The maximum file size, in bytes, that the server will accept for a single file upload (for any purpose).
+    - **maxConcurrentUpload**: `Number`
+      The maximum number of concurrent requests the server will accept to the upload endpoint.
+    - **maxSizeRequest**: `Number`
+      The maximum size, in bytes, that the server will accept for a single
+      request to the API endpoint.
+    - **maxConcurrentRequests**: `Number`
+      The maximum number of concurrent requests the server will accept to
+      the API endpoint.
+    - **maxCallsInRequest**: `Number`
+      The maximum number of method calls the server will accept in a single request to the API endpoint.
+    - **maxObjectsInGet**: `Number`
+      The maximum number of obje ts that the client may request in a single `getFoos` type method call.
+    - **maxObjectsInSet**: `Number`
+      The maximum number of objects the client may send to create, update or destroy in a single `setFoos` type method call.
+
+    Future specifications will define their own properties on the capabilities object.
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
 - **downloadUrl**: `String`
@@ -177,6 +202,8 @@ The request was successful. The response will be of type `application/json` and 
 
 - **username**: `String`
   The username that was successfully authenticated.
+- **capabilities**: `String[Object]`
+  An object specifying the capabilities of this server. See the full description above.
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
 - **downloadUrl**: `String`

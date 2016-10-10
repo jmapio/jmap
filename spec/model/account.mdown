@@ -14,13 +14,10 @@ An **Account** object has the following properties:
   A user-friendly string to show when presenting content from this account, e.g. the email address representing the owner of the account.
 - **isPrimary**: `Boolean`
   This MUST be true for exactly one of the accounts returned. This is to be considered the user's main or default account by the client.
-- **capabilities**: `String[Object]`
-  An object describing the data types contained in this account and the general capabilities of this server. Further RFCs that define JMAP-compatible data models will each define a key to use here for the client to identify that this data is available. In addition, there MUST be a key called `jmap`, which has an object with the following properties:
-
-  - **maxSizeUpload**: `Number`
-    The maximum file size, in bytes, that the server will accept for a single file upload (for any purpose).
-
-  The capabilities object, or the object values within it, MAY also contain one or more custom properties prefixed with a domain that uniquely identifies the vendor, e.g. `"com.fastmail/foo"`. The value type for these properties is undefined. These properties allow vendors to be able to inform their own clients of custom capabilities. Unknown properties MUST be ignored by clients.
+- **isReadOnly**: `Boolean`
+  This is `true` if the entire account is read-only.
+- **hasDataFor**: `String[]`
+  A list of the data profiles available in this account. Each future JMAP data types specification will define a profile name to encompass that set of types.
 
 ## getAccounts
 
@@ -43,13 +40,7 @@ and response:
           "id": "6asf5",
           "name": "user@example.com",
           "isPrimary": true,
-          "capabilities": {
-            "jmap": {
-              "maxSizeUpload": 1000000000
-            }
-            "calendars": {
-              "isReadOnly": false
-            }
-          }
+          "isReadOnly": false,
+          "hasTypes": [ "mail" ]
       ]
     }, "#0" ]
