@@ -1,8 +1,8 @@
-## ContactLists
+# ContactLists
 
 A **ContactList** is a query on the set of contacts in a user's contacts. The client can optionally also fetch the contacts.
 
-### getContactList
+## getContactList
 
 To fetch a contact list, make a call to *getContactList*. It takes the following arguments:
 
@@ -19,7 +19,7 @@ To fetch a contact list, make a call to *getContactList*. It takes the following
 - **fetchContactProperties**: `String[]|null`
   The list of properties to fetch on any fetched contact. See *getContacts* for a full description.
 
-#### Filtering
+### Filtering
 
 A **FilterOperator** object has the following properties:
 
@@ -78,15 +78,15 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 - Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the contact, but MUST all be present for the contact to match the filter.
 - Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for `bus` would match "buses" but not "business").
 
-#### Sorting
+### Sorting
 
 Results MUST be sorted in a stable order so the client can load the full list in sections. The exact ordering to use is server dependent.
 
-#### Windowing
+### Windowing
 
 To paginate the results the client MAY supply a *position* argument: this is the 0-based index of the first result to return in the list of contacts after filtering and sorting. If the index is greater than or equal to the total number of contacts in the list, then there are no results to return, but this DOES NOT generate an error. If `null`, this defaults to `0`.
 
-#### Response
+### Response
 
 The response to a call to *getContactList* is called *contactList*. It has the following arguments:
 

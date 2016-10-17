@@ -1,8 +1,8 @@
-## CalendarEventLists
+# CalendarEventLists
 
 A **CalendarEventList** is a query on the set of events in a user's calendars. The client can optionally also fetch the events.
 
-### getCalendarEventList
+## getCalendarEventList
 
 To fetch a calendar event list, make a call to *getCalendarEventList*. It takes the following arguments:
 
@@ -19,7 +19,7 @@ To fetch a calendar event list, make a call to *getCalendarEventList*. It takes 
 - **fetchCalendarEventProperties**: `String[]|null`
   The list of properties to fetch on any fetched calendar event. See *getCalendarEvents* for a full description.
 
-#### Filtering
+### Filtering
 
 A **FilterOperator** object has the following properties:
 
@@ -61,15 +61,15 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 - Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the event, but MUST all be present for the event to match the filter.
 - Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for `bus` would match "buses" but not "business").
 
-#### Sorting
+### Sorting
 
 Results MUST be sorted in a stable order so the client can load the full list in sections. The exact ordering to use is server dependent.
 
-#### Windowing
+### Windowing
 
 To paginate the results the client MAY supply a *position* argument: this is the 0-based index of the first result to return in the list of events after filtering and sorting. If the index is greater than or equal to the total number of events in the list, then there are no results to return, but this DOES NOT generate an error. If `null`, this defaults to `0`.
 
-#### Response
+### Response
 
 The response to a call to *getCalendarEventList* is called *calendarEventList*. It has the following arguments:
 
