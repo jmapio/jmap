@@ -280,3 +280,123 @@ The following errors may be returned instead of the `foosSet` response:
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 `stateMismatch`: Returned if an `ifInState` argument was supplied and it does not match the current state.
+
+## Querying data
+
+For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g. multi-gigabyte mailboxes), the client needs to be able to perform a query on the server for the data type.
+
+### getFooList
+
+A query on the set of Foos in an account is made by calling *getFooList*. This takes a number of arguments to determine which records to include, how they should be sorted, and which part of the result should be returned (the full list may be *very* long). The result is returned as a list of Foo ids. Optionally, the records themselves may be fetched at the same time.
+
+A call to *getFooList* takes the following arguments:
+
+- **filter**: `FilterCondition`
+  Determines the set of Foos returned in the results. This is an `object`, whose allowed properties and semantics depend on the data type.
+- **sort**: `String[]|null`
+  Lists the properties to compare between two Foo records to determine which comes first in the sort. If two Foo records have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to `getFooList`.
+
+    Following each property name there MUST be a space and then either the string `asc` or `desc` to specify ascending or descending sort for that property. e.g. `[ "date desc", "name asc" ]`
+
+- **position**: `Number|null`
+  The 0-based index of the first id in the full list of results to return, presumed `0` if `null`. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **limit**: `Number|null`
+  The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the list is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **fetchFoos**: `Boolean|null`
+  If `true` then after outputting a *fooList* response, an implicit call will be made to *getFoos* with the `fooIds` array in the response as the *ids* argument. If `false` or `null`, no implicit call will be made.
+- **fetchFooProperties**: `String[]|null`
+  The list of properties to fetch on any fetched foos. See *getFoos* for a full description.
+
+The response to a call to *getFooList* is called *fooList*. It has the following arguments:
+
+- **filter**: `FilterCondition`
+  The filter of the foo list. Echoed back from the call.
+- **sort**: `String[]|null`
+  A list of Foo property names used to sort by. Echoed back from the call.
+- **state**: `String`
+  A string encoding the current state on the server. This string will change if the results of the Foo list MAY have changed (for example, there has been a change to the state of the set of Foos; it does not guarantee that anything in the list has changed). It may be passed to *getFooListUpdates* to efficiently get the set of changes from the client's current state.
+
+    Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached list and fetch it again (note, this does not require fetching the foos again, just the list of ids) or, call *getFooListUpdates* to get the delta difference.
+
+- **canCalculateUpdates**: `Boolean`
+  This is `true` if the server supports calling *getFooListUpdates* with these `filter`/`sort` parameters. Note, this does not guarantee that the *getFooListUpdates* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
+- **position**: `Number`
+  The 0-based index of the first result in the `fooIds` array within the complete list of results.
+- **total**: `Number`
+  The total number of foos in the foos list (given the *filter*).
+- **fooIds**: `String[]`
+  The list of Foo ids for each foo in the list after filtering and sorting, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids.
+
+The following errors may be returned instead of the `fooList` response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+### getFooListUpdates
+
+The `getFooListUpdates` call allows a client to efficiently update the state of any cached foo list to match the new state on the server. It takes the following arguments:
+
+- **filter**: `FilterCondition`
+  The filter argument that was used with *getFooList*.
+- **sort**: `String[]|null`
+  The sort argument that was used with *getFooList*.
+- **sinceState**: `String`
+  The current state of the client. This is the string that was returned as the *state* argument in the *fooList* response. The server will return the changes made since this state.
+- **maxChanges**: `Number|null`
+  The maximum number of changes to return in the response. See below for a more detailed description.
+
+The response to *getFooListUpdates* is called *fooListUpdates* It has the following arguments:
+
+- **filter**: `FilterCondition`
+  The filter of the foo list. Echoed back from the call.
+- **sort**: `String[]|null`
+  A list of Foo property names used to sort by. Echoed back from the call.
+- **oldState**: `String`
+  This is the `sinceState` argument echoed back; the state from which the server is returning changes.
+- **newState**: `String`
+  This is the state the client will be in after applying the set of changes to the old state.
+- **total**: `Number`
+  The total number of foos in the current foo list (given the *filter*).
+- **removed**: `String[]`
+  The *fooId* for every foo that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra foos in addition that MAY have been in the old list but are not in the new list.
+
+    If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current list for which this property MAY have changed.
+
+- **added**: `AddedItem[]`
+  The fooId and index in the list (in the new state) for every foo that has been added to the list since the old state AND every foo in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.
+
+  An **AddedItem** object has the following properties:
+
+  - **fooId**: `String`
+  - **index**: `Number`
+
+The result of this should be that if the client has a cached sparse array of foo ids in the list in the old state:
+
+    fooIds = [ "id1", "id2", null, null, "id3", "id4", null, null, null ]
+
+then if it **splices out** all foos in the removed array:
+
+    removed = [ "id2", … ];
+    fooIds => [ "id1", null, null, "id3", "id4", null, null, null ]
+
+and **splices in** (in order) all of the foos in the added array:
+
+    added = [{ fooId: "id5", index: 0, … }];
+    fooIds => [ "id5", "id1", null, null, "id3", "id4", null, null, null ]
+
+then the foo list will now be in the new state.
+
+The following errors may be returned instead of the `fooListUpdates` response:
+
+`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+
+`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+
+`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the foo list.
+
+`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the foo list.
