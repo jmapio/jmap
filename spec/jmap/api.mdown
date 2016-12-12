@@ -214,7 +214,7 @@ The following errors may be returned instead of the *fooUpdates* response:
 Modifying the state of Foo objects on the server is done via the *setFoos* method. This encompasses creating, updating and destroying Foo records. This has two benefits:
 
 1. It allows the server to sort out ordering and dependencies that may exist if doing multiple operations at once (for example to ensure there is always a minimum number of a certain record type).
-2. A single call can make all the changes you want to a particular type. If the client wants to use *ifInState* to guard its changes, it can only make one call that modifies a particular type per request, since it will need the new state following that call to make the next modification.
+2. A single call can make all the changes you want to a particular type. If the client wants to use *ifInState* to guard its changes, it is only possible for it to make one call that modifies any particular type per request, since it will need the new state following that call to make the next modification.
 
 The *setFoos* method takes the following arguments:
 
@@ -247,8 +247,8 @@ The response to *setFoos* is called *foosSet*. It has the following arguments:
   The state string that will now be returned by *getFoos*.
 - **created**: `String[Foo]`
   A map of the creation id to an object containing any **server-assigned** properties of the Foo object (including the id) for all successfully created records.
-- **updated**: `String[]`
-  A list of Foo ids for records that were successfully updated.
+- **updated**: `String[Foo|null]`
+  The *keys* in this map are the ids of all Foos that were successfully updated. Some data types may have properties which can only be determined by the server, and which may change as a result of the other properties being updated by the client. In this case, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed** on the record. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
 - **destroyed**: `String[]`
   A list of Foo ids for records that were successfully destroyed.
 - **notCreated**: `String[SetError]`

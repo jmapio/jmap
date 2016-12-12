@@ -55,7 +55,8 @@ If any of the properties in the update are invalid (immutable and different to t
 The response is called *vacationResponseSet*. It has the following arguments:
 
 - **updated**: `String[]`
-  Contains the single id ("singleton") if the vacation response was successfully updated.
+- **updated**: `String[VacationResponse|null]`
+  If successfully updated, this map will have a sole key of "singleton". The *value* in the map is an object containing the updated value of each property the **server changed** on the record, if any. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
 - **notUpdated**: `String[SetError]`
   A map of id ("singleton") to a SetError object if the update failed.
 

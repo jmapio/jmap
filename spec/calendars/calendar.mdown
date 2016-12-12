@@ -161,8 +161,8 @@ The response to *setCalendars* is called *calendarsSet*. It has the following ar
   The state string that will now be returned by *getCalendars*.
 - **created**: `String[Calendar]`
   A map of the creation id to an object containing the **id** property for all successfully created calendars.
-- **updated**: `String[]`
-  A list of ids for calendars that were successfully updated.
+- **updated**: `String[Calendar|null]`
+  The *keys* in this map are the ids of all calendars that were successfully updated. If the server made any other changes to the record beyond those explicitly requested by the client, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed**. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
 - **destroyed**: `String[]`
   A list of ids for calendars that were successfully destroyed.
 - **notCreated**: `String[SetError]`
