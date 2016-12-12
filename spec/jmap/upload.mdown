@@ -11,7 +11,7 @@ The content of the response is a single JSON object with the following propertie
 - **accountId**: `String`
   The id of the account used for the call.
 - **blobId**: `String`,
-  The id representing the binary data uploaded. The data for this id is immutable. The id *only* refers to the binary data, not any metadata.
+  The id representing the binary data uploaded. The data for this id is immutable. The id *only* refers to the binary data and content type, not any other metadata.
 - **type**: `String`
   The content type of the file.
 - **size**: `Number`
@@ -23,7 +23,7 @@ Once the file has been used, for example attached to a draft message, the file w
 
 If uploading a file would take the user over quota, the server SHOULD delete previously uploaded (but unused) files before their expiry time. This means a client does not have to explicitly delete unused temporary files (indeed, there is no way for it to do so).
 
-If identical binary content is uploaded, the same *blobId* SHOULD be returned.
+If identical binary content with an identical content type is uploaded, the same *blobId* SHOULD be returned. If a different content type is used, the *blobId* MUST be different.
 
 The server MUST return one of the following responses to a request to the upload URL:
 
