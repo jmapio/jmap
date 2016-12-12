@@ -215,9 +215,9 @@ If the *id* given does not correspond to a Mailbox in the given account, the des
 
 If the mailbox has `mayDeleteMailbox == false`, the destruction MUST be rejected with a `forbidden` error.
 
-A mailbox MAY NOT be destroyed if it still has any child mailboxes. Attempting to do so will result in the destruction being rejected with a `mailboxHasChild` error.
+A mailbox MUST NOT be destroyed if it still has any child mailboxes. Attempts to do so MUST be rejected with a `mailboxHasChild` error.
 
-Destroying a mailbox MUST NOT delete any messages still contained within it. It only removes them from the mailbox. Since messages MUST always be in at least one mailbox, if the last mailbox they are in is deleted the messages must be added to the mailbox with `role == "inbox"`. If no Inbox exists, the messages must be moved to any other mailbox; this is server dependent.
+A mailbox MUST NOT be destroyed if it has any messages assigned to it. Attempts to do so MUST be rejected with a `mailboxHasMessage` error.
 
 There MUST always be **at least one** mailbox. It is expected that the server will enforce this by setting `mayDeleteMailbox == false` on at least the Inbox, if not all system mailboxes. However, if this is not the case, an attempt to destroy the last mailbox MUST still be rejected with a `mailboxRequired` error.
 
