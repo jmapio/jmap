@@ -305,7 +305,7 @@ If any of the properties in the update are invalid (immutable and different to t
 
 If the *id* given does not correspond to a Message in the given account, reject the update with a `notFound` error.
 
-To **delete a message** to trash, simply change the `mailboxIds` property so it is now in the mailbox with `role == "trash"`. If the mailbox has the property `mustBeOnlyMailbox == true`, it must be removed from all other mailboxes. Otherwise, leave it in those mailboxes so that it will be restored to its previous state if undeleted.
+To **delete a message** to trash, simply change the `mailboxIds` property so it is now in the mailbox with `role == "trash"`, and remove all other mailbox ids.
 
 ### Sending messages
 
@@ -324,6 +324,8 @@ A message may be moved out of the **outbox** and back to the **drafts** mailbox 
 If the *id* given does not correspond to a Message in the given account, the server MUST reject the destruction with a `notFound` error.
 
 Destroying a message removes it from all mailboxes to which it belonged.
+
+When emptying the trash, clients SHOULD NOT destroy messages which are also in a mailbox other than trash. For those messages, they should just remove the Trash mailbox from the message.
 
 ### Response
 

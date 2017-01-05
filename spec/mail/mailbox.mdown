@@ -55,20 +55,20 @@ A **Mailbox** object has the following properties:
 - **unreadMessages**: `Number`
   The number of messages in this mailbox where the *isUnread* property of the message is `true` and the *isDraft* property is `false`.
 - **totalThreads**: `Number`
-  The number of threads where at least one message in the thread is in this mailbox (but see below for special case handling of Trash).
+  The number of threads where at least one message in the thread is in this mailbox.
 - **unreadThreads**: `Number`
   The number of threads where at least one message in the thread has `isUnread == true` and `isDraft == false` AND at least one message in the thread is in this mailbox (but see below for special case handling of Trash). Note, the unread message does not need to be the one in this mailbox.
 
-The Trash mailbox (that is a mailbox with `role == "trash"`) MUST be treated specially:
+The Trash mailbox (that is a mailbox with `role == "trash"`) MUST be treated specially for the purpose of unread counts:
 
-* Messages in the Trash are ignored when calculating the `unreadThreads` and `totalThreads` count of other mailboxes.
-* Messages not in the Trash are ignored when calculating the `unreadThreads` and `totalThreads` count for the Trash mailbox.
+1. Messages that are **only** in the Trash (and no other mailbox) are ignored when calculating the `unreadThreads` count of other mailboxes.
+2. Messages that are **not** in the Trash are ignored when calculating the `unreadThreads` count for the Trash mailbox.
 
-The result of this is that messages in the Trash are treated as though they are in a separate thread for the purposes of mailbox counts. It is expected that clients will hide messages in the Trash when viewing a thread in another mailbox and vice versa. This allows you to delete a single message to the Trash out of a thread.
+The result of this is that messages in the Trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide messages in the Trash when viewing a thread in another mailbox and vice versa. This allows you to delete a single message to the Trash out of a thread.
 
-For example, suppose you have an account where the entire contents is a single conversation with 2 messages: an unread message in the Trash and a read message in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
+So for example, suppose you have an account where the entire contents is a single conversation with 2 messages: an unread message in the Trash and a read message in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
 
-Destroying a mailbox MUST NOT delete any messages still contained within it. It only removes them from the mailbox. Since messages MUST always be in at least one mailbox, if the last mailbox they are in is deleted the messages must be added to the mailbox with `role == "inbox"`. If no Inbox exists, the messages must be moved to any other mailbox; this is server dependent.
+For IMAP compatability, a message in both the Trash and another mailbox SHOULD be treated by the client as existing in both places (i.e. when emptying the trash, the client SHOULD just remove the Trash mailbox and leave it in the other mailbox).
 
 ## getMailboxes
 
