@@ -1,164 +1,247 @@
 # Advice for JMAP implementors
 
-This document describes a recommended set of data structures and algorithms for efficiently implementing JMAP. It is intended to serve as suggestions only; there may well be better ways to do it. The spec is the authoritative guide on what constitutes a conformant JMAP implementation.
+This document describes a recommended set of database tables and algorithms for efficiently implementing JMAP. It is intended to serve as suggestions only; there may well be better ways to do it. The spec is the authoritative guide on what constitutes a conformant JMAP implementation.
 
 ## Assigning Message Ids
 
-A good way of assigning a message id is to sha1 the RFC2822 message and take the first 80 bits (this is sufficient for avoiding collisions in any reasonable sized instance, but the server may choose any length it likes). If this is already in use (i.e. another copy of the message already exists), sha1 the GUID. Repeat until there is no collision. The bytes can be represented in any reasonable encoding for transmission as a `String` within the API.
+A good way of assigning a message id is to use a secure hash function on the RFC5322 message. If you want to support having identical messages with different ids, you'll then need to keep hashing the result if there are collisions until you find an unused id. In general, I recommend not doing this.
 
 ## Modification sequences
 
-A modification sequence, or **modseq**, is a 63-bit monotonically incrementing counter. Each user has their own modseq counter (in IMAP it's originally per-mailbox, but per user is backwards compatible with this). Every time a change occurs to data within the user, the modseq is incremented by one and the new value is associated with the changes. This is used in a number of data structures and algorithms below to efficiently calculate changes.
+A modification sequence, or **modseq**, is a 64-bit unsigned monotonically incrementing counter. Each user has their own modseq counter (in IMAP it's originally per-mailbox, but per user is backwards compatible with this). Every time a change occurs to data within the user, the modseq is incremented by one and the new value is associated with the changes. This is used in a number of data structures and algorithms below to efficiently calculate changes.
 
 ## Data structures
 
 As ever in programming, get your data structures right and the server will practically write itself.
 
-There are three types of data structures suggested in this guide (excluding the email indexing for search, which is more complicated than this guide is prepared to go into):
+### 1. Messages
 
-1. A **Map** (associative array) of id to variable-length data blob:
-   - Insert should be O(1).
-   - Lookup should be O(1).
-   - Delete should be O(1).
-   - Not ordered, but we need to be able to iterate over all the values.
-2. An **append-only log** of variable length blobs:
-   - Insert is only at tail.
-   - Lookup needs to be able to binary search (based on modseq) to find start location, then read sequentially.
-   - Delete is only at head.
-3. An **Ordered list** of fixed-sized objects:
-   - Insert is mainly at or near the head, but can be in a random location.
-   - Want to be able to read sequentially from head (common case), or read whole structure into memory and sort.
-   - Delete is mainly near head, but can be in a random location.
+The mutable state and fields that need to be fetched for message list display for a message. The raw message itself is presumed to be stored in a separate (probably much slower) blob store, accessible again by the message id (or if ids are assigned by the blob store, add this as an extra property to the table).
 
-### 1. User
+- **id**: `String` (The message id)
 
-This is a simple collection of important top-level values for the user (kept in a **Map**):
+Properties below have the values as specified in the **Message** object in the JMAP Mail spec.
 
-- Highest ModSeq for the user (`63 bits` for IMAP compatibility)
-- Highest ModSeq of any Mailbox.
-- Low watermark ModSeq for Thread Log `63 bits` – whenever the thread log (see below) is truncated, the modseq of the new first item in the log is stored here. Any attempt to call *getThreadUpdates* with a modseq lower than this must be rejected with a `cannotCalculateUpdates` error.
-- Low watermark ModSeq for Message Log `63 bits` – the same, but for the message log.
-- Quota available in bytes (63 bits. -1 => Don't care)
-- Quota used in bytes `63 bits`
-- List of other users with mailboxes made available to this user (shared mailboxes) (var length).
+- **blobId**: `String` (if different to message id)
+- **threadId**: `String`
+- **mailboxIds**: `String[]` (Mutable)
+- **isUnread**: `Boolean` (Mutable)
+- **isFlagged**: `Boolean` (Mutable)
+- **isAnswered**: `Boolean` (Mutable)
+- **isDraft**: `Boolean` (Mutable by IMAP)
+- **from**: `Emailer[]|null`
+- **to**:  `Emailer[]|null`
+- **subject**: `String`
+- **date**: `Date`
+- **size**: `Number`
+- **preview**: `String`
+- **attachments**: `Attachment[]|null`
 
-### 2. Mailboxes
+Data sync properties:
 
-A map of Mailbox Id to all of the mailbox object values (as defined in the spec, including the counts). For the purposes of calculating `getMailboxUpdates`, also include the following for each mailbox:
+- **createdModSeq**: `Number`
+  The modseq when the message was created.
+- **updatedModSeq**: `Number`
+  The modseq when the message was last modified.
+- **deleted**: `Date|null`
+  The timestamp when the message was deleted.
 
-- **Mailbox ModSeq** `63 bits` Updated when any of the mailbox properties (as defined in the spec) change – not updated when the mailbox message list changes.
-- **Mailbox Non-Counts ModSeq** `63 bits` Updated when any of the mailbox properties that are not counts change. When calculating `getMailboxUpdates`, if this is lower than the previous mod seq, but the Mailbox ModSeq is higher, then only counts have changed.
-- **Message list UID Next** `32 bits` The next UID (incrementing 32-bit counter) to assign to messages added to the mailbox message list.
-- **Message list highest ModSeq** `63 bits` The highest ModSeq of a message in the mailbox message list.
-- **Low watermark message list ModSeq** `63 bits` Whenever a message is undeleted via IMAP (that is the \Deleted flag is removed) or a deleted message is fully expunged from the mailbox message list (see message list data structure below), set this to the ModSeq of that message if higher than the previous value. Any attempt to call *getMessageListUpdates* with a modseq lower than this must be rejected with a `cannotCalculateUpdates` error.
+### 2. Threads
 
-The suggested way to assign a Mailbox id is to use an incrementing counter. 16 bits should be sufficient, giving support for a maximum of 65536 mailboxes per user. Old ids are reusable without penalty while keeping with the JMAP semantics. Over the wire this would be represented as a prefix plus an encoding of the number, e.g. "m1", "m2" etc.
+- **id**: `String` (The thread id; UUID suggested)
 
-### 3. Mailbox message list
+- **subjectHash**: `Byte[]`
+  Secure hash of the subject of the first message used to create the thread
+  (after stripping fwd/re etc.). This is used for checking whether we need to
+  split out a new thread when a message arrives as the subject has changed (see data structure 7).
+- **messages**: `ThreadMessage[]`
+  The list of messages belonging to the thread, sorted with drafts immediately after the message they are in reply to, then by date order.
 
-One of these should exist for each mailbox. It is an ordered list of fixed size objects. Each object is:
+    A  **ThreadMessage** has the following properties:
+    - **id**: `String`
+      The message id
+    - **mailboxIds**: `String[]`
+    - **isUnread**: `Boolean`
+    - **isFlagged**: `Boolean`
 
-- **UID** `32 bits` As per IMAP semantics, this increments each time you append a message to the mailbox. The next UID to use is stored in the Mailbox object.
-- **ModSeq** `63 bits` As per IMAP semantics, this is updated whenever any property of the message changes.
-- **Message Id** `80 bits` This is the ID always used within JMAP to refer to the message, and does not change as it moves between mailboxes.
-- **Thread Id** `64 bits`
-- **Deleted** `64 bits` Time stamp from epoch of when the message was removed the mailbox. `0` means not deleted. See below
-- **Message Date** `64 bits`
+Data sync properties:
 
-Given that most message list fetches are of the first section of a single mailbox in date descending order, if we keep it stored in this order on disk we can just read the first few bytes to return the desired information; no sorting required (we don't even have to look up anything in the message cache). The date is included in each record so we can insert a new one in the correct position without having to reference any other data.
+- **createdModSeq**: `Number`
+  The modseq when the thread was created.
+- **updatedModSeq**: `Number`
+  The modseq when the thread was last modified.
+- **deleted**: `Date|null`
+  The timestamp when the thread was deleted.
 
-When a message is removed from the mailbox we don't remove it immediately from the message list. Instead we just set the Deleted field to the time stamp of when it was deleted. This allows the delta update algorithm to work to efficiently update the client to the new list state. At certain intervals (either based on how many deleted nodes there are or how long since they were deleted) this needs to be cleaned up and the deleted objects fully expunged from the message list. At this point the low watermark ModSeq needs to be updated on the Mailbox data structure.
+### 3. Mailboxes
 
-### 4. Message cache
+- **id**: `String`  (The mailbox id; UUID suggested)
 
-A map of Message Id to flags, mailboxes and common header information for that message (variable length). This lets the server optimise calls to `getMessages` that only fetch this information (common when fetching the required information for a mailbox listing). It also allows optimisation of `getMessageList` as most, even quite complex filters will only require checking this cache (which should be relatively fast) rather than looking up and parsing the whole message (which could be quite slow).
+- **name**: `String`
+- **parentId**: `String|null`
+- **role**: `String|null`
+- **sortOrder**: `Number`
+- **mustBeOnlyMailbox**: `Boolean`
+- **mayReadItems**: `Boolean`
+- **mayAddItems**: `Boolean`
+- **mayRemoveItems**: `Boolean`
+- **mayCreateChild**: `Boolean`
+- **mayRename**: `Boolean`
+- **mayDelete**: `Boolean`
+- **totalMessages**: `Number`
+- **unreadMessages**: `Number`
+- **totalThreads**: `Number`
+- **unreadThreads**: `Number`
 
-For each message, store:
+Data sync properteis:
 
-- **isUnread** `1 bit` (mutable)
-- **isFlagged** `1 bit` (mutable)
-- **isAnswered** `1 bit` (mutable)
-- **isDraft** `1 bit` (mutable by IMAP)
-- Other flags + labels + annotations as needed for IMAP compatibility only. (mutable)
-- **Mailboxes** (list of mailbox ids this message belongs to) (mutable)
-- **From** header (either in the JSON used by JMAP, or whatever IMAP needs)
-- **To** header (either in the JSON used by JMAP, or whatever IMAP needs)
-- **Subject** header
-- **Date**
-- **Preview** (see spec)
-- **Attachments** (list of file names only; also used for hasAttachments)
-- **GUID** (sha1 of raw email)
+- **createdModSeq**: `Number`
+  The modseq when the mailbox was created.
+- **updatedModSeq**: `Number`
+  The modseq when the mailbox was last modified.
+- **updatedNotCountsModSeq**: `Number`
+  The modseq when any property other than the message counts was last modified.
+- **deleted**: `Date|null`
+  The timestamp when the mailbox was deleted.
 
-### 5. Message index
+- **highestUID**: `Number`
+  The highest uid so far assigned to a message in the mailbox message list.
+- **messagesHighestModSeq**: `Number`
+  The highest mod seq of any message in the mailbox.
+- **messageListLowModSeq**: `Number`
+  The lowest modseq we can calculate message list updates from.
 
-For searching messages at any reasonable speed, an index is required from textual content within the message to the message id. Describing how this should work is beyond the scope of this guide.
+### 4. MailboxMessageList
 
-### 6. Messages
+This data structure allows for IMAP support, and for very fast response to the most common message list fetch/updates queries (where the filter is a single mailbox, and sort is date descending).
 
-A map of GUID (sha1 of the message contents) to the raw RFC2822 message itself. This is the bulk of the data to be stored for each user. As this data is immutable and referenced by its sha1, there are many possibilities for how to store it. Each message could be stored as a separate file using its GUID as the name. Or on a separate networked object store etc. etc.
 
-### 7. Message log
+- **id**: `mailboxId . (Max_Int64 - MessageDate) . uid`
+  The id is a concatenation of the mailbox id, then the message date inverted so date descending is the forward order, then the UID assigned.
 
-An append only log of changes made to the message cache. Each entry consists of:
+- **messageId**: `String`
+  The message id.
+- **threadId**: `String`
+  The thread id of the message.
+- **updatedModSeq**: `String`
+  The current `updatedModSeq` of the message.
+- **created**: `Date`
+  Date this message was added to the mailbox.
+- **deleted**: `Date|null`
+  Date this message was removed from the mailbox.
 
-- **ModSeq** of change `63 bits`
-- List of **Message ids** which were affected by the change (to save extra lookups when the client is fetching these changes, should probably include a bit to say whether the message was destroyed by the change or created/modified).
+Note, the updatedModSeq is set at the same time as the deleted field when the message is removed from the mailbox, but not then updated even if the message is changed again. (If the message is added back to the mailbox it will be assigned a new uid, so a new record will be created).
 
-Periodically, truncate the log by chopping records off the beginning. At this point you need to update the low watermark ModSeq for the log in the User object (data structure 1).
+### 5. MessageChangeLog
 
-### 8. Threads
+A log of modseqs when messages are created/updated/deleted, for faster responses to *getMessageUpdates*.
 
-A map of thread id to an object containing information about the thread (variable length). The information stored for each thread is:
+- **id**: The modseq of the change
 
-- The **list of messages** belonging to the thread, sorted in date order. For each - message we need to store:
-  - **Message Id** `80 bits`
-  - **Mailboxes** The list of mailboxes the message belongs to. For sorting a message list by thread unread/thread flagged purposes only.
-  - **isUnread** `1 bit` For sorting a message list by thread unread/thread flagged purposes only.
-  - **isFlagged** `1 bit` For sorting a message list by thread unread/thread flagged purposes only.
-- **ModSeq of last change** to isRead/isFlagged for any message in the thread (for sorting a message list by thread unread/thread flagged purposes only).
-- **Sha1 of subject** after stripping Fwd/Re etc. (for checking whether we need to split a new conversation out later; see threading algorithm in data structure 10).
+- **changed**: `String[]`
+  The list of message ids for messages that were changed or updated.
+- **removed**: `String[]`
+  The list of message ids for messages that were deleted.
 
-### 9. Thread log
+### 6. ThreadChangeLog
 
-An append only log of changes made to the **membership** of threads (in data structure 7; changes to only the isRead/isFlagged/Mailboxes of a message in a thread do not need to go in the log). Each entry consists of:
+A log of modseqs when threads are created/updated/deleted, for faster responses to *getMessageUpdates*.
 
-- **ModSeq** of change
-- **List of thread ids** which were affected by the change (to save extra lookups when the client is fetching these changes, should probably include a bit to say whether the thread was destroyed by the change or created/modified).
+- **id**: The modseq of the change
 
-As with the message log, periodically truncate the log by chopping records off the beginning; at this point you need to update the low watermark ModSeq for the log in the user object.
+- **changed**: `String[]`
+  The list of thread ids for threads that were changed or updated.
+- **removed**: `String[]`
+  The list of thread ids for threads that were deleted.
 
-### 10. Refs to ThreadId
+### 7. Refs to Thread
 
-This is solely used to look up the conversation to assign to a message on creation/import/delivery. Maps the RFC2822 Message Id (eughh, so many different types of id!) to the thread id.
+This is solely used to look up the conversation to assign to a message on creation/import/delivery. Maps the RFC5322 message ids found in the the `Message-Id`, `References` and `In-Reply-To` headers of each message received to the thread id assigned to that message.
+
+- **id**: A secure hash of the RFC5322 message id. This may well be the message
+  id if you assign message ids as recommended.
+
+- **threadId**: `String`
+  The thread id assigned to this message.
+- **lastSeen**: `Date`
+  The date of the last time this id was seen in a new message. This is used to
+  clean up older entries after a while.
 
 The suggested rule for connecting messages into threads is this:
 
-If two messages share a common RFC2822 Message Id in the set of such ids within the `Message-Id`, `References` and `In-Reply-To` headers of each message, and the messages have the same `Subject` header (after stripping any preceding Re:/Fwd: and trimming white space from either end), then they should belong in the same thread. Otherwise they should belong in different threads.
+If two messages share a common RFC5322 Message Id in the set of such ids within  of each message, and the messages have the same `Subject` header hash (after stripping any preceding Re:/Fwd: and trimming white space from either end), then they should belong in the same thread. Otherwise they should belong in different threads.
 
-## Message List Algorithms
+### 8. HighLowModSeqCache
+
+These are singleton values that need to be stored. If using a DB table, would be id/number values.
+
+- **highModSeq**: `Number`
+  The highest mod seq that has been assigned, across all types.
+- **highModSeqMessage**: `Number`
+  The highest mod seq assigned to a message.
+- **highModSeqThread**: `Number`
+  The highest mod seq assigned to a thread.
+- **highModSeqMailbox**: `Number`
+  The highest mod seq assigned to a mailbox.
+- **lowModSeqMessage**: `Number`
+  The lowest mod seq from which we can calculate updates. Periodically we shorten the *MessageChangeLog* by removing entries from the beginning. At this point, the highest modseq value removed is set as the `lowModSeqMessage`.
+- **lowModSeqThread**: `Number`
+  The lowest mod seq from which we can calculate updates. Periodically we shorten the *ThreadChangeLog* by removing entries from the beginning. At this point, the highest modseq value removed is set as the `lowModSeqThread`.
+- **lowModSeqMailbox**: `Number`
+  The lowest mod seq from which we can calculate updates. Periodically we completely delete mailboxes that were marked deleted. At this point, if higher than the current value, the `updatedModSeq` of the mailbox is set as the new `lowModSeqMailbox`.
+
+### Other data
+
+There are two bits of data not included in the main database.
+
+### A. Raw messages
+
+The set of full raw messages, possibly in a blob store.
+
+### B. Message index
+
+For searching messages at any reasonable speed, an index is required from textual content within the message to the message id. Describing how this should work is beyond the scope of this guide.
+
+## Algorithms
 
 The `state` property to return with getter calls to each type is:
 
-- Mailbox: Highest ModSeq of any Mailbox (stored in the User object)
-- MessageList: Message list UID Next + Message list highest ModSeq (as stored on the Mailbox object). For message lists that aren't just a mailbox, the state string should be the highest message ModSeq (as found at the tail of the Message Log).
-- Thread: The highest modseq found at the end of the Thread Log.
-- Message: The highest modseq found at the end of the Message Log.
+- **Message**: The `highModSeqMessage` value.
+- **Thread**: The `highModSeqThread` value.
+- **Mailbox**: The `highModSeqMailbox` value.
+- **MessageList**: If the filter is, or can be transformed to:
+  `AND( inMailbox: mailboxId, <other conditions>)`, then we can use the
+  *MailboxMessageList* data structure to optimise this. The state should then be `Mailbox.highestUID` concatenated with `Mailbox.messagesHighestModSeq`. For all other message lists, use `highModSeqMessage`.
+
+### getMessageUpdates
+
+If the modseq given == the current `highModSeqMessage` value, there are no changes. If it is lower than `lowModSeqMessage` we cannot calculate changes.
+
+If there are changes, find the first entry in the *MessageChangeLog* with an id >= the given modseq, and read forward from there.
+
+### getThreadUpdates
+
+If the modseq given == the current `highModSeqThread` value, there are no changes. If it is lower than `lowModSeqThread` we cannot calculate changes.
+
+If there are changes, find the first entry in the *ThreadChangeLog* with an id >= the given modseq, and read forward from there.
 
 ### getMailboxUpdates
 
-Simply iterate through the set of Mailboxes comparing their current mod seqs to the client mod seq. If higher, the mailbox has changed. If the non-counts is not higher, only counts have changed.
+If the modseq given == the current `highModSeqMailbox` value, there are no changes. If it is lower than `lowModSeqMailbox` we cannot calculate changes.
+
+If there are changes, iterate through the set of Mailboxes comparing their `updatedModSeq` to the client mod seq. If higher, the mailbox has changed (if `deleted` is not `null` it has been deleted, otherwise it was created or updated). If the `updatedNotCountsModSeq` is *not* higher, only counts have changed.
 
 ### getMessageList
 
-First you need to get the complete list. In the common case of…
+First you need to get the complete list of messages that match the given filter. In the common case of…
 
-    filter == { inMailboxes: [ 'inboxId' ], notInMailboxes: [ 'trashId' ] }
+    filter == { inMailbox: <messageId> }
 
-…you are simply fetching the list of messages in a mailbox. This list is already pre-calculated for each mailbox and kept on disk (data structure 3). You can simply slurp this into memory and sort if needed (again, in the common case of sorting date-descending, it will be pre-sorted).
+…you are simply fetching the list of messages in a mailbox. This list is already pre-calculated for each mailbox and kept on disk (data structure 4). You can simply slurp this into memory and sort if needed (again, in the common case of sorting date-descending, it will be pre-sorted). Skip any messages marked `deleted`.
 
-If the filter is more complex, you will need to do more work to get the set of matching messages and sort it. If there is a `String` component to the filter, first use the message index (data structure 5) to get a set of matches. Then iterate through and lookup each match in the message cache (data structure 4) to apply any other components of the filter. Finally sort as specified.
+If the filter is more complex, you will need to do more work to get the set of matching messages and sort it. If there is a `String` component to the filter, first use the message index to get a set of matches. If there is a single *inMailbox* component, use the *MailboxMessageList* structure to get the list of messages in that mailbox. Finally iterate through and lookup each potential match in the messages table (data structure 1) to apply any other components of the filter. Finally sort as specified.
 
-Once you have the complete message list, you can calculate the results to return to the client. Since a client is likely to fetch a different portion of the same message list soon after, it is beneficial if the server can keep the last list requested by the user in a cache for a short time.
+Once you have the complete message list, you can find the requested section to return to the client. Since a client is likely to fetch a different portion of the same message list soon after, it is beneficial if the server can keep the last list requested by the user in a cache for a short time.
 
     let collapseThreads = args.collapseThreads
     let position = args.position
@@ -196,15 +279,20 @@ Once you have the complete message list, you can calculate the results to return
         }
       }
       if totalIsKnown {
-        total = getTotal( mailbox, collapseThreads )
+        total = mailbox.totalThreads
       }
     }
 
 ### getMessageListUpdates
 
-With the suggested data structures, we can do delta updates for any standard mailbox message list (the common case), but not for a search. The following algorithm correctly calculates the delta update. We're presuming we already have a `messageList` (directly read in from data structure 3 and sorted if required):
+For the common case of…
+
+    filter == { inMailbox: <messageId> }
+
+… take the complete message list for the mailbox (data structure 4), including those marked deleted. Sort if necessary. The state given by the user (as returned from *getMessageList*) contains the previous `highestUID` and `highestModSeq`. Then:
 
     let index = -1
+    let total = 0
     let added = []
     let removed = []
     let collapseThreads = args.collapseThreads
@@ -214,54 +302,60 @@ With the suggested data structures, we can do delta updates for any standard mai
     # sort flagged messages/threads first.
     let isMutable = sort.isMutable()
 
+    # Does the sort include a thread property (thread unread/thread flagged)
+    # or just message properties?
+    let sortIsOnThreadUnreadOrFlagged = sort.isOnThreadUnreadOrFlagged()
+
     # An exemplar is the first message in each thread in the list, given the
     # sort order that
     # The old exemplar is the exemplar in the client's old state.
     let SeenExemplar = collapseThreads ? new Set() : null
     let SeenOldExemplar = collapseThreads ? new Set() : null
 
-    foreach msg in messageList {
+    foreach listMsg in messageList {
 
       let isNewExemplar = false
       let isOldExemplar = false
 
-      let isNew = ( msg.uid >= mailbox.uidNext )
-      let isChanged = ( msg.modSeq > args.state )
-      let isDeleted = ( msg.deletedTimeStamp != 0 )
+      let isNew = ( listMsg.uid > args.highestUID )
+      let isChanged = ( listMsg.updatedModSeq > args.highestModSeq )
+      let isDeleted = ( listMsg.deleted != null )
       let wasDeleted = ( isDeleted && !isChanged )
 
       # Is this message the current exemplar?
-      if !isDeleted && ( !collapseThreads || !SeenExemplar{ msg.threadId } ) {
+      if !isDeleted &&
+          ( !collapseThreads || !SeenExemplar{ listMsg.threadId } ) {
         isNewExemplar = true
         index += 1
+        total += 1
         if collapseThreads {
-          SeenExemplar.set( msg.threadId )
+          SeenExemplar.set( listMsg.threadId )
         }
       }
 
       # Was this message an old exemplar?
-      # 1. Must not have arrived after the client's state
-      # 2. Must have been deleted before the client's state
+      # 1. Must not have been added to mailbox after the client's state
+      # 2. Must have been removed from mailbox before the client's state
       # 3. Must not have already found the old exemplar
       if !isNew && !wasDeleted &&
-          ( !collapseThreads || !SeenOldExemplar{ msg.threadId } ) {
+          ( !collapseThreads || !SeenOldExemplar{ listMsg.threadId } ) {
         isOldExemplar = true
         if collapseThreads {
-          SeenOldExemplar.set( msg.threadId )
+          SeenOldExemplar.set( listMsg.threadId )
         }
       }
 
       if isOldExemplar && !isNewExemplar {
         removed.push({
-          messageId: msg.messageId,
-          threadId: msg.threadId
+          messageId: listMsg.messageId,
+          threadId: listMsg.threadId
         })
       }
       else if !isOldExemplar && isNewExemplar {
         added.push({
           index: index,
-          messageId: msg.messageId,
-          threadId: msg.threadId
+          messageId: listMsg.messageId,
+          threadId: listMsg.threadId
         })
       }
       # Special case for mutable sorts (based on isFlagged/isUnread). If
@@ -270,20 +364,20 @@ With the suggested data structures, we can do delta updates for any standard mai
       if isMutable && isOldExemplar && isNewExemplar {
         # Has the isUnread/isFlagged status of the message/thread
         # (as appropriate) possibly changed since the client's state?
-        let modSeq = collapseThreads ?
-              msg.modSeq :
-              getThread( msg.threadId ).modSeq
+        let modSeq = sortIsOnThreadUnreadOrFlagged ?
+          getThread( listMsg.threadId ).updatedModSeq
+          listMsg.updatedModSeq
         # If so, we need to remove the exemplar from the client view and add
         # it back in at the correct position.
         if modSeq > args.modSeq {
           removed.push({
-            messageId: msg.messageId,
-            threadId: msg.threadId
+            messageId: listMsg.messageId,
+            threadId: listMsg.threadId
           })
           added.push({
             index: index,
-            messageId: msg.messageId,
-            threadId: msg.threadId
+            messageId: listMsg.messageId,
+            threadId: listMsg.threadId
           })
         }
       }
@@ -294,22 +388,99 @@ With the suggested data structures, we can do delta updates for any standard mai
       #
       # However, if the sort is mutable we can't break early, as messages may
       # have moved from the region we care about to lower down the list.
-      if !isMutable && msg.uid == args.upto {
+      if !isMutable && !isNew && listMsg.messageId == args.upto {
         break
       }
     } # End loop
 
     total = getTotal( mailbox, collapseThreads )
 
-To implement this algorithm, the server must keep the metadata at least of deleted (expunged) messages for a little while (say 1-2 weeks). This is also very useful for restoring accidentally deleted messages as well. At cleanup time (when actually removing the messages), the server must keep track of the highest modseq of a message it has removed in that mailbox (the modseq would have been set at the original delete time); any requests for updates from a state before this must be rejected, as the results may be incorrect.
+For other filters, you can use the following algorithm instead, but it does require a complete scan of all messages:
 
-## getThreadUpdates
+    let index = -1
+    let total = 0
+    let added = []
+    let removed = []
+    let collapseThreads = args.collapseThreads
+    let uptoHasBeenFound = false
 
-If the client id is lower than the low watermark ModSeq for the Thread Log (as found in the User object), reject with a `cannotCalculateUpdates` error. Otherwise, binary search the Thread log looking for the client modseq, then read sequentially from there to get the changes.
+    # A mutable sort is one which sorts by a mutable property, e.g.
+    # sort flagged messages/threads first.
+    let isMutable = sort.isMutable()
 
-## getMessageUpdates
+    # Does the sort include a thread property (thread unread/thread flagged)
+    # or just message properties?
+    let sortIsOnThreadUnreadOrFlagged = sort.isOnThreadUnreadOrFlagged()
 
-If the client id is lower than the low watermark ModSeq for the Message Log (as found in the User object), reject with a `cannotCalculateUpdates` error. Otherwise, binary search the Message log looking for the client modseq, then read sequentially from there to get the changes.
+    # An exemplar is the first message in each thread in the list, given the
+    # sort order that
+    # The old exemplar is the exemplar in the client's old state.
+    let SeenExemplar = collapseThreads ? new Set() : null
+    let SeenOldExemplar = collapseThreads ? new Set() : null
+
+    # Get the full list of messages. Any non-mutable filter components
+    # may be applied at this stage, if possible.
+    let messages = allMessages().sortBy( args.sort )
+
+    foreach message in messages {
+
+      let isNewExemplar = false
+      let isOldExemplar = false
+
+      // Filter is on a mutable property
+      let filterIsMutable = filter.isMutable()
+      // Sort or filter is on a mutable property
+      let filterOrSortIsMutable = filterisMutable || sort.isMutable()
+
+      let isMatch = filter.matches( message )
+      let isNew = ( message.createdModSeq > args.highestModSeq )
+      let isChanged = ( message.updatedModSeq > args.highestModSeq )
+      let isDeleted = ( message.deleted != null )
+      let wasDeleted = ( isDeleted && !isChanged )
+
+      # Is this message the current exemplar?
+      if isMatch && !isDeleted &&
+          ( !collapseThreads || !SeenExemplar{ message.threadId } ) {
+        isNewExemplar = true
+        index += 1
+        total += 1
+        if collapseThreads {
+          SeenExemplar.set( listMsg.threadId )
+        }
+      }
+
+      # Was this message an old exemplar?
+      # 1. Must not have been created after the client's state
+      # 2. Must have been deleted before the client's state
+      # 3. Must match the filter, or have changed and the filter is on a mutable
+      #    property so it may have matched before.
+      # 4. Must not have already found the old exemplar, or filter/sort is on a
+           mutable property.
+      if !isNew && !wasDeleted &&
+          ( isMatch || ( filterIsMutable && isChanged ) ) &&
+          ( !collapseThreads || filterOrSortIsMutable ||
+            !SeenOldExemplar{ listMsg.threadId } ) {
+        isOldExemplar = true
+        if collapseThreads && !filterOrSortIsMutable {
+          SeenOldExemplar.set( listMsg.threadId )
+        }
+      }
+
+      if isOldExemplar && ( !isNewExemplar || filterOrSortIsMutable ) {
+        removed.push({
+          messageId: listMsg.messageId,
+          threadId: listMsg.threadId
+        })
+      }
+      if isNewExemplar && ( !isOldExemplar || filterOrSortIsMutable ) {
+        added.push({
+          index: index,
+          messageId: listMsg.messageId,
+          threadId: listMsg.threadId
+        })
+      }
+    } # End loop
+
 
 ## Vacation
 
