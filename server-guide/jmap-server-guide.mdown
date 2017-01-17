@@ -209,9 +209,20 @@ The `state` property to return with getter calls to each type is:
 - **Message**: The `highModSeqMessage` value.
 - **Thread**: The `highModSeqThread` value.
 - **Mailbox**: The `highModSeqMailbox` value.
-- **MessageList**: If the filter is, or can be transformed to:
-  `AND( inMailbox: mailboxId, <other conditions>)`, then we can use the
-  *MailboxMessageList* data structure to optimise this. The state should then be `Mailbox.highestUID` concatenated with `Mailbox.messagesHighestModSeq`. For all other message lists, use `highModSeqMessage`.
+- **MessageList**: The state property to use depends on the sort/filter of the
+  message list, as some optimisations can be made for common cases. The state string should encode one or two values. In all cases, you need to include a modseq value, which should be on of the following:
+
+  * If the sort or filter includes a mutable thread property
+  (i.e threadUnread or threadFlagged), use `max(highModSeqMessage, highModSeqThread)`.
+  * Otherwise, if the filter is or can be transformed to:
+  `AND( inMailbox: mailboxId, <other conditions>)`, use
+  `Mailbox.messagesHighestModSeq`
+  * Otherwise, use `highModSeqMessage`
+
+  If the filter is, or can be transformed to:
+  `AND( inMailbox: mailboxId, <other conditions>)`, also encode
+  `Mailbox.highestUID` into the state string; see *getMessageListUpdates*
+  algorithm below for how these values will be used.
 
 ### getMessageUpdates
 
@@ -232,6 +243,8 @@ If the modseq given == the current `highModSeqMailbox` value, there are no chang
 If there are changes, iterate through the set of Mailboxes comparing their `updatedModSeq` to the client mod seq. If higher, the mailbox has changed (if `deleted` is not `null` it has been deleted, otherwise it was created or updated). If the `updatedNotCountsModSeq` is *not* higher, only counts have changed.
 
 ### getMessageList
+
+Check the current state string as would be returned for *getMessageList* with the same arguments. If it is the same as the state given, nothing has changed so you can return a response immediately. Otherwise…
 
 First you need to get the complete list of messages that match the given filter. In the common case of…
 
@@ -289,7 +302,7 @@ For the common case of…
 
     filter == { inMailbox: <messageId> }
 
-… take the complete message list for the mailbox (data structure 4), including those marked deleted. Sort if necessary. The state given by the user (as returned from *getMessageList*) contains the previous `highestUID` and `highestModSeq`. Then:
+… take the complete message list for the mailbox (data structure 4), including those marked deleted. Sort if necessary. The state given by the user (as returned from *getMessageList*) contains the previous `highestUID` and a `highestModSeq`. Then:
 
     let index = -1
     let total = 0
@@ -304,7 +317,7 @@ For the common case of…
 
     # Does the sort include a thread property (thread unread/thread flagged)
     # or just message properties?
-    let sortIsOnThreadUnreadOrFlagged = sort.isOnThreadUnreadOrFlagged()
+    let isOnThreadUnreadOrFlagged = sort.isOnThreadUnreadOrFlagged()
 
     # An exemplar is the first message in each thread in the list, given the
     # sort order that
@@ -358,13 +371,11 @@ For the common case of…
           threadId: listMsg.threadId
         })
       }
-      # Special case for mutable sorts (based on isFlagged/isUnread). If
-      # collapseThread == true, the sort is based on the *conversation*
-      # isFlagged/isUnread status.
+      # Special case for mutable sorts (based on isFlagged/isUnread)
       if isMutable && isOldExemplar && isNewExemplar {
         # Has the isUnread/isFlagged status of the message/thread
         # (as appropriate) possibly changed since the client's state?
-        let modSeq = sortIsOnThreadUnreadOrFlagged ?
+        let modSeq = isOnThreadUnreadOrFlagged ?
           getThread( listMsg.threadId ).updatedModSeq
           listMsg.updatedModSeq
         # If so, we need to remove the exemplar from the client view and add
@@ -404,13 +415,14 @@ For other filters, you can use the following algorithm instead, but it does requ
     let collapseThreads = args.collapseThreads
     let uptoHasBeenFound = false
 
-    # A mutable sort is one which sorts by a mutable property, e.g.
-    # sort flagged messages/threads first.
-    let isMutable = sort.isMutable()
+    # A mutable filter/sort is one which uses a mutable property, e.g.
+    # flagged/unread state
+    let isMutable = sort.isMutable() || filter.isMutable()
 
-    # Does the sort include a thread property (thread unread/thread flagged)
-    # or just message properties?
-    let sortIsOnThreadUnreadOrFlagged = sort.isOnThreadUnreadOrFlagged()
+    # Does the sort or filter include a thread property (thread unread/thread
+    # flagged) or just message properties?
+    let isOnThreadUnreadOrFlagged =
+      sort.isOnThreadUnreadOrFlagged() || filter.isOnThreadUnreadOrFlagged()
 
     # An exemplar is the first message in each thread in the list, given the
     # sort order that
@@ -427,16 +439,17 @@ For other filters, you can use the following algorithm instead, but it does requ
       let isNewExemplar = false
       let isOldExemplar = false
 
-      // Filter is on a mutable property
-      let filterIsMutable = filter.isMutable()
-      // Sort or filter is on a mutable property
-      let filterOrSortIsMutable = filterisMutable || sort.isMutable()
-
       let isMatch = filter.matches( message )
       let isNew = ( message.createdModSeq > args.highestModSeq )
       let isChanged = ( message.updatedModSeq > args.highestModSeq )
       let isDeleted = ( message.deleted != null )
       let wasDeleted = ( isDeleted && !isChanged )
+
+      # Check for thread changed if necessary
+      if isOnThreadUnreadOrFlagged && !isChanged &&
+          getThread( listMsg.threadId ).updatedModSeq > args.highestModSeq {
+        isChanged = true
+      }
 
       # Is this message the current exemplar?
       if isMatch && !isDeleted &&
@@ -452,27 +465,27 @@ For other filters, you can use the following algorithm instead, but it does requ
       # Was this message an old exemplar?
       # 1. Must not have been created after the client's state
       # 2. Must have been deleted before the client's state
-      # 3. Must match the filter, or have changed and the filter is on a mutable
-      #    property so it may have matched before.
+      # 3. Must match the filter, or have changed and the sort/filter is on a
+           mutable property so it may have matched before.
       # 4. Must not have already found the old exemplar, or filter/sort is on a
            mutable property.
       if !isNew && !wasDeleted &&
-          ( isMatch || ( filterIsMutable && isChanged ) ) &&
-          ( !collapseThreads || filterOrSortIsMutable ||
+          ( isMatch || ( isMutable && isChanged ) ) &&
+          ( !collapseThreads || isMutable ||
             !SeenOldExemplar{ listMsg.threadId } ) {
         isOldExemplar = true
-        if collapseThreads && !filterOrSortIsMutable {
+        if collapseThreads && !isMutable {
           SeenOldExemplar.set( listMsg.threadId )
         }
       }
 
-      if isOldExemplar && ( !isNewExemplar || filterOrSortIsMutable ) {
+      if isOldExemplar && ( !isNewExemplar || isMutable ) {
         removed.push({
           messageId: listMsg.messageId,
           threadId: listMsg.threadId
         })
       }
-      if isNewExemplar && ( !isOldExemplar || filterOrSortIsMutable ) {
+      if isNewExemplar && ( !isOldExemplar || isMutable ) {
         added.push({
           index: index,
           messageId: listMsg.messageId,
