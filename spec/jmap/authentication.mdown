@@ -121,6 +121,10 @@ The response body will be a single JSON object with the following properties.
   The username that was successfully authenticated.
 - **accessToken**: `String`
   The secret token to be used by the client to authenticate all future JMAP requests. The client should keep this secure, preferably in an OS keychain or the like. Since tokens should not be reused across devices or clients, the client SHOULD NOT reveal this token to the user.
+- **signingId**: `String`
+  The id to put in the [JWT](https://tools.ietf.org/html/rfc7519) for signed GET requests (see below). This is used to allow the server to find the session so it can find the signing key to use to verify the token. You MUST NOT be able to derive the *accessToken* or *signingKey* from the *signingId*.
+- **signingKey**: `String`
+  The secret key to use for signing the [JWT](https://tools.ietf.org/html/rfc7519) for signed GET requests (see below), encoded as base64url as specified in ([!@RFC4648]). The client should keep this secure, preferably in an OS keychain or the like. Since keys should not be reused across devices or clients, the client SHOULD NOT reveal this token to the user.
 - **accounts**: `String[Account]`
   A map of **account id** to Account object for each account the user has access to.
 
@@ -280,41 +284,23 @@ For example, if *user@example.com* successfully logged in and the client receive
 
 ### Signed GET requests
 
-Sometimes, particularly in the browser context, authenticating a GET request using the usual `Authorization` header is not easily implemented. In such situations, a client may use a signed request instead. A signed request is an unauthenticated GET request containing a special query string parameter (a so-called `token`). The process below describes how a client can obtain such a token, then use it to download the file:
+Sometimes, particularly in the browser context, authenticating a GET request using the usual `Authorization` header is not easily implemented. In such situations, a client may use a signed request instead.
 
-1. The client makes an authenticated POST request to the URL for which it is unable to make an authenticated GET request. If authorization is granted, the server MUST send the token back as the body of the response, in one of the following forms:
-  * A [JSON Web Token](https://jwt.io/), in this case the response MUST have a `Content-Type` of `application/jwt`.
-  * A plain `String` or any other data structure, in this case the response SHOULD have a `Content-Type` of `text/plain` unless another standardised MIME type is applicable.
+Instead of the `Authorization` header, a signed request has an `access_token` query parameter, the value of which is an [@!RFC7519] [JSON Web Token](https://jwt.io/) constructed as follows:
 
-2. The client makes an unauthenticated GET request to the same URL but with `access_token=<response to the previous request>` appended to the query part (see [@!RFC3986] section 3.4 for details). If no query part was present in the URL before this operation, a new query part is created. The server MUST send back the contents of the requested file, as if it were requested through a standard authenticated GET request to the URL.
+* The algorithm MUST be HMAC SHA-256.
+* The JWT MUST contain the following set of claims:
+  - **iss**: `String` The *signingId* value returned after authentication.
+  - **sub**: `String` The origin + path of the URL being signed,
+    (i.e. the full URL excluding query parameters).
+  - **iat**: `Number` The time the client created this JWT, in seconds since
+    1970-01-01T00:00:00Z.
+* The JWT MUST be signed using the *signingKey* returned after authentication
+  as the key.
 
-The server SHOULD expire any given signing `token` quickly for obvious security reasons, but the actual expiration policy is up to the server implementation.
+To verify, a server MUST:
+* Ensure the algorithm is set to HMAC SHA-256.
+* Verify the URL being requested matches that in the *sub* claim.
+* Decode the payload and look up the session using the *iss* claim, ensure it is still valid, and then verify the JWT signature is valid using the session's *signingKey*.
 
-Sample HTTP exchange demonstrating the use of a signed request to download a file:
-
-* Obtain a token
-
-```
-POST /jmap/download/act1/blob2/mydocument.pdf HTTP/1.1
-Host: server.example.com
-Authorization: Bearer abcdef1234567890
-
-HTTP/1.1 200 OK
-Content-Type: text/plain
-Content-Length: 10
-
-abcDEfGhIJ
-```
-
-* Download the file
-
-```
-GET /jmap/download/act1/blob2/mydocument.pdf?access_token=abcDEfGhIJ HTTP/1.1
-Host: server.example.com
-
-HTTP/1.1 200 OK
-Content-Type: application/pdf
-Content-Length: 987654
-
-<< binary content >>
-```
+The server MAY choose to only allow tokens to be valid for a limited amount of time after the client created it, as determined by the *iat* claim.
