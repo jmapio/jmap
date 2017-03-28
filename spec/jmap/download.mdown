@@ -8,7 +8,7 @@ The client may use this template in combination with an accountId and blobId to 
 
 To download the data the client MUST make an authenticated GET request to the download URL with the appropriate variables substituted in, and then follow any redirects. The client SHOULD send an `Accept` header with the content type they would like the server to return for the file.
 
-In situations where it's not easy to authenticate the download request (e.g.: when downloading a file through a link in a HTML document), the client MAY use a signed GET request (see the authentication chapter for how to issue a signed request). An `Accept` header sent with the POST request to get the signed URL SHOULD be encoded into that URL and used to determine the content type of the response.
+In situations where it's not easy to authenticate the download request (e.g.: when downloading a file through a link in a HTML document), the client MAY use a signed GET request (see the authentication chapter for how to issue a signed request). Instead of specifying an `Accept` header, the client SHOULD add an `accept` query parameter to the signed URL, with the value being the content type to use for the response.
 
 After following redirects, the server MUST return one of the following responses to a request to the download URL:
 
