@@ -6,7 +6,11 @@ The pretty HTML version of the spec along with more JMAP info and resources can 
 
 ## Get involved
 
+JMAP is being developed within the IETF by the [JMAP Working Group](https://datatracker.ietf.org/wg/jmap/about/).
+
 You can join the mailing list at https://www.ietf.org/mailman/listinfo/jmap. Feedback is welcome: send your thoughts or comments on anything that is imprecise, incomplete, or could simply be done better in another way. Discussion is preferred prior to pull requests, except in the case of minor typos etc.
+
+## Contributions
 
 This repository relates to activities in the Internet Engineering Task
 Force (IETF). All material in this repository is considered Contributions
