@@ -23,6 +23,8 @@ A **Message** object has the following properties:
   Is the message flagged? This corresponds to the `\Flagged` system flag in IMAP.
 - **isAnswered**: `Boolean` (Mutable)
   Has the message been replied to? This corresponds to the `\Answered` system flag in IMAP.
+- **isForwarded**: `Boolean` (Mutable)
+  Has the message been forwarded? This corresponds to the `$Forwarded` user flag in IMAP.
 - **isDraft**: `Boolean` (Mutable by the server only)
   Is the message a draft? This corresponds to the `\Draft` system flag in IMAP.
 - **hasAttachment**: `Boolean`
@@ -260,6 +262,7 @@ The properties of the Message object submitted for creation MUST conform to the 
 - **isUnread**: Optional, defaults to `false`. If included this MUST be `false`.
 - **isFlagged**: Optional, defaults to `false`.
 - **isAnswered**: Optional, defaults to `false`. If included this MUST be `false`.
+- **isForwarded**: Optional, defaults to `false`. If included this MUST be `false`.
 - **isDraft**: Optional, defaults to `true`. If included this MUST be `true`.
 - **hasAttachment**: This property MUST NOT be included. It is set by the server upon creation based on the attachments property.
 - **headers**: Optional. The keys MUST only contain the characters a-z
@@ -298,6 +301,7 @@ Only the following properties may be modified:
 - **isFlagged**
 - **isUnread**
 - **isAnswered**
+- **isForwarded**
 
 Note, a mailbox id may be a *creation id* (see `setFoos` for a description of how this works).
 
@@ -380,6 +384,7 @@ An **MessageImport** object has the following properties:
 - **isUnread**: `Boolean`
 - **isFlagged**: `Boolean`
 - **isAnswered**: `Boolean`
+- **isForwarded**: `Boolean`
 - **isDraft**: `Boolean`
 
 If `isDraft == true`, the mailboxes MUST include the drafts or outbox mailbox. Adding to the outbox will send the message, as described in the *setMessages* section (it will NOT automatically mark any other message as *isAnswered*).
@@ -432,6 +437,8 @@ A **MessageCopy** object has the following properties:
   The *isFlagged* property for the copy.
 - **isAnswered**: `Boolean`
   The *isAnswered* property for the copy.
+- **isForwarded**: `Boolean`
+  The *isForwarded* property for the copy.
 - **isDraft**: `Boolean`
   The *isDraft* property for the copy.
 
