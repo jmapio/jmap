@@ -28,6 +28,7 @@ Properties below have the values as specified in the **Message** object in the J
 - **isUnread**: `Boolean` (Mutable)
 - **isFlagged**: `Boolean` (Mutable)
 - **isAnswered**: `Boolean` (Mutable)
+- **isForwarded**: `Boolean` (Mutable)
 - **isDraft**: `Boolean` (Mutable by IMAP)
 - **from**: `Emailer[]|null`
 - **to**:  `Emailer[]|null`
@@ -55,7 +56,7 @@ Data sync properties:
   (after stripping fwd/re etc.). This is used for checking whether we need to
   split out a new thread when a message arrives as the subject has changed (see data structure 7).
 - **messages**: `ThreadMessage[]`
-  The list of messages belonging to the thread, sorted with drafts immediately after the message they are in reply to, then by date order.
+  The list of messages belonging to the thread, sorted with drafts immediately after the message they are in reply to or they are forwarding, then by date order.
 
     A **ThreadMessage** has the following properties:
 
@@ -157,7 +158,7 @@ A log of modseqs when threads are created/updated/deleted, for faster responses 
 
 ### 7. Refs to Thread
 
-This is solely used to look up the conversation to assign to a message on creation/import/delivery. Maps the RFC5322 message ids found in the the `Message-Id`, `References` and `In-Reply-To` headers of each message received to the thread id assigned to that message.
+This is solely used to look up the conversation to assign to a message on creation/import/delivery. Maps the RFC5322 message ids found in the the `Message-Id`, `References`, `In-Reply-To` and `X-Forwarded-Message-Id` headers of each message received to the thread id assigned to that message.
 
 - **id**: A secure hash of the RFC5322 message id. This may well be the message
   id if you assign message ids as recommended.
