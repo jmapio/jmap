@@ -15,8 +15,6 @@ A **Message** object has the following properties:
   The id of the thread to which this message belongs.
 - **mailboxIds**: `String[]` (Mutable)
   The ids of the mailboxes the message is in. A message MUST belong to one or more mailboxes at all times (until it is deleted).
-- **inReplyToMessageId**: `String|null`
-  The id of the Message this message is a reply to. This is primarily for drafts, but the server MAY support this for received messages as well by looking up the [@!RFC5322] Message-Id referenced in the `In-Reply-To` header and searching for this message in the user's mail.
 - **isUnread**: `Boolean` (Mutable)
   Has the message not yet been read? This corresponds to the **opposite** of the `\Seen` system flag in IMAP.
 - **isFlagged**: `Boolean` (Mutable)
@@ -256,7 +254,6 @@ The properties of the Message object submitted for creation MUST conform to the 
 - **blobId**: This property MUST NOT be included. It is set by the server upon creation.
 - **threadId**: This property MUST NOT be included. It is set by the server upon creation.
 - **mailboxIds**: This property MUST be included. The value MUST include the id of either the mailbox with `role == "drafts"` (to save a draft) or the mailbox with `role == "outbox"` (to send the message). If this mailbox does not have `mustBeOnlyMailbox == true`, others may be included too.
-- **inReplyToMessageId**: Optional. If included, the server will look up this message and if found set appropriate `References` and `In-Reply-To` headers. These will override any such headers supplied in the *headers* property. If not found, the creation MUST be rejected with an `inReplyToNotFound` error.
 - **isUnread**: Optional, defaults to `false`. If included this MUST be `false`.
 - **isFlagged**: Optional, defaults to `false`.
 - **isAnswered**: Optional, defaults to `false`. If included this MUST be `false`.
@@ -313,7 +310,9 @@ To send a message, either create a new message directly into the mailbox with `r
 
 If the message is accepted, the server SHOULD **asynchronously** schedule the message to be sent **after** this method call is complete (note, this MAY occur before the next method in the same API request or after the whole API request is complete). This means that the `newState` string in the response represents a state where the message is still in the outbox.
 
-When the message is sent, the server MUST delete the message from the **outbox** and SHOULD create a **new** copy of the sent message (with a new id) in the **sent** mailbox, unless the user has indicated another preference. If `inReplyToMessageId` was set, the server SHOULD mark this message as `isAnswered: true` at this point, if found. The server is responsible for either reporting an error (normally a "bounce" email), or ensuring delivery of the message to the next hop.
+When the message is sent, the server MUST remove the message from the **outbox** and add it to the **sent** mailbox, unless the user has indicated another preference. The version added to the sent mailbox MAY be different (for example have extra headers added by the server), and so have a different id to the version that was in the outbox. If the message has an `In-Reply-To` header, the server SHOULD set `isAnswered == true` on all messages with the coresponding `Message-Id` header at this point.
+
+The server is responsible for either reporting an error (normally a "bounce" email), or ensuring delivery of the message to the next hop.
 
 ### Cancelling a send
 
