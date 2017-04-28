@@ -15,14 +15,26 @@ A **Message** object has the following properties:
   The id of the thread to which this message belongs.
 - **mailboxIds**: `String[]` (Mutable)
   The ids of the mailboxes the message is in. A message MUST belong to one or more mailboxes at all times (until it is deleted).
-- **isUnread**: `Boolean` (Mutable)
-  Has the message not yet been read? This corresponds to the **opposite** of the `\Seen` system flag in IMAP.
-- **isFlagged**: `Boolean` (Mutable)
-  Is the message flagged? This corresponds to the `\Flagged` system flag in IMAP.
-- **isAnswered**: `Boolean` (Mutable)
-  Has the message been replied to? This corresponds to the `\Answered` system flag in IMAP.
-- **isDraft**: `Boolean` (Mutable by the server only)
-  Is the message a draft? This corresponds to the `\Draft` system flag in IMAP.
+- **keywords**: `String[Boolean]` (Mutable)
+  A set of keywords that apply to the message. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
+
+    Keywords are shared with IMAP. The following *system* keywords exist that have particular semantic meaning:
+
+    - `\Draft`: The message is a draft the user is composing.
+    - `\Seen`: The message has been read.
+    - `\Flagged`: The message has been flagged for urgent/special attention.
+    - `\Answered`: The message has been replied to.
+
+    The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP.
+
+    Users may add arbitrary keywords to a message. For compatibility with IMAP, a non-system keyword is a string of 1–255 characters in the ASCII subset %x21–%x127 (excludes control chars and space), and MUST NOT include any of these characters: `()]{%*"\`
+
+    The [IANA Keyword Registry](https://www.iana.org/assignments/imap-keywords/imap-keywords.xhtml) as established in [@!RFC5788] assigns semantic meaning to some non-system keywords in common use. New keywords may be established here in the future. In particular, note:
+
+    - `$Forwarded`: The message has been forwarded.
+    - `$Phishing`: The message is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this message and disable links and attachments.
+    - `$Junk`: The message is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
+    - `$NotJunk`: The message is definitely not spam. Clients SHOULD set this flag when users indicate a message is legitimate, to help train automated spam-detection systems.
 - **hasAttachment**: `Boolean`
   Does the message have any attachments?
 - **headers**: `String[String]`
@@ -238,7 +250,7 @@ It takes the following arguments:
 - **destroy**: `String[]|null`
   A list of ids for Message objects to permanently delete.
 
-Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update the *isFlagged* field but not the *mailboxIds* field, if both are supplied in the update object for a message).
+Each create, update or destroy is considered an atomic unit. It is permissible for the server to commit some of the changes but not others, however it is not permissible to only commit part of an update to a single record (e.g. update the *keywords* field but not the *mailboxIds* field, if both are supplied in the update object for a message).
 
 If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
@@ -254,10 +266,7 @@ The properties of the Message object submitted for creation MUST conform to the 
 - **blobId**: This property MUST NOT be included. It is set by the server upon creation.
 - **threadId**: This property MUST NOT be included. It is set by the server upon creation.
 - **mailboxIds**: This property MUST be included. The value MUST include the id of either the mailbox with `role == "drafts"` (to save a draft) or the mailbox with `role == "outbox"` (to send the message). If this mailbox does not have `mustBeOnlyMailbox == true`, others may be included too.
-- **isUnread**: Optional, defaults to `false`. If included this MUST be `false`.
-- **isFlagged**: Optional, defaults to `false`.
-- **isAnswered**: Optional, defaults to `false`. If included this MUST be `false`.
-- **isDraft**: Optional, defaults to `true`. If included this MUST be `true`.
+- **keywords**: This property MUST be included. It MUST include the `\Draft` keyword and SHOULD also include `\Seen`.
 - **hasAttachment**: This property MUST NOT be included. It is set by the server upon creation based on the attachments property.
 - **headers**: Optional. The keys MUST only contain the characters a-z
   (lower-case only), 0-9 and hyphens.
@@ -289,12 +298,10 @@ If a draft cannot be saved due to the user reaching their maximum mail storage q
 
 Messages are mainly immutable, so to update a draft the client must create a new message and delete the old one. This ensures that if the draft is also being edited elsewhere, the two will split into two different drafts to avoid data loss.
 
-Only the following properties may be modified:
+Only the *mailboxIds* and *keywords* properties may be modified, and they are subject to the following constraints:
 
-- **mailboxIds**: The server MUST reject any attempt to add a message with `isDraft == false` to the outbox. The server MAY reject attempts to add a draft message to a mailbox that does not have a role of `drafts`, `outbox` or `templates`.
-- **isFlagged**
-- **isUnread**
-- **isAnswered**
+- **mailboxIds**: The server MUST reject any attempt to add a message to the outbox that does not have the `\Draft` keyword with an `invalidProperties` error.
+- **keywords**: The server MUST reject any attempt to add or remove the `\Draft` flag in an update with an `invalidProperties` error. The server MAY have a maximum number of keywords it supports; if the change would exceed this, it MUST be rejected with a `tooManyKeywords` error.
 
 Note, a mailbox id may be a *creation id* (see `setFoos` for a description of how this works).
 
@@ -310,7 +317,7 @@ To send a message, either create a new message directly into the mailbox with `r
 
 If the message is accepted, the server SHOULD **asynchronously** schedule the message to be sent **after** this method call is complete (note, this MAY occur before the next method in the same API request or after the whole API request is complete). This means that the `newState` string in the response represents a state where the message is still in the outbox.
 
-When the message is sent, the server MUST remove the message from the **outbox** and add it to the **sent** mailbox, unless the user has indicated another preference. The version added to the sent mailbox MAY be different (for example have extra headers added by the server), and so have a different id to the version that was in the outbox. If the message has an `In-Reply-To` header, the server SHOULD set `isAnswered == true` on all messages with the coresponding `Message-Id` header at this point.
+When the message is sent, the server MUST remove the message from the **outbox** and add it to the **sent** mailbox, unless the user has indicated another preference. The version added to the sent mailbox MAY be different (for example have extra headers added by the server), and so have a different id to the version that was in the outbox. If the message has an `In-Reply-To` header, the server SHOULD add the `\Answered` keyword to all messages with the coresponding `Message-Id` header at this point.
 
 The server is responsible for either reporting an error (normally a "bounce" email), or ensuring delivery of the message to the next hop.
 
@@ -376,12 +383,9 @@ An **MessageImport** object has the following properties:
   The id representing the raw [@!RFC5322] message (see the file upload section).
 - **mailboxIds** `String[]`
   The ids of the mailbox(es) to assign this message to.
-- **isUnread**: `Boolean`
-- **isFlagged**: `Boolean`
-- **isAnswered**: `Boolean`
-- **isDraft**: `Boolean`
+- **keywords**: `String[Boolean]`
 
-If `isDraft == true`, the mailboxes MUST include the drafts or outbox mailbox. Adding to the outbox will send the message, as described in the *setMessages* section (it will NOT automatically mark any other message as *isAnswered*).
+Adding to the outbox will send the message, as described in the *setMessages* section. The `\Draft` keyword MUST also be included if the message is being imported to the outbox.
 
 The response to *importMessages* is called *messagesImported*. It has the following arguments:
 
@@ -425,14 +429,8 @@ A **MessageCopy** object has the following properties:
   The id of the message to be copied in the "from" account.
 - **mailboxIds**: `String[]`
   The ids of the mailboxes (in the "to" account) to add the copied message to.
-- **isUnread**: `Boolean`
-  The *isUnread* property for the copy.
-- **isFlagged**: `Boolean`
-  The *isFlagged* property for the copy.
-- **isAnswered**: `Boolean`
-  The *isAnswered* property for the copy.
-- **isDraft**: `Boolean`
-  The *isDraft* property for the copy.
+- **keywords**: `String[Boolean]`
+  The *keywords* property for the copy.
 
 The "from" account may be the same as the "to" account to copy messages within an account.
 
@@ -466,43 +464,5 @@ The following errors may be returned instead of the *messagesCopied* response:
 `toAccountNoMail`: Returned if the *toAccountId* given corresponds to a valid account, but does not contain any mail data.
 
 `accountReadOnly`: Returned if the "to" account has `isReadOnly == true`.
-
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-## reportMessages
-
-Messages can be reported as spam or non-spam to help train the user's spam filter. This MUST NOT affect the state of the Message objects (it DOES NOT move a message into or out of the Spam mailbox).
-
-To report messages, make a call to *reportMessages*. It takes the following arguments:
-
-- **accountId**: `String|null`
-  The id of the account to use for this call. If not given, defaults to the primary account.
-- **messageIds**: `String[]`
-  The list of ids of messages to report.
-- **asSpam**: `Boolean`
-  If `true`, learn these messages as spam. If `false`, learn as non-spam.
-
-
-The response to *reportMessages* is called *messagesReported*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for this call.
-- **asSpam**: `Boolean`
-  Echoed back from the call
-- **reported**: `String[]`
-  The ids of each message successfully reported.
-- **notFound**: `String[]|null`
-  An array of message ids requested which could not be found, or `null` if all
-  ids were found.
-
-The following errors may be returned instead of the *messagesReported* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`accountReadOnly`: Returned if the account has `isReadOnly == true`.
-
-`requestTooLarge`: Returned if the total number of objects to create, update or destroy exceeds the maximum number the server is willing to process in a single method call.
 
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
