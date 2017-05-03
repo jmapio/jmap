@@ -23,6 +23,12 @@ Types signatures are given for all JSON objects in this document. The following 
 * `Foo[]` – An array of objects of type `Foo`.
 * `String[Foo]` – A JSON `Object` being used as a map (associative array), where all the values are of type `Foo`.
 
+## JSON as the data encoding format
+
+JSON is a text-based data interchange format as specified in [@!RFC7159]. The I-JSON format defined in [@!RFC7493] is a strict subset of this, adding restrictions to avoid potentially confusing scenarios (for example, it mandates that an object MUST NOT have two properties with the same key).
+
+All data sent from the client to the server or from the server to the client (except binary file upload/download) MUST be valid I-JSON according to the RFC, and is therefore case-sensitive and encoded in UTF-8 ([@!RFC3629]).
+
 ## Terminology
 
 ### User
@@ -46,12 +52,6 @@ JMAP provides a uniform interface for creating, retrieving, updating and deletin
 All object ids are assigned by the server, and are immutable. They MUST be unique among all objects of the **same type** within the **same account**. Ids may clash across accounts, or for two objects of different types within the same account.
 
 Ids are always `String`s. An id MUST be a valid UTF-8 string of at least 1 character in length and maximum 256 bytes in size, but MUST NOT start with the `#` character, as this is reserved for doing back references during object creation (see the *setFoos* description).
-
-## JSON as the data encoding format
-
-JSON is a text-based data interchange format as specified in [@!RFC7159]. The I-JSON format defined in [@!RFC7493] is a strict subset of this, adding restrictions to avoid potentially confusing scenarios (for example, it mandates that an object MUST NOT have two properties with the same key).
-
-All data sent from the client to the server or from the server to the client (except binary file upload/download) MUST be valid I-JSON according to the RFC, and is therefore case-sensitive and encoded in UTF-8.
 
 ## The JMAP API model
 
