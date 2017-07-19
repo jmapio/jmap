@@ -232,7 +232,6 @@ The following errors may be returned instead of the *messageUpdates* response:
 The *setMessages* method encompasses:
 
 - Creating a draft message
-- Sending a message
 - Changing the flags of a message (unread/flagged status)
 - Adding/removing a message to/from mailboxes (moving a message)
 - Deleting messages
@@ -256,32 +255,30 @@ If a create, update or destroy is rejected, the appropriate error MUST be added 
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
 
-### Saving a draft
-
-Creating messages via the *setMessages* method is only for creating draft messages and sending them. For delivering/importing a complete [@!RFC5322] message, use the `importMessages` method.
+### Creating a message (for example saving a draft)
 
 The properties of the Message object submitted for creation MUST conform to the following conditions:
 
 - **id**: This property MUST NOT be included. It is set by the server upon creation.
 - **blobId**: This property MUST NOT be included. It is set by the server upon creation.
 - **threadId**: This property MUST NOT be included. It is set by the server upon creation.
-- **mailboxIds**: This property MUST be included. The value MUST include the id of either the mailbox with `role == "drafts"` (to save a draft) or the mailbox with `role == "outbox"` (to send the message).
-- **keywords**: This property MUST be included. It MUST include the `$Draft` keyword and SHOULD also include `$Seen`.
+- **mailboxIds**: This property MUST be included, and contain at least one mailbox.
+- **keywords**: This property MUST be included. If the message is a draft, it SHOULD include the `$Draft` and `$Seen` keywords.
 - **hasAttachment**: This property MUST NOT be included. It is set by the server upon creation based on the attachments property.
 - **headers**: Optional. The keys MUST only contain the characters a-z
-  (lower-case only), 0-9 and hyphens.
-- **from**: Optional. Overrides a "From" in the *headers*.
-- **to**: Optional. Overrides a "To" in the *headers*.
-- **cc**: Optional. Overrides a "Cc" in the *headers*.
-- **bcc**:  Optional. Overrides a "Bcc" in the *headers*.
-- **replyTo**: Optional. Overrides a "Reply-To" in the *headers*.
+  (lower-case only), 0-9 and hyphens. If a header is included that conflicts with one of the other properties on the Message object (e.g. *from*, *date*), the value in the *headers* object MUST be ignored.
+- **from**: Optional.
+- **to**: Optional.
+- **cc**: Optional.
+- **bcc**:  Optional.
+- **replyTo**: Optional.
 - **subject**: Optional. Defaults to the empty string (`""`).
-- **date**: Optional. If included, the server SHOULD wait until this time to send the message (once moved to the outbox mailbox). Until it is sent, the send may be cancelled by moving the message back out of the outbox mailbox. If the date is in the past, the message must be sent immediately. A client may find out if the server supports delayed sending by querying the server's *capabilities* object (see section 1).
+- **date**: Optional.
 - **size**: This MUST NOT be included. It is set by the server upon creation.
 - **preview**: This MUST NOT be included. It is set by the server upon creation.
 - **textBody**: Optional. If not supplied and an htmlBody is, the server SHOULD generate a text version for the message from the HTML body.
 - **htmlBody**: Optional.
-- **attachments**: Optional. An array of Attachment objects detailing all the attachments to the message. To add an attachment, the file must first be uploaded using the standard upload mechanism; this will give the client a blobId that may be used to identify the file. The `cid` property may be assigned by the client, and is solely used for matching up with `cid:<id>` links inside the `htmlBody`. The server MAY change the cids upon sending.
+- **attachments**: Optional. An array of Attachment objects detailing all the attachments to the message. To add an attachment, the file must first be uploaded using the standard upload mechanism; this will give the client a blobId that may be used to identify the file. The `cid` property may be assigned by the client, and is solely used for matching up with `cid:<id>` links inside the `htmlBody`.
 
   If any of the files specified in *attachments* cannot be found, the creation MUST be rejected with an `invalidProperties` error. An extra property SHOULD be included in the error object called `attachmentsNotFound`, of type `String[]`, which SHOULD be an array of the *blobId* of every attachment that could not be found on the server.
 - **attachedMessages**: This MUST NOT be included.
@@ -290,9 +287,9 @@ All optional properties default to `null` unless otherwise stated. Where include
 
 If any of the properties are invalid, the server MUST reject the create with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
 
-Other than making sure it conforms to the correct type, the server MUST NOT attempt to validate from/to/cc/bcc when saved as a draft. This is to ensure messages can be saved at any point. Validation occurs when the user tries to send a message.
+Other than making sure it conforms to the correct type, the server MUST NOT attempt to validate from/to/cc/bcc. This is to ensure draft messages can be saved at any point.
 
-If a draft cannot be saved due to the user reaching their maximum mail storage quota, the creation MUST be rejected with a `maxQuotaReached` error.
+If a message cannot be created due to the user reaching their maximum mail storage quota, the creation MUST be rejected with a `maxQuotaReached` error.
 
 ### Updating messages
 
@@ -300,8 +297,7 @@ Messages are mainly immutable, so to update a draft the client must create a new
 
 Only the *mailboxIds* and *keywords* properties may be modified, and they are subject to the following constraints:
 
-- **mailboxIds**: The server MUST reject any attempt to add a message to the outbox that does not have the `$Draft` keyword with an `invalidProperties` error.
-- **keywords**: The server MUST reject any attempt to add or remove the `$Draft` flag in an update with an `invalidProperties` error. The server MAY have a maximum number of keywords it supports; if the change would exceed this, it MUST be rejected with a `tooManyKeywords` error.
+- **keywords**: The server MAY have a maximum number of keywords it supports; if the change would exceed this, it MUST be rejected with a `tooManyKeywords` error.
 
 Note, a mailbox id may be a *creation id* (see `setFoos` for a description of how this works).
 
@@ -310,20 +306,6 @@ If any of the properties in the update are invalid (immutable and different to t
 If the *id* given does not correspond to a Message in the given account, reject the update with a `notFound` error.
 
 To **delete a message** to trash, simply change the `mailboxIds` property so it is now in the mailbox with `role == "trash"`, and remove all other mailbox ids.
-
-### Sending messages
-
-To send a message, either create a new message directly into the mailbox with `role == "outbox"` or move an existing draft into this mailbox. At this point the server will check that it has everything it needs for a valid message. In particular, that it has a valid "From" address (and the user has permission to use this From address), it has at least one address to send to, and all addresses in To/Cc/Bcc are valid email addresses. If it cannot send, it will reject the creation/update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object SHOULD also contain a *description* property of type `String` with a user-friendly description of the problems to present to the user.
-
-If the message is accepted, the server SHOULD **asynchronously** schedule the message to be sent **after** this method call is complete (note, this MAY occur before the next method in the same API request or after the whole API request is complete). This means that the `newState` string in the response represents a state where the message is still in the outbox.
-
-When the message is sent, the server MUST remove the message from the **outbox** and add it to the **sent** mailbox, unless the user has indicated another preference. The version added to the sent mailbox MAY be different (for example have extra headers added by the server), and so have a different id to the version that was in the outbox. If the message has an `In-Reply-To` header, the server SHOULD add the `$Answered` keyword to all messages with the coresponding `Message-Id` header at this point. If the message has an `X-Forwarded-Message-Id` header, the server SHOULD add the `$Forwarded` keyword to all messages with the coresponding `Message-Id` header at this point.
-
-The server is responsible for either reporting an error (normally a "bounce" email), or ensuring delivery of the message to the next hop.
-
-### Cancelling a send
-
-A message may be moved out of the **outbox** and back to the **drafts** mailbox using the standard update message mechanism, if it has not yet been sent at the time the method is called. This MUST cancel the queued send. If the message has already been sent then it will have been deleted from the outbox, so the update will fail with a standard `notFound` error.
 
 ### Destroying messages
 
@@ -395,8 +377,6 @@ If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g. missin
 If the message cannot be imported because it would take the account over quota, the import should be rejected with a `maxQuotaReached` SetError.
 
 If the blob referenced cannot be parsed as an [@!RFC5322] message, the server MUST reject the import with an `invalidMessage` SetError.
-
-Adding to the outbox will send the message, as described in the *setMessages* section. The `$Draft` keyword MUST also be included if the message is being imported to the outbox.
 
 The response to *importMessages* is called *messagesImported*. It has the following arguments:
 

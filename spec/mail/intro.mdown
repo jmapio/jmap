@@ -31,7 +31,9 @@ The capabilities object is returned as part of the standard JMAP authentication 
   The maximum number of mailboxes that can be can assigned to a single message. This MUST be an integer >= 1, or `null` for no limit (or rather, the limit is always the number of mailboxes in the account).
 - **maxSizeMessageAttachments**: `Number`
   The maximum total size of attachments, in bytes, allowed for messages. A server MAY still reject messages with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
-- **canDelaySend**: `Boolean`
-  Does the server support inserting a message into the outbox to be sent later at a user-specified time?
+- **maxDelayedSend**: `Number`
+  The number in seconds of the maximum delay the server supports in sending
+  (see the MessageSubmission object). This is `0` if the server does not support
+  delayed send.
 - **messageListSortOptions**: `String[]`
   A list of all the message properties the server supports for sorting by. This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
