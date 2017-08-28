@@ -149,7 +149,10 @@ The response to `getFoos` is called `foos`. It has the following arguments:
 - **accountId**: `String`
   The id of the account used for the call.
 - **state**: `String`
-  A string representing the state on the server for **all** the data of this type. If the data changes, this string will change. It is used to get delta updates, if supported for the type.
+  A string representing the state on the server for **all** the data of this type in the account (not just the objects returned in this call). If the data changes, this string MUST change. If the Foo data is unchanged, servers SHOULD return the same state string on subsequent requests for this data type.
+
+    When a client receives a response with a different state string to a previous call, it MUST either throw away all currently cached objects for the type, or call *getFooUpdates* to get the exact changes.
+
 - **list**: `Foo[]`
   An array of the Foo objects requested. This is the **empty array** if no objects were found, or if the *ids* argument passed in was also the empty array.
 - **notFound**: `String[]|null`
@@ -208,6 +211,8 @@ The following errors may be returned instead of the *fooUpdates* response:
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 `cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Foo cache.
+
+Maintaining state to allow calculation of *getFooUpdates* can be expensive for the server, but always returning *cannotCalculateChanges* severely increases network traffic and resource usage for the client. To allow efficient sync, servers SHOULD be able to calculate changes from any state string that was given to a client within the last 30 days (but of course may support calculating updates from states older than this).
 
 ### setFoos
 
