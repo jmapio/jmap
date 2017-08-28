@@ -37,3 +37,19 @@ The capabilities object is returned as part of the standard JMAP authentication 
   delayed send.
 - **messageListSortOptions**: `String[]`
   A list of all the message properties the server supports for sorting by. This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
+- **submissionExtensions**: `String[String[]]`
+  A JMAP implementation that talks to a Submission [@!RFC6409] server SHOULD have a configuration setting that allows an administrator to expose a new submission EHLO capability in this field. This allows a JMAP server to gain access to a new submission extension without code changes. By default, the JMAP server should show only known safe-to-expose EHLO capabilities in this field, and hide EHLO capabilites that are only relevant to the JMAP server.
+
+    Each key in the object is the *ehlo-name*, and the value is a list of *ehlo-args*.
+
+    Examples of safe-to-expose Submission extensions include:
+
+    - FUTURERELEASE ([@!RFC4865])
+    - SIZE ([@!RFC1870])
+    - DSN ([@!RFC3461])
+    - DELIVERYBY ([@!RFC2852])
+    - MT-PRIORITY ([@!RFC6710])
+
+    A JMAP server MAY advertise an extension and implement the semantics of that extension locally on the JMAP server even if a submission server used by JMAP doesn't implement it.
+
+    The full IANA registry of submission extensions can be found at https://www.iana.org/assignments/mail-parameters/mail-parameters.xhtml#mail-parameters-2
