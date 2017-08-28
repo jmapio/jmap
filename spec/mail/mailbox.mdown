@@ -161,7 +161,7 @@ If a create, update or destroy is rejected, the appropriate error MUST be added 
 
 ### Ordering of changes
 
-Each create, update or destroy is considered an atomic unit. The server MAY commit some of the changes but not others, however MUST NOT only commit part of an update to a single record (e.g. update the *name* field but not the *parentId* field, if both are supplied in the update object).
+Each creation, modification or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however MUST NOT only commit part of an update to a single record (e.g. update the *name* field but not the *parentId* field, if both are supplied in the update object).
 
 The final state MUST be valid after the setMailboxes is finished, however the server MAY have to transition through invalid intermediate states (not exposed to the client) while processing the individual create/update/destroy requests. For example, a single method call could rename Mailbox A => B, and simultaneously rename Mailbox B => A. The final state is valid, so this is allowed, however if processed sequentially there will be an internal state where temporarily both mailboxes have the same name.
 
