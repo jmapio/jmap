@@ -433,11 +433,13 @@ A **MessageCopy** object has the following properties:
 - **messageId**: `String`
   The id of the message to be copied in the "from" account.
 - **mailboxIds**: `String[]`
-  The ids of the mailboxes (in the "to" account) to add the copied message to.
-- **keywords**: `String[Boolean]`
-  The *keywords* property for the copy.
+  The ids of the mailboxes (in the "to" account) to add the copied message to. At least one mailbox MUST be given.
+- **keywords**: `String[Boolean]|null`
+  The *keywords* property for the copy, if any.
 
-The "from" account may be the same as the "to" account to copy messages within an account.
+The server MAY forbid two messages with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-Id, to coexist within an account. If dulicates are allowed though, the "from" account may be the same as the "to" account to copy messages within an account.
+
+Each message copy is considered an atomic unit which may succeed or fail individually. Copying successfully MUST create a new message object, with separate ids and mutable properties (e.g. mailboxes and keywords) to the original message.
 
 The response to *copyMessages* is called *messagesCopied*. It has the following arguments:
 
@@ -452,9 +454,11 @@ The response to *copyMessages* is called *messagesCopied*. It has the following 
 
 The **SetError** may be one of the following types:
 
-`notFound`: Returned if the messageId given can't be found.
+`alreadyExists`: Returned if the server forbids duplicates and the message already exists in the target account. A *messageId* property or type `String` MUST be included on the error object with the id of the existing message.
 
-`invalidMailboxes`: Returned if one of the mailbox ids cannot be found, or an invalid combination of mailbox ids is specified.
+`notFound`: Returned if the *messageId* given can't be found.
+
+`invalidProperties`: Returned if the *mailboxIds* or *keywords* properties are invalid (e.g. missing, wrong type, id not found).
 
 `maxQuotaReached`: Returned if the user has reached their mail quota so the message cannot be copied.
 
