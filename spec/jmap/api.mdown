@@ -316,7 +316,7 @@ The response to a call to *getFooList* is called *fooList*. It has the following
 - **sort**: `String[]|null`
   A list of Foo property names used to sort by. Echoed back from the call.
 - **state**: `String`
-  A string encoding the current state on the server. This string will change if the results of the Foo list MAY have changed (for example, there has been a change to the state of the set of Foos; it does not guarantee that anything in the list has changed). It may be passed to *getFooListUpdates* to efficiently get the set of changes from the client's current state.
+  A string encoding the current state on the server. This string MUST change if the results of the Foo list may have changed (for example, there has been a change to the state of the set of Foos; it does not guarantee that anything in the list has changed). It may be passed to *getFooListUpdates* to efficiently get the set of changes from the client's current state.
 
     Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached list and fetch it again (note, this does not require fetching the foos again, just the list of ids) or, call *getFooListUpdates* to get the delta difference.
 
@@ -363,7 +363,7 @@ The response to *getFooListUpdates* is called *fooListUpdates* It has the follow
 - **total**: `Number`
   The total number of foos in the current foo list (given the *filter*).
 - **removed**: `String[]`
-  The *fooId* for every foo that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra foos in addition that MAY have been in the old list but are not in the new list.
+  The *fooId* for every foo that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old list but are not in the new list.
 
     If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current list for which this property MAY have changed.
 
