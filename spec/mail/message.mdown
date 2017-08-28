@@ -377,13 +377,24 @@ The *importMessages* method adds [@!RFC5322] messages to a user's set of message
 - **messages**: `String[MessageImport]`
   A map of creation id (client specified) to MessageImport objects
 
-An **MessageImport** object has the following properties:
+A **MessageImport** object has the following properties:
 
 - **blobId**: `String`
   The id representing the raw [@!RFC5322] message (see the file upload section).
 - **mailboxIds** `String[]`
-  The ids of the mailbox(es) to assign this message to.
-- **keywords**: `String[Boolean]`
+  The ids of the mailbox(es) to assign this message to. At least one mailbox MUST be given.
+- **keywords**: `String[Boolean]|null`
+  The keywords to apply to the message, if any.
+
+Each message to import is considered an atomic unit which may succeed or fail individually. Importing successfully creates a new message object from the data reference by the blobId and applies the given mailboxes and keywords.
+
+The server MAY forbid two messages with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-Id, to coexist within an account. In this case, it should reject attempts to import a message considered a duplicate with an `alreadyExists` SetError. A *messageId* property or type `String` MUST be included on the error object with the id of the existing message.
+
+If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g. missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
+
+If the message cannot be imported because it would take the account over quota, the import should be rejected with a `maxQuotaReached` SetError.
+
+If the blob referenced cannot be parsed as an [@!RFC5322] message, the server MUST reject the import with an `invalidMessage` SetError.
 
 Adding to the outbox will send the message, as described in the *setMessages* section. The `$Draft` keyword MUST also be included if the message is being imported to the outbox.
 
@@ -405,12 +416,6 @@ The following errors may be returned instead of the *messageImported* response:
 `accountReadOnly`: Returned if the account has `isReadOnly == true`.
 
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-`notFound`: Returned if the URL given in the `file` argument does not correspond to an internal file.
-
-`invalidMailboxes`: Returned if one of the mailbox ids cannot be found, or an invalid combination of mailbox ids is specified.
-
-`maxQuotaReached`: Returned if the user has reached their mail quota so the message cannot be imported.
 
 ## copyMessages
 
