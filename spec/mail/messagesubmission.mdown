@@ -46,7 +46,7 @@ The MessageSubmission object represents the submission of a message for delivery
 - **sendAt**: `Date`
   The date the message was/will be released for delivery. This is server-set and immutable.
 
-    If the client successfully used [@!RFC4865] FUTURERELEASE with the message, this MUST be the time when the server will release the message; otherwise it MUST be the time the fgetMes was created.
+    If the client successfully used [@!RFC4865] FUTURERELEASE with the message, this MUST be the time when the server will release the message; otherwise it MUST be the time the MessageSubmission was created.
 
 - **undoStatus**: `String`
   This represents whether the submission may be canceled. This is server set and MUST be one of the following values:
@@ -61,19 +61,31 @@ The MessageSubmission object represents the submission of a message for delivery
     On systems that do not support unsending, the value of this property will always be `final`. On systems that do support canceling submission, it will start as `pending`, and MAY transition to `final` when the server knows it definitely cannot recall the message, but MAY just remain `pending`. If in pending state, a client can attempt to cancel the submission by setting this property to `canceled`; if the update succeeds, the submission was successfully canceled.
 
 - **deliveryStatus**: `String[DeliveryStatus]|null`
-  This represents the delivery status for each of the message recipients, if known. This property is server-set and MAY not be supported by all servers, in which case it will remain `null`. Servers that support it SHOULD update the MessageSubmission object each time the status of any of the recipients changes.
+  This represents the delivery status for each of the message recipients, if known. This property is server-set and MAY not be supported by all servers, in which case it will remain `null`. Servers that support it SHOULD update the MessageSubmission object each time the status of any of the recipients changes, even if some recipients are still being retried.
 
-    This is a map from the email address of each recipient of the message, to the most recent SMTP reply code/text known.
-
-    This property is server set and MAY not be supported by all servers, in which case it will remain `null`. Servers that support it SHOULD update the MessageSubmission object each time the status of one of the recipients changes, even if some recipients are still being retried. The *isFinal* property allows clients to know if the status may still change further.
+    This value is a map from the email address of each recipient to a *DeliveryStatus* object.
 
     A **DeliveryStatus** object has the following properties:
 
-    - **isQueued**: `Boolean`
-      This is `true` if the server is still trying to send the message to this
-      recipient (and so the *smtpReply* could still change), otherwise `false`.
     - **smtpReply**: `String`
       The SMTP reply string returned for this recipient when the server last tried to relay the message. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the message as a whole rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
+
+        Multi-line SMTP responses should be concatenated to a single string as follows:
+
+        - The hyphen following the SMTP code on all but the last line is
+          replaced with a space.
+        - Any prefix in common with the first line is stripped from lines after
+          the first.
+        - CRLF is replaced by a space.
+
+        For example:
+
+            550-5.7.1 Our system has detected that this message is
+            550 5.7.1 likely spam, sorry.
+
+        would become:
+
+            550 5.7.1 Our system has detected that this message is likely spam, sorry.
 
         For messages relayed via an alternative to SMTP, the server MAY generate a synthetic string representing the status instead. If it does this, the string MUST be of the following form:
 
@@ -86,15 +98,18 @@ The MessageSubmission object represents the submission of a message for delivery
           readable explanation of the response.
 
     - **delivered**: `String`
-      Represents whether the message has been succesfully delivered to the recipient. This MUST be one of the following values:
+      Represents whether the message has been successfully delivered to the recipient. This MUST be one of the following values:
 
-        - `unknown`: The final delivery status is unknown, either because the
-          delivery is still queued and being retried, or it was relayed to an external machine and no further information is available. This is the initial value.
+        - `queued`: The message is in a local mail queue and status will change
+          once it exits the local mail queues. The *smtpReply* property may still change.
         - `yes`: The message was successfully delivered to the mailbox of the
-          recipient.
+          recipient. The *smtpReply* property is final.
         - `no`: Message delivery to the recipient permanently failed.
+          The *smtpReply* property is final.
+        - `unknown`: The final delivery status is unknown, (e.g. it was relayed
+          to an external machine and no further information is available). The *smtpReply* property is final.
 
-        Note, succesful relaying to an external SMTP server SHOULD NOT be taken as an indication that the message has successfully reached the final mailbox. In this case though, the server MAY receive a DSN response, if requested.
+        Note, successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the message has successfully reached the final mailbox. In this case though, the server MAY receive a DSN response, if requested.
 
         If a DSN is received for the recipient with Action equal to "delivered", as per [@!RFC3464] section 2.3.3, then the *delivered* property SHOULD be set to `yes`; if the Action equals "failed", the property SHOULD be set to `no`. Receipt of any other DSN SHOULD NOT affect this property.
 
@@ -104,8 +119,8 @@ The MessageSubmission object represents the submission of a message for delivery
       Represents whether the message has been displayed to the recipient. This MUST be one of the following values:
 
         - `unknown`: The display status is unknown. This is the initial value.
-        - `yes`: The message content has been displayed to the recipient. Note,
-          there is no guarantee that the recipient has noticed, read, or understood the content.
+        - `yes`: The receipient's system claims the message content has been
+          displayed to the recipient. Note, there is no guarantee that the recipient has noticed, read, or understood the content.
 
         If an MDN is received for this recipient with Disposition-Type (as per [@!RFC3798] section 3.2.6.2) equal to "displayed", this property SHOULD be set to `yes`.
 
@@ -116,7 +131,7 @@ The MessageSubmission object represents the submission of a message for delivery
 - **mdnBlobIds**: `String[]`
   A list of blob ids for MDNs received for this submission, in order of receipt, oldest first. This is server-set.
 
-JMAP servers SHOULD NOT expose DSN and MDN messages that correlate to a MessageSubmission object in responses to *getMessageList*. It SHOULD only expose them in the *dsnBlobIds* and *mdnblobIds* fields of this object.
+JMAP servers MAY choose not to expose DSN and MDN responses as Message objects if they correlate to a MessageSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and expects the user to be using clients capable of fetching and displaying delivery status via the MessageSubmission object.
 
 For efficiency, a server MAY destroy MessageSubmission objects a certain amount of time after the message is successfully sent or it has finished retrying sending the message. For very basic SMTP proxies, this MAY be immediately after creation, as it has no way to assign a real id and return the information again if fetched later.
 
