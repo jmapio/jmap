@@ -239,7 +239,7 @@ This method is used to send messages, or to recall a sent message (if possible).
 - **onSuccessDestroyMessage**: `String[]|null`
   A list of *MessageSubmission ids* for which the message with the corresponding messageId should be destroyed if the create/update/destroy succeeds. (For references to MessageSubmission creations, this is equivalent to a back reference so the id will be the creation id prefixed with a `#`.)
 
-Each create, update or destroy is considered an atomic unit. If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+Each creation, modification or destruction of an object is considered an atomic unit. If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 If an id given cannot be found, the update/destroy MUST be rejected with a `notFound` set error.
 
@@ -271,8 +271,6 @@ A message is sent by creating a MessageSubmission object. When processing each c
 If the creation succeeds, the message will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the message during delivery. The server MAY add or remove other headers from the submitted message, or make further alterations in accordance with the server's policy during delivery.
 
 If the referenced message is destroyed at any point after the MessageSubmission object is created, this MUST NOT change the behaviour of the message submission (i.e. it does not cancel a future send).
-
-If a *sendAt* property is specified and the date is in the future, the server SHOULD wait until this time before delivering the message. If the server may be able to cancel the send, it MUST return the *maybeCanUnsend* property as `true`. After the message is sent beyond the boundary of the controlling system and can no longer be recalled, this property SHOULD be set to `false` by the server (which will cause a change in the state string for the type, so clients can fetch this as an update).
 
 ### Undo send
 
