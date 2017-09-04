@@ -27,6 +27,8 @@ The same terminology is used in this document as in the core JMAP specification.
 
 The capabilities object is returned as part of the standard JMAP authentication response; see the JMAP spec. Servers supporting *this* specification MUST add a property called `{TODO: URI for this spec}` to the capabilities object. The value of this property is an object which SHOULD contain the following information on server capabilities:
 
+- **maxMailboxesPerMessage**: `Number|null`
+  The maximum number of mailboxes that can be can assigned to a single message. This MUST be an integer >= 1, or `null` for no limit (or rather, the limit is always the number of mailboxes in the account).
 - **maxSizeMessageAttachments**: `Number`
   The maximum total size of attachments, in bytes, allowed for messages. A server MAY still reject messages with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
 - **canDelaySend**: `Boolean`
