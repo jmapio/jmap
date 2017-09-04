@@ -37,17 +37,17 @@ A **Mailbox** object has the following properties:
     A mailbox with a lower order should be displayed before a mailbox with a higher order (that has the same parent) in any mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting SHOULD take into account locale-specific character order convention.
 - **mayReadItems**: `Boolean`
   If true, may use this mailbox as part of a filter in a *getMessageList* call.
-  If a submailbox is shared but not the parent mailbox, this may be `false`.
+  If a submailbox is shared but not the parent mailbox, this may be `false`. This property is server-set.
 - **mayAddItems**: `Boolean`
-  The user may add messages to this mailbox (by either creating a new message or moving an existing one).
+  The user may add messages to this mailbox (by either creating a new message or moving an existing one). This property is server-set.
 - **mayRemoveItems**: `Boolean`
-  The user may remove messages from this mailbox (by either changing the mailboxes of a message or deleting it).
+  The user may remove messages from this mailbox (by either changing the mailboxes of a message or deleting it). This property is server-set.
 - **mayCreateChild**: `Boolean`
-  The user may create a mailbox with this mailbox as its parent.
+  The user may create a mailbox with this mailbox as its parent. This property is server-set.
 - **mayRename**: `Boolean`
-  The user may rename the mailbox or make it a child of another mailbox.
+  The user may rename the mailbox or make it a child of another mailbox. This property is server-set.
 - **mayDelete**: `Boolean`
-  The user may delete the mailbox itself.
+  The user may delete the mailbox itself. This property is server-set.
 - **totalMessages**: `Number`
   The number of messages in this mailbox.
 - **unreadMessages**: `Number`
@@ -211,11 +211,13 @@ All properties being updated must be of the correct type, not immutable or serve
 
 If any of the properties are invalid, the server MUST reject the update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
 
+If the the update would violate a mayXXX property, the update MUST be rejected with a `forbidden` error.
+
 ### Destroying mailboxes
 
 If the *id* given does not correspond to a Mailbox in the given account, the destruction MUST be rejected with a `notFound` error.
 
-If the mailbox has `mayDeleteMailbox == false`, the destruction MUST be rejected with a `forbidden` error.
+If the mailbox has `mayDelete == false`, the destruction MUST be rejected with a `forbidden` error.
 
 A mailbox MUST NOT be destroyed if it still has any child mailboxes. Attempts to do so MUST be rejected with a `mailboxHasChild` error.
 
