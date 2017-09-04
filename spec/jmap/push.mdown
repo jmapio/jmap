@@ -34,7 +34,8 @@ The JMAP server MUST also set the following headers in the POST request:
 - `X-JMAP-EventType: state`
 - `X-JMAP-User: ${username}` where `${username}` is the username of the authenticated user for which the push event occurred.
 
-The JMAP server MUST follow any redirects. If the final response code from the server is `2xx`, the callback is considered a success. If the response code is `503` (Service Unavailable), the JMAP server MAY try again later (but may also just drop the event). If the response code is `429` (Too Many Requests) the JMAP server SHOULD attempt to reduce the frequency of pushes to that URL. Any other response code MUST be considered a **permanent failure** and the callback should be deregistered (not tried again even for future events unless explicitly re-registered by the client).
+The JMAP server MUST be capable of following at least one redirect, but
+MAY choose not to do so for policy reasons. If the final response code from the server is `2xx`, the callback is considered a success. If the response code is `503` (Service Unavailable), the JMAP server MAY try again later (but may also just drop the event). If the response code is `429` (Too Many Requests) the JMAP server SHOULD attempt to reduce the frequency of pushes to that URL. Any other response code MUST be considered a **permanent failure** and the callback should be deregistered (not tried again even for future events unless explicitly re-registered by the client).
 
 The URL set by the client MUST use the HTTPS protocol and SHOULD encode within it a unique token that can be verified by the server to know that the request comes from the JMAP server the authenticated client connected to.
 
@@ -57,6 +58,8 @@ The response to *setPushCallback* is called *pushCallbackSet*. It has the follow
 The following error may be returned instead of the *mailboxesSet* response:
 
 `invalidUrl`: Returned if the URL does not begin with `https://`, or is otherwise syntactically invalid or does not resolve.
+
+`forbidden`: Returned if the URL is valid, but for policy reasons the server is not willing to connect to it.
 
 ### getPushCallback
 
