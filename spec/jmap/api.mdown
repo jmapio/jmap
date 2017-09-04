@@ -75,6 +75,17 @@ Example response:
       ["aResponseFromMethod3", {}, "#3"]
     ]
 
+## Use of null
+
+Unless otherwise specified, a missing property in the arguments object of a request (from the client), or a response (from the server) MUST be intepreted exactly the same as that property having the value `null`.
+
+Unless otherwise specified, a missing property in a data object MUST be interpreted in the following ways:
+
+- In the response to a *getFoos* style call, or when **creating** an object in a *setFoos* style call, a missing property MUST be interpreted as though it had the default value for that type, or `null` if no default is specified.
+- When **updating** an object in a *setFoos* style call, a missing property MUST be interpreted as the existing value for that property (i.e. don't update it).
+
+For network efficiency when fetching, the server and client may make use of the above and omit properties which have the default value for the data type.
+
 ## Errors
 
 If the data sent as an API request is not valid JSON or does not match the structure above, a `400 Bad Request` error will be returned at the HTTP level.
@@ -108,25 +119,6 @@ As always, the server must be strict about data received from the client. Argume
 ## Concurrency
 
 To ensure the client always sees a consistent view of the data, the state accessed by a method call MUST NOT change during the execution of the method, except due to actions by the method call itself. The state MAY change in-between method calls (even within a single API request).
-
-## The Number datatype
-
-The JSON datatypes are limited to those found in JavaScript. A `Number` in JavaScript is represented as a signed double (64-bit floating point). However, except where explicitly specified, all numbers used in this API are unsigned integers <= 2^53 (the maximum integer that may be reliably stored in a double). This implicitly limits the maximum length of message lists in queries and the like.
-
-## The Date datatypes
-
-Where a JMAP API specifies `Date` as a type, it means a string in [@!RFC3339] *date-time* format, with the *time-offset* component always `Z` (i.e. the date-time MUST be in UTC time) and *time-secfrac* always omitted. The "T" and "Z" MUST always be upper-case. For example, `"2014-10-30T14:12:00Z"`.
-
-## Use of null
-
-Unless otherwise specified, a missing property in the arguments object of a request (from the client), or a response (from the server) MUST be intepreted exactly the same as that property having the value `null`.
-
-Unless otherwise specified, a missing property in a data object MUST be interpreted in the following ways:
-
-- In the response to a *getFoos* style call, or when **creating** an object in a *setFoos* style call, a missing property MUST be interpreted as though it had the default value for that type, or `null` if no default is specified.
-- When **updating** an object in a *setFoos* style call, a missing property MUST be interpreted as the existing value for that property (i.e. don't update it).
-
-For network efficiency, when fetching the server and client may make use of the above and omit properties which have the default value for the data type.
 
 ## CRUD methods
 
