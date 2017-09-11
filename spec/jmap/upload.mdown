@@ -21,13 +21,9 @@ A blob that is not referenced by a JMAP object (e.g. as a message attachment), M
 
 ## Uploading binary data
 
-There is a single endpoint which handles all file uploads, regardless of what they are to be used for. To upload a file, the client submits a POST request to the file upload endpoint (see the authentication section for information on how to obtain this URL). The Content-Type MUST be correctly set for the type of the file being uploaded. The request MUST be authenticated as per any HTTP request. The request MAY include an `X-JMAP-AccountId` header, with the value being the account to use for the request. Otherwise, the default account will be used.
+There is a single endpoint which handles all file uploads, regardless of what they are to be used for. To upload a file, the client submits an authenticated POST request to the file upload resource (see the authentication section for information on how to obtain this URL). The Content-Type MUST be correctly set for the type of the file being uploaded. The request MAY include an `X-JMAP-AccountId` header, with the value being the account to use for the request. Otherwise, the default account will be used.
 
-The server will respond with one of the following HTTP response codes:
-
-### 201: File uploaded successfully
-
-The content of the response is a single JSON object with the following properties:
+A successful request MUST return a single JSON object with the following properties as the response:
 
 - **accountId**: `String`
   The id of the account used for the call.
@@ -39,31 +35,3 @@ The content of the response is a single JSON object with the following propertie
   The size of the file in bytes.
 
 If identical binary content to an existing blob in the account is uploaded, the existing blobId MAY be returned.
-
-### 400: Bad request
-
-The request was malformed (this includes the case where an `X-JMAP-AccountId` header is sent with a value that does not exist). The client SHOULD NOT retry the same request. There is no content in the response.
-
-### 401: Unauthorized
-
-The `Authorization` header was missing or did not contain a valid token. Reauthenticate and then retry the request. As per the HTTP spec, the response MUST have a `WWW-Authenticate` header listing the available authentication schemes. There is no content in the response.
-
-### 404: Not Found
-
-The upload endpoint has moved. See the Authentication section of the spec for how to rediscover the current URL to use. There is no content in the response.
-
-### 413: Request Entity Too Large
-
-The file is larger than the maximum size the server is willing to accept for a single file. The client SHOULD NOT retry uploading the same file. There is no content in the response. The client may discover the maximum size the server is prepared to accept by inspecting the server *capabilities* object, returned with the successful authentication response.
-
-### 415: Unsupported Media Type
-
-The server MAY choose to not allow certain content types to be uploaded, such as executable files. This error response is returned if an unacceptable type is uploaded. The client SHOULD NOT retry uploading the same file. There is no content in the response.
-
-### 429: Rate limited
-
-Returned if the client has made too many upload requests recently, or has too many concurrent uploads currently in progress. Clients SHOULD wait a while then try again. The response MAY include a `Retry-After` header indicating how long to wait before making a new request. There is no content in the response.
-
-### 503: Service Unavailable
-
-The server is currently down. The client should try again later with exponential backoff. There is no content in the response.
