@@ -513,3 +513,27 @@ Finaly, implementations are encouraged to comply with [RFC-3824](https://tools.i
  - Replies must have the In-Reply-To field set to the Message-ID of the original message, and the References field should be updated with the Message-ID of the original message.
 
 If the original message lacks a Message-ID, an In-Reply-To need not be generated, and References need not be changed. [RFC-2822 section 3.6.4](https://tools.ietf.org/html/rfc2822#section-3.6.4) provides a complete description of how References fields should be generated.
+
+## Binary upload error response codes
+
+The upload handler is a standard HTTP resource, so must conform with the HTTP standard. For reference, here are some of the appropriate HTTP responses to return for client errors:
+
+### 400: Bad request
+
+The request was malformed (this includes the case where an `X-JMAP-AccountId` header is sent with a value that does not exist).
+
+### 401: Unauthorized
+
+The `Authorization` header was missing or did not contain a valid token. Reauthenticate and then retry the request. As per the HTTP spec, the response MUST have a `WWW-Authenticate` header listing the available authentication schemes.
+
+### 413: Request Entity Too Large
+
+The file is larger than the maximum size the server is willing to accept for a single file.
+
+### 415: Unsupported Media Type
+
+An unacceptable type is uploaded. The server MAY choose to not allow certain content types to be uploaded, such as executable files.
+
+### 429: Rate limited
+
+The client has made too many upload requests recently, or has too many concurrent uploads currently in progress. The response MAY include a `Retry-After` header indicating how long to wait before making a new request.
