@@ -4,43 +4,11 @@ The client may make an API request to the server to get or set structured data. 
 
 ## Making an API request
 
-To make an API request, the client makes an authenticated POST request to the API URL; see the Authentication section of the spec for how to discover this URL and how to authenticate requests.
+To make an API request, the client makes an authenticated POST request to the API resource; see the Authentication section of the spec for how to discover this URL and how to authenticate requests.
 
 The request MUST have a content type of `application/json` and be encoded in UTF-8.
 
-The server SHOULD respond with one of the following HTTP response codes:
-
-### 200: OK
-
-The API request was successful. The response will be of type `application/json` and consists of the response to the API calls, as described below.
-
-### 400: Bad Request
-
-The request was malformed. For example, it may have had the wrong content type, or have had a JSON object that did not conform to the API calling structure (see *The structure of an API request* below). The client SHOULD NOT retry the same request. There is no content in the response.
-
-### 401: Unauthorized
-
-The `Authorization` header was missing or did not contain a valid token. Reauthenticate and then retry the request. As per the HTTP spec, the response MUST have a `WWW-Authenticate` header listing the available authentication schemes. There is no content in the response.
-
-### 404: Not Found
-
-The API endpoint has moved. See the Authentication section of the spec for how to rediscover the current URL to use. There is no content in the response.
-
-### 413: Payload Too Large
-
-Returned if the client makes a request with more method calls than the server is willing to accept in a single request, or if the total bytes of the request is larger than the max size the server is willing to accept.
-
-### 429: Rate limited
-
-Returned if the client has made too many requests recently, or has too many concurrent requests currently in progress. Clients SHOULD wait a while then try again. The response MAY include a `Retry-After` header indicating how long to wait before making a new request.
-
-### 500: Internal Server Error
-
-Something has gone wrong internally, and the server is in a broken state. Don't automatically retry. There is no content in the response.
-
-### 503: Service Unavailable
-
-The server is currently down. Try again later with exponential backoff. There is no content in the response.
+If successful, the response will be of type `application/json` and consist of the response to the API calls, as described below.
 
 ## The structure of an API request
 
