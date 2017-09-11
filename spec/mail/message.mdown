@@ -13,8 +13,8 @@ A **Message** object has the following properties:
   the original message or to attach it directly to another message etc.
 - **threadId**: `String`
   The id of the thread to which this message belongs.
-- **mailboxIds**: `String[]` (Mutable)
-  The ids of the mailboxes the message is in. A message MUST belong to one or more mailboxes at all times (until it is deleted).
+- **mailboxIds**: `String[Boolean]` (Mutable)
+  The set of mailbox ids this message is in. A message MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
 - **keywords**: `String[Boolean]` (Mutable)
   A set of keywords that apply to the message. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 
@@ -166,12 +166,13 @@ Example request:
 and response:
 
     ["messages", {
+      "accountId": "abc",
       "state": "41234123231",
       "list": [
         {
-          messageId: "f123u457",
+          id: "f123u457",
           threadId: "ef1314a",
-          mailboxIds: [ "f123" ],
+          mailboxIds: { "f123": true },
           from: [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
           subject: "Dinner on Thursday?",
           date: "2013-10-13T14:12:00Z"
@@ -363,7 +364,7 @@ A **MessageImport** object has the following properties:
 
 - **blobId**: `String`
   The id representing the raw [@!RFC5322] message (see the file upload section).
-- **mailboxIds** `String[]`
+- **mailboxIds** `String[Boolean]`
   The ids of the mailbox(es) to assign this message to. At least one mailbox MUST be given.
 - **keywords**: `String[Boolean]|null`
   The keywords to apply to the message, if any.
@@ -412,7 +413,7 @@ A **MessageCopy** object has the following properties:
 
 - **messageId**: `String`
   The id of the message to be copied in the "from" account.
-- **mailboxIds**: `String[]`
+- **mailboxIds**: `String[Boolean]`
   The ids of the mailboxes (in the "to" account) to add the copied message to. At least one mailbox MUST be given.
 - **keywords**: `String[Boolean]|null`
   The *keywords* property for the copy, if any.
