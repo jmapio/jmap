@@ -90,15 +90,17 @@ Each individual method call within a request MUST be serializable; concurrent ex
 
 This means that the observable ordering may interleave method calls from different concurrent API requests, such that the data on the server may change between two method calls within a single API request.
 
-## CRUD methods
+# Standard methods and naming convention
 
-JMAP provides a uniform interface for creating, retrieving, updating and deleting various types of objects. For a `Foo` data type, records of that type would be fetched via a `getFoos` call and modified via a `setFoos` call. Delta updates may be fetched via a `getFooUpdates` call. These methods all follow a standard format as described below.
+JMAP provides a uniform interface for creating, retrieving, updating and deleting objects of a particular type. For a `Foo` data type, records of that type would be fetched via a `getFoos` call and modified via a `setFoos` call. Delta updates may be fetched via a `getFooUpdates` call. These methods all follow a standard format as described below.
 
-### getFoos
+Methods with a name starting with `get` MUST NOT alter state on the server.
 
-Objects of type **Foo** are fetched via a call to *getFoos*. Methods with a name starting with `get` MUST NOT alter state on the server.
+## getFoos
 
-This method may take some or all of the following arguments; see the definition of the data type in question. However, if one of the following arguments is available, it will behave exactly as specified below.
+Objects of type **Foo** are fetched via a call to *getFoos*.
+
+It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the Account to use. If `null`, the primary account is used.
@@ -131,9 +133,9 @@ The following error may be returned instead of the `foos` response:
 
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-### getFooUpdates
+## getFooUpdates
 
-When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *foos* response will change. The *getFooUpdates* call allows a client to efficiently update the state of any its Foo cache to match the new state on the server. It takes the following arguments:
+When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *foos* response will change. The *getFooUpdates* call allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the Account to use. If `null`, the primary account is used.
@@ -161,7 +163,7 @@ The response to *getFooUpdates* is called *fooUpdates*. It has the following arg
 - **removed**: `String[]`
   An array of Foo ids for records which have been destroyed since the old state.
 
-The *maxChanges* argument (and *hasMoreUpdates* response argument) is available for data types with potentially large amounts of data (i.e. those for which there is a *getFooList* method available for loading the data in pages).  If a *maxChanges* is supplied, or set automatically by the server, the server must try to limit the number of ids across *changed* and *removed* to the number given. If there are more changes than this between the client's state and the current server state, the update returned MUST take the client to an intermediate state, from which the client can continue to call *getFooUpdates* until it is fully up to date. The server MUST NOT return more ids than the *maxChanges* total. If the server is unable to calculate a suitable intermediate state, it MUST return a `cannotCalculateChanges` error.
+If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getMessageUpdates* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
 
 If a Foo record has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server SHOULD remove the Foo id from the response entirely, but MAY include it in the *removed* response.
 
@@ -177,7 +179,7 @@ The following errors may be returned instead of the *fooUpdates* response:
 
 Maintaining state to allow calculation of *getFooUpdates* can be expensive for the server, but always returning *cannotCalculateChanges* severely increases network traffic and resource usage for the client. To allow efficient sync, servers SHOULD be able to calculate changes from any state string that was given to a client within the last 30 days (but of course may support calculating updates from states older than this).
 
-### setFoos
+## setFoos
 
 Modifying the state of Foo objects on the server is done via the *setFoos* method. This encompasses creating, updating and destroying Foo records. This has two benefits:
 
@@ -216,7 +218,7 @@ The response to *setFoos* is called *foosSet*. It has the following arguments:
 - **newState**: `String`
   The state string that will now be returned by *getFoos*.
 - **created**: `String[Foo]`
-  A map of the creation id to an object containing any **server-assigned** properties of the Foo object (including the id) for all successfully created records.
+  A map of the creation id to an object containing any properties of the Foo object that were set or changed by the server (including the id) for all successfully created records.
 - **updated**: `String[Foo|null]`
   The *keys* in this map are the ids of all Foos that were successfully updated. Some data types may have properties which can only be determined by the server, and which may change as a result of the other properties being updated by the client. In this case, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed** on the record. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
 - **destroyed**: `String[]`
@@ -251,11 +253,9 @@ The following errors may be returned instead of the `foosSet` response:
 
 `stateMismatch`: Returned if an `ifInState` argument was supplied and it does not match the current state.
 
-## Querying data
+## getFooList
 
 For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g. multi-gigabyte mailboxes), the client needs to be able to perform a query on the server for the data type.
-
-### getFooList
 
 A query on the set of Foos in an account is made by calling *getFooList*. This takes a number of arguments to determine which records to include, how they should be sorted, and which part of the result should be returned (the full list may be *very* long). The result is returned as a list of Foo ids. Optionally, the records themselves may be fetched at the same time.
 
@@ -295,7 +295,7 @@ The response to a call to *getFooList* is called *fooList*. It has the following
 - **total**: `Number`
   The total number of foos in the foos list (given the *filter*).
 - **fooIds**: `String[]`
-  The list of Foo ids for each foo in the list after filtering and sorting, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids.
+  The list of Foo ids for each foo in the list after filtering and sorting, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
 
 The following errors may be returned instead of the `fooList` response:
 
@@ -305,7 +305,7 @@ The following errors may be returned instead of the `fooList` response:
 
 `invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-### getFooListUpdates
+## getFooListUpdates
 
 The `getFooListUpdates` call allows a client to efficiently update the state of any cached foo list to match the new state on the server. It takes the following arguments:
 
@@ -316,7 +316,7 @@ The `getFooListUpdates` call allows a client to efficiently update the state of 
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *fooList* response. The server will return the changes made since this state.
 - **maxChanges**: `Number|null`
-  The maximum number of changes to return in the response. See below for a more detailed description.
+  The maximum number of changes to return in the response. See error descriptions below for more details.
 
 The response to *getFooListUpdates* is called *fooListUpdates* It has the following arguments:
 
@@ -338,10 +338,10 @@ The response to *getFooListUpdates* is called *fooListUpdates* It has the follow
 - **added**: `AddedItem[]`
   The fooId and index in the list (in the new state) for every foo that has been added to the list since the old state AND every foo in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.
 
-  An **AddedItem** object has the following properties:
+    An **AddedItem** object has the following properties:
 
-  - **fooId**: `String`
-  - **index**: `Number`
+    - **fooId**: `String`
+    - **index**: `Number`
 
 The result of this should be that if the client has a cached sparse array of foo ids in the list in the old state:
 
