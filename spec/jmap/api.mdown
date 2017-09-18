@@ -279,7 +279,7 @@ A call to *getFooList* takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the Account to use. If `null`, the primary account is used.
-- **filter**: `FilterCondition`
+- **filter**: `FilterCondition|null`
   Determines the set of Foos returned in the results. This is an `object`, whose allowed properties and semantics depend on the data type.
 - **sort**: `String[]|null`
   Lists the properties to compare between two Foo records to determine which comes first in the sort. If two Foo records have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to `getFooList`.
@@ -287,7 +287,7 @@ A call to *getFooList* takes the following arguments:
     Following each property name there MUST be a space and then either the string `asc` or `desc` to specify ascending or descending sort for that property. e.g. `[ "date desc", "name asc" ]`
 
 - **position**: `Number|null`
-  The 0-based index of the first id in the full list of results to return, presumed `0` if `null`. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+  The 0-based index of the first id in the full list of results to return, presumed `0` if `null`. If a negative value is given, the call MUST be rejected with an `invalidArguments` error. If the index is greater than or equal to the total number of objects in the results list then there are no results to return, but this is not an error.
 - **limit**: `Number|null`
   The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the list is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
 - **fetchFoos**: `Boolean|null`
@@ -299,7 +299,7 @@ The response to a call to *getFooList* is called *fooList*. It has the following
 
 - **accountId**: `String`
   The id of the account used for the call.
-- **filter**: `FilterCondition`
+- **filter**: `FilterCondition|null`
   The filter of the foo list. Echoed back from the call.
 - **sort**: `String[]|null`
   A list of Foo property names used to sort by. Echoed back from the call.
@@ -331,7 +331,7 @@ The `getFooListUpdates` call allows a client to efficiently update the state of 
 
 - **accountId**: `String|null`
   The id of the account to use for this call. If `null`, the primary account will be used.
-- **filter**: `FilterCondition`
+- **filter**: `FilterCondition|null`
   The filter argument that was used with *getFooList*.
 - **sort**: `String[]|null`
   The sort argument that was used with *getFooList*.
@@ -344,7 +344,7 @@ The response to *getFooListUpdates* is called *fooListUpdates* It has the follow
 
 - **accountId**: `String`
   The id of the account used for the call.
-- **filter**: `FilterCondition`
+- **filter**: `FilterCondition|null`
   The filter of the foo list. Echoed back from the call.
 - **sort**: `String[]|null`
   A list of Foo property names used to sort by. Echoed back from the call.
