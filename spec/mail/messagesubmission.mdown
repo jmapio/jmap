@@ -68,7 +68,7 @@ The MessageSubmission object represents the submission of a message for delivery
     A **DeliveryStatus** object has the following properties:
 
     - **smtpReply**: `String`
-      The SMTP reply string returned for this recipient when the server last tried to relay the message. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the message as a whole rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
+      The SMTP reply string returned for this recipient when the server last tried to relay the message, or in a later DSN response for the message. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the message as a whole rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
 
         Multi-line SMTP responses should be concatenated to a single string as follows:
 
@@ -107,7 +107,7 @@ The MessageSubmission object represents the submission of a message for delivery
         - `no`: Message delivery to the recipient permanently failed.
           The *smtpReply* property is final.
         - `unknown`: The final delivery status is unknown, (e.g. it was relayed
-          to an external machine and no further information is available). The *smtpReply* property is final.
+          to an external machine and no further information is available). The *smtpReply* property may still change if a DSN arrives.
 
         Note, successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the message has successfully reached the final mailbox. In this case though, the server MAY receive a DSN response, if requested.
 
