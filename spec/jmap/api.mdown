@@ -277,6 +277,8 @@ A query on the set of Foos in an account is made by calling *getFooList*. This t
 
 A call to *getFooList* takes the following arguments:
 
+- **accountId**: `String|null`
+  The id of the Account to use. If `null`, the primary account is used.
 - **filter**: `FilterCondition`
   Determines the set of Foos returned in the results. This is an `object`, whose allowed properties and semantics depend on the data type.
 - **sort**: `String[]|null`
@@ -295,6 +297,8 @@ A call to *getFooList* takes the following arguments:
 
 The response to a call to *getFooList* is called *fooList*. It has the following arguments:
 
+- **accountId**: `String`
+  The id of the account used for the call.
 - **filter**: `FilterCondition`
   The filter of the foo list. Echoed back from the call.
 - **sort**: `String[]|null`
@@ -325,6 +329,8 @@ The following errors may be returned instead of the `fooList` response:
 
 The `getFooListUpdates` call allows a client to efficiently update the state of any cached foo list to match the new state on the server. It takes the following arguments:
 
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, the primary account will be used.
 - **filter**: `FilterCondition`
   The filter argument that was used with *getFooList*.
 - **sort**: `String[]|null`
@@ -336,6 +342,8 @@ The `getFooListUpdates` call allows a client to efficiently update the state of 
 
 The response to *getFooListUpdates* is called *fooListUpdates* It has the following arguments:
 
+- **accountId**: `String`
+  The id of the account used for the call.
 - **filter**: `FilterCondition`
   The filter of the foo list. Echoed back from the call.
 - **sort**: `String[]|null`
