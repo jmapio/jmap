@@ -201,6 +201,8 @@ The *setFoos* method takes the following arguments:
 
 Each creation, modification or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it is not permissible to only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
 
+The final state MUST be valid after the setFoos is finished, however the server may have to transition through invalid intermediate states (not exposed to the client) while processing the individual create/update/destroy requests. For example, suppose there is a "name" property that must be unique. A single method call could rename an object A => B, and simultaneously rename another object B => A. The final state is valid, so this is allowed, however if processed sequentially there will be an internal state where temporarily both objects have the same name.
+
 If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
@@ -224,11 +226,11 @@ The response to *setFoos* is called *foosSet*. It has the following arguments:
 - **destroyed**: `String[]`
   A list of Foo ids for records that were successfully destroyed.
 - **notCreated**: `String[SetError]`
-  A map of creation id to a SetError object for each record that failed to be created. The possible errors are defined in the description of the method for specific data types.
+  A map of creation id to a SetError object for each record that failed to be created.
 - **notUpdated**: `String[SetError]`
-  A map of Foo id to a SetError object for each record that failed to be updated. The possible errors are defined in the description of the method for specific data types.
+  A map of Foo id to a SetError object for each record that failed to be updated.
 - **notDestroyed**: `String[SetError]`
-  A map of Foo id to a SetError object for each record that failed to be destroyed. The possible errors are defined in the description of the method for specific data types.
+  A map of Foo id to a SetError object for each record that failed to be destroyed.
 
 A **SetError** object has the following properties:
 
@@ -237,7 +239,21 @@ A **SetError** object has the following properties:
 - **description**: `String|null`
   A description of the error to display to the user.
 
-Other properties may also be present on the object, as described in the relevant methods.
+The following SetError types are defined and may be returned for set operations on any record type:
+
+- `notFound`: The id given in an update/destroy cannot be found.
+- `invalidProperties`: The Foo record given in a create/update is invalid in
+  some way. For example:
+
+    - It contains properties which are invalid according to the type specification of this record type.
+    - It contains a property that may only be set by the server (e.g. "id") and are different to the current value. Note, to allow clients to pass whole objects back, it is not an error to include a server-set property so long as the value is identical to the current value on the server (or the value that will be set by the server if a create).
+    - There is a reference to another record (foreign key) and the given id does not correspond to a valid record.
+
+    The SetError object SHOULD also have a property called *properties* of type `String[]` that lists **all** the properties that were invalid.
+
+    Individual methods MAY specify more specific errors for certain conditions that would otherwise result in an invalidProperties error. If the condition of one of these is met, it MUST be returned instead of the invalidProperties error.
+
+Other possible SetError types MAY be given in specific method descriptions. Other properties MAY also be present on the *SetError* object, as described in the relevant methods.
 
 The following errors may be returned instead of the `foosSet` response:
 
