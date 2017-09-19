@@ -19,58 +19,19 @@ related settings for an account. It has the following properties:
 - **htmlBody**: `String|null`
   The HTML message to send in response to messages when the vacation response is enabled. If this is `null`, when the vacation message is sent an HTML body part MAY be generated from the *textBody*, or the server MAY choose to send the response as plain-text only.
 
+The following JMAP methods are supported:
+
 ## getVacationResponse
+
+Standard *getFoos* method.
 
 There MUST only be exactly one VacationResponse object in an account. It MUST have the id `"singleton"`.
 
-To fetch the vacation response object, make a call to `getVacationResponse`. It takes the following argument:
-
-- **accountId**: `String|null`
-  The Account to get the vacation response for. If `null`, the primary account is used.
-
-The response to *getVacationResponse* is called *vacationResponse*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **list**: `VacationResponse[]`
-  An array containing the single VacationResponse object.
-
-The following errors may be returned instead of the *vacationResponse* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
 ## setVacationResponse
 
-Sets properties on the vacation response object. It takes the following arguments:
+Standard *setFoos* method. The following extra *SetError* types are defined:
 
-- **accountId**: `String|null`
-  The Account to set the vacation response for. If `null`, the primary account is used.
-- **update**: `String[VacationResponse]|null`
-  A map of id ("singleton") to the VacationResponse object with new values for the properties you wish to change. The object may omit any property; only properties that have changed need be included.
+For **create** or **destroy**:
 
-If any of the properties in the update are invalid (immutable and different to the current server value, wrong type), the server MUST reject the update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
-
-The response is called *vacationResponseSet*. It has the following arguments:
-
-- **updated**: `String[]`
-- **updated**: `String[VacationResponse|null]`
-  If successfully updated, this map will have a sole key of "singleton". The *value* in the map is an object containing the updated value of each property the **server changed** on the record, if any. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
-- **notUpdated**: `String[SetError]`
-  A map of id ("singleton") to a SetError object if the update failed.
-
-A **SetError** object has the following properties:
-
-- **type**: `String`
-  The type of error.
-- **description**: `String|null`
-  A description of the error to display to the user.
-
-The following errors may be returned instead of the *vacationResponseSet* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid (including using an id other than `"singleton"`). A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+- `singleton`: This is a singleton object, so you cannot create another one or
+  destroy the existing one.

@@ -17,42 +17,20 @@ A **Thread** object has the following properties:
     - Other than that, everything is sorted in *date* order (as determined by the date property on the *Message* object), oldest first.
     - If two messages are identical under the above two conditions, the sort is server-dependent but MUST be stable (sorting by id is recommended).
 
+The following JMAP methods are supported:
+
 ## getThreads
 
-Threads can only be fetched explicitly by id. To fetch threads, make a call to *getThreads*. It takes the following arguments:
+Standard *getFoos* method, with the following two extra arguments:
 
-- **accountId**: `String|null`
-  The id of the account to use for this call. If not given, defaults to the primary account.
-- **ids**: `String[]`
-  An array of ids for the threads to fetch.
 - **fetchMessages**: `Boolean|null`
   If true, after outputting a *threads* response, an implicit call will be made to *getMessages* with a list of all message ids in the returned threads as the *ids* argument, and the *fetchMessageProperties* argument as the *properties* argument. If `false` or `null`, no implicit call will be made.
 - **fetchMessageProperties**: `String[]|null`
   The list of properties to fetch on any fetched messages. See *getMessages* for a full description.
 
-The response to *getThreads* is called *threads*. It has the following arguments:
+### Example
 
-- **accountId**: `String`
-  The id of the account used for the call.
-- **state**: `String`
-  A string encoding the current state on the server. This string will change
-  if any threads change (that is, new messages arrive, or messages are deleted, as these are the only two events that change thread membership). It can be passed to *getThreadUpdates* to efficiently get the list of changes from the previous state.
-- **list**: `Thread[]`
-  An array of Thread objects for the requested thread ids. This may not be in the same order as the ids were in the request.
-- **notFound**: `String[]|null`
-  An array of thread ids requested which could not be found, or `null` if all ids were found.
-
-The following errors may be returned instead of the `threads` response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`requestTooLarge`: Returned if the number of *ids* requested by the client exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-Example of a successful request:
+Request:
 
     [ "getThreads", {
       "ids": ["f123u4", "f41u44"],
@@ -60,9 +38,10 @@ Example of a successful request:
       "fetchMessageProperties": null
     }, "#1" ]
 
-and response:
+with response:
 
     [ "threads", {
+      "accountId": "acme",
       "state": "f6a7e214",
       "list": [
         {
@@ -80,45 +59,4 @@ and response:
 
 ## getThreadUpdates
 
-When messages are created or deleted, new threads may be created, or the set of messages belonging to an existing thread may change. If a call to *getThreads* returns with a different *state* string in the response to a previous call, the state of the threads has changed on the server and the client needs to work out which part of its cache is now invalid.
-
-The *getThreadUpdates* call allows a client to efficiently update the state of any cached threads to match the new state on the server. It takes the following arguments:
-
-- **accountId**: `String|null`
-  The id of the account to use for this call. If not given, defaults to the primary account.
-- **sinceState**: `String`
-  The current state of the client. This is the string that was returned as the *state* argument in the *threads* response. The server will return the changes made since this state.
-- **maxChanges**: `Number|null`
-  The maximum number of Thread ids to return in the response. The server MAY choose to clamp this value to a particular maximum or set a maximum if none is given by the client. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
-- **fetchRecords**: `Boolean|null`
-  If `true`, immediately after outputting a *threadUpdates* response, an implicit call will be made to *getThreads* with the *changed* property of the response as the *ids* argument, and *fetchMessages* equal to `false`.
-
-The response to *getThreadUpdates* is called *threadUpdates*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **oldState**: `String`
-  This is the *sinceState* argument echoed back; the state from which the server is returning changes.
-- **newState**: `String`
-  This is the state the client will be in after applying the set of changes to the old state.
-- **hasMoreUpdates**: `Boolean`
-  If `true`, the client may call *getThreadUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
-- **changed**: `String[]`
-  An array of thread ids where the list of messages within the thread has
-  changed between the old state and the new state, and the thread currently has at least one message in it.
-- **removed**: `String[]`
-  An array of thread ids where the list of messages within the thread has changed since the old state, and there are now no messages in the thread.
-
-If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getThreadUpdates* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
-
-If a thread has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a thread has been created AND deleted since the oldState, the server SHOULD remove the thread id from the response entirely, but MAY include it in the *removed* response.
-
-The following errors may be returned instead of the *threadUpdates* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Thread cache.
+Standard *getFooUpdates* method.
