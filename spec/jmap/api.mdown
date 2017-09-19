@@ -125,13 +125,13 @@ The response to `getFoos` is called `foos`. It has the following arguments:
 
 The following error may be returned instead of the `foos` response:
 
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
 
-`requestTooLarge`: Returned if the number of *ids* requested by the client exceeds the maximum number the server is willing to process in a single method call.
+`requestTooLarge`: The number of *ids* requested by the client exceeds the maximum number the server is willing to process in a single method call.
 
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+`invalidArguments`: One of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 ## getFooUpdates
 
@@ -169,13 +169,13 @@ If a Foo record has been modified AND deleted since the oldState, the server SHO
 
 The following errors may be returned instead of the *fooUpdates* response:
 
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
 
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+`invalidArguments`: The request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Foo cache.
+`cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Foo cache.
 
 Maintaining state to allow calculation of *getFooUpdates* can be expensive for the server, but always returning *cannotCalculateChanges* severely increases network traffic and resource usage for the client. To allow efficient sync, servers SHOULD be able to calculate changes from any state string that was given to a client within the last 30 days (but of course may support calculating updates from states older than this).
 
@@ -257,17 +257,17 @@ Other possible SetError types MAY be given in specific method descriptions. Othe
 
 The following errors may be returned instead of the `foosSet` response:
 
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
 
-`accountReadOnly`: Returned if the account has isReadOnly == true.
+`accountReadOnly`: The account has isReadOnly == true.
 
-`requestTooLarge`: Returned if the total number of objects to create, update or destroy exceeds the maximum number the server is willing to process in a single method call.
+`requestTooLarge`: The total number of objects to create, update or destroy exceeds the maximum number the server is willing to process in a single method call.
 
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+`invalidArguments`: One of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-`stateMismatch`: Returned if an `ifInState` argument was supplied and it does not match the current state.
+`stateMismatch`: An `ifInState` argument was supplied and it does not match the current state.
 
 ## getFooList
 
@@ -325,11 +325,11 @@ The response to a call to *getFooList* is called *fooList*. It has the following
 
 The following errors may be returned instead of the `fooList` response:
 
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
 
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+`invalidArguments`: The request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 ## getFooListUpdates
 
@@ -391,12 +391,12 @@ then the foo list will now be in the new state.
 
 The following errors may be returned instead of the `fooListUpdates` response:
 
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
 
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+`invalidArguments`: The request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-`tooManyChanges`: Returned if there are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the foo list.
+`tooManyChanges`: There are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the foo list.
 
-`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the foo list.
+`cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the foo list.
