@@ -7,7 +7,7 @@ For compatibility with IMAP, a message MUST belong to one or more mailboxes. The
 A **Mailbox** object has the following properties:
 
 - **id**: `String`
-  The id of the mailbox. This property is immutable.
+  The id of the mailbox. This property is immutable and may only be set by the server.
 - **name**: `String`
   User-visible name for the mailbox, e.g. "Inbox". This may be any UTF-8  string ([@!RFC3629]) of at least 1 character in length and maximum 256 bytes in size. Servers SHOULD forbid sibling Mailboxes with the same name.
 - **parentId**: `String|null`
@@ -36,25 +36,25 @@ A **Mailbox** object has the following properties:
     A mailbox with a lower order should be displayed before a mailbox with a higher order (that has the same parent) in any mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting SHOULD take into account locale-specific character order convention.
 - **mayReadItems**: `Boolean`
   If true, may use this mailbox as part of a filter in a *getMessageList* call.
-  If a submailbox is shared but not the parent mailbox, this may be `false`. This property is server-set.
+  If a submailbox is shared but not the parent mailbox, this may be `false`. This property may only be set by the server.
 - **mayAddItems**: `Boolean`
-  The user may add messages to this mailbox (by either creating a new message or moving an existing one). This property is server-set.
+  The user may add messages to this mailbox (by either creating a new message or moving an existing one). This property may only be set by the server.
 - **mayRemoveItems**: `Boolean`
-  The user may remove messages from this mailbox (by either changing the mailboxes of a message or deleting it). This property is server-set.
+  The user may remove messages from this mailbox (by either changing the mailboxes of a message or deleting it). This property may only be set by the server.
 - **mayCreateChild**: `Boolean`
-  The user may create a mailbox with this mailbox as its parent. This property is server-set.
+  The user may create a mailbox with this mailbox as its parent. This property may only be set by the server.
 - **mayRename**: `Boolean`
-  The user may rename the mailbox or make it a child of another mailbox. This property is server-set.
+  The user may rename the mailbox or make it a child of another mailbox. This property may only be set by the server.
 - **mayDelete**: `Boolean`
-  The user may delete the mailbox itself. This property is server-set.
+  The user may delete the mailbox itself. This property may only be set by the server.
 - **totalMessages**: `Number`
-  The number of messages in this mailbox.
+  The number of messages in this mailbox. This property may only be set by the server.
 - **unreadMessages**: `Number`
-  The number of messages in this mailbox that have neither the `$Seen` keyword nor the `$Draft` keyword.
+  The number of messages in this mailbox that have neither the `$Seen` keyword nor the `$Draft` keyword. This property may only be set by the server.
 - **totalThreads**: `Number`
-  The number of threads where at least one message in the thread is in this mailbox.
+  The number of threads where at least one message in the thread is in this mailbox. This property may only be set by the server.
 - **unreadThreads**: `Number`
-  The number of threads where at least one message in the thread has neither the `$Seen` keyword nor the `$Draft` keyword AND at least one message in the thread is in this mailbox (but see below for special case handling of Trash). Note, the unread message does not need to be the one in this mailbox.
+  The number of threads where at least one message in the thread has neither the `$Seen` keyword nor the `$Draft` keyword AND at least one message in the thread is in this mailbox (but see below for special case handling of Trash). Note, the unread message does not need to be the one in this mailbox. This property may only be set by the server.
 
 The Trash mailbox (that is a mailbox with `role == "trash"`) MUST be treated specially for the purpose of unread counts:
 
@@ -67,207 +67,43 @@ So for example, suppose you have an account where the entire contents is a singl
 
 For IMAP compatibility, a message in both the Trash and another mailbox SHOULD be treated by the client as existing in both places (i.e. when emptying the trash, the client SHOULD just remove the Trash mailbox and leave it in the other mailbox).
 
+The following JMAP methods are supported:
+
 ## getMailboxes
 
-Mailboxes can either be fetched explicitly by id, or all of them at once. To fetch mailboxes, make a call to `getMailboxes`. It takes the following arguments:
-
-- **accountId**: `String|null`
-  The Account to fetch the mailboxes for. If `null`, the primary account is used.
-- **ids**: `String[]|null`
-  The ids of the mailboxes to fetch. If `null`, all mailboxes in the account are returned.
-- **properties**: `String[]|null`
-  The properties of each mailbox to fetch. If `null`, all properties are returned. The id of the mailbox will **always** be returned, even if not explicitly requested.
-
-The response to *getMailboxes* is called *mailboxes*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **state**: `String`
-  A string representing the state on the server for **all** mailboxes. If the state of a mailbox changes, or a new mailbox is created, or a mailbox is destroyed, this string will change. It is used to get delta updates.
-- **list**: `Mailbox[]`
-  An array of the Mailbox objects requested. This will be the **empty array** if the *ids* argument was the empty array, or contained only ids for mailboxes that could not be found.
-- **notFound**: `String[]|null`
-  This array contains the ids passed to the method for mailboxes that do not exist, or `null` if all requested ids were found. It MUST be `null` if the *ids* argument in the call was `null`.
-
-The following errors may be returned instead of the *mailboxes* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`requestTooLarge`: Returned if the number of *ids* requested by the client exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+Standard *getFoos* method. The *ids* argument may be `null` to fetch all at once.
 
 ## getMailboxUpdates
 
-The *getMailboxUpdates* call allows a client to efficiently update the state of its cached mailboxes to match the new state on the server. It takes the following arguments:
+Standard *getFooUpdates* method, with the following changes:
 
-- **accountId**: `String|null`
-  The id of the account to use for this call. If `null`, the primary account will be used.
-- **sinceState**: `String`
-  The current state of the client. This is the string that was returned as the *state* argument in the *mailboxes* response. The server will return the changes made since this state.
-- **maxChanges**: `Number|null`
-  The maximum number of changed mailboxes to return in the response. The server MAY choose to clamp this value to a particular maximum or set a maximum if none is given by the client. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
-- **fetchRecords**: `Boolean|null`
-  If `true`, immediately after outputting a *mailboxUpdates* response, an implicit call will be made to *getMailboxes* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument. If `false` or `null`, no implicit call will be made.
-- **fetchRecordProperties**: `String[]|null`
-  If `null`, all Mailbox properties will be fetched unless *onlyCountsChanged* in the *mailboxUpdates* response is `true`, in which case only the 4 counts properties will be returned (*totalMessages*, *unreadMessages*, *totalThreads* and *unreadThreads*). If not `null`, this value will be passed through to the *getMailboxes* call regardless of the *onlyCountsChanged* value in the *mailboxUpdates* response.
+1. The *mailboxUpdates* response has an extra argument:
 
-The response to *getMailboxUpdates* is called *mailboxUpdates*. It has the following arguments:
+   - **onlyCountsChanged**: `Boolean`
+     Indicates that only the mailbox counts (unread/total messages/threads) have changed since the old state. The client can then use this to optimise its data transfer and only fetch the counts. If the server is unable to tell if only counts have changed, it MUST return `false`.
 
-- **accountId**: `String`
-  The id of the account used for the call.
-- **oldState**: `String`
-  This is the *sinceState* argument echoed back; the state from which the server is returning changes.
-- **newState**: `String`
-  This is the state the client will be in after applying the set of changes to the old state.
-- **hasMoreUpdates**: `Boolean`
-  If `true`, the client may call *getMailboxUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
-- **changed**: `String[]`
-  An array of Mailbox ids where a property of the mailbox has changed between the old state and the new state, or the mailbox has been created, and the mailbox has not been destroyed.
-- **removed**: `String[]`
-  An array of Mailbox ids for mailboxes which have been destroyed since the old state.
-- **onlyCountsChanged**: `Boolean`
-  Indicates that only the mailbox counts (unread/total messages/threads) have changed since the old state. The client can then use this to optimise its data transfer and only fetch the counts. If the server is unable to tell if only counts have changed, it should just always return `false`.
-
-If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getMailboxUpdates* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
-
-If a mailbox has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a mailbox has been created AND deleted since the oldState, the server SHOULD remove the mailbox id from the response entirely, but MAY include it in the *removed* response, and (if in the *removed* response) MAY included it in the *changed* response as well.
-
-The following errors may be returned instead of the `mailboxUpdates` response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Mailbox cache.
+2. If *onlyCountsChanged* is `true`, and the client passed `null` as the
+   *fetchRecordProperties* argument, the implicit call to *getMailboxes* MUST
+   use `["totalMessages", "unreadMessages", "totalThreads", "unreadThreads"]`
+   as the *properties* argument.
 
 ## setMailboxes
 
-Mailboxes can be created, updated and destroyed using the *setMailboxes* method. The method takes the following arguments:
+Standard *setFoos* method. The following extra *SetError* types are defined:
 
-- **accountId**: `String|null`
-  The id of the account to use for this call. If `null`, defaults to the primary account.
-- **ifInState**: `String|null`
-  This is a state string as returned by the *getMailboxes* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
-- **create**: `String[Mailbox]|null`
-  A map of *creation id* (an arbitrary string set by the client) to Mailbox objects. If `null`, no objects will be created.
-- **update**: `String[Mailbox]|null`
-  A map of mailbox id to objects containing the properties to update for that Mailbox. If `null`, no objects will be updated.
-- **destroy**: `String[]|null`
-  A list of ids for Mailboxes to permanently delete. If `null`, no objects will be deleted.
+For **create**:
 
-If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+- `maxQuotaReached`: The user has reached a server-defined limit on the number
+  of mailboxes.
 
-### Ordering of changes
+For **update**:
 
-Each creation, modification or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however MUST NOT only commit part of an update to a single record (e.g. update the *name* field but not the *parentId* field, if both are supplied in the update object).
+- `forbidden`: The update would violate a mayXXX property.
 
-The final state MUST be valid after the setMailboxes is finished, however the server may have to transition through invalid intermediate states (not exposed to the client) while processing the individual create/update/destroy requests. For example, a single method call could rename Mailbox A => B, and simultaneously rename Mailbox B => A. The final state is valid, so this is allowed, however if processed sequentially there will be an internal state where temporarily both mailboxes have the same name.
+For **destroy**:
 
-A Mailbox may reference another Mailbox object as a parent. When a Mailbox is created or modified, it may reference another Mailbox being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the mailbox being referenced is created in **either the same or an earlier method call**. If within the same method call, the server MUST process the parent create first, as if this fails the create/update that references it will also fail.
-
-Creation ids sent by the client SHOULD be unique within the single API request for a particular data type. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id.
-
-###  Creating mailboxes
-
-The properties of the Mailbox object submitted for creation MUST conform to the following conditions:
-
-- The *id* property MUST NOT be present.
-- The *parentId* property MUST be either `null` or be a valid id for a mailbox for which the `mayCreateChild` property is `true`.
-- The *role* property MUST be either `null`, a valid role as listed in the Mailbox object specification, or prefixed by `"x-"`.
-- The *mayXXX* properties MUST NOT be present. Restrictions may only be set by the server for system mailboxes, or when sharing mailboxes with other users (setting sharing is not defined yet in this spec).
-- The *totalMessages*, *unreadMessages*, *totalThreads* and *unreadThreads* properties MUST NOT be present.
-
-If any of the properties are invalid, the server MUST reject the create with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
-
-There may be a maximum number of mailboxes allowed on the server. If this is reached, any attempt at creation will be rejected with a `maxQuotaReached` error.
-
-###  Updating mailboxes
-
-If the *id* given does not correspond to a Mailbox in the given account, the update MUST be rejected with a `notFound` error.
-
-All properties being updated must be of the correct type, not immutable or server-set-only, and the new value must obey all conditions of the property. In particular, note the following conditions:
-
-- The *name* property MUST be a valid UTF-8 string of at least 1 character in length and maximum 256 bytes in size.
-- The *parentId* property MUST be either `null` or be a valid id for *another* mailbox that is **not a descendant** of this mailbox, and for which the `mayCreateChild` property is `true`.
-- These properties are immutable or may only be set by the server:
-  - id
-  - role
-  - mayReadItems
-  - mayAddItems
-  - mayRemoveItems
-  - mayCreateChild
-  - mayRename
-  - mayDelete
-  - totalMessages
-  - unreadMessages
-  - totalThreads
-  - unreadThreads
-
-If any of the properties are invalid, the server MUST reject the update with an `invalidProperties` error. The Error object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
-
-If the the update would violate a mayXXX property, the update MUST be rejected with a `forbidden` error.
-
-### Destroying mailboxes
-
-If the *id* given does not correspond to a Mailbox in the given account, the destruction MUST be rejected with a `notFound` error.
-
-If the mailbox has `mayDelete == false`, the destruction MUST be rejected with a `forbidden` error.
-
-A mailbox MUST NOT be destroyed if it still has any child mailboxes. Attempts to do so MUST be rejected with a `mailboxHasChild` error.
-
-A mailbox MUST NOT be destroyed if it has any messages assigned to it. Attempts to do so MUST be rejected with a `mailboxHasMessage` error.
-
-### Response
-
-The response to *setMailboxes* is called *mailboxesSet*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **oldState**: `String|null`
-  The state string that would have been returned by `getMailboxes` before making the requested changes, or `null` if the server doesn't know what the previous state string was.
-- **newState**: `String`
-  The state string that will now be returned by `getMailboxes`.
-- **created**: `String[Mailbox]`
-  A map of the creation id to an object containing all server-set properties for each successfully created Mailbox: *id*, *mustBeOnlyMailbox*, all *mayXXX* properties, *totalMessages*, *unreadMessages*, *totalThreads* and *unreadThreads*.
-- **updated**: `String[Mailbox|null]`
-  The *keys* in this map are the ids of all mailboxes that were successfully updated. If the server made any other changes to the record beyond those explicitly requested by the client, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed**. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
-- **destroyed**: `String[]`
-  A list of ids for Mailboxes that were successfully destroyed.
-- **notCreated**: `String[SetError]`
-  A map of creation id to a SetError object for each Mailbox that failed to be created. The possible errors are defined above.
-- **notUpdated**: `String[SetError]`
-  A map of Mailbox id to a SetError object for each Mailbox that failed to be updated. The possible errors are defined above.
-- **notDestroyed**: `String[SetError]`
-  A map of Mailbox id to a SetError object for each Mailbox that failed to be destroyed. The possible errors are defined above.
-
-The following errors may be returned instead of the *mailboxesSet* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`accountReadOnly`: Returned if the account has `isReadOnly == true`.
-
-`requestTooLarge`: Returned if the total number of objects to create, update or destroy exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-`stateMismatch`: Returned if an `ifInState` argument was supplied and it does not match the current state.
-
-Example request:
-
-    [ "setMailboxes", {
-      "ifInState": "ms4123",
-      "update": {
-        "f3": {
-          "name": "The new name"
-        }
-      },
-      "destroy": [ "f5" ]
-    }, "#0" ]
-
+- `forbidden`: The update would violate a mayXXX property.
+- `mailboxHasChild`: The mailbox still has at least one child mailbox. The
+  client MUST remove these before it can delete the parent mailbox.
+- `mailboxHasMessage`: The mailbox has at least one message assigned to it. The
+  client MUST remove these before it can delete the mailbox.

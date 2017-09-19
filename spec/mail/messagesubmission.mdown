@@ -58,7 +58,7 @@ The MessageSubmission object represents the submission of a message for delivery
     - `canceled`: The message submission was canceled and will not be delivered
       to any recipient.
 
-    On systems that do not support unsending, the value of this property will always be `final`. On systems that do support canceling submission, it will start as `pending`, and MAY transition to `final` when the server knows it definitely cannot recall the message, but MAY just remain `pending`. If in pending state, a client can attempt to cancel the submission by setting this property to `canceled`; if the update succeeds, the submission was successfully canceled.
+    On systems that do not support unsending, the value of this property will always be `final`. On systems that do support canceling submission, it will start as `pending`, and MAY transition to `final` when the server knows it definitely cannot recall the message, but MAY just remain `pending`. If in pending state, a client can attempt to cancel the submission by setting this property to `canceled`; if the update succeeds, the submission was successfully canceled and the message has not been delivered to any of the original recipients.
 
 - **deliveryStatus**: `String[DeliveryStatus]|null`
   This represents the delivery status for each of the message recipients, if known. This property is server-set and MAY not be supported by all servers, in which case it will remain `null`. Servers that support it SHOULD update the MessageSubmission object each time the status of any of the recipients changes, even if some recipients are still being retried.
@@ -135,117 +135,36 @@ JMAP servers MAY choose not to expose DSN and MDN responses as Message objects i
 
 For efficiency, a server MAY destroy MessageSubmission objects a certain amount of time after the message is successfully sent or it has finished retrying sending the message. For very basic SMTP proxies, this MAY be immediately after creation, as it has no way to assign a real id and return the information again if fetched later.
 
+The following JMAP methods are supported:
+
 ## getMessageSubmissions
 
-MessageSubmissions can only be fetched explicitly by id. To fetch them, make a call to `getMessageSubmissions`. It takes the following arguments:
-
-- **accountId**: `String|null`
-  The id of the account to use for this call. If not given, defaults to the primary account.
-- **ids**: `String[]`
-  An array of ids for the MessageSubmission objects to fetch.
-- **properties**: `String[]|null`
-  A list of properties to fetch for each MessageSubmission object. If `null`, all properties will be fetched.
-
-The `id` property is always returned, regardless of whether it is in the list of requested properties. The possible values for `properties` can be found above in the description of the MessageSubmission object.
-
-The response to *getMessageSubmissions* is called *messageSubmissions*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **state**: `String`
-  A string encoding the current state on the server. This string will change
-  if any MessageSubmissions change (that is, a new one is created, a change is made to one of the mutable properties by the server). It can be passed to *getMessageSubmissionUpdates* to efficiently get the list of changes from the previous state.
-- **list**: `MessageSubmission[]`
-  An array of MessageSubmission objects for the requested ids. This MAY be in a different order to the *ids* request argument.
-- **notFound**: `String[]|null`
-  An array of ids requested which could not be found, or `null` if all ids were
-  found.
-
-The following errors may be returned instead of the *messageSubmissions* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`requestTooLarge`: Returned if the number of *ids* requested by the client exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+Standard *getFoos* method.
 
 ## getMessageSubmissionUpdates
 
-If a call to *getMessageSubmissions* returns with a different *state* string in the response to a previous call, the state of the set of MessageSubmissions has changed on the server.
-
-The *getMessageSubmissionUpdates* call allows a client to efficiently update to match the new state on the server. It takes the following arguments:
-
-- **accountId**: `String|null`
-  The id of the account to use for this call. If not given, defaults to the primary account.
-- **sinceState**: `String`
-  The current state of the client. This is the string that was returned as the *state* argument in the *messageSubmissions* response. The server will return the changes made since this state.
-- **maxChanges**: `Number|null`
-  The maximum number of changed objects to return in the response. The server MAY choose to clamp this value to a particular maximum or set a maximum if none is given by the client. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
-- **fetchRecords**: `Boolean|null`
-  If true, immediately after outputting a *messageSubmissionUpdates* response, an implicit call will be made to *getMessageSubmissions* with a list of all MessageSubmission ids in the *changed* argument of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument.
-- **fetchRecordProperties**: `String[]|null`
-  The list of properties to fetch on any fetched MessageSubmission objects. See *getMessageSubmissions* for a full description.
-
-The response to *getMessageSubmissionUpdates* is called *messageSubmissionUpdates*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **oldState**: `String`
-  This is the *sinceState* argument echoed back; the state from which the server is returning changes.
-- **newState**: `String`
-  This is the state the client will be in after applying the set of changes to the old state.
-- **hasMoreUpdates**: `Boolean`
-  If `true`, the client may call *getMessageSubmissionUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
-- **changed**: `String[]`
-  An array of ids for objects that have either been created or had their state change, and are not currently deleted.
-- **removed**: `String[]`
-  An array of ids for objects that have been deleted since the oldState.
-
-If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getMessageSubmissionUpdates* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
-
-If an object has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If an object has been created AND deleted since the oldState, the server SHOULD remove the object id from the response entirely, but MAY include it in the *removed* response, and (if in the *removed* response) MAY included it in the *changed* response as well.
-
-The following errors may be returned instead of the *messageSubmissionUpdates* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its cache for this object type.
+Standard *getFooUpdates* method.
 
 ## setMessageSubmissions
 
-This method is used to send messages, or to recall a sent message (if possible). It takes the following arguments
+Standard *setFoos* method, with the following two extra arguments:
 
-- **accountId**: `String|null`
-  The id of the account to use for this call. If not given, defaults to the primary account.
-- **ifInState**: `String|null`
-  This is a state string as returned by the *getMessageSubmissions* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
-- **create**: `String[MessageSubmission]|null`
-  A map of *creation id* (an arbitrary string set by the client) to MessageSubmission objects to create. Note, the *messageId* may be a back-reference to a message created in the same API request.
-
-    This is how a message is sent.
-
-- **update**: `String[MessageSubmission]|null`
-  A map of MessageSubmission id to objects containing the properties to update for that MessageSubmission. This is how a message may be unsent.
-- **destroy**: `String[]|null`
-  A list of ids for MessageSubmission objects to delete.
 - **onSuccessUpdateMessage**: `String[Message]|null`
   A map of *MessageSubmission id* to an object containing properties to update on the Message object referenced by the MessageSubmission if the create/update/destroy succeeds. (For references to MessageSubmission creations, this is equivalent to a back reference so the id will be the creation id prefixed with a `#`.)
 - **onSuccessDestroyMessage**: `String[]|null`
   A list of *MessageSubmission ids* for which the message with the corresponding messageId should be destroyed if the create/update/destroy succeeds. (For references to MessageSubmission creations, this is equivalent to a back reference so the id will be the creation id prefixed with a `#`.)
 
-Each creation, modification or destruction of an object is considered an atomic unit. If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+A single implicit *setMessages* call MUST be made after all MessageSubmission create/update/destroy requests have been processed to perform any changes requested in these two arguments. The *messagesSet* response MUST be returned after the *messageSubmissionsSet* response.
 
-If an id given cannot be found, the update/destroy MUST be rejected with a `notFound` set error.
+A message is sent by creating a MessageSubmission object. When processing each create, the server must check that the message is valid, and the user has sufficient authorization to send it. If the creation succeeds, the message will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the message during delivery. The server MAY add or remove other headers from the submitted message, or make further alterations in accordance with the server's policy during delivery.
 
-### Sending a message
+If the referenced message is destroyed at any point after the MessageSubmission object is created, this MUST NOT change the behaviour of the message submission (i.e. it does not cancel a future send).
 
-A message is sent by creating a MessageSubmission object. When processing each create, the server must check that the message is valid, and the user has sufficient authorization to send it. The creation may be rejected with one of the following SetErrors:
+Similarly, destroying a MessageSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the message submission. The server MAY automatically destroy MessageSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying MessageSubmission objects.
+
+The following extra *SetError* types are defined:
+
+For **create**:
 
 - `tooLarge` - The message size is larger than the server supports. A *maxSize*
   `Number` property MUST be present on the SetError specifying the maximum size
@@ -265,60 +184,13 @@ A message is sent by creating a MessageSubmission object. When processing each c
   account.
 - `invalidMessage` - The message to be sent is invalid in some way. The
   SetError SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties of the Message that were invalid.
-- `invalidProperties` - The object contains properties which are of the wrong
-  type, or is missing a required property, or is specifying a property that may only be set by the server.
 
-If the creation succeeds, the message will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the message during delivery. The server MAY add or remove other headers from the submitted message, or make further alterations in accordance with the server's policy during delivery.
+For **update**:
 
-If the referenced message is destroyed at any point after the MessageSubmission object is created, this MUST NOT change the behaviour of the message submission (i.e. it does not cancel a future send).
+- `cannotUnsend`: The client attempted to update the *undoStatus* of a valid
+  MessageSubmission object from `pending` to `canceled`, but the message cannot be unsent.
 
-### Undo send
+For **destroy**:
 
-In some systems, a message that has been queued to be sent may be unsent if it is before the *sendAt* time, or the recipients are all on the same system. The server indicates that it may be possible to cancel the submission by setting the *undoStatus* property to `pending`.
-
-To "unsend" a message, attempt to update the *undoStatus* of the MessageSubmission object from `pending` to `canceled`. If this succeeds, the message will definitely not be sent to any recipients.
-
-If the MessageSubmission exists but the message cannot be unsent, this MUST be rejected with a `cannotUnsend` error. If the message submission object doesn't exist (because the server only retains them for a certain amount of time, or it's just bogus), this MUST be rejected with a `notFound` error.
-
-### Destroying a MessageSubmission object
-
-Destroying a MessageSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the message submission. The JMAP server MAY reject attempts by a client to destroy a MessageSubmission with a `forbidden` error. The server MAY automatically destroy MessageSubmission objects after a certain time or in response to other triggers.
-
-### Response
-
-The response to *setMessageSubmissions* is called *messageSubmissionsSet*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **oldState**: `String|null`
-  The state string that would have been returned by *getMessageSubmissions* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
-- **newState**: `String`
-  The state string that will now be returned by *getMessageSubmissions*.
-- **created**: `String[MessageSubmission]`
-  A map of the creation id to an object containing any properties on the successfully created MessageSubmission object that were not supplied by the client, or have been changed by the server from that supplied by the client.
-- **updated**: `String[MessageSubmission|null]`
-  The *keys* in this map are the ids of all MessageSubmission objects that were successfully updated. If the server made any other changes to the record beyond those explicitly requested by the client, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed**. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
-- **destroyed**: `String[]`
-  A list of ids for MessageSubmission objects that were successfully destroyed.
-- **notCreated**: `String[SetError]`
-  A map of creation id to a SetError object for each MessageSubmission that failed to be created. The possible errors are defined above.
-- **notUpdated**: `String[SetError]`
-  A map of MessageSubmission id to a SetError object for each MessageSubmission that failed to be updated. The possible errors are defined above.
-- **notDestroyed**: `String[SetError]`
-  A map of MessageSubmission id to a SetError object for each MessageSubmission that failed to be destroyed. The possible errors are defined above.
-
-The following errors may be returned instead of the *messagesSet* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`accountReadOnly`: Returned if the account has `isReadOnly == true`.
-
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-`stateMismatch`: Returned if an *ifInState* argument was supplied and it does not match the current state.
-
-### Implicit call to setMessages
-
-If onSuccessUpdateMessage or onSuccessDestroyMessage arguments are specified, the server MUST make a single implicit call to *setMessages* after the *messageSubmissionsSet* response to create/update/destroy messages as requested for each successful MessageSubmission create/update/destroy.
+- `forbidden`: The server does not allow clients to destroy MessageSubmission
+  objects.
