@@ -1,6 +1,6 @@
 # MessageLists
 
-A **MessageList** is a sorted query on the set of messages in a user's account. Since it can be very long, the client must specify what section of the list to return. The client can optionally also fetch the threads and/or messages for this part of the list.
+A **MessageList** is a sorted query on the set of messages in a user's account. Since it can be very long, the client must specify what section of the list to return.
 
 The same message may appear in multiple messages lists. For example, it may belong to multiple mailboxes, and of course it can appear in searches. Since messages have an immutable id, a client can easily tell if it already has a message cached and only fetch the ones it needs.
 
@@ -171,10 +171,8 @@ The response to a call to *getMessageList* is called *messageList*. It has the f
   The 0-based index of the first result in the `threadIds` array within the complete list.
 - **total**: `Number`
   The total number of messages in the message list (given the *filter* and *collapseThreads* arguments).
-- **threadIds**: `String[]`
-  The list of Thread ids for each message in the list after filtering, sorting and collapsing threads, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids.
-- **messageIds**: `String[]`
-  The list of Message ids for each message in the list after filtering, sorting and collapsing threads, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids.
+- **ids**: `String[]`
+  The list of ids for each message in the list after filtering, sorting and collapsing threads, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids.
 
 The following errors may be returned instead of the `messageList` response:
 
@@ -227,27 +225,21 @@ The response to *getMessageListUpdates* is called *messageListUpdates* It has th
   Echoed back from the call.
 - **total**: `Number`
   The total number of messages in the message list (given the filter and collapseThreads arguments).
-- **removed**: `RemovedItem[]`
-  The *messageId* and *threadId* for every message that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra messages in addition that MAY have been in the old list but are not in the new list.
+- **removed**: `String[]`
+  The *id* of every message that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra messages in addition that MAY have been in the old list but are not in the new list.
 
     If an *uptoMessageId* was given AND this id was found in the list, only messages positioned before this message that were removed need be returned.
 
     In addition, if the sort includes a keyword, the server MUST include all messages in the current list for which this keyword MAY have changed. If the sort includes a "some/all-in-thread-keyword", then the server MUST include all messages in the current list for which this keyword MAY have changed **on any of the messages in the thread**.
 
 - **added**: `AddedItem[]`
-  The messageId and threadId and index in the list (in the new state) for every message that has been added to the list since the old state AND every message in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.
+  The id and index in the list (in the new state) for every message that has been added to the list since the old state AND every message in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.
 
     If an *uptoMessageId* was given AND this id was found in the list, only messages positioned before this message that have been added need be returned.
 
-A **RemovedItem** object has the following properties:
-
-- **messageId**: `String`
-- **threadId**: `String`
-
 An **AddedItem** object has the following properties:
 
-- **messageId**: `String`
-- **threadId**: `String`
+- **id**: `String`
 - **index**: `Number`
 
 The result of this should be that if the client has a cached sparse array of message ids in the list in the old state:
@@ -256,12 +248,12 @@ The result of this should be that if the client has a cached sparse array of mes
 
 then if it **splices out** all messages in the removed array:
 
-    removed = [{ messageId: "id2", … }];
+    removed = [ "id2" ];
     messageIds => [ "id1", null, null, "id3", "id4", null, null, null ]
 
 and **splices in** (in order) all of the messages in the added array:
 
-    added = [{ messageId: "id5", index: 0, … }];
+    added = [{ id: "id5", index: 0 }];
     messageIds => [ "id5", "id1", null, null, "id3", "id4", null, null, null ]
 
 then the message list will now be in the new state.

@@ -75,17 +75,12 @@ Standard *getFoos* method. The *ids* argument may be `null` to fetch all at once
 
 ## getMailboxUpdates
 
-Standard *getFooUpdates* method, with the following changes:
+Standard *getFooUpdates* method, but with one extra argument to the *mailboxUpdates* response:
 
-1. The *mailboxUpdates* response has an extra argument:
+- **changedProperties**: `String[]|null`
+  If only the mailbox counts (unread/total messages/threads) have changed since the old state, this will be the list of properties that may have changed, i.e. `["totalMessages", "unreadMessages", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
-   - **onlyCountsChanged**: `Boolean`
-     Indicates that only the mailbox counts (unread/total messages/threads) have changed since the old state. The client can then use this to optimise its data transfer and only fetch the counts. If the server is unable to tell if only counts have changed, it MUST return `false`.
-
-2. If *onlyCountsChanged* is `true`, and the client passed `null` as the
-   *fetchRecordProperties* argument, the implicit call to *getMailboxes* MUST
-   use `["totalMessages", "unreadMessages", "totalThreads", "unreadThreads"]`
-   as the *properties* argument.
+Since counts frequently change but the rest of the mailboxes state for most use cases changes rarely, the server can help the client optimise data transfer by keeping track of changes to message counts separately to other state changes. The *changedProperties* array may be used directly via a result reference in a subsequent getMailboxes call in a single request.
 
 ## setMailboxes
 
