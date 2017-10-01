@@ -145,6 +145,37 @@ Standard *getFoos* method.
 
 Standard *getFooUpdates* method.
 
+## getMessageSubmissionList
+
+Standard *getFooList* method.
+
+The **FilterCondition** object (optionally passed as the *filter* argument) has the following properties:
+
+- **messageIds**: `String[]|null`
+  The MessageSubmission *messageId* property must be in this list to match the
+  condition.
+- **threadIds**: `String[]|null`
+  The MessageSubmission *threadId* property must be in this list to match the
+  condition.
+- **undoStatus**: `String|null`
+  The MessageSubmission *undoStatus* property must be identical to the value given to match the condition.
+- **before**: `Date|null`
+  The *sendAt* property of the MessageSubmission object must be before this date to match the condition.
+- **after**: `Date|null`
+  The *sendAt* property of the MessageSubmission object must be after this date to match the condition.
+
+A MessageSubmission object matches the filter if and only if all of the conditions given match. If a property is `null` or omitted, it is ignored when testing the condition.
+
+The following properties MUST be supported for sorting:
+
+- `messageId`
+- `threadId`
+- `sentAt`
+
+## getMessageSubmissionListUpdates
+
+Standard *getFooListUpdates* method.
+
 ## setMessageSubmissions
 
 Standard *setFoos* method, with the following two extra arguments:

@@ -16,7 +16,7 @@ The client initiates an API request by sending the server a JSON array. Each ele
 
 1. The **name** of the method to call, or the name of the response from the server. This is a `String`.
 2. An `Object` containing *named* **arguments** for that method or response.
-3. A **client id**: an arbitrary `String` to be echoed back with the responses emitted by that method call (as we'll see lower down, a method may return 1 or more responses, as some methods make implicit calls to other ones).
+3. A **client id**: an arbitrary `String` to be echoed back with the responses emitted by that method call (a method may return 1 or more responses).
 
 Example query:
 
@@ -75,6 +75,165 @@ Any method MAY return an error of type `serverError` if an unexpected or unknown
 If an unknown method is called, an `unknownMethod` error (this is the type shown in the example above) MUST be inserted and then the next method call MUST be processed as normal.
 
 If an unknown argument or invalid arguments (wrong type, or in violation of other specified constraints) are supplied to a method, an `invalidArguments` error MUST be inserted and then the next method call MUST be processed as normal.
+
+## References to previous method results
+
+To allow clients to make more efficient use of the network and avoid round
+trips, an argument to one method can be taken from the result of a previous
+method call.
+
+To do this, the client prefixes the argument name with "#". The value is a *ResultReference* object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with "#". If found, the back reference should be resolved and the value used as the "real" argument. The method is then processed as normal. If any back reference fails to resolve, the whole method MUST be rejected with a `resultReference` error.
+
+A **ResultReference** object has the following properties:
+
+- **resultOf**: `String`
+  The client id of the method call to get the result from (the string given as the third item in the array for a method call).
+- **path**: `String`
+  A pointer into the arguments. This is an RFC6901 JSON Pointer, except it also allows the use of `*` to map through an array (see description below).
+
+To resolve:
+
+1. Find the first response with a client id identical to the *resultOf*
+   property of the *ResultReference* in the array of outputs from previously processed method calls in the same request. If none, evaluation fails.
+
+2. If the response name is "error", evaluation fails.
+
+3. Apply the *path* to the arguments object of the response (the second item in
+   the response array) following the [@!RFC6901] JSON pointer algorithm, except with the following addition in Section 4 (Evaluation):
+
+   If the currently referenced value is a JSON array, the reference token may
+   be exactly the single character `*`, making the new referenced value the result of applying the rest of the JSON pointer tokens to every item in the array and returning the results in the same order in a new array. If the result of applying the rest of the pointer tokens to a value was itself an array, its items should be included individually in the output rather than including the array itself (i.e. the result is flattened from an array of arrays to a single array).
+
+4. If the type of the result is X, and the expected type of the argument is an
+   array of type X, wrap the result in an array with a single item.
+
+As a simple example, suppose we have the following API request:
+
+    [[ "getFooUpdates", {
+        "sinceState": "abcdef"
+    }, "t0" ],
+    [ "getFoos", {
+        "#ids": {
+            "resultOf": "t0",
+            "path": "/changed"
+        }
+    }, "t1" ]]
+
+After executing the first method call the response array is:
+
+    [[ "fooUpdates", {
+        "accountId": "1",
+        "oldState": "abcdef",
+        "newState": "123456",
+        "hasMoreUpdates": false,
+        "changed": [ "f1", "f4" ],
+        "removed": []
+    }, "t0" ]]
+
+So to execute the getFoos call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm above:
+
+1. Find the first response with client id "t0". The "fooUpdates" response
+   fulfils this criterion.
+2. Check the response name is not "error". It's "fooUpdates", so this is fine.
+3. Apply the *path* as a JSON pointer to the arguments object. This simply
+   selects the "changed" property, so the result of evaluating is:
+   `[ "f1", "f4" ]`
+
+The JMAP server now continues to process the getFoos call as though the arguments were:
+
+    {
+        "ids": [ "msg1", "msg4" ]
+    }
+
+Now a more complicated example using the JMAP Mail daya model: fetch the "from"/"date"/"subject" for every message in the first 10 threads in the Inbox (sorted newest first):
+
+    [[ "getMessageList", {
+      "filter": { inMailbox: "id_of_inbox" },
+      "sort": [ "date desc" ],
+      "collapseThreads": true,
+      "position": 0,
+      "limit": 10
+    }, "t0" ],
+    [ "getMessages", {
+      "#ids": {
+        "resultOf": "t0",
+        "path": "/ids"
+      },
+      "properties": [ "threadId" ]
+    }, "t1" ],
+    [ "getThreads", {
+      "#ids": {
+        "resultOf": "t1",
+        "path": "/list/*/threadId"
+      }
+    }, "t2" ],
+    [ "getMessages", {
+      "#ids": {
+        "resultOf": "t2"
+        "path": "/list/*/messageIds"
+      },
+      "properties": [ "from", "date", "subject" ]
+    }, "t3" ]]
+
+After executing the first 3 method calls the response array might be:
+
+    [[ "messageList", {
+        "accountId": "1",
+        "filter": { inMailbox: "id_of_inbox" },
+        "sort": [ "date desc" ],
+        "collapseThreads": true,
+        "state": "abcdefg",
+        "canCalculateUpdates": true,
+        "position": 0,
+        "total": 101,
+        "ids": [ "msg1023", "msg223", "msg110", "msg93", "msg91", "msg38", "msg36", "msg33", "msg11", "msg1" ]
+    }, "t0" ],
+    [ "messages", {
+        "accountId": "1",
+        "state": "123456",
+        "list": [{
+            "id": "msg1023",
+            "threadId": "trd194",
+        }, {
+            "id": "msg223",
+            "threadId": "trd114"
+        },
+        ... etc...
+        ],
+        "notFound": null
+    }, "t1" ],
+    [ "threads", {
+        "accountId": "1",
+        "state": "123456",
+        "list": [{
+            "id: "trd194",
+            "messageIds": [ "msg1020", "msg1021", "msg1023" ]
+        }, {
+            "id: "trd114",
+            "messageIds": [ "msg201", "msg223" ]
+        },
+        ... etc...
+        ],
+        "notFound": null
+    }, "t2" ]]
+
+So to execute the final getMessages call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm:
+
+1. Find the first response with client id "t2". The "threads" response
+   fulfils this criterion.
+2. Check the response name is not "error". It's threads", so this is fine.
+3. Apply the *path* as a JSON pointer to the arguments object. Token-by-token:
+   a) `list`: get the array of thread objects
+   b) `*`: for each of the items in the array:
+      i) `messsageIds`: get the array of message ids
+      ii) Concatenate these into a single array of all the ids in the result.
+
+The JMAP server now continues to process the getMessages call as though the arguments were:
+
+    {
+        "ids": [ "msg1020", "msg1021", "msg1023", "msg201", "msg223", etc... ],
+        "properties": [ "from", "date", "subject" ]
+    }
 
 ## Vendor-specific extensions
 
@@ -142,11 +301,7 @@ When the state of the set of Foo records changes on the server (whether due to c
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *foos* response. The server will return the changes made since this state.
 - **maxChanges**: `Number|null`
-  The maximum number of Foo ids to return in the response. The server MAY choose to return fewer than this value, but MUST NOT return more. If not given by the client, the server may choose how many to return. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
-- **fetchRecords**: `Boolean|null`
-  If `true`, immediately after outputting the *fooUpdates* response, the server will make an implicit call to *getFoos* with the *changed* property of the response as the *ids* argument. If `false` or `null`, no implicit call will be made.
-- **fetchRecordProperties**: `String[]|null`
-  If the *getFoos* method takes a *properties* argument, this argument is passed through on implicit calls (see the *fetchRecords* argument).
+  The maximum number of ids to return in the response. The server MAY choose to return fewer than this value, but MUST NOT return more. If not given by the client, the server may choose how many to return. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
 
 The response to *getFooUpdates* is called *fooUpdates*. It has the following arguments:
 
@@ -159,13 +314,13 @@ The response to *getFooUpdates* is called *fooUpdates*. It has the following arg
 - **hasMoreUpdates**: `Boolean`
   If `true`, the client may call *getFooUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
 - **changed**: `String[]`
-  An array of Foo ids for records which have been created or changed but not destroyed since the oldState.
+  An array of ids for records which have been created or changed but not destroyed since the oldState.
 - **removed**: `String[]`
-  An array of Foo ids for records which have been destroyed since the old state.
+  An array of ids for records which have been destroyed since the old state.
 
 If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getMessageUpdates* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
 
-If a Foo record has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server SHOULD remove the Foo id from the response entirely, but MAY include it in the *removed* response.
+If a Foo record has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server SHOULD remove the id from the response entirely, but MAY include it in the *removed* response.
 
 The following errors may be returned instead of the *fooUpdates* response:
 
@@ -296,10 +451,6 @@ A call to *getFooList* takes the following arguments:
   The 0-based index of the first id in the full list of results to return, presumed `0` if `null`. If a negative value is given, the call MUST be rejected with an `invalidArguments` error. If the index is greater than or equal to the total number of objects in the results list then there are no results to return, but this is not an error.
 - **limit**: `Number|null`
   The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the list is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
-- **fetchFoos**: `Boolean|null`
-  If `true` then after outputting a *fooList* response, an implicit call will be made to *getFoos* with the `fooIds` array in the response as the *ids* argument. If `false` or `null`, no implicit call will be made.
-- **fetchFooProperties**: `String[]|null`
-  The list of properties to fetch on any fetched foos. See *getFoos* for a full description.
 
 The response to a call to *getFooList* is called *fooList*. It has the following arguments:
 
@@ -317,11 +468,11 @@ The response to a call to *getFooList* is called *fooList*. It has the following
 - **canCalculateUpdates**: `Boolean`
   This is `true` if the server supports calling *getFooListUpdates* with these `filter`/`sort` parameters. Note, this does not guarantee that the *getFooListUpdates* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
 - **position**: `Number`
-  The 0-based index of the first result in the `fooIds` array within the complete list of results.
+  The 0-based index of the first result in the `ids` array within the complete list of results.
 - **total**: `Number`
   The total number of foos in the foos list (given the *filter*).
-- **fooIds**: `String[]`
-  The list of Foo ids for each foo in the list after filtering and sorting, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
+- **ids**: `String[]`
+  The list of ids for each foo in the list after filtering and sorting, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
 
 The following errors may be returned instead of the `fooList` response:
 
@@ -361,16 +512,20 @@ The response to *getFooListUpdates* is called *fooListUpdates* It has the follow
 - **total**: `Number`
   The total number of foos in the current foo list (given the *filter*).
 - **removed**: `String[]`
-  The *fooId* for every foo that was in the list in the old state and is not in the list in the new state. If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old list but are not in the new list.
+  The *id* for every foo that was in the list in the old state and is not in the list in the new state.
+
+    If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old list but are not in the new list.
 
     If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current list for which this property MAY have changed.
 
 - **added**: `AddedItem[]`
-  The foo id and index in the list (in the new state) for every foo that has been added to the list since the old state AND every foo in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property). The array MUST be sorted in order of index, lowest index first.
+  The id and index in the list (in the new state) for every foo that has been added to the list since the old state AND every foo in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property).
+
+    The array MUST be sorted in order of index, lowest index first.
 
     An **AddedItem** object has the following properties:
 
-    - **fooId**: `String`
+    - **id**: `String`
     - **index**: `Number`
 
 The result of this should be that if the client has a cached sparse array of foo ids in the list in the old state:
@@ -387,7 +542,7 @@ and **splices in** (in order) all of the foos in the added array:
     added = [{ fooId: "id5", index: 0, … }];
     fooIds => [ "id5", "id1", null, null, "id3", "id4", null, null, null ]
 
-then the foo list will now be in the new state.
+and **truncates** or **extends** to the new total length, then the foo list will now be in the new state.
 
 The following errors may be returned instead of the `fooListUpdates` response:
 
