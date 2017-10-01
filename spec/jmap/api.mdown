@@ -428,16 +428,17 @@ The following errors may be returned instead of the `foosSet` response:
 
 For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g. multi-gigabyte mailboxes), the client needs to be able to perform a query on the server for the data type.
 
-A query on the set of Foos in an account is made by calling *getFooList*. This takes a number of arguments to determine which records to include, how they should be sorted, and which part of the result should be returned (the full list may be *very* long). The result is returned as a list of Foo ids. Optionally, the records themselves may be fetched at the same time.
+A query on the set of Foos in an account is made by calling *getFooList*. This takes a number of arguments to determine which records to include, how they should be sorted, and which part of the result should be returned (the full list may be *very* long). The result is returned as a list of Foo ids.
 
 A call to *getFooList* takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the Account to use. If `null`, the primary account is used.
 - **filter**: `FilterCondition|null`
-  Determines the set of Foos returned in the results. This is an `object`, whose allowed properties and semantics depend on the data type.
+  Determines the set of Foos returned in the results. This is an `object`, whose allowed properties and semantics depend on the data type. If `null`,
+  all objects in the account of this type are included in the results.
 - **sort**: `String[]|null`
-  Lists the properties to compare between two Foo records to determine which comes first in the sort. If two Foo records have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to `getFooList`.
+  Lists the names of properties to compare between two Foo records to determine which comes first in the sort. If two Foo records have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to `getFooList`.
 
     Following each property name there MUST be a space and then either the string `asc` or `desc` to specify ascending or descending sort for that property. e.g. `[ "date desc", "name asc" ]`
 
@@ -449,8 +450,19 @@ A call to *getFooList* takes the following arguments:
 
 - **position**: `Number|null`
   The 0-based index of the first id in the full list of results to return, presumed `0` if `null`. If a negative value is given, the call MUST be rejected with an `invalidArguments` error. If the index is greater than or equal to the total number of objects in the results list then there are no results to return, but this is not an error.
+- **anchor**: `String|null`
+  A Foo id. If supplied the *position* argument is ignored. The index of this id in the results will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see below for more details).
+- **anchorOffset**: `Number|null`
+  The index of the anchor object relative to the index of the first result to return. This MAY be negative. For example, `-1` means the first message after the anchor message should be the first result in the results returned (see below for more details).
 - **limit**: `Number|null`
   The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the list is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+
+If an **anchor** argument is given, then after filtering and sorting the anchor is searched for in the results list. If found, the **anchor offset** is then subtracted from this index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
+
+If an *anchor* is specified, any position argument supplied by the client MUST be ignored. If *anchorOffset* is `null`, it defaults to `0`. If no *anchor* is supplied, any anchor offset argument MUST be ignored.
+
+A client can use *anchor* instead of *position* to find the index of an id
+within a large set of results.
 
 The response to a call to *getFooList* is called *fooList*. It has the following arguments:
 
@@ -480,6 +492,12 @@ The following errors may be returned instead of the `fooList` response:
 
 `accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
 
+`anchorNotFound`: An anchor argument was supplied, but it cannot be found in the message list.
+
+`unsupportedSort`: The *sort* is syntactically valid, but includes a property the server does not support sorting on.
+
+`unsupportedFilter`: The *filter* is syntactically valid, but the server cannot process it.
+
 `invalidArguments`: The request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 ## getFooListUpdates
@@ -496,6 +514,8 @@ The `getFooListUpdates` call allows a client to efficiently update the state of 
   The current state of the client. This is the string that was returned as the *state* argument in the *fooList* response. The server will return the changes made since this state.
 - **maxChanges**: `Number|null`
   The maximum number of changes to return in the response. See error descriptions below for more details.
+- **uptoId**: `String|null`
+  The last id the client currently has cached from the list. When there are a large number of results, in a common case the client may have only downloaded and cached a small subset from the beginning of the list. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the list, which can significantly increase efficiency. If they are not immutable, this argument is ignored.
 
 The response to *getFooListUpdates* is called *fooListUpdates* It has the following arguments:
 
@@ -509,10 +529,14 @@ The response to *getFooListUpdates* is called *fooListUpdates* It has the follow
   This is the `sinceState` argument echoed back; the state from which the server is returning changes.
 - **newState**: `String`
   This is the state the client will be in after applying the set of changes to the old state.
+- **uptoId**: `String|null`
+  Echoed back from the call.
 - **total**: `Number`
   The total number of foos in the current foo list (given the *filter*).
 - **removed**: `String[]`
   The *id* for every foo that was in the list in the old state and is not in the list in the new state.
+
+    If the sort and filter are both only on immutable properties and an *uptoId* is supplied and exists in the list, any ids that were removed but have a higher index than *uptoId* SHOULD be omitted.
 
     If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old list but are not in the new list.
 
@@ -520,6 +544,8 @@ The response to *getFooListUpdates* is called *fooListUpdates* It has the follow
 
 - **added**: `AddedItem[]`
   The id and index in the list (in the new state) for every foo that has been added to the list since the old state AND every foo in the current list that was included in the *removed* array (due to a filter or sort based upon a mutable property).
+
+    If the sort and filter are both only on immutable properties and an *uptoId* is supplied and exists in the list, any ids that were added but have a higher index than *uptoId* SHOULD be omitted.
 
     The array MUST be sorted in order of index, lowest index first.
 
