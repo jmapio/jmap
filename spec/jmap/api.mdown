@@ -119,7 +119,7 @@ The response to `getFoos` is called `foos`. It has the following arguments:
     When a client receives a response with a different state string to a previous call, it MUST either throw away all currently cached objects for the type, or call *getFooUpdates* to get the exact changes.
 
 - **list**: `Foo[]`
-  An array of the Foo objects requested. This is the **empty array** if no objects were found, or if the *ids* argument passed in was also the empty array.
+  An array of the Foo objects requested. This is the **empty array** if no objects were found, or if the *ids* argument passed in was also the empty array. The results MAY be in a different order to the *ids* in the request arguments. If an identical id is included more than once in the request, the server MUST only include it once in the *list* or *notFound* response.
 - **notFound**: `String[]|null`
   This array contains the ids passed to the method for records that do not exist. This property is `null` if all requested ids were found, or if the *ids* argument passed in was either `null` or the empty array.
 
