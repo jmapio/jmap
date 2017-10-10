@@ -43,16 +43,11 @@ Example response:
       ["aResponseFromMethod3", {}, "#3"]
     ]
 
-## Use of null
+## Omitting arguments
 
-Unless otherwise specified, a missing property in the arguments object of a request (from the client), or a response (from the server) MUST be intepreted exactly the same as that property having the value `null`.
+An argument to a method may be specified to have a default value. If omitted by the client, the server MUST treat the method call the same as if the default value had been specified. Similarly, the server MAY omit any argument in a response which has the default value.
 
-Unless otherwise specified, a missing property in a data object MUST be interpreted in the following ways:
-
-- In the response to a *getFoos* style call, or when **creating** an object in a *setFoos* style call, a missing property MUST be interpreted as though it had the default value for that type, or `null` if no default is specified.
-- When **updating** an object in a *setFoos* style call, a missing property MUST be interpreted as the existing value for that property (i.e. don't update it).
-
-For network efficiency when fetching, the server and client may make use of the above and omit properties which have the default value for the data type.
+Unless otherwise specified in a method description, `null` is the default value for any argument in a request or response where this is allowed by the type signature. Other arguments may only be omitted if an explicit default value is defined in the method description.
 
 ## Errors
 
@@ -74,7 +69,7 @@ Any method MAY return an error of type `serverError` if an unexpected or unknown
 
 If an unknown method is called, an `unknownMethod` error (this is the type shown in the example above) MUST be inserted and then the next method call MUST be processed as normal.
 
-If an unknown argument or invalid arguments (wrong type, or in violation of other specified constraints) are supplied to a method, an `invalidArguments` error MUST be inserted and then the next method call MUST be processed as normal.
+If an unknown argument or invalid arguments (wrong type, missing and not optional, or in violation of other specified constraints) are supplied to a method, an `invalidArguments` error MUST be inserted and then the next method call MUST be processed as normal.
 
 ## References to previous method results
 
@@ -313,10 +308,11 @@ The response to *getFooUpdates* is called *fooUpdates*. It has the following arg
   This is the state the client will be in after applying the set of changes to the old state.
 - **hasMoreUpdates**: `Boolean`
   If `true`, the client may call *getFooUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
-- **changed**: `String[]`
-  An array of ids for records which have been created or changed but not destroyed since the oldState.
-- **removed**: `String[]`
-  An array of ids for records which have been destroyed since the old state.
+- **changed**: `String[]|null`
+  An array of ids for records which have been created or changed but not destroyed since the oldState, or `null` if none.
+- **removed**: `String[]|null`
+  An array of ids for records which have been destroyed since the old state,
+  or `null` if none.
 
 If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getMessageUpdates* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
 
@@ -352,7 +348,7 @@ The *setFoos* method takes the following arguments:
 - **update**: `String[Foo]|null`
   A map of id to Foo objects. The object may omit any property; only properties that have changed need be included. If `null`, no objects will be updated.
 - **destroy**: `String[]|null`
-  A list of ids for Foo objects to permanently delete. If `null`, no objects will be deleted.
+  A list of ids for Foo objects to permanently delete, or `null` if no objects are to be destroyed.
 
 Each creation, modification or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it is not permissible to only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
 
@@ -374,18 +370,18 @@ The response to *setFoos* is called *foosSet*. It has the following arguments:
   The state string that would have been returned by *getFoos* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by *getFoos*.
-- **created**: `String[Foo]`
-  A map of the creation id to an object containing any properties of the Foo object that were set or changed by the server (including the id) for all successfully created records.
-- **updated**: `String[Foo|null]`
-  The *keys* in this map are the ids of all Foos that were successfully updated. Some data types may have properties which can only be determined by the server, and which may change as a result of the other properties being updated by the client. In this case, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed** on the record. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
-- **destroyed**: `String[]`
-  A list of Foo ids for records that were successfully destroyed.
-- **notCreated**: `String[SetError]`
-  A map of creation id to a SetError object for each record that failed to be created.
-- **notUpdated**: `String[SetError]`
-  A map of Foo id to a SetError object for each record that failed to be updated.
-- **notDestroyed**: `String[SetError]`
-  A map of Foo id to a SetError object for each record that failed to be destroyed.
+- **created**: `String[Foo]|null`
+  A map of the creation id to an object containing any properties of the Foo object that were set or changed by the server (including the id) for all successfully created records, or `null` if none successful.
+- **updated**: `String[Foo|null]|null`
+  The *keys* in this map are the ids of all Foos that were successfully updated, or `null` if none successful. Some data types may have properties which can only be determined by the server, and which may change as a result of the other properties being updated by the client. In this case, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed** on the record. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
+- **destroyed**: `String[]|null`
+  A list of Foo ids for records that were successfully destroyed, or `null` if none successful.
+- **notCreated**: `String[SetError]|null`
+  A map of creation id to a SetError object for each record that failed to be created, or `null` if all successful.
+- **notUpdated**: `String[SetError]|null`
+  A map of Foo id to a SetError object for each record that failed to be updated, or `null` if all successful.
+- **notDestroyed**: `String[SetError]|null`
+  A map of Foo id to a SetError object for each record that failed to be destroyed, or `null` if all successful.
 
 A **SetError** object has the following properties:
 
@@ -448,8 +444,8 @@ A call to *getFooList* takes the following arguments:
     - `Date`: If sorting in ascending order, the earlier date MUST come first.
     - `Boolean`: If sorting in ascending order, a `false` value MUST come before a `true` value.
 
-- **position**: `Number|null`
-  The 0-based index of the first id in the full list of results to return, presumed `0` if `null`. If a negative value is given, the call MUST be rejected with an `invalidArguments` error. If the index is greater than or equal to the total number of objects in the results list then there are no results to return, but this is not an error.
+- **position**: `Number` (default: `0`)
+  The 0-based index of the first id in the full list of results to return. If a negative value is given, the call MUST be rejected with an `invalidArguments` error. If the index is greater than or equal to the total number of objects in the results list then there are no results to return, but this is not an error.
 - **anchor**: `String|null`
   A Foo id. If supplied the *position* argument is ignored. The index of this id in the results will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see below for more details).
 - **anchorOffset**: `Number|null`
