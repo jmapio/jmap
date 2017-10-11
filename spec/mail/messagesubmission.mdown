@@ -2,16 +2,14 @@
 
 The MessageSubmission object represents the submission of a message for delivery to one or more recipients. A **MessageSubmission** object has the following properties:
 
-- **id**: `String`
-  The id of the message submission. This is server-set and immutable.
-- **identityId**: `String`
-  The id of the identity to associate with this submission. This is immutable.
-- **messageId**: `String`
-  The id of the message to send. This is immutable. The message being sent does not have to be a draft, for example when "redirecting" an existing message to a different email address.
-- **threadId**: `String`
-  The thread id of the message to send. This is immutable and set by the server to the *threadId* property of the message referenced by the *messageId*.
-- **envelope**: `Envelope|null`
-  Information for use when sending via SMTP. This is immutable.
+- **id**: `String` (immutable; server-set)
+  The id of the message submission.
+- **identityId**: `String` (immutable)
+  The id of the identity to associate with this submission.
+- **messageId**: `String` (immutable)
+  The id of the message to send. The message being sent does not have to be a draft, for example when "redirecting" an existing message to a different email address.
+- **threadId**: `String` (immutable; server-set)
+  The thread id of the message to send. This is set by the server to the *threadId* property of the message referenced by the *messageId*.
 
     An **Envelope** object has the following properties:
 
@@ -43,12 +41,12 @@ The MessageSubmission object represents the submission of a message for delivery
     - **rcptTo**: The deduplicated set of email addresses from the *To*, *Cc*
       and *Bcc* headers, if present, with no parameters for any of them.
 
-- **sendAt**: `Date`
-  The date the message was/will be released for delivery. This is server-set and immutable.
+- **sendAt**: `Date` (immutable; server-set)
+  The date the message was/will be released for delivery.
 
     If the client successfully used [@!RFC4865] FUTURERELEASE with the message, this MUST be the time when the server will release the message; otherwise it MUST be the time the MessageSubmission was created.
 
-- **undoStatus**: `String`
+- **undoStatus**: `String` (server-set)
   This represents whether the submission may be canceled. This is server set and MUST be one of the following values:
 
     - `pending`: It MAY be possible to cancel this submission.
@@ -60,8 +58,8 @@ The MessageSubmission object represents the submission of a message for delivery
 
     On systems that do not support unsending, the value of this property will always be `final`. On systems that do support canceling submission, it will start as `pending`, and MAY transition to `final` when the server knows it definitely cannot recall the message, but MAY just remain `pending`. If in pending state, a client can attempt to cancel the submission by setting this property to `canceled`; if the update succeeds, the submission was successfully canceled and the message has not been delivered to any of the original recipients.
 
-- **deliveryStatus**: `String[DeliveryStatus]|null`
-  This represents the delivery status for each of the message recipients, if known. This property is server-set and MAY not be supported by all servers, in which case it will remain `null`. Servers that support it SHOULD update the MessageSubmission object each time the status of any of the recipients changes, even if some recipients are still being retried.
+- **deliveryStatus**: `String[DeliveryStatus]|null` (server-set)
+  This represents the delivery status for each of the message recipients, if known. This property MAY not be supported by all servers, in which case it will remain `null`. Servers that support it SHOULD update the MessageSubmission object each time the status of any of the recipients changes, even if some recipients are still being retried.
 
     This value is a map from the email address of each recipient to a *DeliveryStatus* object.
 
@@ -126,10 +124,10 @@ The MessageSubmission object represents the submission of a message for delivery
 
         The server MAY also set this property based on other feedback channels.
 
-- **dsnBlobIds**: `String[]`
-  A list of blob ids for DSNs received for this submission, in order of receipt, oldest first. This is server-set.
-- **mdnBlobIds**: `String[]`
-  A list of blob ids for MDNs received for this submission, in order of receipt, oldest first. This is server-set.
+- **dsnBlobIds**: `String[]` (server-set)
+  A list of blob ids for DSNs received for this submission, in order of receipt, oldest first.
+- **mdnBlobIds**: `String[]` (server-set)
+  A list of blob ids for MDNs received for this submission, in order of receipt, oldest first.
 
 JMAP servers MAY choose not to expose DSN and MDN responses as Message objects if they correlate to a MessageSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and expects the user to be using clients capable of fetching and displaying delivery status via the MessageSubmission object.
 
