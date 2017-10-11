@@ -181,7 +181,7 @@ A **FilterOperator** object has the following properties:
 - **conditions**: `(FilterCondition|FilterOperator)[]`
   The conditions to evaluate against each message.
 
-A **FilterCondition** object has the following properties:
+A **FilterCondition** object has the following properties, any of which may be omitted or equivalently given with `null` as the value:
 
 - **inMailbox**: `String|null`
   A mailbox id. A message must be in this mailbox to match the condition.
@@ -226,7 +226,7 @@ A **FilterCondition** object has the following properties:
 - **header**: `String[]|null`
   The array MUST contain either one or two elements. The first element is the name of the header to match against. The second (optional) element is the text to look for in the header. If not supplied, the message matches simply if it *has* a header of the given name.
 
-If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
+If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator). If a property is `null` or omitted, it is ignored when testing the condition.
 
 The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
 
