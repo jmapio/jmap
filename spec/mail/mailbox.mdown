@@ -10,9 +10,9 @@ A **Mailbox** object has the following properties:
   The id of the mailbox. This property is immutable and may only be set by the server.
 - **name**: `String`
   User-visible name for the mailbox, e.g. "Inbox". This may be any UTF-8  string ([@!RFC3629]) of at least 1 character in length and maximum 256 bytes in size. Servers SHOULD forbid sibling Mailboxes with the same name.
-- **parentId**: `String|null`
+- **parentId**: `String|null` (default: `null`)
   The mailbox id for the parent of this mailbox, or `null` if this mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.
-- **role**: `String|null`
+- **role**: `String|null` (default: `null`)
   Identifies system mailboxes. This property can only be set on create. After the record has been created, this property is immutable.
 
     The following values MUST be used for the relevant mailboxes:
@@ -28,7 +28,7 @@ A **Mailbox** object has the following properties:
     No two mailboxes may have the same role. Mailboxes without a known purpose MUST have a role of `null`.
 
     An account is not required to have mailboxes with any of the above roles. A client MAY create new mailboxes with a role property to help them keep track of a use-case not covered by the above list. To avoid potential conflict with any special behaviour a server might apply to mailboxes with certain roles in the future, any roles not in the above list created by the client must begin with `"x-"`. The client MAY attempt to create mailboxes with the standard roles if not already present, but the server MAY reject these.
-- **sortOrder**: `Number`
+- **sortOrder**: `Number` (default: `0`)
   Defines the sort order of mailboxes when presented in the client's UI, so it
   is consistent between devices. The number MUST be an integer in the range
   0 <= sortOrder < 2^31.
