@@ -6,8 +6,8 @@ For compatibility with IMAP, a message MUST belong to one or more mailboxes. The
 
 A **Mailbox** object has the following properties:
 
-- **id**: `String`
-  The id of the mailbox. This property is immutable and may only be set by the server.
+- **id**: `String` (immutable; server-set)
+  The id of the mailbox.
 - **name**: `String`
   User-visible name for the mailbox, e.g. "Inbox". This may be any UTF-8  string ([@!RFC3629]) of at least 1 character in length and maximum 256 bytes in size. Servers SHOULD forbid sibling Mailboxes with the same name.
 - **parentId**: `String|null` (default: `null`)
@@ -34,27 +34,27 @@ A **Mailbox** object has the following properties:
   0 <= sortOrder < 2^31.
 
     A mailbox with a lower order should be displayed before a mailbox with a higher order (that has the same parent) in any mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting SHOULD take into account locale-specific character order convention.
-- **mayReadItems**: `Boolean`
+- **mayReadItems**: `Boolean` (server-set)
   If true, may use this mailbox as part of a filter in a *getMessageList* call.
-  If a submailbox is shared but not the parent mailbox, this may be `false`. This property may only be set by the server.
-- **mayAddItems**: `Boolean`
-  The user may add messages to this mailbox (by either creating a new message or moving an existing one). This property may only be set by the server.
-- **mayRemoveItems**: `Boolean`
-  The user may remove messages from this mailbox (by either changing the mailboxes of a message or deleting it). This property may only be set by the server.
-- **mayCreateChild**: `Boolean`
-  The user may create a mailbox with this mailbox as its parent. This property may only be set by the server.
-- **mayRename**: `Boolean`
-  The user may rename the mailbox or make it a child of another mailbox. This property may only be set by the server.
-- **mayDelete**: `Boolean`
-  The user may delete the mailbox itself. This property may only be set by the server.
-- **totalMessages**: `Number`
-  The number of messages in this mailbox. This property may only be set by the server.
-- **unreadMessages**: `Number`
-  The number of messages in this mailbox that have neither the `$Seen` keyword nor the `$Draft` keyword. This property may only be set by the server.
-- **totalThreads**: `Number`
-  The number of threads where at least one message in the thread is in this mailbox. This property may only be set by the server.
-- **unreadThreads**: `Number`
-  The number of threads where at least one message in the thread has neither the `$Seen` keyword nor the `$Draft` keyword AND at least one message in the thread is in this mailbox (but see below for special case handling of Trash). Note, the unread message does not need to be the one in this mailbox. This property may only be set by the server.
+  If a submailbox is shared but not the parent mailbox, this may be `false`.
+- **mayAddItems**: `Boolean` (server-set)
+  The user may add messages to this mailbox (by either creating a new message or moving an existing one).
+- **mayRemoveItems**: `Boolean` (server-set)
+  The user may remove messages from this mailbox (by either changing the mailboxes of a message or deleting it).
+- **mayCreateChild**: `Boolean` (server-set)
+  The user may create a mailbox with this mailbox as its parent.
+- **mayRename**: `Boolean` (server-set)
+  The user may rename the mailbox or make it a child of another mailbox.
+- **mayDelete**: `Boolean` (server-set)
+  The user may delete the mailbox itself.
+- **totalMessages**: `Number` (server-set)
+  The number of messages in this mailbox.
+- **unreadMessages**: `Number` (server-set)
+  The number of messages in this mailbox that have neither the `$Seen` keyword nor the `$Draft` keyword.
+- **totalThreads**: `Number` (server-set)
+  The number of threads where at least one message in the thread is in this mailbox.
+- **unreadThreads**: `Number` (server-set)
+  The number of threads where at least one message in the thread has neither the `$Seen` keyword nor the `$Draft` keyword AND at least one message in the thread is in this mailbox (but see below for special case handling of Trash). Note, the unread message does not need to be the one in this mailbox.
 
 The Trash mailbox (that is a mailbox with `role == "trash"`) MUST be treated specially for the purpose of unread counts:
 

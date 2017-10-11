@@ -19,6 +19,15 @@ Types signatures are given for all JSON objects in this document. The following 
 * `Foo[]` – An array of objects of type `Foo`.
 * `String[Foo]` – A JSON `Object` being used as a map (associative array), where all the values are of type `Foo`.
 
+Object properties may also have a set of attributes defined along with the type
+signature. These have the following meanings:
+
+* **sever-set**: Only the server can set the value for this property. The
+  client MUST NOT send this property when creating a new object of this type.
+* **immutable**: The value MUST NOT change after the object is created.
+* **default**: (This is followed by a JSON value). The value that will be used
+  for this property if it is omitted when creating a new object of this type.
+
 ## Terminology
 
 The same terminology is used in this document as in the core JMAP specification.
