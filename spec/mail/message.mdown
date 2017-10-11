@@ -6,16 +6,16 @@ JMAP completely hides the complexities of MIME. All special encodings of either 
 
 A **Message** object has the following properties. All are **immutable** unless otherwise stated:
 
-- **id**: `String`
-  The id of the message. This property may only be set by the server.
-- **blobId**: `String`
+- **id**: `String` (server-set)
+  The id of the message.
+- **blobId**: `String` (server-set)
   The id representing the raw [@!RFC5322] message. This may be used to download
-  the original message or to attach it directly to another message etc. This property may only be set by the server.
-- **threadId**: `String`
-  The id of the thread to which this message belongs. This property may only be set by the server.
-- **mailboxIds**: `String[Boolean]` (Mutable)
+  the original message or to attach it directly to another message etc.
+- **threadId**: `String` (server-set)
+  The id of the thread to which this message belongs.
+- **mailboxIds**: `String[Boolean]` (mutable)
   The set of mailbox ids this message is in. A message MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
-- **keywords**: `String[Boolean]` (Mutable)
+- **keywords**: `String[Boolean]` (mutable; default: `{}`)
   A set of keywords that apply to the message. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 
     Keywords are shared with IMAP. The six system keywords from IMAP are treated specially. The following four keywords have their first character changed from `\` in IMAP to `$` in JMAP and have particular semantic meaning:
@@ -35,37 +35,37 @@ A **Message** object has the following properties. All are **immutable** unless 
     - `$Phishing`: The message is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this message and disable links and attachments.
     - `$Junk`: The message is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
     - `$NotJunk`: The message is definitely not spam. Clients SHOULD set this flag when users indicate a message is legitimate, to help train automated spam-detection systems.
-- **hasAttachment**: `Boolean`
-  Does the message have any attachments? This property may only be set by the server, based on the *attachments* property.
-- **headers**: `String[String]`
+- **hasAttachment**: `Boolean` (server-set)
+  This is `true` if and only if the *attachments* property for the Message contains at least one entry where *isInline* is `false`.
+- **headers**: `String[String]` (default: `{}`)
   A map of lower-cased header name to (decoded) header value for all headers in the message. For headers that occur multiple times (e.g. `Received`), the values are concatenated with a single new line (`\n`) character in between each one.
-- **sender**: `Emailer|null`
+- **sender**: `Emailer|null` (default: `null`)
   An Emailer object (see below) containing the name/email from the parsed `Sender` header of the email. If the email doesn't have a `Sender` header, this is `null`.
-- **from**: `Emailer[]|null`
+- **from**: `Emailer[]|null` (default: `null`)
   An array of name/email objects (see below) representing the parsed `From` header of the email, in the same order as they appear in the header. If the email doesn't have a `From` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **to**:  `Emailer[]|null`
+- **to**:  `Emailer[]|null` (default: `null`)
   An array of name/email objects (see below) representing the parsed `To` header of the email, in the same order as they appear in the header. If the email doesn't have a `To` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **cc**:  `Emailer[]|null`
+- **cc**:  `Emailer[]|null` (default: `null`)
   An array of name/email objects (see below) representing the parsed `Cc` header of the email, in the same order as they appear in the header. If the email doesn't have a `Cc` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **bcc**:  `Emailer[]|null`
+- **bcc**:  `Emailer[]|null` (default: `null`)
   An array of name/email objects (see below) representing the parsed `Bcc` header of the email. If the email doesn't have a `Bcc` header (which will be true for most emails outside of the Sent mailbox), this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **replyTo**: `Emailer[]|null`
+- **replyTo**: `Emailer[]|null` (default: `null`)
   An array of name/email objects (see below) representing the parsed `Reply-To` header of the email, in the same order as they appear in the header. If the email doesn't have a `Reply-To` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **subject**: `String`
+- **subject**: `String` (default: `""`)
   The subject of the message. If none, defaults to the empty string, not `null`.
-- **date**: `Date`
+- **date**: `Date` (default: time of creation on server)
   The date the message was sent (or saved, if the message is a draft).
-- **size**: `Number`
-  The size in bytes of the whole message as counted by the server towards the user's quota. This property may only be set by the server.
-- **preview**: `String`
-  Up to 256 characters of the beginning of a plain text version of the message body. This is intended to be shown as a preview line on a mailbox listing, and the server may choose to skip quoted sections or salutations to return a more useful preview. This property may only be set by the server.
-- **textBody**: `String`
+- **size**: `Number` (server-set)
+  The size in bytes of the whole message as counted by the server towards the user's quota.
+- **preview**: `String` (server-set)
+  Up to 256 characters of the beginning of a plain text version of the message body. This is intended to be shown as a preview line on a mailbox listing, and the server may choose to skip quoted sections or salutations to return a more useful preview.
+- **textBody**: `String` (default: `""`)
   The plain text body part for the message. If there is only an HTML version of the body, a plain text version MUST be generated from this; the exact method of conversion in this case is not defined and is server-specific. If there is neither a `text/plain` nor a `text/html` body part, this MUST be the empty string.
-- **htmlBody**: `String|null`
+- **htmlBody**: `String|null` (default: `null`)
   The HTML body part for the message if present.
-- **attachments**: `Attachment[]|null`
+- **attachments**: `Attachment[]|null` (default: `null`)
   An array of attachment objects (see below) detailing all the attachments to the message.
-- **attachedMessages**: `String[Message]|null`
+- **attachedMessages**: `String[Message]|null` (server-set)
   An object mapping attachment id (as found in the `attachments` property) to a **Message** object with the following properties, for each [@!RFC5322] message attached to this one:
 
     - headers
@@ -81,7 +81,7 @@ A **Message** object has the following properties. All are **immutable** unless 
     - attachments
     - attachedMessages
 
-    This property may only be set by the server, based on the *attachments* property.
+    This property is set by the server based on the *attachments* property.
 
 An **Emailer** object has the following properties:
 
@@ -292,11 +292,11 @@ Standard *setFoos* method. The *setMessages* method encompasses:
 - Adding/removing a message to/from mailboxes (moving a message)
 - Deleting messages
 
-When creating a message, the client MAY omit the *headers* property. If included, it specifies extra headers to add in addition to any based off the parsed properties (like from/to/subject), or that the server chooses to set. The keys MUST only contain the characters a-z (lower-case only), 0-9 and hyphens. If a header is included that conflicts with one of the other properties on the Message object (e.g. *from*, *date*), the value in the *headers* object MUST be ignored. If not included, the server MUST generate and set a `Message-Id` header in conformance with [@!RFC5322] section 3.6.4.
+When creating a message, the *headers* property specifies extra headers to add in addition to any based off the parsed properties (like *from*/*to*/*subject*). The keys MUST only contain the characters a-z (lower-case only), 0-9 and hyphens. If a header is included that conflicts with one of the other properties on the Message object (e.g. *from*, *date*), the value in the *headers* object MUST be ignored.
 
-The *date* property MAY also be omitted when creating a message; the server MUST default it to the current time.
+The server MAY also choose to set additional headers. If not included, the server MUST generate and set a `Message-Id` header in conformance with [@!RFC5322] section 3.6.4.
 
-Other than making sure it conforms to the correct type, the server MUST NOT attempt to validate *from*/*to*/*cc*/*bcc* when creating a message. This is to ensure draft messages can be saved at any point.
+Other than making sure it conforms to the correct type, the server MUST NOT attempt to validate *from*/*to*/*cc*/*bcc* (e.g. checking if an email address is valid) when creating a message. This is to ensure draft messages can be saved at any point.
 
 Destroying a message removes it from all mailboxes to which it belonged. To  just delete a message to trash, simply change the `mailboxIds` property so it is now in the mailbox with `role == "trash"`, and remove all other mailbox ids.
 
@@ -331,8 +331,8 @@ A **MessageImport** object has the following properties:
   The id representing the raw [@!RFC5322] message (see the file upload section).
 - **mailboxIds** `String[Boolean]`
   The ids of the mailbox(es) to assign this message to. At least one mailbox MUST be given.
-- **keywords**: `String[Boolean]|null`
-  The keywords to apply to the message, if any.
+- **keywords**: `String[Boolean]` (default: `{}`)
+  The keywords to apply to the message.
 
 Each message to import is considered an atomic unit which may succeed or fail individually. Importing successfully creates a new message object from the data reference by the blobId and applies the given mailboxes and keywords.
 
@@ -380,8 +380,8 @@ A **MessageCopy** object has the following properties:
   The id of the message to be copied in the "from" account.
 - **mailboxIds**: `String[Boolean]`
   The ids of the mailboxes (in the "to" account) to add the copied message to. At least one mailbox MUST be given.
-- **keywords**: `String[Boolean]|null`
-  The *keywords* property for the copy, if any.
+- **keywords**: `String[Boolean]` (default: `{}`)
+  The *keywords* property for the copy.
 
 The server MAY forbid two messages with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-Id, to coexist within an account. If dulicates are allowed though, the "from" account may be the same as the "to" account to copy messages within an account.
 
