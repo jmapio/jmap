@@ -166,8 +166,8 @@ Standard *getFooUpdates* method.
 
 Standard *getFooList* method, but with the following additional arguments:
 
-- **collapseThreads**: `Boolean|null`
-  If true, each thread will only be returned once in the resulting list, at the position of the first message in the list (given the filter and sort order) belonging to the thread. If `false` or `null`, threads may be returned multiple times.
+- **collapseThreads**: `Boolean` (default: `false`)
+  If `true`, messages in the same thread as a previous message in the list (given the filter and sort order) will be removed from the list. This means at most only one message will be included in the list for any given thread.
 
 ### Filtering
 
@@ -268,20 +268,22 @@ When `collapseThreads == true`, then after filtering and sorting the message lis
 
 The *messageList* response has the following additional argument:
 
-- **collapseThreads**: `Boolean|null`
-  Echoed back from the call.
+- **collapseThreads**: `Boolean`
+  The *collapseThreads* value that was used when calculating the message list
+  for this call.
 
 ## getMessageListUpdates
 
 Standard *getFooListUpdates* method, with the following additional arguments:
 
-- **collapseThreads**: `Boolean|null`
+- **collapseThreads**: `Boolean` (default: `false`)
   The *collapseThreads* argument that was used with *getMessageList*.
 
 The *messageListUpdates* response has the following additional arguments:
 
-- **collapseThreads**: `Boolean|null`
-  Echoed back from the call.
+- **collapseThreads**: `Boolean`
+  The *collapseThreads* value that was used when calculating the message list
+  for this call.
 
 ## setMessages
 
