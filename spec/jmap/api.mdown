@@ -351,8 +351,26 @@ The *setFoos* method takes the following arguments:
 
     The client MUST omit any properties that may only be set by the server (for example, the *id* property on most object types).
 
-- **update**: `String[Foo]|null`
-  A map of id to Foo objects. The object may omit any property; only properties that have changed need be included. If `null`, no objects will be updated.
+- **update**: `String[PatchObject]|null`
+  A map of id to a Patch object to apply to the current Foo object with that id, or `null` if no objects are to be updated.
+
+    A *PatchObject* is of type `String[*]`, and represents an unordered set of patches.  The keys are a path in [@!RFC6901] JSON pointer format, with an implicit leading "/" (i.e. prefix each key with "/" before applying the JSON pointer evaluation algorithm).
+
+    All paths MUST also conform to the following restrictions; if there is any violation, the update MUST be rejected with an `invalidPatch` error:
+
+    * The pointer MUST NOT reference inside an array (i.e. you MUST NOT insert/delete from an array; the array MUST be replaced in its entirety instead).
+    * All parts prior to the last (i.e. the value after the final slash) MUST already exist on the object being patched.
+    * There MUST NOT be two patches in the PatchObject where the pointer of one is the prefix of the pointer of the other, e.g. "alerts/1/offset" and "alerts".
+
+    The value associated with each pointer determines how to apply that patch:
+
+    * If `null`, set to the default value if specified for this property, otherwise remove the property from the patched object. If the key is not present in the parent, this a no-op.
+    * Anything else: The value to set for this property (this may be a replacement or addition to the object being patched).
+
+    Any server-set properties MAY be included in the patch if their value is identical to the current server value (before applying the patches to the object). Otherwise, the update MUST be rejected with an *invalidProperties* SetError.
+
+    This patch definition is designed such that an entire Foo object is also a valid PatchObject. The client MAY choose to optimise network usage by just sending the diff, or MAY just send the whole object; the server processes it the same either way.
+
 - **destroy**: `String[]|null`
   A list of ids for Foo objects to permanently delete, or `null` if no objects are to be destroyed.
 
@@ -382,7 +400,11 @@ The response to *setFoos* is called *foosSet*. It has the following arguments:
     This argument is `null` if no Foo objects were successfully created.
 
 - **updated**: `String[Foo|null]|null`
-  The *keys* in this map are the ids of all Foos that were successfully updated, or `null` if none successful. Some data types may have properties which can only be determined by the server, and which may change as a result of the other properties being updated by the client. In this case, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed** on the record. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
+  The *keys* in this map are the ids of all Foos that were successfully updated, or `null` if none successful.
+
+    The *value* for each id is a Foo object containing any property that
+    changed in a way *not* explicitly requested by the *PatchObject* sent to the server, or `null` if none. This lets the client know of any changes to server-set or computed properties.
+
 - **destroyed**: `String[]|null`
   A list of Foo ids for records that were successfully destroyed, or `null` if none successful.
 - **notCreated**: `String[SetError]|null`
@@ -428,6 +450,90 @@ The following errors may be returned instead of the `foosSet` response:
 `invalidArguments`: One of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 `stateMismatch`: An `ifInState` argument was supplied and it does not match the current state.
+
+### Example
+
+Suppose we have a type *Todo* with the following properties:
+
+- **id**: `String` (immutable; server-set)
+  The id of the object.
+- **title**: `String`
+  The "From" *name* the client SHOULD use when creating a new message from this identity.
+- **keywords**: `String[Boolean]` (mutable; default: `{}`)
+  A set of keywords that apply to the message. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
+- **neuralNetworkTimeEstimation**: `Number` (server-set)
+  The title and keywords are fed into the server's state-of-the-art neural
+  network to get an estimation of how long this todo will take, in seconds.
+
+Now we fetched a Todo of id "a" (let's presume we already knew a Todo with this id existed):
+
+    [["getTodos", {
+      "ids": ["a"]
+    }, "0"]]
+
+and got back
+
+    [["todos", {
+      "accountId": "x",
+      "state": "10324",
+      "list": [{
+        "id": "a",
+        "title": "Practice Piano",
+        "keywords": {
+          "beethoven": true,
+          "mozart": true,
+          "liszt": true,
+          "rachmaninov": true
+        },
+        "neuralNetworkTimeEstimation": 3600
+      }]
+    }, "0"]]
+
+Now the user adds a keyword "chopin" and removes the keyword "mozart". The client may send the whole object to the server, as this is a valid PatchObject:
+
+    [["setTodos", {
+      "ifInState": "10324",
+      "update": {
+        "a": {
+          "id": "a",
+          "title": "Practice Piano",
+          "keywords": {
+            "beethoven": true,
+            "chopin": true,
+            "liszt": true,
+            "rachmaninov": true,
+          }
+          "neuralNetworkTimeEstimation": 360
+        }
+      }
+    }, "0"]]
+
+or it may send a minimal patch:
+
+    [["setTodos", {
+      "ifInState": "10324",
+      "update": {
+        "a": {
+          "keywords/chopin": true,
+          "keywords/mozart": null
+        }
+      }
+    }, "0"]]
+
+The effect is exactly the same on the server in either case, and presuming the server is still in state "10324" it will probably return success:
+
+    [["todosSet", {
+      "accountId": "x",
+      "oldState": "10324",
+      "newState": "10329",
+      "updated": {
+        "a": {
+          "neuralNetworkTimeEstimation": 5400
+        }
+      }
+    }, "0"]]
+
+The server changed the "neuralNetworkTimeEstimation" property on the object as part of this change; as this changed in a way *not* explicitly requested by the PatchObject sent to the server, it is returned with the "updated" confirmation.
 
 ## getFooList
 
