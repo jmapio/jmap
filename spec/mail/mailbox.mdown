@@ -34,6 +34,27 @@ A **Mailbox** object has the following properties:
   0 <= sortOrder < 2^31.
 
     A mailbox with a lower order should be displayed before a mailbox with a higher order (that has the same parent) in any mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting SHOULD take into account locale-specific character order convention.
+- **sharedWith**: `Rights[String]`
+  Used to share a mailbox with other users. This is a map of username to `Rights`, where `Rights` is an array of single char strings among these values (adapted from [@!RFC4314]):
+    - "l": mailbox is visible but not its content
+    - "r": read messages in this mailbox
+    - "w": modify messages keywords in this mailbox
+    - "i": append or copy a message to this mailbox
+    - "k": create child mailbox
+    - "x": delete this mailbox
+    - "t": move a message from this mailbox to Trash folder
+    - "e": destroy a message
+    - "a": modify this sharedWith property
+
+  Example:
+
+      sharedWith: {
+        "alice@example.com": ["e", "i", "l", "r", "t", "w"],
+        "bob@example.com": ["l", "r"]
+      }
+
+    Here Alice has all write rights on the messages in this mailbox, while Bob has only read rights.
+
 - **mayReadItems**: `Boolean`
   If true, may use this mailbox as part of a filter in a *getMessageList* call.
   If a submailbox is shared but not the parent mailbox, this may be `false`. This property is server-set.
@@ -47,6 +68,23 @@ A **Mailbox** object has the following properties:
   The user may rename the mailbox or make it a child of another mailbox. This property is server-set.
 - **mayDelete**: `Boolean`
   The user may delete the mailbox itself. This property is server-set.
+- **namespace**: `Namespace`
+  Gives additional information about the type of this mailbox. This can now take the values `personal` or `delegated`.
+  A personal mailbox is a mailbox owned by the current user. The namespace includes only the `type` property with the `personal` value:
+
+      namespace: {
+        "type": "personal"
+      }
+
+  For a delegated mailbox, the `owner` property points to the original owner of the mailbox, while the `type` property is set to `delegated`:
+
+      namespace: {
+        "type": "delegated",
+        "owner": "user@example.com"
+      }
+
+  This property is server-set.
+
 - **totalMessages**: `Number`
   The number of messages in this mailbox.
 - **unreadMessages**: `Number`
