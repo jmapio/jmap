@@ -82,6 +82,28 @@ Standard *getFooUpdates* method, but with one extra argument to the *mailboxUpda
 
 Since counts frequently change but the rest of the mailboxes state for most use cases changes rarely, the server can help the client optimise data transfer by keeping track of changes to message counts separately to other state changes. The *changedProperties* array may be used directly via a result reference in a subsequent getMailboxes call in a single request.
 
+## getMailboxList
+
+Standard *getFooList* method.
+
+The **FilterCondition** object (optionally passed as the *filter* argument) has the following properties, any of which may be omitted:
+
+- **parentId**: `String|null`
+  The Mailbox *parentId* property must match the given value exactly.
+- **hasRole**: `Boolean`
+  If this is `true`, a Mailbox matches if it has a non-`null` value for its *role* property.
+
+A Mailbox object matches the filter if and only if all of the given conditions given match. If zero properties are specified, it is automatically `true` for all objects.
+
+The following properties MUST be supported for sorting:
+
+- `sortOrder`
+- `name`
+
+## getMailboxListUpdates
+
+Standard *getFooListUpdates* method.
+
 ## setMailboxes
 
 Standard *setFoos* method. The following extra *SetError* types are defined:
