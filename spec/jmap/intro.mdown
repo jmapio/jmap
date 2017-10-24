@@ -2,7 +2,7 @@
 
 JMAP is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
 
-This specification is for the generic mechanism of authentication and synchronisation. Further specifications define the data models for different data types that may be synchronised via JMAP.
+This specification is for the generic mechanism of data synchronisation. Further specifications define the data models for different data types that may be synchronised via JMAP.
 
 JMAP is designed to make efficient use of limited network resources. Multiple API calls may be batched in a single request to the server, reducing round trips and improving battery life on mobile devices. Push connections remove the need for polling, and an efficient delta update mechanism ensures a minimum of data is transferred.
 
@@ -41,7 +41,7 @@ All data sent from the client to the server or from the server to the client (ex
 
 ### User
 
-A user represents a set of permissions relating to what data can be seen. To  access data in JMAP, you first authenticate as a particular user.
+A user represents a set of permissions relating to what data can be seen.
 
 ### Accounts
 
@@ -65,11 +65,11 @@ Ids are always `String`s. An id MUST be a valid UTF-8 string of at least 1 chara
 
 JMAP uses HTTP [@!RFC7230] to expose API, Push, Upload and Download resources. Implementations MUST support HTTP/1.1, and MAY support later versions. Support for common HTTP mechanisms such as redirection and caching are assumed.
 
+All HTTP requests MUST be authenticated. Servers MUST conform with the [@!RFC7235] HTTP Authentication framework to reject requests that fail authentication and inform the client of available authentication schemes.
+
 Clients SHOULD understand and be able to handle standard HTTP status codes appropriately.
 
-All data exchanges are authenticated using an access token. Authentication is covered in section 2.
-
-An authenticated client may exchange data with the server using four different mechanisms:
+An authenticated client can fetch the JMAP session object with details about the data and capabilities the server can provide as shown in section 2. The client may then exchange data with the server using four different mechanisms:
 
 1. The client may make an API request to the server to get or set structured data. This request consists of an ordered series of method calls. These are processed by the server, which then returns an ordered series of responses. This is described in section 3.
 2. The client may download binary files from the server. This is detailed in section 4.

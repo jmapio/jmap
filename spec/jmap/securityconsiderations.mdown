@@ -1,5 +1,20 @@
 # Security considerations
 
+## Transport confidentiality
+
+All HTTP requests MUST use [@!RFC5246] TLS (https) transport to ensure the confidentiality of data sent and received via JMAP. Clients MUST validate TLS certificate chains to protect against man-in-the-middle attacks.
+
+## Authentication scheme
+
+A number of HTTP authentication schemes have been standardised (https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml). Servers should take care to assess the security characteristics of different schemes in relation to their needs when deciding what to implement.
+
+If offering the Basic authentication scheme a service MAY not allow a user's regular password but require generation of a unique app password via some external mechanism for each client they wish to connect.
+
+## Service autodiscovery
+
+Unless secured by something like DNSSEC, autodiscovery of server details is
+vulnerable to a DNS poisoning attack leading to the client talking to an attacker's server instead of the real JMAP server. The attacker may then man-in-the-middle requests and depending on the authentication scheme, steal credentials to generate its own requests.
+
 ## JSON parsing
 
 The security considerations of [@!RFC7159] apply to the use of JSON as the data interchange format.
