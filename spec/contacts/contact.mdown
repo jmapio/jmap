@@ -2,8 +2,8 @@
 
 A **Contact** object stores information about a person or company. It has the following properties:
 
-- **id**: `String`
-  The id of the contact. This property is immutable.
+- **id**: `String` (immutable; server-set)
+  The id of the contact.
 - **isFlagged**: `Boolean`
   Is the contact flagged (marked as important in some way by the user)?
 - **avatar**: `File|null`
@@ -103,147 +103,91 @@ A **File** Object has the following properties:
 
 ## getContacts
 
-Contacts can either be fetched explicitly by id, or all of them at once. To fetch contacts, make a call to `getContacts`. It takes the following arguments:
-
-- **accountId**: `String|null`
-  The Account to fetch the contacts for. If `null`, the primary account is used.
-- **ids**: `String|null`
-  The ids of the contacts to fetch. If `null`, all contacts in the account are be fetched.
-- **properties**: `String[]|null`
-  If supplied, only the properties listed in the array will be returned for each contact. If `null`, all properties are returned. The id of the contact will **always** be returned, even if not explicitly requested.
-
-The response to *getContacts* is called *contacts*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **state**: `String`
-  A string representing the state on the server for **all** contacts. If the state of a contact changes, or a new contact is created, or a contact is destroyed, this string will change. It is used to get delta updates.
-- **list**: `Contact[]`
-  An array of the Contact objects requested. This will be the **empty array** if the *ids* argument was the empty array, or contained only ids for contacts that could not be found.
-- **notFound**: `String[]|null`
-  This array contains the ids passed to the method for contacts that do not exist, or `null` if all requested ids were found. It MUST be `null` if the *ids* argument in the call was `null`.
-
-The following errors may be returned instead of the *contacts* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`requestTooLarge`: Returned if the number of *ids* requested by the client exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+Standard *getFoos* method. The *ids* argument may be `null` to fetch all at once.
 
 ## getContactUpdates
 
-The *getContactUpdates* call allows a client to efficiently update the state of its cached contacts to match the new state on the server. It takes the following arguments:
+Standard *getFooUpdates* method.
 
-- **accountId**: `String|null`
-  The id of the account to use for this call. If `null`, the primary account will be used.
-- **sinceState**: `String`
-  The current state of the client. This is the string that was returned as the *state* argument in the *contacts* response. The server will return the changes made since this state.
-- **maxChanges**: `Number|null`
-  The maximum number of Contact ids to return in the response. The server MAY choose to clamp this value to a particular maximum or set a maximum if none is given by the client. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
-- **fetchRecords**: `Boolean|null`
-  If `true`, immediately after outputting a *contactUpdates* response, an implicit call will be made to *getContacts* with the *changed* property of the response as the *ids* argument, and the *fetchRecordProperties* argument as the *properties* argument. If `false` or `null`, no implicit call is made.
-- **fetchRecordProperties**: `String[]|null`
-  Passed through as the *properties* argument to any implicit *getContacts* call.
+## getContactList
 
-The response to *getContactUpdates* is called *contactUpdates*. It has the following arguments:
+Standard *getFooList* method.
 
-- **accountId**: `String`
-  The id of the account used for the call.
-- **oldState**: `String`
-  This is the *sinceState* argument echoed back; the state from which the server is returning changes.
-- **newState**: `String`
-  This is the state the client will be in after applying the set of changes to the old state.
-- **hasMoreUpdates**: `Boolean`
-  If `true`, the client may call *getContactUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
-- **changed**: `String[]`
-  An array of Contact ids where a property of the contact has changed between the old state and the new state, or the contact has been created, and the contact has not been destroyed.
-- **removed**: `String[]`
-  An array of Contact ids for contacts which have been destroyed since the old state.
+### Filtering
 
-If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getContactUpdates* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
+A **FilterOperator** object has the following properties:
 
-If a contact has been modified AND deleted since the oldState, the server should just return the id in the *removed* array, but MAY return it in the *changed* array as well. If a contact has been created AND deleted since the oldState, the server SHOULD remove the contact id from the response entirely, but MAY include it in the *removed* array.
+- **operator**: `String`
+  This MUST be one of the following strings: "AND"/"OR"/"NOT":
+  - **AND**: all of the conditions must match for the filter to match.
+  - **OR**: at least one of the conditions must match for the filter to match.
+  - **NOT**: none of the conditions must match for the filter to match.
+- **conditions**: `(FilterCondition|FilterOperator)[]`
+  The conditions to evaluate against each contact.
 
-The following errors may be returned instead of the `contactUpdates` response:
+A **FilterCondition** object has the following properties:
 
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
+- **inContactGroup**: `String[]|null`
+  A list of contact group ids. A contact must be in ANY of these groups to match the condition.
+- **isFlagged**: `Boolean|null`
+  The `isFlagged` property of the contact must be identical to the value given to match the condition.
+- **text**: `String|null`
+  Equivalent to ORing together a FilterCondition for each of the `String` typed conditions (prefix, firstName, etc.).
+- **prefix**: `String`
+  Looks for the text in the *prefix* property of the contact.
+- **firstName**: `String`
+  Looks for the text in the *firstName* property of the contact.
+- **lastName**: `String`
+  Looks for the text in the *lastName* property of the contact.
+- **suffix**: `String`
+  Looks for the text in the *suffix* property of the contact.
+- **nickname**: `String`
+  Looks for the text in the *nickname* property of the contact.
+- **company**: `String`
+  Looks for the text in the *company* property of the contact.
+- **department**: `String`
+  Looks for the text in the *department* property of the contact.
+- **jobTitle**: `String`
+  Looks for the text in the *jobTitle* property of the contact.
+- **email**: `String`
+  Looks for the text in the *value* property of any object in the *emails*
+  property of the contact.
+- **phone**: `String`
+  Looks for the text in the *value* property of any object in the *phones*
+  property of the contact.
+- **online**: `String`
+  Looks for the text in the *value* property of any object in the *online*
+  property of the contact.
+- **address**: `String`
+  Looks for the text in the *street*, *locality*, *region*, *postcode* or *country* property of any object in the *addresses* property of the contact.
+- **notes**: `String`
+  Looks for the text in the *notes* property of the contact.
 
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
 
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
 
-`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Contact cache.
+- Text SHOULD be matched in a case-insensitive manner.
+- Text contained in either (but matched) single or double quotes SHOULD be treated as a **phrase search**, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use `\"`, `\'` and `\\` to match a literal `"`, `'` and `\` respectively in a phrase.
+- Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the contact, but MUST all be present for the contact to match the filter.
+- Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for `bus` would match "buses" but not "business").
+
+### Sorting
+
+The following properties MUST be supported for sorting:
+
+- isFlagged
+- firstName
+- lastName
+- nickname
+- company
+
+## getContactListUpdates
+
+Standard *getFooListUpdates* method.
 
 ## setContacts
 
-Modifying the state of Contact objects on the server is done via the *setContacts* method. This encompasses creating, updating and destroying Contact records.
-
-The *setContacts* method takes the following arguments:
-
-- **accountId**: `String|null`
-  The id of the account to use for this call. If `null`, the primary account will be used.
-- **ifInState**: `String|null`
-  This is a state string as returned by the *getContacts* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
-- **create**: `String[Contact]|null`
-  A map of *creation id* (an arbitrary string set by the client) to Contact objects (containing all properties except the id).
-- **update**: `String[Contact]|null`
-  A map of id to Contact objects. The object may omit any property; only properties that have changed need be included.
-- **destroy**: `String[]|null`
-  A list of ids for Contact objects to permanently delete.
-
-Each creation, modification or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it is not permissible to only commit part of an update to a single contact (e.g. update the *firstName* property but not the *lastName* property if both are supplied in the update object).
-
-If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
-
-If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
-
-If any of the properties in a create or update are invalid, the server MUST reject the create/update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
+Standard *setFoos* method.
 
 To set a new avatar, the file must first be uploaded using the standard upload mechanism (see the File Uploads section of this spec). This will give the client a valid blobId/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the avatar for a contact.
-
-The response to *setContacts* is called *contactsSet*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **oldState**: `String|null`
-  The state string that would have been returned by *getContacts* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
-- **newState**: `String`
-  The state string that will now be returned by *getContacts*.
-- **created**: `String[Contact]`
-  A map of the creation id to an object containing the **id** property for all successfully created contacts.
-- **updated**: `String[Contact|null]`
-  The *keys* in this map are the ids of all contacts that were successfully updated. If the server made any other changes to the record beyond those explicitly requested by the client, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed**. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
-- **destroyed**: `String[]`
-  A list of ids for contacts that were successfully destroyed.
-- **notCreated**: `String[SetError]`
-  A map of creation id to a SetError object for each contact that failed to be created. The possible errors are defined above.
-- **notUpdated**: `String[SetError]`
-  A map of Contact id to a SetError object for each contact that failed to be updated. The possible errors are defined above.
-- **notDestroyed**: `String[SetError]`
-  A map of Contact id to a SetError object for each contact that failed to be destroyed. The possible errors are defined above.
-
-A **SetError** object has the following properties:
-
-- **type**: `String`
-  The type of error.
-- **description**: `String|null`
-  A description of the error to display to the user.
-
-Other properties may also be present on the object, as described in the relevant methods.
-
-The following errors may be returned instead of the *contactsSet* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`accountReadOnly`: Returned if the account has `isReadOnly == true`.
-
-`requestTooLarge`: Returned if the total number of objects to create, update or destroy exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-`stateMismatch`: Returned if an *ifInState* argument was supplied and it does not match the current state.

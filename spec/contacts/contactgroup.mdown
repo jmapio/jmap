@@ -2,8 +2,8 @@
 
 A **Contact Group** represents a named set of contacts. It has the following properties:
 
-- **id**: `String`
-  The id of the group. This property is immutable.
+- **id**: `String` (immutable; server-set)
+  The id of the group.
 - **name**: `String`
   The user-visible name for the group, e.g. "Friends". This may be any UTF-8 string of at least 1 character in length and maximum 256 bytes in size. The same name may be used by two different groups.
 - **contactIds**: `String[]`
@@ -11,135 +11,12 @@ A **Contact Group** represents a named set of contacts. It has the following pro
 
 ## getContactGroups
 
-Contact Groups can either be fetched explicitly by id, or all of them at once. To fetch contact groups, make a call to `getContactGroups`. It takes the following arguments:
-
-- **accountId**: `String|null`
-  The Account to fetch the groups for. If `null`, the primary account is used.
-- **ids**: `String[]|null`
-  The ids of the groups to fetch. If `null`, all contact groups in the account are be fetched.
-
-The response to *getContactGroups* is called *contactGroups*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **state**: `String`
-  A string representing the state on the server for **all** contact groups. If the name of a group changes, or a new group is created, or a group is destroyed, this string will change. It is used to get delta updates.
-- **list**: `ContactGroup[]`
-  An array of the ContactGroup objects requested. This will be the **empty array** if the *ids* argument was the empty array, or contained only ids for contact groups that could not be found.
-- **notFound**: `String[]|null`
-  This array contains the ids passed to the method for groups that do not exist, or `null` if all requested ids were found. It MUST be `null` if the *ids* argument in the call was `null`.
-
-The following errors may be returned instead of the *contactGroups* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`requestTooLarge`: Returned if the number of *ids* requested by the client exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+Standard *getFoos* method. The *ids* argument may be `null` to fetch all at once.
 
 ## getContactGroupUpdates
 
-The *getContactGroupUpdates* call allows a client to efficiently update the state of its cached contacts to match the new state on the server. It takes the following arguments:
-
-- **accountId**: `String|null`
-  The id of the account to use for this call. If `null`, the primary account will be used.
-- **sinceState**: `String`
-  The current state of the client. This is the string that was returned as the *state* argument in the *contactGroups* response. The server will return the changes made since this state.
-- **fetchRecords**: `Boolean|null`
-  If `true`, immediately after outputting a *contactGroupUpdates* response, an implicit call will be made to *getContactGroups* with the *changed* property of the response as the *ids* argument. If `false` or `null`, no implicit call will be made.
-
-The response to *getContactGroupUpdates* is called *contactGroupUpdates*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **oldState**: `String`
-  This is the *sinceState* argument echoed back; the state from which the server is returning changes.
-- **newState**: `String`
-  This is the state the client will be in after applying the set of changes to the old state.
-- **changed**: `String[]`
-  An array of ContactGroup ids where a property of the group has changed between the old state and the new state, or the group has been created, and the group has not been destroyed.
-- **removed**: `String[]`
-  An array of ContactGroup ids for groups which have been destroyed since the old state.
-
-If a group has been modified AND deleted since the oldState, the server should just return the id in the *removed* array, but MAY return it in the *changed* array as well. If a group has been created AND deleted since the oldState, the server SHOULD remove the group id from the response entirely, but MAY include it in the *removed* array.
-
-The following errors may be returned instead of the `contactGroupUpdates` response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-`cannotCalculateChanges`: Returned if the server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its ContactGroup cache.
+Standard *getFooUpdates* method.
 
 ## setContactGroups
 
-Modifying the state of ContactGroup objects on the server is done via the *setContactGroups* method. This encompasses creating, updating and destroying ContactGroup records.
-
-The *setContactGroups* method takes the following arguments:
-
-- **accountId**: `String|null`
-  The id of the account to use for this call. If `null`, the primary account will be used.
-- **ifInState**: `String|null`
-  This is a state string as returned by the *getContactGroups* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
-- **create**: `String[ContactGroup]|null`
-  A map of *creation id* (an arbitrary string set by the client) to ContactGroup objects (containing all properties except the id).
-- **update**: `String[ContactGroup]|null`
-  A map of id to ContactGroup objects. The object may omit any property; only properties that have changed need be included.
-- **destroy**: `String[]|null`
-  A list of ids for ContactGroup objects to permanently delete.
-
-Each creation, modification or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it is not permissible to only commit part of an update to a single group (e.g. update the *name* property but not the *contactIds* property if both are supplied in the update object).
-
-If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
-
-If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
-
-If any of the properties in a create or update are invalid (immutable and different to the current server value, wrong type, non-existent contactId value in contactsIds list), the server MUST reject the create/update with a SetError of type `invalidProperties`. The SetError object SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties that were invalid. The object MAY also contain a *description* property of type `String` with a user-friendly description of the problems.
-
-Contacts Groups reference Contacts. When groups are created or modified, they may reference contacts being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the contact being referenced is created in an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to Contact id for each newly created contact, so it can substitute in the correct value if necessary in later method calls. Creation ids sent by the client SHOULD be unique within the single API request for a particular data type. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id.
-
-The response to *setContactGroups* is called *contactGroupsSet*. It has the following arguments:
-
-- **accountId**: `String`
-  The id of the account used for the call.
-- **oldState**: `String|null`
-  The state string that would have been returned by *getContactGroups* before making the requested changes, or `null` if the server doesn't know what the previous state string was.
-- **newState**: `String`
-  The state string that will now be returned by *getContactGroups*.
-- **created**: `String[ContactGroup]`
-  A map of the creation id to an object containing the **id** property for all successfully created groups.
-- **updated**: `String[ContactGroup|null]`
-  The *keys* in this map are the ids of all groups that were successfully updated. If the server made any other changes to the record beyond those explicitly requested by the client, the *value* for the corresponding id in the map is an object containing the updated value of each property the **server changed**. Otherwise (if no properties changed on the server other than those explicitly updated by the client), the value is `null`.
-- **destroyed**: `String[]`
-  A list of ids for groups that were successfully destroyed.
-- **notCreated**: `String[SetError]`
-  A map of creation id to a SetError object for each group that failed to be created. The possible errors are defined above.
-- **notUpdated**: `String[SetError]`
-  A map of ContactGroup id to a SetError object for each group that failed to be updated. The possible errors are defined above.
-- **notDestroyed**: `String[SetError]`
-  A map of ContactGroup id to a SetError object for each group that failed to be destroyed. The possible errors are defined above.
-
-A **SetError** object has the following properties:
-
-- **type**: `String`
-  The type of error.
-- **description**: `String|null`
-  A description of the error to display to the user.
-
-The following errors may be returned instead of the *contactGroupsSet* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`accountReadOnly`: Returned if the account has isReadOnly == true.
-
-`requestTooLarge`: Returned if the total number of objects to create, update or destroy exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
-
-`stateMismatch`: Returned if an `ifInState` argument was supplied and it does not match the current state.
+Standard *setFoos* method.
