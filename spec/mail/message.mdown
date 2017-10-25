@@ -334,7 +334,7 @@ A **MessageImport** object has the following properties:
 
 Each message to import is considered an atomic unit which may succeed or fail individually. Importing successfully creates a new message object from the data reference by the blobId and applies the given mailboxes and keywords.
 
-The server MAY forbid two messages with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-Id, to coexist within an account. In this case, it should reject attempts to import a message considered a duplicate with an `alreadyExists` SetError. A *messageId* property or type `String` MUST be included on the error object with the id of the existing message.
+The server MAY forbid two messages with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-Id, to coexist within an account. In this case, it should reject attempts to import a message considered a duplicate with an `alreadyExists` SetError. A *messageId* property of type `String` MUST be included on the error object with the id of the existing message.
 
 If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g. missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
 
@@ -381,7 +381,7 @@ A **MessageCopy** object has the following properties:
 - **keywords**: `String[Boolean]` (default: `{}`)
   The *keywords* property for the copy.
 
-The server MAY forbid two messages with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-Id, to coexist within an account. If dulicates are allowed though, the "from" account may be the same as the "to" account to copy messages within an account.
+The server MAY forbid two messages with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-Id, to coexist within an account. If duplicates are allowed though, the "from" account may be the same as the "to" account to copy messages within an account.
 
 Each message copy is considered an atomic unit which may succeed or fail individually. Copying successfully MUST create a new message object, with separate ids and mutable properties (e.g. mailboxes and keywords) to the original message.
 
@@ -398,7 +398,7 @@ The response to *copyMessages* is called *messagesCopied*. It has the following 
 
 The **SetError** may be one of the following types:
 
-`alreadyExists`: Returned if the server forbids duplicates and the message already exists in the target account. A *messageId* property or type `String` MUST be included on the error object with the id of the existing message.
+`alreadyExists`: Returned if the server forbids duplicates and the message already exists in the target account. A *messageId* property of type `String` MUST be included on the error object with the id of the existing message.
 
 `notFound`: Returned if the *messageId* given can't be found.
 
