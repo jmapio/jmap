@@ -6,42 +6,67 @@ The client may make an API request to the server to get or set structured data. 
 
 To make an API request, the client makes an authenticated POST request to the API resource, the location of which may be found on the JMAP session object.
 
-The request MUST have a content type of `application/json` and be encoded in UTF-8.
+The request MUST consist of a single **Request** object, encoded in UTF-8. If successful, the response MUST be of type `application/json` and consist of a single **Response** object.
 
-If successful, the response will be of type `application/json` and consist of the response to the API calls, as described below.
+## The Request object
 
-## The structure of an API request
+A **Request** object has the following properties:
 
-The client initiates an API request by sending the server a JSON array. Each element in this array is another array representing a method invocation on the server. The server will process the method calls and return a response consisting of an array in the same format. Each method call always contains three elements:
+- **using**: `String[]`
+  The set of capabilities the client wishes to use. The client MAY include capability identifiers even if the method calls it makes do not utilise those capabilities.
 
-1. The **name** of the method to call, or the name of the response from the server. This is a `String`.
-2. An `Object` containing *named* **arguments** for that method or response.
-3. A **client id**: an arbitrary `String` to be echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same client id in the response).
+    The server advertises the set of specifications it supports in the JMAP session resource, as keys on the *capabilities* property.
 
-Example query:
+- **methodCalls**: `Array[]`
+  An array of method calls to process on the server. The method calls MUST be processed sequentially, in order.
 
-    [
-      ["method1", {"arg1": "arg1data", "arg2": "arg2data"}, "#1"],
-      ["method2", {"arg1": "arg1data"}, "#2"],
-      ["method3", {}, "#3"]
-    ]
+    A **method call** is represented by an array containing three elements:
 
-The method calls MUST be processed sequentially, in order. Each API request
-(which, as shown, may contain multiple method calls) receives a JSON
-response in exactly the same format. The output of the methods MUST be added
-to the array in the same order as the methods are processed.
+    1. A `String` **name** of the method to call.
+    2. An `Object` containing *named* **arguments** for that method.
+    3. A **client id**: an arbitrary `String` to be echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same client id in the response).
 
-Example response:
+Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatability, a server MUST ignore any other properties it does not understand on the JMAP request object.
 
-    [
-      ["responseFromMethod1", {"arg1": 3, "arg2": "foo"}, "#1"],
-      ["responseFromMethod2", {"isBlah": true}, "#2"],
-      ["anotherResponseFromMethod2", {
-        "data": 10,
-        "yetmoredata": "Hello"
-      }, "#2"],
-      ["aResponseFromMethod3", {}, "#3"]
-    ]
+### Example request
+
+    {
+      "using": [ "ietf.org/rfc/jmap-core", "ietf.org/rfc/jmap-mail" ],
+      "methodCalls": [
+        ["method1", {"arg1": "arg1data", "arg2": "arg2data"}, "#1"],
+        ["method2", {"arg1": "arg1data"}, "#2"],
+        ["method3", {}, "#3"]
+      ]
+    }
+
+## Vendor-specific extensions
+
+Individual services will have custom features they wish to expose over JMAP. This may take the form of extra datatypes and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names).
+
+The server can advertise custom extensions it supports by including the identifiers in the capabilities object. Identifiers for vendor extensions MUST be a URL belonging to a domain owned by the vendor, to avoid conflict. The URL SHOULD resolve to documentation for the changes the extension makes.
+
+To ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP, to use an extension the client MUST opt in by passing the appropriate capability identifier in the *using* array of the Request object. The server MUST only follow the specifications that are opted-into and behave as though it does not implement anything else when processing a request.
+
+## The Response object
+
+A **Response** object has the following properties:
+
+- **methodResponses**: `Array[]`
+  An array of responses, in the same format as the *methodCalls* on the request object. The output of the methods MUST be added to the *methodResponses* array in the same order as the methods are processed.
+
+### Example response:
+
+    {
+      "methodResponses": [
+        ["responseFromMethod1", {"arg1": 3, "arg2": "foo"}, "#1"],
+        ["responseFromMethod2", {"isBlah": true}, "#2"],
+        ["anotherResponseFromMethod2", {
+          "data": 10,
+          "yetmoredata": "Hello"
+        }, "#2"],
+        ["aResponseFromMethod3", {}, "#3"]
+      ]
+    }
 
 ## Omitting arguments
 
@@ -53,7 +78,7 @@ Unless otherwise specified in a method description, `null` is the default value 
 
 If the data sent as an API request is not valid JSON or does not match the structure above, a `400 Bad Request` error will be returned at the HTTP level.
 
-Possible errors for each method are specified in the method descriptions. If a method encounters an error, the appropriate `error` response MUST be inserted at the current point in the output array and, unless otherwise specified, further processing MUST NOT happen within that method call.
+Possible errors for each method are specified in the method descriptions. If a method encounters an error, the appropriate `error` response MUST be inserted at the current point in the *methodResponses* array and, unless otherwise specified, further processing MUST NOT happen within that method call.
 
 Any further method calls in the request MUST then be processed as normal.
 
@@ -89,7 +114,7 @@ A **ResultReference** object has the following properties:
 To resolve:
 
 1. Find the first response with a client id identical to the *resultOf*
-   property of the *ResultReference* in the array of outputs from previously processed method calls in the same request. If none, evaluation fails.
+   property of the *ResultReference* in the *methodResponses* array from previously processed method calls in the same request. If none, evaluation fails.
 
 2. If the response name is "error", evaluation fails.
 
@@ -102,7 +127,7 @@ To resolve:
 4. If the type of the result is X, and the expected type of the argument is an
    array of type X, wrap the result in an array with a single item.
 
-As a simple example, suppose we have the following API request:
+As a simple example, suppose we have the following API request *methodCalls*:
 
     [[ "getFooUpdates", {
         "sinceState": "abcdef"
@@ -114,7 +139,7 @@ As a simple example, suppose we have the following API request:
         }
     }, "t1" ]]
 
-After executing the first method call the response array is:
+After executing the first method call the *methodResponses* array is:
 
     [[ "fooUpdates", {
         "accountId": "1",
@@ -170,7 +195,7 @@ Now a more complicated example using the JMAP Mail daya model: fetch the "from"/
       "properties": [ "from", "date", "subject" ]
     }, "t3" ]]
 
-After executing the first 3 method calls the response array might be:
+After executing the first 3 method calls the *methodResponses* array might be:
 
     [[ "messageList", {
         "accountId": "1",
@@ -230,9 +255,6 @@ The JMAP server now continues to process the getMessages call as though the argu
         "properties": [ "from", "date", "subject" ]
     }
 
-## Vendor-specific extensions
-
-Individual services will have custom features they wish to expose over JMAP. This may take the form of extra datatypes and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names). To ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP, the server MUST ONLY expose these extensions if the client explicitly opts in. Without opt-in, the server MUST follow the spec and reject anything that does not conform to it as specified.
 
 ## Security
 

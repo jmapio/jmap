@@ -34,11 +34,11 @@ The response to a successful request is a JSON object with the following propert
       A list of the data profiles available in this account. Each future JMAP data types specification will define a profile name to encompass that set of types.
 
 - **capabilities**: `String[Object]`
-  An object specifying the capabilities of this server. The keys are URIs, which specify the specifications supported by the server. The value for each of these keys is an object that MAY include further information about the server's capabilities in relation to that spec.
+  An object specifying the capabilities of this server. Each key is a URI for a specification supported by the server. The value for each of these keys is an object with further information about the server's capabilities in relation to that specification.
 
     The client MUST ignore any properties it does not understand.
 
-    The capabilities object MUST include a property called `{TODO: URI for this spec}`. The value of this property is an object which SHOULD contain the following information on server capabilities:
+    The capabilities object MUST include a property called `ietf:jmap`. The value of this property is an object which MUST contain the following information on server capabilities:
 
     - **maxSizeUpload**: `Number`
       The maximum file size, in bytes, that the server will accept for a single file upload (for any purpose).
@@ -59,6 +59,8 @@ The response to a successful request is a JSON object with the following propert
 
     Future specifications will define their own properties on the capabilities object.
 
+    Servers MAY advertise vendor-specific JMAP extensions. To avoid conflict, the identifiers for these MUST be a URI beginning with a domain owned by the vendor. Clients MUST opt in to any specifications it wishes to use (see "Making an API request").
+
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
 - **downloadUrl**: `String`
@@ -68,6 +70,7 @@ The response to a successful request is a JSON object with the following propert
 - **eventSourceUrl**: `String`
   The URL to connect to for push events (see the Push section of this spec).
 
+To ensure future compatibility, other properties MAY be included on the JMAP session object. Clients MUST ignore any properties they are not expecting.
 
 ## Service Autodiscovery
 
