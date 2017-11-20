@@ -85,12 +85,14 @@ The server SHOULD also send a new event id that encodes the entire server state 
 
 The client MAY add a query parameter called `closeafter` with value `state` to the event-source resource URL when requesting the event-source resource. If set, the server MUST end the HTTP response after pushing a *state* event. This can be used by clients in environments where buffering proxies prevent the pushed data from arriving immediately, or indeed at all, when operating in the usual mode.
 
-The client MAY add a query parameter called `ping`, with a positive integer value representing a length of time in seconds, e.g. `ping=300`. The server MAY modify the value given to be subject to a minimum and/or maximum value. For interoperability, servers MUST NOT have a minimum allowed value higher than 30 or a maximum allowed value less than 300.
+The client MAY add a query parameter called `ping`, with a positive integer value representing a length of time in seconds, e.g. `ping=300`. If set, the server MUST send an event called **ping** whenever this time elapses since the previous event was sent. This MUST NOT set a new event id.
 
-If set, the server MUST send an event called **ping** whenever this time elapses since the previous event was sent. This MUST NOT set a new event id. The data for the event MUST be a JSON object containing an *interval* property, the value (type `Number`) being the interval in seconds the server is using to send pings (this may be different to the requested value if the server clamped it to be within a min/max value).
+The server MAY modify the interval given as a query parameter to be subject to a minimum and/or maximum value. For interoperability, servers MUST NOT have a minimum allowed value higher than 30 or a maximum allowed value less than 300.
+
+The data for the ping event MUST be a JSON object containing an *interval* property, the value (type `Number`) being the interval in seconds the server is using to send pings (this may be different to the requested value if the server clamped it to be within a min/max value).
 
 Clients can monitor for the *ping* event to help determine when the closeafter mode may be required.
 
-Refer to the Authentication section of this spec for details on how to get the URL for the event-source resource. Requests to the resource must be authenticated.
+Refer to the Authentication section of this spec for details on how to get the URL for the event-source resource. Requests to the resource MUST be authenticated.
 
 A client MAY hold open multiple connections to the event-source resource, although it SHOULD try to use a single connection for efficiency.
