@@ -19,9 +19,13 @@ Types signatures are given for all JSON objects in this document. The following 
 * `Foo[]` – An array of objects of type `Foo`.
 * `String[Foo]` – A JSON `Object` being used as a map (associative array), where all the values are of type `Foo`.
 
-## LocalDate
+## The Date datatypes
 
-Where the API specifies `LocalDate` as a type, it means a string in the same format as `Date`, but with the `Z` omitted from the end. The interpretation in absolute time depends upon the time zone for the event, which may not be a fixed offset (for example when daylight saving time occurs).
+Where `Date` is given as a type, it means a string in [@!RFC3339] *date-time* format. To ensure a normalised form, the *time-secfrac* MUST always  be omitted and any letters in the string (e.g. "T" and "Z") MUST be upper-case. For example, `"2014-10-30T14:12:00+08:00"`.
+
+Where `UTCDate` is given as a type, it means a `Date` where the *time-offset* component MUST be `Z` (i.e. it must be in UTC time). For example, `"2014-10-30T06:12:00Z"`.
+
+Where `LocalDate` is given as a type, it means a string in the same format as `Date`, but with the *time-offset* omitted from the end. The interpretation in absolute time depends upon the time zone for the event, which may not be a fixed offset (for example when daylight saving time occurs). For example, `"2014-10-30T14:12:00"`.
 
 ## Terminology
 

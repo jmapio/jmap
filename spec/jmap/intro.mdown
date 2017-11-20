@@ -29,7 +29,9 @@ The JSON datatypes are limited to those found in JavaScript. A `Number` in JavaS
 
 ## The Date datatypes
 
-Where a JMAP API specifies `Date` as a type, it means a string in [@!RFC3339] *date-time* format, with the *time-offset* component always `Z` (i.e. the date-time MUST be in UTC time) and *time-secfrac* always omitted. The "T" and "Z" MUST always be upper-case. For example, `"2014-10-30T14:12:00Z"`.
+Where `Date` is given as a type, it means a string in [@!RFC3339] *date-time* format. To ensure a normalised form, the *time-secfrac* MUST always  be omitted and any letters in the string (e.g. "T" and "Z") MUST be upper-case. For example, `"2014-10-30T14:12:00+08:00"`.
+
+Where `UTCDate` is given as a type, it means a `Date` where the *time-offset* component MUST be `Z` (i.e. it must be in UTC time). For example, `"2014-10-30T06:12:00Z"`.
 
 ## JSON as the data encoding format
 

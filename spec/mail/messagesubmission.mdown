@@ -43,7 +43,7 @@ The MessageSubmission object represents the submission of a message for delivery
     - **rcptTo**: The deduplicated set of email addresses from the *To*, *Cc*
       and *Bcc* headers, if present, with no parameters for any of them.
 
-- **sendAt**: `Date` (immutable; server-set)
+- **sendAt**: `UTCDate` (immutable; server-set)
   The date the message was/will be released for delivery.
 
     If the client successfully used [@!RFC4865] FUTURERELEASE with the message, this MUST be the time when the server will release the message; otherwise it MUST be the time the MessageSubmission was created.
@@ -159,9 +159,9 @@ The **FilterCondition** object (optionally passed as the *filter* argument) has 
   condition.
 - **undoStatus**: `String`
   The MessageSubmission *undoStatus* property must be identical to the value given to match the condition.
-- **before**: `Date`
+- **before**: `UTCDate`
   The *sendAt* property of the MessageSubmission object must be before this date to match the condition.
-- **after**: `Date`
+- **after**: `UTCDate`
   The *sendAt* property of the MessageSubmission object must be after this date to match the condition.
 
 A MessageSubmission object matches the filter if and only if all of the given conditions given match. If zero properties are specified, it is automatically `true` for all objects.

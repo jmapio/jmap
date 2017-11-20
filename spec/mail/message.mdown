@@ -49,8 +49,10 @@ A **Message** object is a JSON representation of an [@!RFC5322] message that hid
   An array of name/email objects (see below) representing the parsed `Reply-To` header of the email, in the same order as they appear in the header. If the email doesn't have a `Reply-To` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
 - **subject**: `String` (immutable; default: `""`)
   The subject of the message. If none, defaults to the empty string, not `null`.
-- **date**: `Date` (immutable; default: time of creation on server)
-  The date the message was sent (or saved, if the message is a draft).
+- **sentAt**: `Date` (immutable; default: time of creation on server)
+  The parsed date from the message's *Date* header.
+- **receivedAt**: `UTCDate` (immutable; default: time of creation on server)
+  The date the message was received by the message store. This is the *internal date* in IMAP.
 - **size**: `Number` (immutable; server-set)
   The size in bytes of the whole message as counted by the server towards the user's quota.
 - **preview**: `String` (immutable; server-set)
@@ -183,10 +185,10 @@ A **FilterCondition** object has the following properties, any of which may be o
   A mailbox id. A message must be in this mailbox to match the condition.
 - **inMailboxOtherThan**: `String`
   A mailbox id. A message be in any mailbox other than this one to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.
-- **before**: `Date`
-  The date of the message (as returned on the Message object) must be before this date to match the condition.
-- **after**: `Date`
-  The date of the message (as returned on the Message object) must be on or after this date to match the condition.
+- **before**: `UTCDate`
+  The *receivedAt* date of the message (as returned on the Message object) must be before this date to match the condition.
+- **after**: `UTCDate`
+  The *receivedAt* date of the message (as returned on the Message object) must be on or after this date to match the condition.
 - **minSize**: `Number`
   The size of the message in bytes (as returned on the Message object) must be equal to or greater than this number to match the condition.
 - **maxSize**: `Number`
@@ -236,7 +238,7 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 
 The following properties MUST be supported for sorting:
 
-- **date** - The date as returned in the Message object.
+- **receivedAt** - The *receivedAt* date as returned in the Message object.
 
 The following properties SHOULD be supported for sorting:
 
@@ -244,6 +246,7 @@ The following properties SHOULD be supported for sorting:
 - **from** – This is taken to be either the "name" part of the Emailer object, or if none then the "email" part of the Emailer object (see the definition of the from property in the Message object). If still none, consider the value to be the empty string.
 - **to** - This is taken to be either the "name" part of the **first** Emailer object, or if none then the "email" part of the **first** Emailer object (see the definition of the to property in the Message object). If still none, consider the value to be the empty string.
 - **subject** - This is taken to be the subject of the Message with any ignoring any leading "Fwd:"s or "Re:"s (case-insensitive match).
+- **sentAt** - The *sentAt* property on the Message object.
 - **keyword:**`$keyword` - This value MUST be considered `true` if the message has the keyword, or `false` otherwise.
 - **allThreadKeyword:**`$keyword` - This value MUST be considered `true` for the message if **all** of the messages in the same thread (regardless of mailbox) have the keyword.
 - **someThreadKeyword:**`$keyword` - This value MUST be considered `true` for the message if **any** of the messages in the same thread (regardless of mailbox) have the keyword.
@@ -252,7 +255,7 @@ The server MAY support sorting based on other properties as well. A client can d
 
 Example sort:
 
-    `[ "someThreadKeyword:$Flagged desc", "date desc" ]
+    `[ "someThreadKeyword:$Flagged desc", "receivedAt desc" ]
 
 This would sort messages in flagged threads first (the thread is considered flagged if any message within it is flagged), and then in date order, newest first. If two messages have both identical flagged status and date, the order is server-dependent but must be stable.
 
@@ -331,8 +334,10 @@ A **MessageImport** object has the following properties:
   The ids of the mailbox(es) to assign this message to. At least one mailbox MUST be given.
 - **keywords**: `String[Boolean]` (default: `{}`)
   The keywords to apply to the message.
+- **receivedAt**: `UTCDate` (default: time of import on server)
+  The *receivedAt* date to set on the message.
 
-Each message to import is considered an atomic unit which may succeed or fail individually. Importing successfully creates a new message object from the data reference by the blobId and applies the given mailboxes and keywords.
+Each message to import is considered an atomic unit which may succeed or fail individually. Importing successfully creates a new message object from the data reference by the blobId and applies the given mailboxes, keywords and receivedAt date.
 
 The server MAY forbid two messages with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-Id, to coexist within an account. In this case, it should reject attempts to import a message considered a duplicate with an `alreadyExists` SetError. A *messageId* property of type `String` MUST be included on the error object with the id of the existing message.
 
@@ -380,6 +385,8 @@ A **MessageCopy** object has the following properties:
   The ids of the mailboxes (in the "to" account) to add the copied message to. At least one mailbox MUST be given.
 - **keywords**: `String[Boolean]` (default: `{}`)
   The *keywords* property for the copy.
+- **receivedAt**: `UTCDate` (default: *receivedAt* date of original)
+  The *receivedAt* date to set on the copy.
 
 The server MAY forbid two messages with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-Id, to coexist within an account. If duplicates are allowed though, the "from" account may be the same as the "to" account to copy messages within an account.
 
