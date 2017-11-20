@@ -165,7 +165,7 @@ The JMAP server now continues to process the getFoos call as though the argument
         "ids": [ "msg1", "msg4" ]
     }
 
-Now a more complicated example using the JMAP Mail daya model: fetch the "from"/"date"/"subject" for every message in the first 10 threads in the Inbox (sorted newest first):
+Now a more complicated example using the JMAP Mail data model: fetch the "from"/"date"/"subject" for every message in the first 10 threads in the Inbox (sorted newest first):
 
     [[ "getMessageList", {
       "filter": { inMailbox: "id_of_inbox" },
@@ -245,7 +245,7 @@ So to execute the final getMessages call, we look through the arguments and find
 3. Apply the *path* as a JSON pointer to the arguments object. Token-by-token:
    a) `list`: get the array of thread objects
    b) `*`: for each of the items in the array:
-      i) `messsageIds`: get the array of message ids
+      i) `messageIds`: get the array of message ids
       ii) Concatenate these into a single array of all the ids in the result.
 
 The JMAP server now continues to process the getMessages call as though the arguments were:
