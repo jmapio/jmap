@@ -478,9 +478,9 @@ Suppose we have a type *Todo* with the following properties:
 - **id**: `String` (immutable; server-set)
   The id of the object.
 - **title**: `String`
-  The "From" *name* the client SHOULD use when creating a new message from this identity.
+  A brief summary of what is to be done.
 - **keywords**: `String[Boolean]` (mutable; default: `{}`)
-  A set of keywords that apply to the message. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
+  A set of keywords that apply to the todo. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 - **neuralNetworkTimeEstimation**: `Number` (server-set)
   The title and keywords are fed into the server's state-of-the-art neural
   network to get an estimation of how long this todo will take, in seconds.
@@ -584,7 +584,7 @@ A call to *getFooList* takes the following arguments:
 - **anchor**: `String|null`
   A Foo id. If supplied the *position* argument is ignored. The index of this id in the results will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see below for more details).
 - **anchorOffset**: `Number|null`
-  The index of the anchor object relative to the index of the first result to return. This MAY be negative. For example, `-1` means the first message after the anchor message should be the first result in the results returned (see below for more details).
+  The index of the anchor object relative to the index of the first result to return. This MAY be negative. For example, `-1` means the first Foo after the anchor Foo should be the first result in the results returned (see below for more details).
 - **limit**: `Number|null`
   The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the list is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
 
@@ -623,7 +623,7 @@ The following errors may be returned instead of the `fooList` response:
 
 `accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
 
-`anchorNotFound`: An anchor argument was supplied, but it cannot be found in the message list.
+`anchorNotFound`: An anchor argument was supplied, but it cannot be found in the Foo list.
 
 `unsupportedSort`: The *sort* is syntactically valid, but includes a property the server does not support sorting on.
 
