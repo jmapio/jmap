@@ -1,8 +1,8 @@
 # Mailboxes
 
-A mailbox represents a named set of emails. This is the primary mechanism for organising messages within an account. It is analogous to a folder or a label in other systems. A mailbox may perform a certain role in the system; see below for more details.
+A mailbox represents a named set of emails. This is the primary mechanism for organising emails within an account. It is analogous to a folder or a label in other systems. A mailbox may perform a certain role in the system; see below for more details.
 
-For compatibility with IMAP, a message MUST belong to one or more mailboxes. The message id does not change if the message changes mailboxes.
+For compatibility with IMAP, an email MUST belong to one or more mailboxes. The email id does not change if the email changes mailboxes.
 
 A **Mailbox** object has the following properties:
 
@@ -17,13 +17,13 @@ A **Mailbox** object has the following properties:
 
     The following values MUST be used for the relevant mailboxes:
 
-    - `inbox` – the mailbox to which new mail is delivered by default, unless diverted by a rule or spam filter etc.
-    - `archive` – messages the user does not need right now, but does not wish to delete.
-    - `drafts` – messages the user is currently writing and are not yet sent.
-    - `sent` – messages the user has sent.
-    - `trash` – messages the user has deleted.
-    - `spam` – messages considered spam by the server.
-    - `templates` – drafts which should be used as templates (i.e. used as the basis for creating new drafts).
+    - `inbox` – the mailbox to which new mail is delivered by default, unless diverted by a rule or spam filter etc.
+    - `archive` – mail the user does not need right now, but does not wish to delete.
+    - `drafts` – mail the user is currently writing and are not yet sent.
+    - `sent` – mail the user has sent.
+    - `trash` – mail the user has deleted.
+    - `spam` – mail considered spam by the server.
+    - `templates` – drafts which should be used as templates (i.e. used as the basis for creating new drafts).
 
     No two mailboxes may have the same role. Mailboxes without a known purpose MUST have a role of `null`.
 
@@ -35,37 +35,37 @@ A **Mailbox** object has the following properties:
 
     A mailbox with a lower order should be displayed before a mailbox with a higher order (that has the same parent) in any mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting SHOULD take into account locale-specific character order convention.
 - **mayReadItems**: `Boolean` (server-set)
-  If true, may use this mailbox as part of a filter in a *getMessagesList* call.
+  If true, may use this mailbox as part of a filter in a *getEmailsList* call.
   If a sub-mailbox is shared but not the parent mailbox, this may be `false`.
 - **mayAddItems**: `Boolean` (server-set)
-  The user may add messages to this mailbox (by either creating a new message or moving an existing one).
+  The user may add mail to this mailbox (by either creating a new email or moving an existing one).
 - **mayRemoveItems**: `Boolean` (server-set)
-  The user may remove messages from this mailbox (by either changing the mailboxes of a message or deleting it).
+  The user may remove mail from this mailbox (by either changing the mailboxes of an email or deleting it).
 - **mayCreateChild**: `Boolean` (server-set)
   The user may create a mailbox with this mailbox as its parent.
 - **mayRename**: `Boolean` (server-set)
   The user may rename the mailbox or make it a child of another mailbox.
 - **mayDelete**: `Boolean` (server-set)
   The user may delete the mailbox itself.
-- **totalMessages**: `Number` (server-set)
-  The number of messages in this mailbox.
-- **unreadMessages**: `Number` (server-set)
-  The number of messages in this mailbox that have neither the `$Seen` keyword nor the `$Draft` keyword.
+- **totalEmails**: `Number` (server-set)
+  The number of emails in this mailbox.
+- **unreadEmails**: `Number` (server-set)
+  The number of emails in this mailbox that have neither the `$Seen` keyword nor the `$Draft` keyword.
 - **totalThreads**: `Number` (server-set)
-  The number of threads where at least one message in the thread is in this mailbox.
+  The number of threads where at least one email in the thread is in this mailbox.
 - **unreadThreads**: `Number` (server-set)
-  The number of threads where at least one message in the thread has neither the `$Seen` keyword nor the `$Draft` keyword AND at least one message in the thread is in this mailbox (but see below for special case handling of Trash). Note, the unread message does not need to be the one in this mailbox.
+  The number of threads where at least one email in the thread has neither the `$Seen` keyword nor the `$Draft` keyword AND at least one email in the thread is in this mailbox (but see below for special case handling of Trash). Note, the unread email does not need to be the one in this mailbox.
 
 The Trash mailbox (that is a mailbox with `role == "trash"`) MUST be treated specially for the purpose of unread counts:
 
-1. Messages that are **only** in the Trash (and no other mailbox) are ignored when calculating the `unreadThreads` count of other mailboxes.
-2. Messages that are **not** in the Trash are ignored when calculating the `unreadThreads` count for the Trash mailbox.
+1. Emails that are **only** in the Trash (and no other mailbox) are ignored when calculating the `unreadThreads` count of other mailboxes.
+2. Emails that are **not** in the Trash are ignored when calculating the `unreadThreads` count for the Trash mailbox.
 
-The result of this is that messages in the Trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide messages in the Trash when viewing a thread in another mailbox and vice versa. This allows you to delete a single message to the Trash out of a thread.
+The result of this is that emails in the Trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the Trash when viewing a thread in another mailbox and vice versa. This allows you to delete a single email to the Trash out of a thread.
 
-So for example, suppose you have an account where the entire contents is a single conversation with 2 messages: an unread message in the Trash and a read message in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
+So for example, suppose you have an account where the entire contents is a single conversation with 2 emails: an unread email in the Trash and a read email in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
 
-For IMAP compatibility, a message in both the Trash and another mailbox SHOULD be treated by the client as existing in both places (i.e. when emptying the trash, the client SHOULD just remove the Trash mailbox and leave it in the other mailbox).
+For IMAP compatibility, an email in both the Trash and another mailbox SHOULD be treated by the client as existing in both places (i.e. when emptying the trash, the client SHOULD just remove the Trash mailbox and leave it in the other mailbox).
 
 The following JMAP methods are supported:
 
@@ -78,9 +78,9 @@ Standard *getFoos* method. The *ids* argument may be `null` to fetch all at once
 Standard *getFoosUpdates* method, but with one extra argument to the *mailboxesUpdates* response:
 
 - **changedProperties**: `String[]|null`
-  If only the mailbox counts (unread/total messages/threads) have changed since the old state, this will be the list of properties that may have changed, i.e. `["totalMessages", "unreadMessages", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
+  If only the mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e. `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
-Since counts frequently change but the rest of the mailboxes state for most use cases changes rarely, the server can help the client optimise data transfer by keeping track of changes to message counts separately to other state changes. The *changedProperties* array may be used directly via a result reference in a subsequent getMailboxes call in a single request.
+Since counts frequently change but the rest of the mailboxes state for most use cases changes rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separately to other state changes. The *changedProperties* array may be used directly via a result reference in a subsequent getMailboxes call in a single request.
 
 ## getMailboxesList
 
@@ -122,5 +122,5 @@ For **destroy**:
 - `forbidden`: The update would violate a mayXXX property.
 - `mailboxHasChild`: The mailbox still has at least one child mailbox. The
   client MUST remove these before it can delete the parent mailbox.
-- `mailboxHasMessage`: The mailbox has at least one message assigned to it. The
+- `mailboxHasEmail`: The mailbox has at least one email assigned to it. The
   client MUST remove these before it can delete the mailbox.
