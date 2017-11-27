@@ -167,16 +167,16 @@ The JMAP server now continues to process the getFoos call as though the argument
         "ids": [ "msg1", "msg4" ]
     }
 
-Now a more complicated example using the JMAP Mail data model: fetch the "from"/"date"/"subject" for every message in the first 10 threads in the Inbox (sorted newest first):
+Now a more complicated example using the JMAP Mail data model: fetch the "from"/"date"/"subject" for every email in the first 10 threads in the Inbox (sorted newest first):
 
-    [[ "getMessagesList", {
+    [[ "getEmailsList", {
       "filter": { inMailbox: "id_of_inbox" },
       "sort": [ "date desc" ],
       "collapseThreads": true,
       "position": 0,
       "limit": 10
     }, "t0" ],
-    [ "getMessages", {
+    [ "getEmails", {
       "#ids": {
         "resultOf": "t0",
         "name": "messageList",
@@ -191,18 +191,18 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
         "path": "/list/*/threadId"
       }
     }, "t2" ],
-    [ "getMessages", {
+    [ "getEmails", {
       "#ids": {
-        "resultOf": "t2"
+        "resultOf": "t2",
         "name": "threads",
-        "path": "/list/*/messageIds"
+        "path": "/list/*/emailIds"
       },
       "properties": [ "from", "date", "subject" ]
     }, "t3" ]]
 
 After executing the first 3 method calls the *methodResponses* array might be:
 
-    [[ "messagesList", {
+    [[ "emailsList", {
         "accountId": "1",
         "filter": { inMailbox: "id_of_inbox" },
         "sort": [ "date desc" ],
@@ -213,7 +213,7 @@ After executing the first 3 method calls the *methodResponses* array might be:
         "total": 101,
         "ids": [ "msg1023", "msg223", "msg110", "msg93", "msg91", "msg38", "msg36", "msg33", "msg11", "msg1" ]
     }, "t0" ],
-    [ "messages", {
+    [ "emails", {
         "accountId": "1",
         "state": "123456",
         "list": [{
@@ -232,17 +232,17 @@ After executing the first 3 method calls the *methodResponses* array might be:
         "state": "123456",
         "list": [{
             "id: "trd194",
-            "messageIds": [ "msg1020", "msg1021", "msg1023" ]
+            "emailIds": [ "msg1020", "msg1021", "msg1023" ]
         }, {
             "id: "trd114",
-            "messageIds": [ "msg201", "msg223" ]
+            "emailIds": [ "msg201", "msg223" ]
         },
         ... etc...
         ],
         "notFound": null
     }, "t2" ]]
 
-So to execute the final getMessages call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm:
+So to execute the final getEmails call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm:
 
 1. Find the first response with client id "t2". The "threads" response
    fulfils this criterion.
@@ -250,10 +250,10 @@ So to execute the final getMessages call, we look through the arguments and find
 3. Apply the *path* as a JSON pointer to the arguments object. Token-by-token:
    a) `list`: get the array of thread objects
    b) `*`: for each of the items in the array:
-      i) `messageIds`: get the array of message ids
+      i) `emailIds`: get the array of email ids
       ii) Concatenate these into a single array of all the ids in the result.
 
-The JMAP server now continues to process the getMessages call as though the arguments were:
+The JMAP server now continues to process the getEmails call as though the arguments were:
 
     {
         "ids": [ "msg1020", "msg1021", "msg1023", "msg201", "msg223", etc... ],
