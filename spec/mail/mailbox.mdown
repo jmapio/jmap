@@ -35,7 +35,7 @@ A **Mailbox** object has the following properties:
 
     A mailbox with a lower order should be displayed before a mailbox with a higher order (that has the same parent) in any mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting SHOULD take into account locale-specific character order convention.
 - **mayReadItems**: `Boolean` (server-set)
-  If true, may use this mailbox as part of a filter in a *getMessageList* call.
+  If true, may use this mailbox as part of a filter in a *getMessagesList* call.
   If a sub-mailbox is shared but not the parent mailbox, this may be `false`.
 - **mayAddItems**: `Boolean` (server-set)
   The user may add messages to this mailbox (by either creating a new message or moving an existing one).
@@ -73,18 +73,18 @@ The following JMAP methods are supported:
 
 Standard *getFoos* method. The *ids* argument may be `null` to fetch all at once.
 
-## getMailboxUpdates
+## getMailboxesUpdates
 
-Standard *getFooUpdates* method, but with one extra argument to the *mailboxUpdates* response:
+Standard *getFoosUpdates* method, but with one extra argument to the *mailboxesUpdates* response:
 
 - **changedProperties**: `String[]|null`
   If only the mailbox counts (unread/total messages/threads) have changed since the old state, this will be the list of properties that may have changed, i.e. `["totalMessages", "unreadMessages", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
 Since counts frequently change but the rest of the mailboxes state for most use cases changes rarely, the server can help the client optimise data transfer by keeping track of changes to message counts separately to other state changes. The *changedProperties* array may be used directly via a result reference in a subsequent getMailboxes call in a single request.
 
-## getMailboxList
+## getMailboxesList
 
-Standard *getFooList* method.
+Standard *getFoosList* method.
 
 The **FilterCondition** object (optionally passed as the *filter* argument) has the following properties, any of which may be omitted:
 
@@ -100,9 +100,9 @@ The following properties MUST be supported for sorting:
 - `sortOrder`
 - `name`
 
-## getMailboxListUpdates
+## getMailboxesListUpdates
 
-Standard *getFooListUpdates* method.
+Standard *getFoosListUpdates* method.
 
 ## setMailboxes
 

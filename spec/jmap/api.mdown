@@ -129,7 +129,7 @@ To resolve:
 
 As a simple example, suppose we have the following API request *methodCalls*:
 
-    [[ "getFooUpdates", {
+    [[ "getFoosUpdates", {
         "sinceState": "abcdef"
     }, "t0" ],
     [ "getFoos", {
@@ -142,7 +142,7 @@ As a simple example, suppose we have the following API request *methodCalls*:
 
 After executing the first method call the *methodResponses* array is:
 
-    [[ "fooUpdates", {
+    [[ "foosUpdates", {
         "accountId": "1",
         "oldState": "abcdef",
         "newState": "123456",
@@ -153,9 +153,9 @@ After executing the first method call the *methodResponses* array is:
 
 So to execute the getFoos call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm above:
 
-1. Find the first response with client id "t0". The "fooUpdates" response
+1. Find the first response with client id "t0". The "foosUpdates" response
    fulfils this criterion.
-2. Check the response name is tge same as in the result reference. It is, so
+2. Check the response name is the same as in the result reference. It is, so
    this is fine.
 3. Apply the *path* as a JSON pointer to the arguments object. This simply
    selects the "changed" property, so the result of evaluating is:
@@ -169,7 +169,7 @@ The JMAP server now continues to process the getFoos call as though the argument
 
 Now a more complicated example using the JMAP Mail data model: fetch the "from"/"date"/"subject" for every message in the first 10 threads in the Inbox (sorted newest first):
 
-    [[ "getMessageList", {
+    [[ "getMessagesList", {
       "filter": { inMailbox: "id_of_inbox" },
       "sort": [ "date desc" ],
       "collapseThreads": true,
@@ -202,7 +202,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
 
 After executing the first 3 method calls the *methodResponses* array might be:
 
-    [[ "messageList", {
+    [[ "messagesList", {
         "accountId": "1",
         "filter": { inMailbox: "id_of_inbox" },
         "sort": [ "date desc" ],
@@ -272,7 +272,7 @@ This means that the observable ordering may interleave method calls from differe
 
 # Standard methods and naming convention
 
-JMAP provides a uniform interface for creating, retrieving, updating and deleting objects of a particular type. For a `Foo` data type, records of that type would be fetched via a `getFoos` call and modified via a `setFoos` call. Delta updates may be fetched via a `getFooUpdates` call. These methods all follow a standard format as described below.
+JMAP provides a uniform interface for creating, retrieving, updating and deleting objects of a particular type. For a `Foo` data type, records of that type would be fetched via a `getFoos` call and modified via a `setFoos` call. Delta updates may be fetched via a `getFoosUpdates` call. These methods all follow a standard format as described below.
 
 Methods with a name starting with `get` MUST NOT alter state on the server.
 
@@ -296,7 +296,7 @@ The response to `getFoos` is called `foos`. It has the following arguments:
 - **state**: `String`
   A string representing the state on the server for **all** the data of this type in the account (not just the objects returned in this call). If the data changes, this string MUST change. If the Foo data is unchanged, servers SHOULD return the same state string on subsequent requests for this data type.
 
-    When a client receives a response with a different state string to a previous call, it MUST either throw away all currently cached objects for the type, or call *getFooUpdates* to get the exact changes.
+    When a client receives a response with a different state string to a previous call, it MUST either throw away all currently cached objects for the type, or call *getFoosUpdates* to get the exact changes.
 
 - **list**: `Foo[]`
   An array of the Foo objects requested. This is the **empty array** if no objects were found, or if the *ids* argument passed in was also the empty array. The results MAY be in a different order to the *ids* in the request arguments. If an identical id is included more than once in the request, the server MUST only include it once in the *list* or *notFound* response.
@@ -313,9 +313,9 @@ The following error may be returned instead of the `foos` response:
 
 `invalidArguments`: One of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-## getFooUpdates
+## getFoosUpdates
 
-When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *foos* response will change. The *getFooUpdates* call allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
+When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *foos* response will change. The *getFoosUpdates* call allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the Account to use. If `null`, the primary account is used.
@@ -324,7 +324,7 @@ When the state of the set of Foo records changes on the server (whether due to c
 - **maxChanges**: `Number|null`
   The maximum number of ids to return in the response. The server MAY choose to return fewer than this value, but MUST NOT return more. If not given by the client, the server may choose how many to return. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
 
-The response to *getFooUpdates* is called *fooUpdates*. It has the following arguments:
+The response to *getFoosUpdates* is called *foosUpdates*. It has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for the call.
@@ -333,18 +333,18 @@ The response to *getFooUpdates* is called *fooUpdates*. It has the following arg
 - **newState**: `String`
   This is the state the client will be in after applying the set of changes to the old state.
 - **hasMoreUpdates**: `Boolean`
-  If `true`, the client may call *getFooUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
+  If `true`, the client may call *getFoosUpdates* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
 - **changed**: `String[]|null`
   An array of ids for records which have been created or changed but not destroyed since the oldState, or `null` if none.
 - **removed**: `String[]|null`
   An array of ids for records which have been destroyed since the old state,
   or `null` if none.
 
-If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getMessageUpdates* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
+If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *getFoosUpdates* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
 
 If a Foo record has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* response, but MAY return it in the changed response as well. If a Foo record has been created AND deleted since the oldState, the server SHOULD remove the id from the response entirely, but MAY include it in the *removed* response.
 
-The following errors may be returned instead of the *fooUpdates* response:
+The following errors may be returned instead of the *foosUpdates* response:
 
 `accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
@@ -354,7 +354,7 @@ The following errors may be returned instead of the *fooUpdates* response:
 
 `cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Foo cache.
 
-Maintaining state to allow calculation of *getFooUpdates* can be expensive for the server, but always returning *cannotCalculateChanges* severely increases network traffic and resource usage for the client. To allow efficient sync, servers SHOULD be able to calculate changes from any state string that was given to a client within the last 30 days (but of course may support calculating updates from states older than this).
+Maintaining state to allow calculation of *getFoosUpdates* can be expensive for the server, but always returning *cannotCalculateChanges* severely increases network traffic and resource usage for the client. To allow efficient sync, servers SHOULD be able to calculate changes from any state string that was given to a client within the last 30 days (but of course may support calculating updates from states older than this).
 
 ## setFoos
 
@@ -559,13 +559,13 @@ The effect is exactly the same on the server in either case, and presuming the s
 
 The server changed the "neuralNetworkTimeEstimation" property on the object as part of this change; as this changed in a way *not* explicitly requested by the PatchObject sent to the server, it is returned with the "updated" confirmation.
 
-## getFooList
+## getFoosList
 
 For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g. multi-gigabyte mailboxes), the client needs to be able to perform a query on the server for the data type.
 
-A query on the set of Foos in an account is made by calling *getFooList*. This takes a number of arguments to determine which records to include, how they should be sorted, and which part of the result should be returned (the full list may be *very* long). The result is returned as a list of Foo ids.
+A query on the set of Foos in an account is made by calling *getFoosList*. This takes a number of arguments to determine which records to include, how they should be sorted, and which part of the result should be returned (the full list may be *very* long). The result is returned as a list of Foo ids.
 
-A call to *getFooList* takes the following arguments:
+A call to *getFoosList* takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the Account to use. If `null`, the primary account is used.
@@ -573,7 +573,7 @@ A call to *getFooList* takes the following arguments:
   Determines the set of Foos returned in the results. This is an `object`, whose allowed properties and semantics depend on the data type. If `null`,
   all objects in the account of this type are included in the results.
 - **sort**: `String[]|null`
-  Lists the names of properties to compare between two Foo records to determine which comes first in the sort. If two Foo records have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to `getFooList`.
+  Lists the names of properties to compare between two Foo records to determine which comes first in the sort. If two Foo records have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to `getFoosList`.
 
     Following each property name there MUST be a space and then either the string `asc` or `desc` to specify ascending or descending sort for that property. e.g. `[ "date desc", "name asc" ]`
 
@@ -603,7 +603,7 @@ If an *anchor* is specified, any position argument supplied by the client MUST b
 A client can use *anchor* instead of *position* to find the index of an id
 within a large set of results.
 
-The response to a call to *getFooList* is called *fooList*. It has the following arguments:
+The response to a call to *getFoosList* is called *foosList*. It has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for the call.
@@ -612,12 +612,12 @@ The response to a call to *getFooList* is called *fooList*. It has the following
 - **sort**: `String[]|null`
   A list of Foo property names used to sort by. Echoed back from the call.
 - **state**: `String`
-  A string encoding the current state on the server. This string MUST change if the results of the Foo list may have changed (for example, there has been a change to the state of the set of Foos; it does not guarantee that anything in the list has changed). It may be passed to *getFooListUpdates* to efficiently get the set of changes from the client's current state.
+  A string encoding the current state on the server. This string MUST change if the results of the Foo list may have changed (for example, there has been a change to the state of the set of Foos; it does not guarantee that anything in the list has changed). It may be passed to *getFoosListUpdates* to efficiently get the set of changes from the client's current state.
 
-    Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached list and fetch it again (note, this does not require fetching the foos again, just the list of ids) or, call *getFooListUpdates* to get the delta difference.
+    Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached list and fetch it again (note, this does not require fetching the foos again, just the list of ids) or, call *getFoosListUpdates* to get the delta difference.
 
 - **canCalculateUpdates**: `Boolean`
-  This is `true` if the server supports calling *getFooListUpdates* with these `filter`/`sort` parameters. Note, this does not guarantee that the *getFooListUpdates* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
+  This is `true` if the server supports calling *getFoosListUpdates* with these `filter`/`sort` parameters. Note, this does not guarantee that the *getFoosListUpdates* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
 - **position**: `Number`
   The 0-based index of the first result in the `ids` array within the complete list of results.
 - **total**: `Number`
@@ -625,7 +625,7 @@ The response to a call to *getFooList* is called *fooList*. It has the following
 - **ids**: `String[]`
   The list of ids for each foo in the list after filtering and sorting, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the list or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
 
-The following errors may be returned instead of the `fooList` response:
+The following errors may be returned instead of the `foosList` response:
 
 `accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
@@ -639,24 +639,24 @@ The following errors may be returned instead of the `fooList` response:
 
 `invalidArguments`: The request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-## getFooListUpdates
+## getFoosListUpdates
 
-The `getFooListUpdates` call allows a client to efficiently update the state of any cached foo list to match the new state on the server. It takes the following arguments:
+The `getFoosListUpdates` call allows a client to efficiently update the state of any cached foo list to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the account to use for this call. If `null`, the primary account will be used.
 - **filter**: `FilterCondition|null`
-  The filter argument that was used with *getFooList*.
+  The filter argument that was used with *getFoosList*.
 - **sort**: `String[]|null`
-  The sort argument that was used with *getFooList*.
+  The sort argument that was used with *getFoosList*.
 - **sinceState**: `String`
-  The current state of the client. This is the string that was returned as the *state* argument in the *fooList* response. The server will return the changes made since this state.
+  The current state of the client. This is the string that was returned as the *state* argument in the *foosList* response. The server will return the changes made since this state.
 - **maxChanges**: `Number|null`
   The maximum number of changes to return in the response. See error descriptions below for more details.
 - **uptoId**: `String|null`
   The last id the client currently has cached from the list. When there are a large number of results, in a common case the client may have only downloaded and cached a small subset from the beginning of the list. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the list, which can significantly increase efficiency. If they are not immutable, this argument is ignored.
 
-The response to *getFooListUpdates* is called *fooListUpdates* It has the following arguments:
+The response to *getFoosListUpdates* is called *foosListUpdates* It has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for the call.
@@ -709,7 +709,7 @@ and **splices in** (in order) all of the foos in the added array:
 
 and **truncates** or **extends** to the new total length, then the foo list will now be in the new state.
 
-The following errors may be returned instead of the `fooListUpdates` response:
+The following errors may be returned instead of the `foosListUpdates` response:
 
 `accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
