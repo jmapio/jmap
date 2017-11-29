@@ -345,7 +345,7 @@ If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g. missin
 
 If the message cannot be imported because it would take the account over quota, the import should be rejected with a `maxQuotaReached` SetError.
 
-If the blob referenced cannot be parsed as an [@!RFC5322] message, the server MUST reject the import with an `invalidMessage` SetError.
+If the blob referenced is not a valid [@!RFC5322] message, the server MAY modify the message to fix errors (such as removing null bytes or fixing invalid headers). If it does this, the *blobId* on the response MUST represent the new representation and therefore be different to the *blobId* on the MessageImport object. Alternatively, the server MAY reject the import with an `invalidMessage` SetError.
 
 The response to *importMessages* is called *messagesImported*. It has the following arguments:
 
