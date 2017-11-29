@@ -108,6 +108,8 @@ A **ResultReference** object has the following properties:
 
 - **resultOf**: `String`
   The client id of the method call to get the result from (the string given as the third item in the array for a method call).
+- **name**: `String`
+  The expected name of the response.
 - **path**: `String`
   A pointer into the arguments. This is an RFC6901 JSON Pointer, except it also allows the use of `*` to map through an array (see description below).
 
@@ -116,7 +118,8 @@ To resolve:
 1. Find the first response with a client id identical to the *resultOf*
    property of the *ResultReference* in the *methodResponses* array from previously processed method calls in the same request. If none, evaluation fails.
 
-2. If the response name is "error", evaluation fails.
+2. If the response name is not identical to the *name* property of the
+   *ResultReference*, evaluation fails.
 
 3. Apply the *path* to the arguments object of the response (the second item in
    the response array) following the [@!RFC6901] JSON pointer algorithm, except with the following addition in Section 4 (Evaluation):
@@ -132,6 +135,7 @@ As a simple example, suppose we have the following API request *methodCalls*:
     [ "getFoos", {
         "#ids": {
             "resultOf": "t0",
+            "name": "fooUpdates",
             "path": "/changed"
         }
     }, "t1" ]]
@@ -151,7 +155,8 @@ So to execute the getFoos call, we look through the arguments and find there is 
 
 1. Find the first response with client id "t0". The "fooUpdates" response
    fulfils this criterion.
-2. Check the response name is not "error". It's "fooUpdates", so this is fine.
+2. Check the response name is tge same as in the result reference. It is, so
+   this is fine.
 3. Apply the *path* as a JSON pointer to the arguments object. This simply
    selects the "changed" property, so the result of evaluating is:
    `[ "f1", "f4" ]`
@@ -174,6 +179,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
     [ "getMessages", {
       "#ids": {
         "resultOf": "t0",
+        "name": "messageList",
         "path": "/ids"
       },
       "properties": [ "threadId" ]
@@ -181,12 +187,14 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
     [ "getThreads", {
       "#ids": {
         "resultOf": "t1",
+        "name": "messages",
         "path": "/list/*/threadId"
       }
     }, "t2" ],
     [ "getMessages", {
       "#ids": {
         "resultOf": "t2"
+        "name": "threads",
         "path": "/list/*/messageIds"
       },
       "properties": [ "from", "date", "subject" ]
@@ -251,7 +259,6 @@ The JMAP server now continues to process the getMessages call as though the argu
         "ids": [ "msg1020", "msg1021", "msg1023", "msg201", "msg223", etc... ],
         "properties": [ "from", "date", "subject" ]
     }
-
 
 ## Security
 
