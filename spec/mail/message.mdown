@@ -368,7 +368,9 @@ The following errors may be returned instead of the *messageImported* response:
 
 ## copyMessages
 
-The only way to move messages **between** two different accounts is to copy them using the *copyMessages* method, then once the copy has succeeded, delete the original. It takes the following arguments:
+The only way to move messages **between** two different accounts is to copy them using the *copyMessages* method, then once the copy has succeeded, delete the original. The *onSuccessDestroyOriginal* argument allows you to try to do this in one method call, however note that the two different actions are not atomic, and so it is possible for the copy to succeed but the original not to be destroyed for some reason.
+
+The *copyMessages* method takes the following arguments:
 
 - **fromAccountId**: `String|null`
   The id of the account to copy messages from. If `null`, defaults to the primary account.
@@ -376,6 +378,8 @@ The only way to move messages **between** two different accounts is to copy them
   The id of the account to copy messages to. If `null`, defaults to the primary account.
 - **messages**: `String[MessageCopy]`
   A map of *creation id* to a MessageCopy object.
+- **onSuccessDestroyOriginal**: `Boolean` (default: `false`)
+  If `true`, an attempt will be made to destroy the messages that were successfully copied: after emitting the *messagesCopied* response, but before processing the next method, the server MUST make a single call to *setMessages* to destroy the original of each successfully copied message; the output of this is added to the responses as normal to be returned to the client.
 
 A **MessageCopy** object has the following properties:
 
