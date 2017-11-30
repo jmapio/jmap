@@ -106,7 +106,12 @@ Standard */queryChanges* method.
 
 ## Mailbox/set
 
-Standard */set* method. The following extra *SetError* types are defined:
+Standard */set* method, but with the following additional argument:
+
+- **onDestroyRemoveMessages**: `Boolean` (default: `false`)
+  If `false`, attempts to destroy a mailbox that still has any messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the mailbox will be removed from it, and if in no other mailboxes will be destroyed when the mailbox is destroyed.
+
+The following extra *SetError* types are defined:
 
 For **create**:
 
@@ -122,5 +127,5 @@ For **destroy**:
 - `forbidden`: The update would violate a mayXXX property.
 - `mailboxHasChild`: The mailbox still has at least one child mailbox. The
   client MUST remove these before it can delete the parent mailbox.
-- `mailboxHasEmail`: The mailbox has at least one email assigned to it. The
-  client MUST remove these before it can delete the mailbox.
+- `mailboxHasEmail`: The mailbox has at least one message assigned to it and
+  the *onDestroyRemoveMessages* argument was `false`.
