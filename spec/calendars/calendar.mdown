@@ -24,26 +24,26 @@ A **Calendar** object has the following properties:
 - **mayReadFreeBusy**: `Boolean` (server-set)
   The user may read the free-busy information for this calendar. In JMAP
   terms, this means the user may use this calendar as part of a filter in a
-  *getCalendarEventsList* call, however unless `mayRead == true`, the events
+  *CalendarEvent/query* call, however unless `mayRead == true`, the events
   returned for this calendar will only contain free-busy information, and be stripped of any other data.
   This property MUST be `true` if *mayRead* is `true`.
 - **mayReadItems**: `Boolean` (server-set)
   The user may fetch the events in this calendar. In JMAP terms, this means
   the user may use this calendar as part of a filter in a
-  *getCalendarEventsList* call
+  *CalendarEvent/query* call
 - **mayAddItems**: `Boolean` (server-set)
   The user may add events to this calendar. In JMAP terms, this means the
-  user may call *setCalendarEvents* to create new events in this calendar or
+  user may call *CalendarEvent/set* to create new events in this calendar or
   move existing events into this calendar from another calendar.
   This property MUST be `false` if the account to which this calendar belongs
   has the *isReadOnly* property set to `true`.
 - **mayModifyItems**: `Boolean` (server-set)
-  The user may edit events in this calendar by calling *setCalendarEvents* with
+  The user may edit events in this calendar by calling *CalendarEvent/set* with
   the *update* argument referencing events in this collection.
   This property MUST be `false` if the account to which this calendar belongs
   has the *isReadOnly* property set to `true`.
 - **mayRemoveItems**: `Boolean` (server-set)
-  The user may remove events from this calendar by calling *setCalendarEvents*
+  The user may remove events from this calendar by calling *CalendarEvent/set*
   with the *destroy* argument referencing events in this collection, or by
   updating their *calendarId* property to a different calendar.
   This property MUST be `false` if the account to which this calendar belongs
@@ -58,16 +58,16 @@ A **Calendar** object has the following properties:
   has the *isReadOnly* property set to `true`.
 
 
-## getCalendars
+## Calendar/get
 
-Standard *getFoos* method. The *ids* argument may be `null` to fetch all at once.
+Standard */get* method. The *ids* argument may be `null` to fetch all at once.
 
-## getCalendarsUpdates
+## Calendar/changes
 
-Standard *getFoosUpdates* method.
+Standard */changes* method.
 
-## setCalendars
+## Calendar/set
 
-Standard *setFoos* method.
+Standard */set* method.
 
 A calendar MAY be deleted that is currently associated with one or more events. In this case, the events belonging to this calendar MUST also be deleted. Conceptually, this MUST happen prior to the calendar itself being deleted, and MUST generate a **push** event that modifies the state of the *CalendarEvent* type for the account.

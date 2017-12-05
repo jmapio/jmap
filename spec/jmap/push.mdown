@@ -11,9 +11,9 @@ When something changes on the server, the server pushes a **StateChange** object
 - **changed**: `String[TypeState]`
   A map of *account id* to an object encoding the state of data types that have changed for that account since the last push event, for each of the accounts to which the user has access and for which something has changed.
 
-    A **TypeState** object is a map. The keys are the plural type name `Foos` (e.g. "Mailboxes" or "Emails"), and the value is the *state* property that would currently be returned by a call to *getFoos*.
+    A **TypeState** object is a map. The keys are the type name `Foo` (e.g. "Mailbox" or "Email"), and the value is the *state* property that would currently be returned by a call to *Foo/get*.
 
-    The client can compare the new state strings with its current values to see whether it has the current data for these types. If not, the changes can then be efficiently fetched in a single standard API request (using the *getFoosUpdates* type methods).
+    The client can compare the new state strings with its current values to see whether it has the current data for these types. If not, the changes can then be efficiently fetched in a single standard API request (using the */changes* type methods).
 
 - **trigger**: `String`
   What caused this change. The following causes are defined:
@@ -51,26 +51,26 @@ If the response code is `503` (Service Unavailable), the JMAP server MAY try aga
 
 The use of this push endpoint conforms with the use of a push endpoint by an Application Server as defined in [@!RFC8030]. A client MAY use the rest of [@!RFC8030] in combination with its own Push Server to form a complete end-to-end solution, or MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
 
-### setPushSubscription
+### PushSubscription/set
 
 Each session may only have a single push subscription registered. The push subscription is tied to the access token used to create it. Should the access token expire or be revoked, the push subscription MUST be removed by the JMAP server. The client MUST re-register the push subscription after reauthenticating to resume callbacks.
 
-To set the push subscription, make a call to *setPushSubscription*. It takes the following argument:
+To set the push subscription, make a call to *PushSubscription/set*. It takes the following argument:
 
 - **pushSubscription**: `PushSubscription|null`
   The PushSubscription object representing the endpoint the JMAP server will POST events to. This will replace any previously set subscription. Set to `null` to remove any previously registered subscription.
 
-The response to *setPushSubscription* is called *pushSubscriptionSet*. It has no arguments.
+The response has no arguments.
 
-The following errors may be returned instead of the *pushSubscriptionSet* response:
+The following errors may be returned instead of the *PushSubscription/set* response:
 
 `invalidUrl`: Returned if the URL does not begin with `https://`, or is otherwise syntactically invalid or does not resolve.
 
 `forbidden`: Returned if the URL is valid, but for policy reasons the server is not willing to connect to it.
 
-### getPushSubscription
+### PushSubscription/get
 
-To check the currently set push subscription (if any), make a call to *getPushSubscription*. It does not take any arguments. The response is called *pushSubscription* and it has a single argument:
+To check the currently set push subscription (if any), make a call to *PushSubscription/set*. It does not take any arguments. The response has a single argument:
 
 - **pushSubscription**: `PushSubscription|null`
   The PushSubscription object the JMAP server is currently posting push events to, or `null` if none.

@@ -1,4 +1,4 @@
-# EmailSubmissions
+# Email submission
 
 An **EmailSubmission** object represents the submission of an email for delivery to one or more recipients. It has the following properties:
 
@@ -139,17 +139,17 @@ For efficiency, a server MAY destroy EmailSubmission objects a certain amount of
 
 The following JMAP methods are supported:
 
-## getEmailSubmissions
+## EmailSubmission/get
 
-Standard *getFoos* method.
+Standard */get* method.
 
-## getEmailSubmissionsUpdates
+## EmailSubmission/changes
 
-Standard *getFoosUpdates* method.
+Standard */changes* method.
 
-## getEmailSubmissionsList
+## EmailSubmission/query
 
-Standard *getFoosList* method.
+Standard */query* method.
 
 The **FilterCondition** object (optionally passed as the *filter* argument) has the following properties, any of which may be omitted:
 
@@ -174,20 +174,20 @@ The following properties MUST be supported for sorting:
 - `threadId`
 - `sentAt`
 
-## getEmailSubmissionsListUpdates
+## EmailSubmission/queryChanges
 
-Standard *getFoosListUpdates* method.
+Standard */queryChanges* method.
 
-## setEmailSubmissions
+## EmailSubmission/set
 
-Standard *setFoos* method, with the following two extra arguments:
+Standard */set* method, with the following two extra arguments:
 
 - **onSuccessUpdateEmail**: `String[Email]|null`
   A map of *EmailSubmission id* to an object containing properties to update on the Email object referenced by the EmailSubmission if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a back reference so the id will be the creation id prefixed with a `#`.)
 - **onSuccessDestroyEmail**: `String[]|null`
   A list of *EmailSubmission ids* for which the email with the corresponding emailId should be destroyed if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a back reference so the id will be the creation id prefixed with a `#`.)
 
-A single implicit *setEmails* call MUST be made after all EmailSubmission create/update/destroy requests have been processed to perform any changes requested in these two arguments. The *emailsSet* response MUST be returned after the *emailSubmissionsSet* response.
+A single implicit *Email/set* call MUST be made after all EmailSubmission create/update/destroy requests have been processed to perform any changes requested in these two arguments. The response to this MUST be returned after the *EmailSubmission/set* response.
 
 An email is sent by creating a EmailSubmission object. When processing each create, the server must check that the email is valid, and the user has sufficient authorization to send it. If the creation succeeds, the email will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the email during delivery. The server MAY add or remove other headers from the submitted email, or make further alterations in accordance with the server's policy during delivery.
 
