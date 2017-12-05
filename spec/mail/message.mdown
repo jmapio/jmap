@@ -120,9 +120,9 @@ To add an attachment, the file must first be uploaded using the standard upload 
 
 The following JMAP methods are supported:
 
-## getEmails
+## Email/get
 
-Standard *getFoos* method, except the client may use the following pseudo values in the *properties* argument:
+Standard */get* method, except the client may use the following pseudo values in the *properties* argument:
 
 - **body**: If `"body"` is included in the list of requested properties, it MUST be interpreted by the server as a request for `"htmlBody"` if the email has an HTML part, or `"textBody"` otherwise.
 - **headers.property**: Instead of requesting all the headers (by requesting the `"headers"` property, the client may specify the particular headers it wants using the `headers.property-name` syntax, e.g. `"headers.x-spam-score", "headers.x-spam-hits"`). The server MUST return a *headers* property but with just the requested headers in the object rather than all headers. If `"headers"` is requested, the server MUST ignore the individual header requests and just return all headers. If a requested header is not present in the email, it MUST NOT be present in the *headers* object. Header names are case-insensitive.
@@ -131,14 +131,14 @@ Standard *getFoos* method, except the client may use the following pseudo values
 
 Request:
 
-    ["getEmails", {
+    ["Email/get", {
       "ids": [ "f123u456", "f123u457" ],
       "properties": [ "threadId", "mailboxIds", "from", "subject", "date" ]
     }, "#1"]
 
 and response:
 
-    ["emails", {
+    ["Email/get", {
       "accountId": "abc",
       "state": "41234123231",
       "list": [
@@ -155,13 +155,13 @@ and response:
     }, "#1"]
 
 
-## getEmailsUpdates
+## Email/changes
 
-Standard *getFoosUpdates* method.
+Standard */changes* method.
 
-## getEmailsList
+## Email/query
 
-Standard *getFoosList* method, but with the following additional arguments:
+Standard */query* method, but with the following additional arguments:
 
 - **collapseThreads**: `Boolean` (default: `false`)
   If `true`, emails in the same thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means at most only one email will be included in the list for any given thread.
@@ -264,28 +264,28 @@ When `collapseThreads == true`, then after filtering and sorting the email list,
 
 ### Response
 
-The *emailsList* response has the following additional argument:
+The response has the following additional argument:
 
 - **collapseThreads**: `Boolean`
   The *collapseThreads* value that was used when calculating the email list
   for this call.
 
-## getEmailsListUpdates
+## Email/queryChanges
 
-Standard *getFoosListUpdates* method, with the following additional arguments:
+Standard */queryChanges* method, with the following additional arguments:
 
 - **collapseThreads**: `Boolean` (default: `false`)
-  The *collapseThreads* argument that was used with *getEmailsList*.
+  The *collapseThreads* argument that was used with *Email/query*.
 
-The *emailsListUpdates* response has the following additional arguments:
+The response has the following additional argument:
 
 - **collapseThreads**: `Boolean`
   The *collapseThreads* value that was used when calculating the email list
   for this call.
 
-## setEmails
+## Email/set
 
-Standard *setFoos* method. The *setEmails* method encompasses:
+Standard */set* method. The *Email/set* method encompasses:
 
 - Creating a draft
 - Changing the keywords of an email (unread/flagged status)
@@ -316,9 +316,9 @@ For **create** and **update**:
 - `tooManyKeywords`: The change to the email's keywords would exceed a
   server-defined maximum.
 
-## importEmails
+## Email/import
 
-The *importEmails* method adds [@!RFC5322] messages to a user's set of emails. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
+The *Email/import* method adds [@!RFC5322] messages to a user's set of emails. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the account to use for this call. If `null`, defaults to the primary account.
@@ -346,7 +346,7 @@ If the email cannot be imported because it would take the account over quota, th
 
 If the blob referenced is not a valid [@!RFC5322] message, the server MAY modify the message to fix errors (such as removing null bytes or fixing invalid headers). If it does this, the *blobId* on the response MUST represent the new representation and therefore be different to the *blobId* on the EmailImport object. Alternatively, the server MAY reject the import with an `invalidEmail` SetError.
 
-The response to *importEmails* is called *emailsImported*. It has the following arguments:
+The response has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for this call.
@@ -355,7 +355,7 @@ The response to *importEmails* is called *emailsImported*. It has the following 
 - **notCreated**: `String[SetError]`
   A map of creation id to a SetError object for each Email that failed to be created. The possible errors are defined above.
 
-The following errors may be returned instead of the *emailsImported* response:
+The following errors may be returned instead of the *Email/import* response:
 
 `accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
 
@@ -365,11 +365,11 @@ The following errors may be returned instead of the *emailsImported* response:
 
 `invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
-## copyEmails
+## Email/copy
 
-The only way to move messages **between** two different accounts is to copy them using the *copyEmails* method, then once the copy has succeeded, delete the original. The *onSuccessDestroyOriginal* argument allows you to try to do this in one method call, however note that the two different actions are not atomic, and so it is possible for the copy to succeed but the original not to be destroyed for some reason.
+The only way to move messages **between** two different accounts is to copy them using the *Email/copy* method, then once the copy has succeeded, delete the original. The *onSuccessDestroyOriginal* argument allows you to try to do this in one method call, however note that the two different actions are not atomic, and so it is possible for the copy to succeed but the original not to be destroyed for some reason.
 
-The *copyEmails* method takes the following arguments:
+The *Email/copy* method takes the following arguments:
 
 - **fromAccountId**: `String|null`
   The id of the account to copy emails from. If `null`, defaults to the primary account.
@@ -378,7 +378,7 @@ The *copyEmails* method takes the following arguments:
 - **emails**: `String[EmailCopy]`
   A map of *creation id* to an EmailCopy object.
 - **onSuccessDestroyOriginal**: `Boolean` (default: `false`)
-  If `true`, an attempt will be made to destroy the emails that were successfully copied: after emitting the *messagesCopied* response, but before processing the next method, the server MUST make a single call to *setEmails* to destroy the original of each successfully copied message; the output of this is added to the responses as normal to be returned to the client.
+  If `true`, an attempt will be made to destroy the emails that were successfully copied: after emitting the *messagesCopied* response, but before processing the next method, the server MUST make a single call to *Email/set* to destroy the original of each successfully copied message; the output of this is added to the responses as normal to be returned to the client.
 
 An **EmailCopy** object has the following properties:
 
@@ -395,7 +395,7 @@ The server MAY forbid two email objects with the same exact [@!RFC5322] content,
 
 Each email copy is considered an atomic unit which may succeed or fail individually. Copying successfully MUST create a new email object, with separate ids and mutable properties (e.g. mailboxes and keywords) to the original email.
 
-The response to *copyEmails* is called *emailsCopied*. It has the following arguments:
+The response has the following arguments:
 
 - **fromAccountId**: `String`
   The id of the account emails were copied from.
@@ -416,7 +416,7 @@ The **SetError** may be one of the following types:
 
 `maxQuotaReached`: Returned if the user has reached their mail quota so the email cannot be copied.
 
-The following errors may be returned instead of the *emailsCopied* response:
+The following errors may be returned instead of the *Email/copy* response:
 
 `fromAccountNotFound`: Returned if a *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account.
 
