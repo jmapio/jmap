@@ -375,14 +375,14 @@ The *Email/copy* method takes the following arguments:
   The id of the account to copy emails from. If `null`, defaults to the primary account.
 - **toAccountId**: `String|null`
   The id of the account to copy emails to. If `null`, defaults to the primary account.
-- **emails**: `String[EmailCopy]`
+- **create**: `String[EmailCopy]`
   A map of *creation id* to an EmailCopy object.
 - **onSuccessDestroyOriginal**: `Boolean` (default: `false`)
   If `true`, an attempt will be made to destroy the emails that were successfully copied: after emitting the *messagesCopied* response, but before processing the next method, the server MUST make a single call to *Email/set* to destroy the original of each successfully copied message; the output of this is added to the responses as normal to be returned to the client.
 
 An **EmailCopy** object has the following properties:
 
-- **emailId**: `String`
+- **id**: `String`
   The id of the email to be copied in the "from" account.
 - **mailboxIds**: `String[Boolean]`
   The ids of the mailboxes (in the "to" account) to add the copied email to. At least one mailbox MUST be given.
