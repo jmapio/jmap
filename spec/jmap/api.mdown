@@ -173,7 +173,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
 
     [[ "Email/query", {
       "filter": { inMailbox: "id_of_inbox" },
-      "sort": [ "receivedAt desc" ],
+      "sort": [{ property: "receivedAt", isAscending: false }],
       "collapseThreads": true,
       "position": 0,
       "limit": 10
@@ -207,7 +207,7 @@ After executing the first 3 method calls the *methodResponses* array might be:
     [[ "Email/query", {
         "accountId": "1",
         "filter": { inMailbox: "id_of_inbox" },
-        "sort": [ "receivedAt desc" ],
+        "sort": [{ property: "receivedAt", isAscending: false }],
         "collapseThreads": true,
         "state": "abcdefg",
         "canCalculateChanges": true,
@@ -572,16 +572,35 @@ A call to *Foo/query* takes the following arguments:
 - **filter**: `FilterCondition|null`
   Determines the set of Foos returned in the results. This is an `object`, whose allowed properties and semantics depend on the data type. If `null`,
   all objects in the account of this type are included in the results.
-- **sort**: `String[]|null`
-  Lists the names of properties to compare between two Foo records to determine which comes first in the sort. If two Foo records have an identical value for the first property, the next property will be considered and so on. If all properties are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to Foo/query.
+- **sort**: `Comparator[]|null`
+  Lists the names of properties to compare between two Foo records, and how to compare them, to determine which comes first in the sort. If two Foo records have an identical value for the first comparator, the next comparator will be considered and so on. If all comparators are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to Foo/query.
 
-    Following each property name there MUST be a space and then either the string `asc` or `desc` to specify ascending or descending sort for that property. e.g. `[ "date desc", "name asc" ]`
+    A **Comparator** has the following properties:
 
-    The method of comparison depends on the type of the property:
+    - **property**: `String`
+      The name of the property on the Foo objects to compare.
+    - **isAscending**: `Boolean` (optional; default: `true`)
+      If true, sort in ascending order. If false, reverse the comparator's results to sort in descending order.
+    - **collation**: `String` (optional; default is server-dependent)
+      The identifier, as registered in the collation registry defined in [@!RFC4790], for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the JMAP session resource.
 
-    - `String`: Comparison function is server-dependent. It SHOULD be case-insensitive and SHOULD take into account locale-specific conventions if known for the user. However, the server MAY choose to just sort based on unicode code point, after best-effort translation to lower-case.
-    - `Date`/`UTCDate`: If sorting in ascending order, the earlier date MUST come first.
-    - `Boolean`: If sorting in ascending order, a `false` value MUST come before a `true` value.
+        If omitted, the default algorithm is server-dependent, but:
+
+        1. It MUST be unicode-aware.
+        2. It SHOULD have reasonable default behavior for many languages when
+           the user's language is unknown.
+        3. It MAY be selected based on out-of-band information about the user's
+           language/locale.
+        4. It SHOULD be case-insensitive where such a concept makes sense for a
+           language/locale.
+
+        The "i;unicode-casemap" collation ([@!RFC5051]) and the Unicode Collation Algorithm (http://www.unicode.org/reports/tr10/) are two examples that fulfil these criterion.
+
+        When the property being compared is not a string, the *collation* property is ignored and the following comparison rules apply based on the type. In ascending order:
+
+        - `Boolean`: `false` comes before `true`.
+        - `Number`: A lower number comes before a higher number.
+        - `Date`/`UTCDate`: The earlier date comes first.
 
 - **position**: `Number` (default: `0`)
   The 0-based index of the first id in the full list of results to return.
@@ -609,8 +628,8 @@ The response has the following arguments:
   The id of the account used for the call.
 - **filter**: `FilterCondition|null`
   The filter to apply to the search. Echoed back from the call.
-- **sort**: `String[]|null`
-  A list of Foo property names used to sort by. Echoed back from the call.
+- **sort**: `Comparator[]|null`
+  The sort options used. Echoed back from the call.
 - **state**: `String`
   A string encoding the current state on the server. This string MUST change if the results of the search *may* have changed (for example, there has been a change to the state of the set of Foos; it does not *guarantee* that anything in the search has changed). It may be passed to *Foo/queryChanges* to efficiently get the set of changes from the client's current state.
 
@@ -633,7 +652,7 @@ The following errors may be returned instead of the *Foo/query* response:
 
 `anchorNotFound`: An anchor argument was supplied, but it cannot be found in the results of the search.
 
-`unsupportedSort`: The *sort* is syntactically valid, but includes a property the server does not support sorting on.
+`unsupportedSort`: The *sort* is syntactically valid, but includes a property the server does not support sorting on, or a collation method it does not recognise.
 
 `unsupportedFilter`: The *filter* is syntactically valid, but the server cannot process it.
 
@@ -647,7 +666,7 @@ The `Foo/queryChanges` call allows a client to efficiently update the state of a
   The id of the account to use for this call. If `null`, the primary account will be used.
 - **filter**: `FilterCondition|null`
   The filter argument that was used with *Foo/query*.
-- **sort**: `String[]|null`
+- **sort**: `Comparator[]|null`
   The sort argument that was used with *Foo/query*.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *Foo/query* response. The server will return the changes made since this state.
@@ -662,8 +681,8 @@ The response has the following arguments:
   The id of the account used for the call.
 - **filter**: `FilterCondition|null`
   The filter to apply to the search. Echoed back from the call.
-- **sort**: `String[]|null`
-  A list of Foo property names used to sort by. Echoed back from the call.
+- **sort**: `Comparator[]|null`
+  The sort options used. Echoed back from the call.
 - **oldState**: `String`
   This is the `sinceState` argument echoed back; the state from which the server is returning changes.
 - **newState**: `String`
