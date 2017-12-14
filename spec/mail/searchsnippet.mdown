@@ -44,14 +44,8 @@ The response has the following arguments:
 
 Since snippets are only based on immutable properties, there is no state string or update mechanism needed.
 
-The following errors may be returned instead of the *searchSnippets* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
+The following additional errors may be returned instead of the *searchSnippets* response:
 
 `requestTooLarge`: Returned if the number of *emailIds* requested by the client exceeds the maximum number the server is willing to process in a single method call.
 
-`cannotDoFilter`: Returned if the server is unable to process the given *filter* for any reason.
-
-`invalidArguments`: Returned if the request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+`unsupportedFilter`: Returned if the server is unable to process the given *filter* for any reason.

@@ -364,16 +364,6 @@ The response has the following arguments:
 - **notCreated**: `String[SetError]`
   A map of creation id to a SetError object for each Email that failed to be created. The possible errors are defined above.
 
-The following errors may be returned instead of the *Email/import* response:
-
-`accountNotFound`: Returned if an *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: Returned if the *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`accountReadOnly`: Returned if the account has `isReadOnly == true`.
-
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
-
 ## Email/copy
 
 The only way to move messages **between** two different accounts is to copy them using the *Email/copy* method, then once the copy has succeeded, delete the original. The *onSuccessDestroyOriginal* argument allows you to try to do this in one method call, however note that the two different actions are not atomic, and so it is possible for the copy to succeed but the original not to be destroyed for some reason.
@@ -425,16 +415,12 @@ The **SetError** may be one of the following types:
 
 `maxQuotaReached`: Returned if the user has reached their mail quota so the email cannot be copied.
 
-The following errors may be returned instead of the *Email/copy* response:
+The following additional errors may be returned instead of the *Email/copy* response:
 
 `fromAccountNotFound`: Returned if a *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account.
 
 `toAccountNotFound`: Returned if a *toAccountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`fromAccountNoMail`: Returned if the *fromAccountId* given corresponds to a valid account, but does not contain any mail data.
+`fromAccountNotSupportedByMethod`: Returned if the *fromAccountId* given corresponds to a valid account, but does not contain any mail data.
 
-`toAccountNoMail`: Returned if the *toAccountId* given corresponds to a valid account, but does not contain any mail data.
-
-`accountReadOnly`: Returned if the "to" account has `isReadOnly == true`.
-
-`invalidArguments`: Returned if one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
+`toAccountNotSupportedByMethod`: Returned if the *toAccountId* given corresponds to a valid account, but does not contain any mail data.

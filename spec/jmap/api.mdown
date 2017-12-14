@@ -84,7 +84,7 @@ If the data sent as an API request is not valid JSON or does not match the struc
 
 ### Method-level errors
 
-Possible errors for each method are specified in the method descriptions. If a method encounters an error, the appropriate `error` response MUST be inserted at the current point in the *methodResponses* array and, unless otherwise specified, further processing MUST NOT happen within that method call.
+If a method encounters an error, the appropriate `error` response MUST be inserted at the current point in the *methodResponses* array and, unless otherwise specified, further processing MUST NOT happen within that method call.
 
 Any further method calls in the request MUST then be processed as normal.
 
@@ -94,13 +94,23 @@ An `error` response looks like this:
       type: "unknownMethod"
     }, "client-id"]
 
-The response name is `error`, and it MUST have a type property as specified in the method description. Other properties may be present with further information; these are detailed in the method descriptions where appropriate.
+The response name is `error`, and it MUST have a type property. Other properties may be present with further information; these are detailed in the error type descriptions where appropriate.
 
-Any method MAY return an error of type `serverError` if an unexpected or unknown error occurs during the processing of that call. The state of the server after such an error is undefined.
+The following error types are defined which may be returned for any method call where appropriate:
 
-If an unknown method is called, an `unknownMethod` error (this is the type shown in the example above) MUST be inserted and then the next method call MUST be processed as normal.
+`serverError`: An unexpected or unknown error occured during the processing of the call. The state of the server after such an error is undefined.
 
-If an unknown argument or invalid arguments (wrong type, missing and not optional, or in violation of other specified constraints) are supplied to a method, an `invalidArguments` error MUST be inserted and then the next method call MUST be processed as normal.
+`unknownMethod`: The server does not recognise this method name.
+
+`invalidArguments`: One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing. A `description` property MAY be present to help debug with an explanation of what the problem was.
+
+`accountNotFound`: An *accountId* was included with the method call that does not correspond to a valid account.
+
+`accountNotSupportedByMethod`: An *accountId* given corresponds to a valid account, but the account does not support this data type.
+
+`accountReadOnly`: This method call would modify state in an account that has `isReadOnly == true`.
+
+Further possible errors for a particular method are specified in the method descriptions.
 
 ## References to previous method results
 
@@ -307,15 +317,9 @@ The response has the following arguments:
 - **notFound**: `String[]|null`
   This array contains the ids passed to the method for records that do not exist. This property is `null` if all requested ids were found, or if the *ids* argument passed in was either `null` or the empty array.
 
-The following error may be returned instead of the *Foo/get* response:
-
-`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
+The following additional error may be returned instead of the *Foo/get* response:
 
 `requestTooLarge`: The number of *ids* requested by the client exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: One of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 ## /changes
 
@@ -348,13 +352,7 @@ If a *maxChanges* is supplied, or set automatically by the server, the server MU
 
 If a Foo record has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* list, but MAY return it in the *changed* list as well. If a Foo record has been created AND deleted since the oldState, the server SHOULD remove the id from the response entirely, but MAY include it in the *removed* list.
 
-The following errors may be returned instead of the *Foo/changes* response:
-
-`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`invalidArguments`: The request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+The following additional errors may be returned instead of the *Foo/changes* response:
 
 `cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Foo cache.
 
@@ -465,17 +463,9 @@ The following SetError types are defined and may be returned for set operations 
 
 Other possible SetError types MAY be given in specific method descriptions. Other properties MAY also be present on the *SetError* object, as described in the relevant methods.
 
-The following errors may be returned instead of the *Foo/set* response:
-
-`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`accountReadOnly`: The account has isReadOnly == true.
+The following additional errors may be returned instead of the *Foo/set* response:
 
 `requestTooLarge`: The total number of objects to create, update or destroy exceeds the maximum number the server is willing to process in a single method call.
-
-`invalidArguments`: One of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 `stateMismatch`: An `ifInState` argument was supplied and it does not match the current state.
 
@@ -648,19 +638,13 @@ The response has the following arguments:
 - **ids**: `String[]`
   The list of ids for each foo in the search results, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the results or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
 
-The following errors may be returned instead of the *Foo/query* response:
-
-`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
+The following additional errors may be returned instead of the *Foo/query* response:
 
 `anchorNotFound`: An anchor argument was supplied, but it cannot be found in the results of the search.
 
 `unsupportedSort`: The *sort* is syntactically valid, but includes a property the server does not support sorting on, or a collation method it does not recognise.
 
 `unsupportedFilter`: The *filter* is syntactically valid, but the server cannot process it.
-
-`invalidArguments`: The request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A `description` property MAY be present on the response object to help debug with an explanation of what the problem was.
 
 ## /queryChanges
 
@@ -732,13 +716,7 @@ and **splices in** (in order) all of the foos in the added array:
 
 and **truncates** or **extends** to the new total length, then the results will now be in the new state.
 
-The following errors may be returned instead of the *Foo/queryChanges* response:
-
-`accountNotFound`: An *accountId* was explicitly included with the request, but it does not correspond to a valid account.
-
-`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
-
-`invalidArguments`: The request does not include one of the required arguments, or one of the arguments is of the wrong type, or otherwise invalid. A *description* property MAY be present on the response object to help debug with an explanation of what the problem was.
+The following additional errors may be returned instead of the *Foo/queryChanges* response:
 
 `tooManyChanges`: There are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the search results.
 
