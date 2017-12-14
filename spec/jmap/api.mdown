@@ -78,7 +78,11 @@ Unless otherwise specified in a method description, `null` is the default value 
 
 ## Errors
 
-If the data sent as an API request is not valid JSON or does not match the structure above, a `400 Bad Request` error will be returned at the HTTP level.
+### Request-level errors
+
+If the data sent as an API request is not valid JSON or does not match the structure above, or includes a capability that the server does not support in the "using" property of the request, a `400 Bad Request` error will be returned at the HTTP level. The body of the response SHOULD include a short description of the problem to help client developers debug the issue.
+
+### Method-level errors
 
 Possible errors for each method are specified in the method descriptions. If a method encounters an error, the appropriate `error` response MUST be inserted at the current point in the *methodResponses* array and, unless otherwise specified, further processing MUST NOT happen within that method call.
 
@@ -90,7 +94,7 @@ An `error` response looks like this:
       type: "unknownMethod"
     }, "client-id"]
 
-The response name is `error`, and it has a type property as specified in the method description. Other properties may be present with further information; these are detailed in the method descriptions where appropriate.
+The response name is `error`, and it MUST have a type property as specified in the method description. Other properties may be present with further information; these are detailed in the method descriptions where appropriate.
 
 Any method MAY return an error of type `serverError` if an unexpected or unknown error occurs during the processing of that call. The state of the server after such an error is undefined.
 
