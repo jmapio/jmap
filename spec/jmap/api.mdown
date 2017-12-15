@@ -96,6 +96,8 @@ An `error` response looks like this:
 
 The response name is `error`, and it MUST have a type property. Other properties may be present with further information; these are detailed in the error type descriptions where appropriate.
 
+With the exception of `serverError`, the externally-visible state of the server MUST NOT have changed if an error is returned at the method level.
+
 The following error types are defined which may be returned for any method call where appropriate:
 
 `serverError`: An unexpected or unknown error occured during the processing of the call. The state of the server after such an error is undefined.
@@ -105,6 +107,8 @@ The following error types are defined which may be returned for any method call 
 `invalidArguments`: One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing. A `description` property MAY be present to help debug with an explanation of what the problem was.
 
 `forbidden`: The method and arguments are valid, but executing the method would violate an ACL or other permissions policy.
+
+`timedOut`: The method failed to execute because it timed out waiting for a lock, or was taking too much compute time.
 
 `accountNotFound`: An *accountId* was included with the method call that does not correspond to a valid account.
 
