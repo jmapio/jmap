@@ -199,19 +199,18 @@ The following extra *SetError* types are defined:
 
 For **create**:
 
-- `tooLarge` - The email size is larger than the server supports. A *maxSize*
-  `Number` property MUST be present on the SetError specifying the maximum size
-  of an email that may be sent, in bytes.
+- `tooLarge` - The email size is larger than the server supports sending.
+   A *maxSize* `Number` property MUST be present on the SetError specifying the maximum size of an email that may be sent, in bytes.
 - `tooManyRecipients` - The envelope (supplied or generated) has more
   recipients than the server allows. A *maxRecipients* `Number` property MUST be present on the SetError specifying the maximum number of allowed recipients.
 - `noRecipients` – The envelope (supplied or generated) does not have any
   rcptTo emails.
 - `invalidRecipients` – The *rcptTo* property of the envelope (supplied or
   generated) contains at least one rcptTo value which is not a valid email
-  for sending to. An *invalidEmails* `String[]` property MUST be present on the SetError, which is a list of the invalid emails.
-- `notPermittedFrom` – The server does not permit the user to send an email
+  for sending to. An *invalidRecipients* `String[]` property MUST be present on the SetError, which is a list of the invalid addresses.
+- `forbiddenFrom` – The server does not permit the user to send an email
   with the From header of the email to be sent.
-- `notPermittedToSend` – The user does not have permission to send at all right
+- `forbiddenToSend` – The user does not have permission to send at all right
   now for some reason. A *description* `String` property MAY be present on the SetError object to display to the user why they are not permitted.
 - `emailNotFound` - The *emailId* is not a valid id for an email in the
   account.
@@ -222,8 +221,3 @@ For **update**:
 
 - `cannotUnsend`: The client attempted to update the *undoStatus* of a valid
   EmailSubmission object from `pending` to `canceled`, but the email cannot be unsent.
-
-For **destroy**:
-
-- `forbidden`: The server does not allow clients to destroy EmailSubmission
-  objects.

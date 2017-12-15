@@ -104,6 +104,8 @@ The following error types are defined which may be returned for any method call 
 
 `invalidArguments`: One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing. A `description` property MAY be present to help debug with an explanation of what the problem was.
 
+`forbidden`: The method and arguments are valid, but executing the method would violate an ACL or other permissions policy.
+
 `accountNotFound`: An *accountId* was included with the method call that does not correspond to a valid account.
 
 `accountNotSupportedByMethod`: An *accountId* given corresponds to a valid account, but the account does not support this data type.
@@ -446,11 +448,19 @@ A **SetError** object has the following properties:
 - **description**: `String|null`
   A description of the error to display to the user.
 
-The following SetError types are defined and may be returned for set operations on any record type:
+The following SetError types are defined and may be returned for set operations on any record type where appropriate:
 
-- `notFound`: The id given in an update/destroy cannot be found.
-- `invalidPatch`: The PatchObject given to update a Foo record was invalid.
-- `invalidProperties`: The Foo record given in a create/update is invalid in
+- `forbidden`: (create; update; destroy) The create/update/destroy would
+   violate an ACL or other permissions policy.
+- `overQuota`: (create) The create would exceed a server-defined limit on
+  the number or total size of objects of this type.
+- `rateLimit`: (create) Too many objects of this type have been created
+  recently, and a server-defined rate limit has been reached. It may work if
+  tried again later.
+- `notFound`: (update; destroy) The id given cannot be found.
+- `invalidPatch`: (update) The PatchObject given to update the record was
+  not a valid patch (see the patch description).
+- `invalidProperties`: (create; update) The record given is invalid in
   some way. For example:
 
     - It contains properties which are invalid according to the type specification of this record type.
@@ -460,6 +470,9 @@ The following SetError types are defined and may be returned for set operations 
     The SetError object SHOULD also have a property called *properties* of type `String[]` that lists **all** the properties that were invalid.
 
     Individual methods MAY specify more specific errors for certain conditions that would otherwise result in an invalidProperties error. If the condition of one of these is met, it MUST be returned instead of the invalidProperties error.
+
+- `singleton`: (create; destroy) This is a singleton type, so you cannot create
+  another one or destroy the existing one.
 
 Other possible SetError types MAY be given in specific method descriptions. Other properties MAY also be present on the *SetError* object, as described in the relevant methods.
 

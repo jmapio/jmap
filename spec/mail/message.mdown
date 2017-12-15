@@ -317,12 +317,12 @@ For **create**:
 
 - `attachmentNotFound`: At least one blob id given in an attachment doesn't
   exist. An extra *notFound* property of type `String[]` MUST be included in the error object containing every *blobId* referenced in *attachments* that could not be found on the server.
-- `maxQuotaReached`: The user has reached a server-defined limit on their
-  email storage quota.
 
 For **create** and **update**:
 
 - `tooManyKeywords`: The change to the email's keywords would exceed a
+  server-defined maximum.
+- `tooManyMailboxes`: The change to the email's mailboxes would exceed a
   server-defined maximum.
 
 ## Email/import
@@ -377,7 +377,7 @@ The *Email/copy* method takes the following arguments:
 - **create**: `String[EmailCopy]`
   A map of *creation id* to an EmailCopy object.
 - **onSuccessDestroyOriginal**: `Boolean` (default: `false`)
-  If `true`, an attempt will be made to destroy the emails that were successfully copied: after emitting the *messagesCopied* response, but before processing the next method, the server MUST make a single call to *Email/set* to destroy the original of each successfully copied message; the output of this is added to the responses as normal to be returned to the client.
+  If `true`, an attempt will be made to destroy the emails that were successfully copied: after emitting the *Email/copy* response, but before processing the next method, the server MUST make a single call to *Email/set* to destroy the original of each successfully copied message; the output of this is added to the responses as normal to be returned to the client.
 
 An **EmailCopy** object has the following properties:
 
@@ -405,22 +405,16 @@ The response has the following arguments:
 - **notCreated**: `String[SetError]|null`
   A map of creation id to a SetError object for each Email that failed to be copied, `null` if none.
 
-The **SetError** may be one of the following types:
+The **SetError** may be any of the standard set errors that may be returned for a *create*. The following extra *SetError* type is also defined:
 
-`alreadyExists`: Returned if the server forbids duplicates and the email already exists in the target account. An *emailId* property of type `String` MUST be included on the error object with the id of the existing email.
-
-`notFound`: Returned if the *emailId* given can't be found.
-
-`invalidProperties`: Returned if the *mailboxIds* or *keywords* properties are invalid (e.g. missing, wrong type, id not found).
-
-`maxQuotaReached`: Returned if the user has reached their mail quota so the email cannot be copied.
+`alreadyExists`: The server forbids duplicates and the email already exists in the target account. An *emailId* property of type `String` MUST be included on the error object with the id of the existing email.
 
 The following additional errors may be returned instead of the *Email/copy* response:
 
-`fromAccountNotFound`: Returned if a *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account.
+`fromAccountNotFound`: A *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`toAccountNotFound`: Returned if a *toAccountId* was explicitly included with the request, but it does not correspond to a valid account.
+`toAccountNotFound`: A *toAccountId* was explicitly included with the request, but it does not correspond to a valid account.
 
-`fromAccountNotSupportedByMethod`: Returned if the *fromAccountId* given corresponds to a valid account, but does not contain any mail data.
+`fromAccountNotSupportedByMethod`: The *fromAccountId* given corresponds to a valid account, but does not contain any mail data.
 
-`toAccountNotSupportedByMethod`: Returned if the *toAccountId* given corresponds to a valid account, but does not contain any mail data.
+`toAccountNotSupportedByMethod`: The *toAccountId* given corresponds to a valid account, but does not contain any mail data.
