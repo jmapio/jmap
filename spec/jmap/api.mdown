@@ -270,10 +270,12 @@ So to execute the final Email/get call, we look through the arguments and find t
    fulfils this criterion.
 2. "Thread/get" is the name specified in the result reference, so this is fine.
 3. Apply the *path* as a JSON pointer to the arguments object. Token-by-token:
-   a) `list`: get the array of thread objects
-   b) `*`: for each of the items in the array:
-      i) `emailIds`: get the array of email ids
-      ii) Concatenate these into a single array of all the ids in the result.
+
+     a) `list`: get the array of thread objects
+     b) `*`: for each of the items in the array:
+
+        i) `emailIds`: get the array of email ids
+        ii) Concatenate these into a single array of all the ids in the result.
 
 The JMAP server now continues to process the Email/get call as though the arguments were:
 
@@ -728,7 +730,7 @@ then if it **splices out** all foos in the removed array:
 
 and **splices in** (in order) all of the foos in the added array:
 
-    added = [{ fooId: "id5", index: 0, … }];
+    added = [{ id: "id5", index: 0, … }];
     fooIds => [ "id5", "id1", null, null, "id3", "id4", null, null, null ]
 
 and **truncates** or **extends** to the new total length, then the results will now be in the new state.
