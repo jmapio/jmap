@@ -37,3 +37,43 @@ A successful request MUST return a single JSON object with the following propert
   The size of the file in bytes.
 
 If identical binary content to an existing blob in the account is uploaded, the existing blobId MAY be returned.
+
+## Downloading binary data
+
+The JMAP session object has a *downloadUrl* property, which is in [@!RFC6570] URI Template (level 1) format. The URL MUST contain a variable called `blobId`, MAY contain a variable called `accountId`, and SHOULD contain a variable called `name`.
+
+The client may use this template in combination with an *accountId* (if required in the URL template) and *blobId* to download any binary data (files) referenced by other objects. Since a blob is not associated with a particular name, the template SHOULD allow a name to be substituted in as well; the server will return this as the filename if it sets a `Content-Disposition` header.
+
+To download the data the client makes an authenticated GET request to the download URL with the appropriate variables substituted in. The client SHOULD send an `Accept` header with the content type they would like the server to return for the file. The `Content-Type` header of a successful response SHOULD be set to the type as requested in the `Accept` header by the client, or `application/octet-stream` if unknown and no `Accept` header given.
+
+## Moving binary data between accounts
+
+Binary data may be copied **between** two different accounts using the *Blob/copy* method, rather than having to download then reupload on the client.
+
+The *Blob/copy* method takes the following arguments:
+
+- **fromAccountId**: `String|null`
+  The id of the account to copy blobs from. If `null`, defaults to the primary account.
+- **toAccountId**: `String|null`
+  The id of the account to copy blobs to. If `null`, defaults to the primary account.
+- **blobIds**: `String[]`
+  A list of ids of blobs to copy to the other account.
+
+The response has the following arguments:
+
+- **fromAccountId**: `String`
+  The id of the account emails were copied from.
+- **toAccountId**: `String`
+  The id of the account emails were copied to.
+- **copied**: `String[String]|null`
+  A map of the blob id in the *fromAccount* to the id for the blob in the *toAccount*, or `null` if none were successfully copied.
+- **notCopied**: `String[SetError]|null`
+  A map of blob id to a SetError object for each blob that failed to be copied, `null` if none.
+
+The **SetError** may be any of the standard set errors that may be returned for a *create*.
+
+The following additional errors may be returned instead of the *Blob/copy* response:
+
+`fromAccountNotFound`: A *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account.
+
+`toAccountNotFound`: A *toAccountId* was explicitly included with the request, but it does not correspond to a valid account.
