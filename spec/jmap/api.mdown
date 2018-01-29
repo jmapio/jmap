@@ -333,12 +333,12 @@ The following additional error may be returned instead of the *Foo/get* response
 
 ## /changes
 
-When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *Foo/get* response will change. The *Foo/changes* call allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
+When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *Foo/get* response will change. The *Foo/changes* method allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the Account to use. If `null`, the primary account is used.
 - **sinceState**: `String`
-  The current state of the client. This is the string that was returned as the *state* argument in the *Foo/get* response. The server will return the changes made since this state.
+  The current state of the client. This is the string that was returned as the *state* argument in the *Foo/get* response. The server will return the changes that have occurred since this state.
 - **maxChanges**: `Number|null`
   The maximum number of ids to return in the response. The server MAY choose to return fewer than this value, but MUST NOT return more. If not given by the client, the server may choose how many to return. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
 
@@ -353,7 +353,7 @@ The response has the following arguments:
 - **hasMoreChanges**: `Boolean`
   If `true`, the client may call *Foo/changes* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
 - **changed**: `String[]|null`
-  An array of ids for records which have been created or changed but not destroyed since the oldState, or `null` if none.
+  An array of ids for records which have been created or modified but not destroyed since the oldState, or `null` if none.
 - **removed**: `String[]|null`
   An array of ids for records which have been destroyed since the old state,
   or `null` if none.
@@ -721,7 +721,7 @@ The response has the following arguments:
     - **id**: `String`
     - **index**: `Number`
 
-The result of this should be that if the client has a cached sparse array of foo ids in the results in the old state:
+The result of this is that if the client has a cached sparse array of foo ids in the results in the old state:
 
     fooIds = [ "id1", "id2", null, null, "id3", "id4", null, null, null ]
 
