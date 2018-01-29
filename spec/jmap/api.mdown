@@ -172,7 +172,7 @@ After executing the first method call the *methodResponses* array is:
         "newState": "123456",
         "hasMoreChanges": false,
         "changed": [ "f1", "f4" ],
-        "removed": []
+        "destroyed": []
     }, "t0" ]]
 
 So to execute the Foo/get call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm above:
@@ -354,13 +354,13 @@ The response has the following arguments:
   If `true`, the client may call *Foo/changes* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
 - **changed**: `String[]|null`
   An array of ids for records which have been created or modified but not destroyed since the oldState, or `null` if none.
-- **removed**: `String[]|null`
+- **destroyed**: `String[]|null`
   An array of ids for records which have been destroyed since the old state,
   or `null` if none.
 
-If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *removed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *Foo/changes* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
+If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *destroyed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *Foo/changes* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
 
-If a Foo record has been modified AND deleted since the oldState, the server SHOULD just return the id in the *removed* list, but MAY return it in the *changed* list as well. If a Foo record has been created AND deleted since the oldState, the server SHOULD remove the id from the response entirely, but MAY include it in the *removed* list.
+If a Foo record has been modified AND destroyed since the oldState, the server SHOULD just return the id in the *destroyed* list, but MAY return it in the *changed* list as well. If a Foo record has been created AND destroyed since the oldState, the server SHOULD remove the id from the response entirely, but MAY include it in the *destroyed* list.
 
 The following additional errors may be returned instead of the *Foo/changes* response:
 
@@ -799,7 +799,7 @@ and receive in response:
       "newState": "871903",
       "hasMoreChanges": false,
       "changed": null,
-      "removed": ["b"]
+      "destroyed": ["b"]
     }, "0"],
     ["Todo/queryChanges", {
       "filter": { "hasKeyword": "music" },
