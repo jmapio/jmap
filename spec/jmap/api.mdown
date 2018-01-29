@@ -490,90 +490,6 @@ The following additional errors may be returned instead of the *Foo/set* respons
 
 `stateMismatch`: An `ifInState` argument was supplied and it does not match the current state.
 
-### Example
-
-Suppose we have a type *Todo* with the following properties:
-
-- **id**: `String` (immutable; server-set)
-  The id of the object.
-- **title**: `String`
-  A brief summary of what is to be done.
-- **keywords**: `String[Boolean]` (mutable; default: `{}`)
-  A set of keywords that apply to the todo. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
-- **neuralNetworkTimeEstimation**: `Number` (server-set)
-  The title and keywords are fed into the server's state-of-the-art neural
-  network to get an estimation of how long this todo will take, in seconds.
-
-Now we fetched a Todo of id "a" (let's presume we already knew a Todo with this id existed):
-
-    [["Todo/get", {
-      "ids": ["a"]
-    }, "0"]]
-
-and got back
-
-    [["Todo/get", {
-      "accountId": "x",
-      "state": "10324",
-      "list": [{
-        "id": "a",
-        "title": "Practice Piano",
-        "keywords": {
-          "beethoven": true,
-          "mozart": true,
-          "liszt": true,
-          "rachmaninov": true
-        },
-        "neuralNetworkTimeEstimation": 3600
-      }]
-    }, "0"]]
-
-Now the user adds a keyword "chopin" and removes the keyword "mozart". The client may send the whole object to the server, as this is a valid PatchObject:
-
-    [["Todo/set", {
-      "ifInState": "10324",
-      "update": {
-        "a": {
-          "id": "a",
-          "title": "Practice Piano",
-          "keywords": {
-            "beethoven": true,
-            "chopin": true,
-            "liszt": true,
-            "rachmaninov": true,
-          }
-          "neuralNetworkTimeEstimation": 360
-        }
-      }
-    }, "0"]]
-
-or it may send a minimal patch:
-
-    [["Todo/set", {
-      "ifInState": "10324",
-      "update": {
-        "a": {
-          "keywords/chopin": true,
-          "keywords/mozart": null
-        }
-      }
-    }, "0"]]
-
-The effect is exactly the same on the server in either case, and presuming the server is still in state "10324" it will probably return success:
-
-    [["Todo/set", {
-      "accountId": "x",
-      "oldState": "10324",
-      "newState": "10329",
-      "updated": {
-        "a": {
-          "neuralNetworkTimeEstimation": 5400
-        }
-      }
-    }, "0"]]
-
-The server changed the "neuralNetworkTimeEstimation" property on the object as part of this change; as this changed in a way *not* explicitly requested by the PatchObject sent to the server, it is returned with the "updated" confirmation.
-
 ## /query
 
 For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g. multi-gigabyte mailboxes), the client needs to be able to search/sort/window the data type on the server.
@@ -742,3 +658,155 @@ The following additional errors may be returned instead of the *Foo/queryChanges
 `tooManyChanges`: There are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the search results.
 
 `cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the search results.
+
+## Examples
+
+Suppose we have a type *Todo* with the following properties:
+
+- **id**: `String` (immutable; server-set)
+  The id of the object.
+- **title**: `String`
+  A brief summary of what is to be done.
+- **keywords**: `String[Boolean]` (mutable; default: `{}`)
+  A set of keywords that apply to the todo. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
+- **neuralNetworkTimeEstimation**: `Number` (server-set)
+  The title and keywords are fed into the server's state-of-the-art neural
+  network to get an estimation of how long this todo will take, in seconds.
+
+and the server supports querying by keyword using the syntax `{ hasKeyword: "foo" }` in the *filter* argument to */query*.
+
+Now, a client might want to display the list of todos with a particular query, so it makes the following method call:
+
+    [["Todo/query", {
+      "filter": { "hasKeyword": "music" },
+      "sort": [{ "property": "title" }],
+      "position": 0,
+      "limit": 10
+    }, "0"],
+    ["Todo/get", {
+      "#ids": {
+        "resultOf": "0",
+        "name": "Todo/query",
+        "path": "/ids"
+      },
+    }, "1"]]
+
+This would query the server for the set of todos with a keyword of "music", sorted by title, and limited to the first 10 results. It fetches the full object for each of these Todos using backreferences to reference the result of the query. The response might look something like:
+
+    [["Todo/query", {
+      "accountId": "x",
+      "filter": { "hasKeyword": "music" },
+      "sort": [{ "property": "title" }],
+      "state": "y13213",
+      "canCalculateChanges": true,
+      "position": 0,
+      "total": 26,
+      "ids": [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" ]
+    }, "0"],
+    ["Todo/get", {
+      "accountId": "x",
+      "state": "10324",
+      "list": [{
+        "id": "a",
+        "title": "Practise Piano",
+        "keywords": {
+          "music": true,
+          "beethoven": true,
+          "mozart": true,
+          "liszt": true,
+          "rachmaninov": true
+        },
+        "neuralNetworkTimeEstimation": 3600
+      }, {
+        "id": "b",
+        "title": "Listen to Daft Punk",
+        "keywords": {
+          "music": true,
+          "trance": true
+        },
+        "neuralNetworkTimeEstimation": 18000
+      },
+      ...
+      ]
+    }, "1"]]
+
+Now suppose the user adds a keyword "chopin" and removes the keyword "mozart" from the "Practise Piano" task. The client may send the whole object to the server, as this is a valid PatchObject:
+
+    [["Todo/set", {
+      "ifInState": "10324",
+      "update": {
+        "a": {
+          "id": "a",
+          "title": "Practise Piano",
+          "keywords": {
+            "music": true,
+            "beethoven": true,
+            "chopin": true,
+            "liszt": true,
+            "rachmaninov": true,
+          }
+          "neuralNetworkTimeEstimation": 360
+        }
+      }
+    }, "0"]]
+
+or it may send a minimal patch:
+
+    [["Todo/set", {
+      "ifInState": "10324",
+      "update": {
+        "a": {
+          "keywords/chopin": true,
+          "keywords/mozart": null
+        }
+      }
+    }, "0"]]
+
+The effect is exactly the same on the server in either case, and presuming the server is still in state "10324" it will probably return success:
+
+    [["Todo/set", {
+      "accountId": "x",
+      "oldState": "10324",
+      "newState": "10329",
+      "updated": {
+        "a": {
+          "neuralNetworkTimeEstimation": 5400
+        }
+      }
+    }, "0"]]
+
+The server changed the "neuralNetworkTimeEstimation" property on the object as part of this change; as this changed in a way *not* explicitly requested by the PatchObject sent to the server, it is returned with the "updated" confirmation.
+
+Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user will receive a push notification (see later in the spec) with the changed state string for the "Todo" type. Since the new string does not match its current state, it knows it needs to check for updates. It may make a request like:
+
+    [["Todo/changes", {
+      "accountId": "x",
+      "sinceState": "10324",
+      "maxChanges": 50,
+    }, "0"],
+    ["Todo/queryChanges", {
+      "filter": { "hasKeyword": "music" },
+      "sort": [{ "property": "title" }],
+      "sinceState": "y13213"
+      "maxChanges": 50,
+    }, "1"]]
+
+and receive in response:
+
+    [["Todo/changes", {
+      "accountId": "x",
+      "oldState": "10324",
+      "newState": "871903",
+      "hasMoreChanges": false,
+      "changed": null,
+      "removed": ["b"]
+    }, "0"],
+    ["Todo/queryChanges", {
+      "filter": { "hasKeyword": "music" },
+      "sort": [{ "property": "title" }],
+      "oldState": "y13213"
+      "newState": "y13218"
+      "total": 25,
+      "removed": ["b"],
+      "added": null
+    }, "1"]]
