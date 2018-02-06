@@ -1,15 +1,25 @@
 # Emails
 
-An **Email** object is a JSON representation of an [@!RFC5322] message that hides the complexities of MIME. All special encodings of either headers or textual body parts, such as Base64 ([@!RFC4648]), or [@!RFC2047] encoding of non-ASCII characters, MUST be fully decoded into UTF-8. It has the following properties:
+The **Email** object is a representation of an [@!RFC5322] message, which allows clients to avoid the complexities of MIME parsing, transport encoding and character encoding.
+
+## Properties of the Email object
+
+Broadly, a message consists of two parts: a list of header fields, then a body. The body is normally a MIME-encoded set of documents in a tree structure. The JMAP Email object provides a way to access the full structure, or to use simplified properties and avoid some complexity if this is sufficient for the client application.
+
+Due to the number of properties involved, the set of *Email* properties is specified over the following three sub-sections.
+
+### Metadata
+
+These properties represent metadata about the [@!RFC5322] message, and are not derived from parsing the message itself.
 
 - **id**: `String` (immutable; server-set)
-  The id of the email. Note, this is the JMAP object id, NOT the [@!RFC5322] Message-Id header.
+  The id of the Email object. Note, this is the JMAP object id, NOT the [@!RFC5322] Message-Id header field value.
 - **blobId**: `String` (immutable; server-set)
-  The id representing the raw bytes of the [@!RFC5322] message. This may be used to download the original message or to attach it directly to another email etc.
+  The id representing the raw bytes of the [@!RFC5322] message. This may be used to download the raw original message, or to attach it directly to another Email etc.
 - **threadId**: `String` (immutable; server-set)
-  The id of the thread to which this email belongs.
+  The id of the Thread to which this Email belongs.
 - **mailboxIds**: `String[Boolean]`
-  The set of mailbox ids this email is in. An email MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
+  The set of mailbox ids this email belongs to. An email MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
 - **keywords**: `String[Boolean]` (default: `{}`)
   A set of keywords that apply to the email. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 
@@ -30,102 +40,217 @@ An **Email** object is a JSON representation of an [@!RFC5322] message that hide
     - `$Phishing`: The email is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this email and disable links and attachments.
     - `$Junk`: The email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
     - `$NotJunk`: The email is definitely not spam. Clients SHOULD set this flag when users indicate an email is legitimate, to help train automated spam-detection systems.
-- **hasAttachment**: `Boolean` (immutable; server-set)
-  This is `true` if and only if the *attachments* property for the Email contains at least one entry where *isInline* is `false`.
-- **headers**: `String[String]` (immutable; default: `{}`)
-  A map of lower-cased header name to (decoded) header value for all headers in the email. For headers that occur multiple times (e.g. `Received`), the values are concatenated with a single new line (`\n`) character in between each one.
-- **sender**: `Emailer|null` (immutable; default: `null`)
-  An Emailer object (see below) containing the name/email from the parsed `Sender` header of the email. If the email doesn't have a `Sender` header, this is `null`.
-- **from**: `Emailer[]|null` (immutable; default: `null`)
-  An array of name/email objects (see below) representing the parsed `From` header of the email, in the same order as they appear in the header. If the email doesn't have a `From` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **to**:  `Emailer[]|null` (immutable; default: `null`)
-  An array of name/email objects (see below) representing the parsed `To` header of the email, in the same order as they appear in the header. If the email doesn't have a `To` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **cc**:  `Emailer[]|null` (immutable; default: `null`)
-  An array of name/email objects (see below) representing the parsed `Cc` header of the email, in the same order as they appear in the header. If the email doesn't have a `Cc` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **bcc**:  `Emailer[]|null` (immutable; default: `null`)
-  An array of name/email objects (see below) representing the parsed `Bcc` header of the email. If the email doesn't have a `Bcc` header (which will be true for most emails outside of the Sent mailbox), this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **replyTo**: `Emailer[]|null` (immutable; default: `null`)
-  An array of name/email objects (see below) representing the parsed `Reply-To` header of the email, in the same order as they appear in the header. If the email doesn't have a `Reply-To` header, this is `null`. If the header exists but does not have any content, the response is an array of zero length.
-- **subject**: `String` (immutable; default: `""`)
-  The subject of the email. If none, defaults to the empty string, not `null`.
-- **sentAt**: `Date` (immutable; default: time of creation on server)
-  The parsed date from the email's *Date* header.
-- **receivedAt**: `UTCDate` (immutable; default: time of creation on server)
-  The date the email was received by the message store. This is the *internal date* in IMAP.
+
 - **size**: `Number` (immutable; server-set)
   The size in bytes of the whole email as counted by the server towards the user's quota.
-- **preview**: `String` (immutable; server-set)
-  Up to 256 characters of the beginning of a plain text version of the message body. This is intended to be shown as a preview line on a mailbox listing, and the server may choose to skip quoted sections or salutations to return a more useful preview.
-- **textBody**: `String` (immutable; default: `""`)
-  The plain text body part for the message. If there is only an HTML version of the body, a plain text version MUST be generated from this; the exact method of conversion in this case is not defined and is server-specific. If there is neither a `text/plain` nor a `text/html` body part, this MUST be the empty string.
-- **htmlBody**: `String|null` (immutable; default: `null`)
-  The HTML body part for the message if present.
-- **attachments**: `Attachment[]|null` (default: `null`)
-  An array of attachment objects (see below) detailing all the attachments to the email.
-- **attachedEmails**: `String[Email]|null` (immutable; server-set)
-  An object mapping attachment id (as found in the `attachments` property) to a **Email** object with the following properties, for each [@!RFC5322] message attached to this one:
+- **receivedAt**: `UTCDate` (immutable; default: time of creation on server)
+  The date the email was received by the message store. This is the *internal date* in IMAP.
 
-    - headers
-    - from
-    - to
-    - cc
-    - bcc
-    - replyTo
-    - subject
-    - date
-    - textBody
-    - htmlBody
-    - attachments
-    - attachedEmails
+### Header fields
 
-    This property is set by the server based on the *attachments* property.
+These properties are derived from the [@!RFC5322] message header fields. Header fields may be fetched in a variety of forms:
 
-An **Emailer** object has the following properties:
+- **Decoded**
+  The header field value with:
+
+    1. White space unfolded (as defined in [@!RFC5322] section 2.2.3)
+    2. The terminating CRLF at the end of the value removed
+    3. Any SP characters at the beginning of the value removed
+    4. Any [@!RFC2047] encoded sections decoded
+    5. Any [@!RFC6532] UTF-8 values decoded
+
+    If any decodings fail, the parser SHOULD insert a unicode replacement
+    character (U+FFFD) and attempt to continue as much as possible.
+
+- **Raw Base64**
+  The raw bytes of the header field value from the first byte following the header field name terminating colon, up to but excluding the header field terminating CRLF, encoded as Base64 ([@!RFC4648]). (Note, this is required as the value may not be valid UTF-8 if 8-bit values are present.)
+
+- **Addresses**
+  The header is parsed as an `address-list` value, as specified in [@!RFC5322] section 3.4, into the `EmailAddress[]` type. The **EmailAddress** object has the following properties:
+
+    - **name**: `String|null`
+      The *display name* of the [@!RFC5322] *mailbox* or *group*, or `null` if none.
+    - **email**: `String|null`
+      The *addr-spec* of the [@!RFC5322] *mailbox*, or `null` if a *group*.
+
+  Parsing SHOULD be best-effort in the face of invalid structure to accommodate
+  invalid messages and semi-complete drafts. EmailAddress objects MAY have an *email* property that does not conform to the *addr-spec* form (for example, may not contain an @ symbol).
+
+- **Date**
+  The header is parsed as a `date-time` value, as specified in [@!RFC5322] section 3.3, into the `Date` type.
+
+The following **Email** properties are specified for complete access to the header data of the message. Where `{header-field-name}` is specified within a property name, this means any series of one or more printable US-ASCII characters (i.e. characters that have values between 33 and 126, inclusive), except colon:
+
+- **headers**: `EmailHeader[]` (immutable)
+  This is a list of all [@!RFC5322] header fields, in the same order they appear in the message. The values are in *Decoded* form.
+- **headers:asRaw**: `EmailHeader[]` (immutable)
+  This is a list of all [@!RFC5322] header fields, in the same order they appear in the message. The values are in *Raw Base64* form.
+- **header:{header-field-name}**: `String|null` (immutable)
+  The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none. The value is in *Decoded* form.
+- **header:{header-field-name}:asRaw**: `String|null` (immutable)
+  The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none. The value is in *Raw Base64* form.
+- **header:{header-field-name}:asAddresses**: `EmailAddress[]|null` (immutable)
+  The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none. The value is in *Addresses* form.
+- **header:{header-field-name}:asDate**: `Date|null` (immutable)
+  The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none. The value is in *Date* form.
+
+An **EmailHeader** object has the following properties:
 
 - **name**: `String`
-  The name of the sender/recipient. If a name cannot be extracted for an email, this property SHOULD be the empty string.
-- **email**: `String`
-  The email address of the sender/recipient. This MUST be of the form `"<mailbox>@<host>"` If a `host` or even `mailbox` cannot be extracted for an email, the empty string SHOULD be used for this part (so the result MUST always still contain an `"@"` character).
+  The header *field name* as defined in RFC5322, with the same capitalization that it has in the message.
+- **value**: `String`
+  The header *field value* as defined in RFC5322, in either *Decoded* or *Raw Base64* form as determined by the property being fetched.
 
-Group information and comments from the RFC 5322 header MUST be discarded when converting into an Emailer object.
+The following convenience properties are also specified for the **Email** object:
 
-Example array of Emailer objects:
+- **sender**: `EmailAddress[]|null` (immutable)
+  The value is identical to the value of *header:Sender:asAddresses*.
+- **from**: `EmailAddress[]|null` (immutable)
+  The value is identical to the value of *header:From:asAddresses*.
+- **to**:  `EmailAddress[]|null` (immutable)
+  The value is identical to the value of *header:To:asAddresses*.
+- **cc**:  `EmailAddress[]|null` (immutable)
+  The value is identical to the value of *header:Cc:asAddresses*.
+- **bcc**:  `EmailAddress[]|null` (immutable)
+  The value is identical to the value of *header:Bcc:asAddresses*.
+- **replyTo**: `EmailAddress[]|null` (immutable)
+  The value is identical to the value of *header:Reply-To:asAddresses*.
+- **subject**: `String|null` (immutable)
+  The value is identical to the value of *header:Subject*.
+- **sentAt**: `Date` (immutable; default: time of creation on server)
+  The value is identical to the value of *header:Date:asDate*.
 
-    [
-        {name:"Joe Bloggs", email:"joeb@example.com"},
-        {name:"", email:"john@example.com"},
-        {name:"John Smith", email: "john@"}
-    ]
+### Body parts
 
-An **Attachment** object has the following properties:
+These properties are derived from the [@!RFC5322] message body and its [@RFC2045] MIME entities.
 
+A **EmailBodyPart** object has the following properties:
+
+- **partId**: `String`
+  Identifies this part uniquely within the Email. This is scoped to the *emailId* and has no meaning outside of the JMAP Email object representation.
 - **blobId**: `String`
-  The id of the binary data.
-- **type**: `String`
-  The content-type of the attachment.
-- **name**: `String|null`
-  The full file name, e.g. "myworddocument.doc", if available.
+  The id references the raw bytes of the contents of the part after decoding any *Content-Transfer* encoding (as defined in [@!RFC2045]). Note, two parts may be transfer-encoded differently but have same the same blob id if their decoded bytes are identical and the server is using a secure hash of the data for the blob id.
 - **size**: `Number`
-  The size, in bytes, of the attachment when fully decoded (i.e. the number of bytes in the file the user would download).
+  The size, in bytes, of the raw data after content-transfer decoding (as refrenced by the *blobId*, i.e. the number of bytes in the file the user would download).
+- **headers**: `EmailHeader[]` (immutable)
+  This is a list of all header fields in the part, in the order they appear. The values are in *Decoded* form.
+- **headers:asRaw**: `EmailHeader[]` (immutable)
+  This is a list of all header fields in the part, in the order they appear. The values are in *Raw Base64* form.
+- **name**: `String|null`
+  This is the [@!RFC2231] decoded *filename* parameter of the *Content-Disposition* header field, or (for compatibility with existing systems) if not present then the [@!RFC2047] decoded *name* property of the *Content-Type* header field. For compatibility with the widest array of existing systems, both forms should be set if creating a message.
+- **type**: `String`
+  The value of the *Content-Type* header field of the part, excluding any parameters.
+- **charset**: `String|null`
+  The value of the charset parameter of the *Content-Type* header field, if present.
+- **disposition**: `String|null`
+  The value of the *Content-Disposition* header field of the part, excluding any parameters, if present.
 - **cid**: `String|null`
-  The id used within the message body to reference this attachment. This is only unique when paired with the email id, and has no meaning without reference to that.
-- **isInline**: `Boolean`
-  True if the attachment is referenced by a `cid:` link from within the HTML body of the message.
-- **width**: `Number|null` (optional, server MAY omit if not supported)
-  The width (in px) of the image, if the attachment is an image.
-- **height**: `Number|null` (optional, server MAY omit if not supported)
-  The height (in px) of the image, if the attachment is an image.
+  The value of the *Content-Id* header field of the part, if present. This may be used to reference the content from within an html body part using the `cid:` protocol.
+- **language**: `String[]|null`
+  The list of language tags, as defined in [@!RFC3282], in the *Content-Language* header field of the part, if present.
+- **location**: `String|null`
+  The URI, as defined in [@!RFC2557], in the *Content-Location* header field of the part, if present.
+- **width**: `Number|null`
+  The width (in px) of the image, if the type is an image and the server is able to determine this information for the image. This MAY not be supported for all or any image types on some servers.
+- **height**: `Number|null`
+  The height (in px) of the image, if the type is an image and the server is able to determine this information for the image. This MAY not be supported for all or any image types on some servers.
+- **subParts**: `EmailBodyPart[]` (optional)
+  If type is `multipart/*`, this contains the body parts of each child.
 
-To add an attachment, the file must first be uploaded using the standard upload mechanism; this will give the client a blobId that may be used to identify the file. The `cid` property may be assigned by the client, and is solely used for matching up with `cid:<id>` links inside the `htmlBody`.
+The following **Email** properties are specified for access to the body data of the message:
 
-The following JMAP methods are supported:
+- **bodyStructure**: `EmailBodyPart[]` (immutable)
+  This is the full MIME structure of the message body, including sub parts but not recursing into `message/rfc822` parts.
+- **bodyValues**: `String[BodyValue]` (immutable)
+  This is a map of *partId* to an **EmailBodyValue** object. Which parts are included and whether the value is truncated is determined by various arguments to *Email/get* and *Email/parse*.
+
+    An **EmailBodyValue** object has the following properties:
+
+    * **value**: `String`
+      The value of the body part after decoding *Content-Transport* encoding and
+      decoding the *Content-Type* charset.
+    * **isTruncated** `Boolean`
+      This is `true` if the *value* has been truncated.
+
+- **textBody**: `EmailBodyPart[]` (immutable)
+  A list of `text/plain`, `text/html` and `image/*` parts to display (sequentially) as the message body, with a preference for `text/plain` when alternative versions are available.
+- **htmlBody**: `EmailBodyPart[]` (immutable)
+  A list of `text/plain`, `text/html` and `image/*` parts to display (sequentially) as the message body, with a preference for `text/html` when alternative versions are available.
+- **attachedEmails**: `EmailBodyPart[]` (immutable)
+  A list of all parts of type `message/rfc822`. Note, this **does not** recurse, so the parts within these are not included. The attached message may be fetched using the Email/parse method and the blobId.
+- **attachedFiles**: `EmailBodyPart[]` (immutable)
+  A list of all parts in *bodyStructure*, traversing depth-first, not of type `multipart/*`, and not included in any of the *textBody*, *htmlBody* or *attachedEmails* properties. Note, an HTML body part may reference image parts in attachedFiles using `cid:` links to reference the *Content-Id* or by referencing the *Content-Location*.
+- **hasAttachment**: `Boolean` (immutable; server-set)
+  This is `true` if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment if either:
+
+    * The *attachedEmails* list contains at least one item.
+    * The *attachedFiles* list contains at least one item that does not have
+      `Content-Disposition: attachment`. The server MAY ignore parts in this list that are processed automatically in some way, or are referenced as embedded images in one of the `text/html` parts of the message.
+
+    The server MAY set hasAttachment based on implementation-defined or site configurable heuristics.
+
+- **preview**: `String` (immutable; server-set)
+  Up to 256 characters of the beginning of a plain text version of the message body. This is intended to be shown as a preview line on a mailbox listing, and the server may choose to skip quoted sections or salutations to return a more useful preview.
+
+MIME structures are arbitrary nested trees of documents, but the majority of email clients present a model of an email body (normally plain text or HTML), with a set of attachments. Interpreting the MIME structure to form this flat model represents considerable difficulty and causes inconsistency between clients. Therefore in addition to the *bodyStructure* property, which gives the full tree, the Email object contains 4 alternate properties with flat lists of body parts:
+
+- *textBody*/*htmlBody*: These provide a list of parts that should be
+  rendered as the "body" of the message. This is a list rather than a single part as messages may have headers and/or footers appended/prepended as separate parts as they are transmitted, and some clients send text and images intended to be displayed inline in the body as multiple parts rather than a single HTML part with referenced images.
+
+  Because MIME allows for multiple representations of the same data (using `multipart/alternative`), there is a textBody property (which prefers a plain text representation) and an htmlBody property (which prefers an HTML representation) to accommodate the two most common client requirements. The same part may appear in both lists where there is no alternative between the two.
+
+- *attachedEmails*/*attachedFiles*: These provide a list of parts that should
+  be presented as "attachments" to the message. Emails are presented in a separate list so their contents may be easily fetched via a back-reference with the `Email/parse` method in the same request, if the client wishes to. Some images in attachedFiles may be solely there for embedding within an HTML body part; clients may wish to not present these as attachments in the user interface if they are displaying the HTML with the embedded images directly.
+
+The *bodyValues* property allows for clients to fetch the value of text parts directly without having to do a second request for the blob, and have the server handle decoding the charset into unicode. This data is in a separate property rather than on the EmailBodyPart object to avoid duplication of large amounts of data, as the same part may be included twice if the client fetches more than one of bodyStructure, textBody and htmlBody.
+
+The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attachedEmails and attachedFiles part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time.
+
+However, we will define a suggested algorithm for the RFC to help implementors. TODO.
 
 ## Email/get
 
-Standard */get* method, except the client may use the following pseudo values in the *properties* argument:
+Standard */get* method, with the following additional arguments:
 
-- **body**: If `"body"` is included in the list of requested properties, it MUST be interpreted by the server as a request for `"htmlBody"` if the email has an HTML part, or `"textBody"` otherwise.
-- **headers.property**: Instead of requesting all the headers (by requesting the `"headers"` property, the client may specify the particular headers it wants using the `headers.property-name` syntax, e.g. `"headers.x-spam-score", "headers.x-spam-hits"`). The server MUST return a *headers* property but with just the requested headers in the object rather than all headers. If `"headers"` is requested, the server MUST ignore the individual header requests and just return all headers. If a requested header is not present in the email, it MUST NOT be present in the *headers* object. Header names are case-insensitive.
+- **bodyProperties**: `String[]` (optional)
+  A list of properties to fetch for each EmailBodyPart returned. If omitted, this defaults to:
+
+    [ "partId", "blobId", "size", "name", "type", "charset", "disposition", cid", "language", "location", "width", "height" ]
+
+- **fetchTextBodyValues**: `Boolean` (default: `false`)
+  If `true`, the *bodyValues* property includes any `text/*` part in the `textBody` property.
+- **fetchHTMLBodyValues**: `Boolean` (default: `false`)
+  If `true`, the *bodyValues* property includes any `text/*` part in the `htmlBody` property.
+- **fetchAllBodyValues**: `Boolean` (default: `false`)
+  If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
+- **maxBodyValueBytes**: `Number` (optional)
+  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of bytes in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
+
+If the standard *properties* argument is omitted or `null`, the following default MUST be used instead of "all" properties:
+
+    [ "id", "blobId", "threadId", "mailboxIds", "keywords", "size", "receivedAt", "sender", "from", "to", "cc", "bcc", "replyTo", "subject", "sentAt", "hasAttachment", "preview", "bodyValues", "textBody", "htmlBody", "attachedFiles", "attachedEmails" ]
+
+The following properties are expected to be fast to fetch in a quality implementation:
+
+- id
+- blobId
+- threadId
+- mailboxIds
+- keywords
+- size
+- receivedAt
+- sender
+- from
+- to
+- cc
+- bcc
+- replyTo
+- subject
+- sentAt
+- hasAttachment
+- preview
+
+Clients SHOULD take care when fetching any other properties, as there may be significantly longer latency in fetching and returning the data.
 
 ### Example
 
@@ -133,7 +258,10 @@ Request:
 
     ["Email/get", {
       "ids": [ "f123u456", "f123u457" ],
-      "properties": [ "threadId", "mailboxIds", "from", "subject", "date" ]
+      "properties": [ "threadId", "mailboxIds", "from", "subject", "receivedAt", "htmlBody", "bodyValues" ],
+      "bodyProperties": [ "partId", "blobId", "size", "type" ],
+      "fetchHTMLBodyValues": true,
+      "maxBodyValueBytes": 256
     }, "#1"]
 
 and response:
@@ -143,12 +271,33 @@ and response:
       "state": "41234123231",
       "list": [
         {
-          id: "f123u457",
-          threadId: "ef1314a",
-          mailboxIds: { "f123": true },
-          from: [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
-          subject: "Dinner on Thursday?",
-          date: "2013-10-13T14:12:00Z"
+          "id": "f123u457",
+          "threadId": "ef1314a",
+          "mailboxIds": { "f123": true },
+          "from": [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
+          "subject": "Dinner on Thursday?",
+          "receivedAt": "2013-10-13T14:12:00Z",
+          "htmlBody": [{
+            "partId": "1",
+            "blobId": "841623871",
+            "size": 283331,
+            "type": "text/html"
+          }, {
+            "partId": "2",
+            "blobId": "319437193",
+            "size": 10343,
+            "type": "text/plain"
+          }],
+          "bodyValues": {
+            "1": {
+              "isTruncated": true,
+              "value": "<html><body><p>Hello ..."
+            },
+            "2": {
+              "isTruncated": false,
+              "value": "-- \nSent by your friendly mailing list ..."
+            }
+          }
         }
       ],
       notFound: [ "f123u456" ]
@@ -195,7 +344,7 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **hasAttachment**: `Boolean`
   The `hasAttachment` property of the email must be identical to the value given to match the condition.
 - **text**: `String`
-  Looks for the text in emails. The server SHOULD look up text in the *from*, *to*, *cc*, *bcc*, *subject*, *textBody*, *htmlBody* or *attachments* properties of the email. The server MAY extend the search to any additional textual property.
+  Looks for the text in emails. The server SHOULD look up text in the *from*, *to*, *cc*, *bcc*, *subject* properties of the email, and inside any `text/*` or other body parts that may converted to text by the server. The server MAY extend the search to any additional textual property.
 - **from**: `String`
   Looks for the text in the *from* property of the email.
 - **to**: `String`
@@ -207,11 +356,11 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **subject**: `String`
   Looks for the text in the *subject* property of the email.
 - **body**: `String`
-  Looks for the text in the *textBody* or *htmlBody* property of the email.
+  Looks for the text in one of the `text/*` body parts of the email.
 - **attachments**: `String`
   Looks for the text in the attachments of the email. Server MAY handle text extraction when possible for the different kinds of media.
 - **header**: `String[]`
-  The array MUST contain either one or two elements. The first element is the name of the header to match against. The second (optional) element is the text to look for in the header. If not supplied, the email matches simply if it *has* a header of the given name.
+  The array MUST contain either one or two elements. The first element is the name of the header to match against. The second (optional) element is the text to look for in the *Decoded* form of the header. If not supplied, the email matches simply if it *has* a header of the given name.
 
 If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
 
@@ -221,7 +370,7 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 - Text contained in either (but matched) single or double quotes SHOULD be treated as a **phrase search**, that is a match is required for that exact word or sequence of words, excluding the surrounding quotation marks. Use `\"`, `\'` and `\\` to match a literal `"`, `'` and `\` respectively in a phrase.
 - Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the email, but MUST all be present for the email to match the filter.
 - Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for `bus` would match "buses" but not "business").
-- When searching inside the *htmlBody* property, HTML tags and attributes SHOULD be ignored.
+- When searching inside the a `text/html` body part, HTML tags and attributes SHOULD be ignored.
 
 ### Sorting
 
@@ -232,13 +381,13 @@ The following properties MUST be supported for sorting:
 The following properties SHOULD be supported for sorting:
 
 - **size** - The size as returned in the Email object.
-- **from** – This is taken to be either the "name" part of the Emailer object, or if none then the "email" part of the Emailer object (see the definition of the from property in the Email object). If still none, consider the value to be the empty string.
-- **to** - This is taken to be either the "name" part of the **first** Emailer object, or if none then the "email" part of the **first** Emailer object (see the definition of the to property in the Email object). If still none, consider the value to be the empty string.
+- **from** – This is taken to be either the "name" part, or if `null`/empty then the "email" part, of the **first** EmailAddress object in the *from* property. If still none, consider the value to be the empty string.
+- **to** - This is taken to be either the "name" part, or if `null`/empty then the "email" part, of the **first** EmailAddress object in the *to* property. If still none, consider the value to be the empty string.
 - **subject** - This is taken to be the base subject of the email, as defined in section 2.1 of [@!RFC5256].
 - **sentAt** - The *sentAt* property on the Email object.
-- **hasKeyword:`keyword`** - This value MUST be considered `true` if the email has the keyword, or `false` otherwise.
-- **allInThreadHaveKeyword:`keyword`** - This value MUST be considered `true` for the email if **all** of the emails in the same thread (regardless of mailbox) have the keyword.
-- **someInThreadHaveKeyword:`keyword`** - This value MUST be considered `true` for the email if **any** of the emails in the same thread (regardless of mailbox) have the keyword.
+- **hasKeyword:`{keyword}`** - (`{keyword}` is any string of characters that could be a valid keyword.) This value MUST be considered `true` if the email has the given keyword, or `false` otherwise.
+- **allInThreadHaveKeyword:`{keyword}`** - (`{keyword}` is any string of characters that could be a valid keyword.) This value MUST be considered `true` for the email if **all** of the emails in the same thread (regardless of mailbox) have the given keyword.
+- **someInThreadHaveKeyword:`{keyword}`** - (`{keyword}` is any string of characters that could be a valid keyword.) This value MUST be considered `true` for the email if **any** of the emails in the same thread (regardless of mailbox) have the given keyword.
 
 The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's *capabilities* object (see section 1).
 
@@ -291,7 +440,7 @@ Standard */set* method. The *Email/set* method encompasses:
 - Adding/removing an email to/from mailboxes (moving a message)
 - Deleting emails
 
-When creating an email, the *headers* property specifies extra headers to add in addition to any based off the parsed properties (like *from*/*to*/*subject*). The keys MUST only contain the characters a-z (lower-case only), 0-9 and hyphens. If a header is included that conflicts with one of the other properties on the Email object (e.g. *from*, *date*), the value in the *headers* object MUST be ignored.
+Due to the format of the Email object, when creating an email there are a number of ways to specify headers. The client MUST NOT supply conflicting information (for example, if a *headers* or a *headers:asRaw* property is given, no other header field property may be given as these form a complete set). Creation attempts that violate this MUST be rejected with an `invalidProperties` error.
 
 The server MAY also choose to set additional headers. If not included, the server MUST generate and set a `Message-Id` header in conformance with [@!RFC5322] section 3.6.4.
 
@@ -305,8 +454,8 @@ The following extra *SetError* types are defined:
 
 For **create**:
 
-- `attachmentNotFound`: At least one blob id given in an attachment doesn't
-  exist. An extra *notFound* property of type `String[]` MUST be included in the error object containing every *blobId* referenced in *attachments* that could not be found on the server.
+- `blobNotFound`: At least one blob id given for an EmailBodyPart doesn't
+  exist. An extra *notFound* property of type `String[]` MUST be included in the error object containing every *blobId* referenced by an EmailBodyPart that could not be found on the server.
 
 For **create** and **update**:
 
@@ -408,3 +557,43 @@ The following additional errors may be returned instead of the *Email/copy* resp
 `fromAccountNotSupportedByMethod`: The *fromAccountId* given corresponds to a valid account, but does not contain any mail data.
 
 `toAccountNotSupportedByMethod`: The *toAccountId* given corresponds to a valid account, but does not contain any mail data.
+
+## Email/parse
+
+This method allows you to parse blobs as [@!RFC5322] messages to get Email objects (excluding the metadata properties).
+
+The *Email/parse* method takes the following arguments:
+
+- **accountId**: `String|null`
+  The id of the Account to use. If `null`, the primary account is used.
+- **blobIds**: `String[]`
+  The ids of the blobs to parse.
+- **properties**: `String[]`
+  If supplied, only the properties listed in the array are returned for each Email object. If omitted, defaults to:
+
+    [ "from", "to", "cc", "bcc", "replyTo", "subject", "sentAt", "bodyValues", "textBody", "htmlBody", "attachedFiles", "attachedEmails" ]
+
+- **bodyProperties**: `String[]` (optional)
+  A list of properties to fetch for each EmailBodyPart returned. If omitted, this defaults to:
+
+    [ "partId", "blobId", "size", "name", "type", "charset", "disposition", cid", "language", "location", "width", "height" ]
+
+- **fetchTextBodyValues**: `Boolean` (default: `false`)
+  If `true`, the *bodyValues* property includes any `text/*` part in the `textBody` property.
+- **fetchHTMLBodyValues**: `Boolean` (default: `false`)
+  If `true`, the *bodyValues* property includes any `text/*` part in the `htmlBody` property.
+- **fetchAllBodyValues**: `Boolean` (default: `false`)
+  If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
+- **maxBodyValueBytes**: `Number` (optional)
+  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of bytes in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
+
+The response has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for the call.
+- **parsed**: `String[Email]|null`
+  A map of blob id to parsed Email representation for each successfully parsed blob, or `null` if none.
+- **notParsable**: `String[]|null`
+  A list of ids given that corresponded to blobs that could not be parsed as emails, or `null` if none.
+- **notFound**: `String[]|null`
+  A list of blob ids given that could not be found, or `null` if none.
