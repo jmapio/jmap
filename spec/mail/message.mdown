@@ -25,21 +25,23 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
 
     Keywords are shared with IMAP. The six system keywords from IMAP are treated specially. The following four keywords have their first character changed from `\` in IMAP to `$` in JMAP and have particular semantic meaning:
 
-    - `$Draft`: The email is a draft the user is composing.
-    - `$Seen`: The email has been read.
-    - `$Flagged`: The email has been flagged for urgent/special attention.
-    - `$Answered`: The email has been replied to.
+    - `$draft`: The email is a draft the user is composing.
+    - `$seen`: The email has been read.
+    - `$flagged`: The email has been flagged for urgent/special attention.
+    - `$answered`: The email has been replied to.
 
     The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP.
 
-    Users may add arbitrary keywords to an email. For compatibility with IMAP, a keyword is a (case-sensitive) string of 1–255 characters in the ASCII subset %x21–%x7e (excludes control chars and space), and MUST NOT include any of these characters: `( ) { ] % * " \`
+    Users may add arbitrary keywords to an email. For compatibility with IMAP, a keyword is a case-insensitive string of 1–255 characters in the ASCII subset %x21–%x7e (excludes control chars and space), and MUST NOT include any of these characters: `( ) { ] % * " \`
+
+    Because JSON is case-sensitive, servers MUST return keywords in lower-case.
 
     The [IANA Keyword Registry](https://www.iana.org/assignments/imap-keywords/imap-keywords.xhtml) as established in [@!RFC5788] assigns semantic meaning to some other keywords in common use. New keywords may be established here in the future. In particular, note:
 
-    - `$Forwarded`: The email has been forwarded.
-    - `$Phishing`: The email is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this email and disable links and attachments.
-    - `$Junk`: The email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
-    - `$NotJunk`: The email is definitely not spam. Clients SHOULD set this flag when users indicate an email is legitimate, to help train automated spam-detection systems.
+    - `$forwarded`: The email has been forwarded.
+    - `$phishing`: The email is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this email and disable links and attachments.
+    - `$junk`: The email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
+    - `$notjunk`: The email is definitely not spam. Clients SHOULD set this flag when users indicate an email is legitimate, to help train automated spam-detection systems.
 
 - **size**: `Number` (immutable; server-set)
   The size in bytes of the whole email as counted by the server towards the user's quota.
@@ -394,7 +396,8 @@ The server MAY support sorting based on other properties as well. A client can d
 Example sort:
 
     [{
-      "property": "someInThreadHaveKeyword:$Flagged",
+      "property": "someInThreadHaveKeyword",
+      "keyword": "$flagged",
       "isAscending": false,
     }, {
       "property": "subject",
