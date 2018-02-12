@@ -2,6 +2,10 @@
 
 All security considerations of JMAP {TODO: insert RFC ref} apply to this specification.
 
-## EmailBodyPart value truncation
+## EmailBodyPart value
+
+Service providers typically perform security filtering on incoming email and it's important the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for *EmailBodyValue* SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mailbox host.
+
+Automatic conversion of charsets that allow hidden channels for ASCII text, such as UTF-7, have been problematic for security filters in the past so server implementations can mitigate this risk by having such conversions  off-by-default and/or separately configurable.
 
 To allow the client to restrict the volume of data it can receive in response to a request, a maximum length may be requested for the data returned for a textual body part. However, truncating the data may change the semantic meaning, for example truncating a URL changes its location. Servers that scan for links to malicious sites should take care to either ensure truncation is not at a semantically significant point, or to rescan the truncated value for malicious content before returning it.
