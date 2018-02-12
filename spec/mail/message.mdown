@@ -15,7 +15,7 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
 - **id**: `String` (immutable; server-set)
   The id of the Email object. Note, this is the JMAP object id, NOT the [@!RFC5322] Message-Id header field value.
 - **blobId**: `String` (immutable; server-set)
-  The id representing the raw bytes of the [@!RFC5322] message. This may be used to download the raw original message, or to attach it directly to another Email etc.
+  The id representing the raw octets of the [@!RFC5322] message. This may be used to download the raw original message, or to attach it directly to another Email etc.
 - **threadId**: `String` (immutable; server-set)
   The id of the Thread to which this Email belongs.
 - **mailboxIds**: `String[Boolean]`
@@ -44,7 +44,7 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
     - `$notjunk`: The email is definitely not spam. Clients SHOULD set this flag when users indicate an email is legitimate, to help train automated spam-detection systems.
 
 - **size**: `Number` (immutable; server-set)
-  The size, in bytes, of the raw data for the RFC5322 message (as referenced by the *blobId*, i.e. the number of bytes in the file the user would download).
+  The size, in octets, of the raw data for the RFC5322 message (as referenced by the *blobId*, i.e. the number of octets in the file the user would download).
 - **receivedAt**: `UTCDate` (immutable; default: time of creation on server)
   The date the email was received by the message store. This is the *internal date* in IMAP.
 
@@ -73,7 +73,7 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
     character (U+FFFD) and attempt to continue as much as possible.
 
 - **Raw**
-  The raw bytes of the header field value from the first byte following the header field name terminating colon, up to but excluding the header field terminating CRLF. Any octet or octet run with the high bit set that violates UTF-8 syntax MUST be replaced by the unicode replacement character (U+FFFD). Any NUL octet MUST be dropped.
+  The raw octets of the header field value from the first octet following the header field name terminating colon, up to but excluding the header field terminating CRLF. Any octet or octet run with the high bit set that violates UTF-8 syntax MUST be replaced by the unicode replacement character (U+FFFD). Any NUL octet MUST be dropped.
 
 - **Addresses**
   The header is parsed as an `address-list` value, as specified in [@!RFC5322] section 3.4, into the `EmailAddress[]` type. The **EmailAddress** object has the following properties:
@@ -141,9 +141,9 @@ A **EmailBodyPart** object has the following properties:
 - **partId**: `String`
   Identifies this part uniquely within the Email. This is scoped to the *emailId* and has no meaning outside of the JMAP Email object representation.
 - **blobId**: `String`
-  The id references the raw bytes of the contents of the part after decoding any *Content-Transfer* encoding (as defined in [@!RFC2045]). Note, two parts may be transfer-encoded differently but have same the same blob id if their decoded bytes are identical and the server is using a secure hash of the data for the blob id.
+  The id references the raw octets of the contents of the part after decoding any *Content-Transfer* encoding (as defined in [@!RFC2045]). Note, two parts may be transfer-encoded differently but have same the same blob id if their decoded octets are identical and the server is using a secure hash of the data for the blob id.
 - **size**: `Number`
-  The size, in bytes, of the raw data after content-transfer decoding (as referenced by the *blobId*, i.e. the number of bytes in the file the user would download).
+  The size, in octets, of the raw data after content-transfer decoding (as referenced by the *blobId*, i.e. the number of octets in the file the user would download).
 - **headers**: `EmailHeader[]` (immutable)
   This is a list of all header fields in the part, in the order they appear. The values are in *Decoded* form.
 - **headers:asRaw**: `EmailHeader[]` (immutable)
@@ -238,7 +238,7 @@ Standard */get* method, with the following additional arguments:
 - **fetchAllBodyValues**: `Boolean` (default: `false`)
   If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
 - **maxBodyValueBytes**: `Number` (optional)
-  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of bytes in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
+  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
 
 If the standard *properties* argument is omitted or `null`, the following default MUST be used instead of "all" properties:
 
@@ -342,9 +342,9 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **after**: `UTCDate`
   The *receivedAt* date of the email must be on or after this date to match the condition.
 - **minSize**: `Number`
-  The *size* of the email in bytes must be equal to or greater than this number to match the condition.
+  The *size* of the email in octets must be equal to or greater than this number to match the condition.
 - **maxSize**: `Number`
-  The size of the email in bytes must be less than this number to match the condition.
+  The size of the email in octets must be less than this number to match the condition.
 - **allInThreadHaveKeyword**: `String`
   All emails (including this one) in the same thread as this email must have the given keyword to match the condition.
 - **someInThreadHaveKeyword**: `String`
@@ -507,7 +507,7 @@ If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g. missin
 
 If the email cannot be imported because it would take the account over quota, the import should be rejected with a `maxQuotaReached` SetError.
 
-If the blob referenced is not a valid [@!RFC5322] message, the server MAY modify the message to fix errors (such as removing null bytes or fixing invalid headers). If it does this, the *blobId* on the response MUST represent the new representation and therefore be different to the *blobId* on the EmailImport object. Alternatively, the server MAY reject the import with an `invalidEmail` SetError.
+If the blob referenced is not a valid [@!RFC5322] message, the server MAY modify the message to fix errors (such as removing NUL octets or fixing invalid headers). If it does this, the *blobId* on the response MUST represent the new representation and therefore be different to the *blobId* on the EmailImport object. Alternatively, the server MAY reject the import with an `invalidEmail` SetError.
 
 The response has the following arguments:
 
@@ -600,7 +600,7 @@ The *Email/parse* method takes the following arguments:
 - **fetchAllBodyValues**: `Boolean` (default: `false`)
   If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
 - **maxBodyValueBytes**: `Number` (optional)
-  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of bytes in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
+  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
 
 The response has the following arguments:
 
