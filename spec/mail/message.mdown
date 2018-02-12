@@ -50,7 +50,7 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
 
 ### Header fields
 
-These properties are derived from the [@!RFC5322] message header fields. Header fields may be fetched in a variety of forms:
+These properties are derived from the [@!RFC5322] and [@!RFC6532] message header fields. Header fields may be fetched in a variety of forms:
 
 - **Decoded**
   The header field value with:
@@ -58,14 +58,22 @@ These properties are derived from the [@!RFC5322] message header fields. Header 
     1. White space unfolded (as defined in [@!RFC5322] section 2.2.3)
     2. The terminating CRLF at the end of the value removed
     3. Any SP characters at the beginning of the value removed
-    4. Any [@!RFC2047] encoded sections decoded
-    5. Any [@!RFC6532] UTF-8 values decoded
+    4. Any syntactically correct [@!RFC2047] encoded sections with a known
+       character set are decoded and re-encoded as a UTF-8 string with proper
+       quoting and escaping for the active [@!RFC5322] syntactic context
+       appropriate for the specific header field. Any [@!RFC2047] encoded NUL
+       octets or control characters are dropped from the decoded value. Any
+       text that looks like [@!RFC2047] syntax but violates [@!RFC2047]
+       placement or whitespace rules MUST NOT be decoded. Any [@!RFC2047]
+       content in an unrecognized header MUST NOT be decoded.
+    5. Any [@!RFC6532] UTF-8 values decoded.
+    6. The resulting unicode is converted to NFC form.
 
     If any decodings fail, the parser SHOULD insert a unicode replacement
     character (U+FFFD) and attempt to continue as much as possible.
 
-- **Raw Base64**
-  The raw bytes of the header field value from the first byte following the header field name terminating colon, up to but excluding the header field terminating CRLF, encoded as Base64 ([@!RFC4648]). (Note, this is required as the value may not be valid UTF-8 if 8-bit values are present.)
+- **Raw**
+  The raw bytes of the header field value from the first byte following the header field name terminating colon, up to but excluding the header field terminating CRLF. Any octet or octet run with the high bit set that violates UTF-8 syntax MUST be replaced by the unicode replacement character (U+FFFD). Any NUL octet MUST be dropped.
 
 - **Addresses**
   The header is parsed as an `address-list` value, as specified in [@!RFC5322] section 3.4, into the `EmailAddress[]` type. The **EmailAddress** object has the following properties:
@@ -75,22 +83,24 @@ These properties are derived from the [@!RFC5322] message header fields. Header 
     - **email**: `String|null`
       The *addr-spec* of the [@!RFC5322] *mailbox*, or `null` if a *group*.
 
+  Any syntactically correct [@!RFC2047] encoded sections with a known quoting MUST be decoded, following the same rules as for the *Decoded* form. Any [@!RFC6532] UTF-8 values MUST be decoded.
+
   Parsing SHOULD be best-effort in the face of invalid structure to accommodate
   invalid messages and semi-complete drafts. EmailAddress objects MAY have an *email* property that does not conform to the *addr-spec* form (for example, may not contain an @ symbol).
 
 - **Date**
   The header is parsed as a `date-time` value, as specified in [@!RFC5322] section 3.3, into the `Date` type.
 
-The following **Email** properties are specified for complete access to the header data of the message. Where `{header-field-name}` is specified within a property name, this means any series of one or more printable US-ASCII characters (i.e. characters that have values between 33 and 126, inclusive), except colon:
+The following **Email** properties are specified for complete access to the header data of the message. Where `{header-field-name}` is specified within a property name, this means any series of one or more printable ASCII characters (i.e. characters that have values between 33 and 126, inclusive), except colon:
 
 - **headers**: `EmailHeader[]` (immutable)
   This is a list of all [@!RFC5322] header fields, in the same order they appear in the message. The values are in *Decoded* form.
 - **headers:asRaw**: `EmailHeader[]` (immutable)
-  This is a list of all [@!RFC5322] header fields, in the same order they appear in the message. The values are in *Raw Base64* form.
+  This is a list of all [@!RFC5322] header fields, in the same order they appear in the message. The values are in *Raw* form.
 - **header:{header-field-name}**: `String|null` (immutable)
   The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none. The value is in *Decoded* form.
 - **header:{header-field-name}:asRaw**: `String|null` (immutable)
-  The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none. The value is in *Raw Base64* form.
+  The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none. The value is in *Raw* form.
 - **header:{header-field-name}:asAddresses**: `EmailAddress[]|null` (immutable)
   The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none. The value is in *Addresses* form.
 - **header:{header-field-name}:asDate**: `Date|null` (immutable)
@@ -101,7 +111,7 @@ An **EmailHeader** object has the following properties:
 - **name**: `String`
   The header *field name* as defined in RFC5322, with the same capitalization that it has in the message.
 - **value**: `String`
-  The header *field value* as defined in RFC5322, in either *Decoded* or *Raw Base64* form as determined by the property being fetched.
+  The header *field value* as defined in RFC5322, in either *Decoded* or *Raw* form as determined by the property being fetched.
 
 The following convenience properties are also specified for the **Email** object:
 
@@ -137,17 +147,17 @@ A **EmailBodyPart** object has the following properties:
 - **headers**: `EmailHeader[]` (immutable)
   This is a list of all header fields in the part, in the order they appear. The values are in *Decoded* form.
 - **headers:asRaw**: `EmailHeader[]` (immutable)
-  This is a list of all header fields in the part, in the order they appear. The values are in *Raw Base64* form.
+  This is a list of all header fields in the part, in the order they appear. The values are in *Raw* form.
 - **name**: `String|null`
-  This is the [@!RFC2231] decoded *filename* parameter of the *Content-Disposition* header field, or (for compatibility with existing systems) if not present then the [@!RFC2047] decoded *name* property of the *Content-Type* header field. For compatibility with the widest array of existing systems, both forms should be set if creating a message.
+  This is the [@!RFC2231] decoded *filename* parameter of the *Content-Disposition* header field, or (for compatibility with existing systems) if not present then the [@!RFC2047] decoded *name* parameter of the *Content-Type* header field.
 - **type**: `String`
-  The value of the *Content-Type* header field of the part, excluding any parameters.
+  The value of the *Content-Type* header field of the part, if present, otherwise `null`. CFWS is removed and any parameters are stripped.
 - **charset**: `String|null`
   The value of the charset parameter of the *Content-Type* header field, if present.
 - **disposition**: `String|null`
-  The value of the *Content-Disposition* header field of the part, excluding any parameters, if present.
+  The value of the *Content-Disposition* header field of the part, if present, otherwise `null`. CFWS is removed and any parameters are stripped.
 - **cid**: `String|null`
-  The value of the *Content-Id* header field of the part, if present. This may be used to reference the content from within an html body part using the `cid:` protocol.
+  The value of the *Content-Id* header field of the part, if present, otherwise `null`. CFWS is removed. This may be used to reference the content from within an html body part using the `cid:` protocol.
 - **language**: `String[]|null`
   The list of language tags, as defined in [@!RFC3282], in the *Content-Language* header field of the part, if present.
 - **location**: `String|null`
@@ -162,16 +172,18 @@ A **EmailBodyPart** object has the following properties:
 The following **Email** properties are specified for access to the body data of the message:
 
 - **bodyStructure**: `EmailBodyPart[]` (immutable)
-  This is the full MIME structure of the message body, including sub parts but not recursing into `message/rfc822` parts.
+  This is the full MIME structure of the message body, including sub parts but not recursing into `message/rfc822` or `message/global` parts.
 - **bodyValues**: `String[BodyValue]` (immutable)
-  This is a map of *partId* to an **EmailBodyValue** object. Which parts are included and whether the value is truncated is determined by various arguments to *Email/get* and *Email/parse*.
+  This is a map of *partId* to an **EmailBodyValue** object for none, some or all `text/*` parts. Which parts are included and whether the value is truncated is determined by various arguments to *Email/get* and *Email/parse*.
 
     An **EmailBodyValue** object has the following properties:
 
     * **value**: `String`
-      The value of the body part after decoding *Content-Transport* encoding and
-      decoding the *Content-Type* charset.
-    * **isTruncated** `Boolean`
+      The value of the body part after decoding *Content-Transport-Encoding* and
+      decoding the *Content-Type* charset, if known to the server. The server MAY use heuristics to determine the charset to use for decoding if the charset is unknown, or if no charset is given, or if it believes the charset given is incorrect. Decoding is best-effort and SHOULD insert the unicode replacement character (U+FFFD) and continue when a malformed section is encountered.
+    * **isEncodingProblem**: `Boolean`
+      This is `true` if malformed sections were found while decoding the charset, or the charset was unknown.
+    * **isTruncated**: `Boolean`
       This is `true` if the *value* has been truncated.
 
 - **textBody**: `EmailBodyPart[]` (immutable)
@@ -179,7 +191,7 @@ The following **Email** properties are specified for access to the body data of 
 - **htmlBody**: `EmailBodyPart[]` (immutable)
   A list of `text/plain`, `text/html` and `image/*` parts to display (sequentially) as the message body, with a preference for `text/html` when alternative versions are available.
 - **attachedEmails**: `EmailBodyPart[]` (immutable)
-  A list of all parts of type `message/rfc822`. Note, this **does not** recurse, so the parts within these are not included. The attached message may be fetched using the Email/parse method and the blobId.
+  A list of all parts of type `message/rfc822` or `message/global`. Note, this **does not** recurse, so the parts within these are not included. The attached message may be fetched using the Email/parse method and the blobId.
 - **attachedFiles**: `EmailBodyPart[]` (immutable)
   A list of all parts in *bodyStructure*, traversing depth-first, not of type `multipart/*`, and not included in any of the *textBody*, *htmlBody* or *attachedEmails* properties. Note, an HTML body part may reference image parts in attachedFiles using `cid:` links to reference the *Content-Id* or by referencing the *Content-Location*.
 - **hasAttachment**: `Boolean` (immutable; server-set)
@@ -187,7 +199,7 @@ The following **Email** properties are specified for access to the body data of 
 
     * The *attachedEmails* list contains at least one item.
     * The *attachedFiles* list contains at least one item that does not have
-      `Content-Disposition: attachment`. The server MAY ignore parts in this list that are processed automatically in some way, or are referenced as embedded images in one of the `text/html` parts of the message.
+      `Content-Disposition: inline`. The server MAY ignore parts in this list that are processed automatically in some way, or are referenced as embedded images in one of the `text/html` parts of the message.
 
     The server MAY set hasAttachment based on implementation-defined or site configurable heuristics.
 

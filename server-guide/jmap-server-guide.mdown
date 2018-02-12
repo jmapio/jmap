@@ -474,6 +474,12 @@ For other filters, you can use the following algorithm instead, but it does requ
       }
     } # End loop
 
+## Conversion between RFC5322 messages and JMAP Email objects
+
+Extra advice on conversion:
+
+* When encoding the *name* property for an EmailBodyPart (i.e. an attachment's
+  file name), for the most compatibility with existing clients you should RFC2231 encode the name as the *filename* parameter of the *Content-Disposition* MIME header, and also RFC2047 encode it as the *name* parameter of the *Content-Type* header (despite the latter being technically invalid).
 
 ## Vacation
 
