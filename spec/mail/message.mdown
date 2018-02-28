@@ -79,7 +79,11 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
   The header is parsed as an `address-list` value, as specified in [@!RFC5322] section 3.4, into the `EmailAddress[]` type. The **EmailAddress** object has the following properties:
 
     - **name**: `String|null`
-      The *display name* of the [@!RFC5322] *mailbox* or *group*, or `null` if none.
+      The *display-name* of the [@!RFC5322] *mailbox* or *group*, or `null` if none. If this is a *quoted-string*:
+      1. The surrounding DQUOTE characters are removed.
+      2. Any *quoted-pair* is decoded.
+      3. White-space is unfolded, and then any leading or trailing white-space
+         is removed.
     - **email**: `String|null`
       The *addr-spec* of the [@!RFC5322] *mailbox*, or `null` if a *group*.
 
