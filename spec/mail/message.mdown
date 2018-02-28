@@ -62,9 +62,9 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
     2. The terminating CRLF at the end of the value removed
     3. Any SP characters at the beginning of the value removed
     4. Any syntactically correct [@!RFC2047] encoded sections with a known
-       character set are decoded. Any [@!RFC2047] encoded NUL octets or control characters are dropped from the decoded value. Any text that looks like [@!RFC2047] syntax but violates [@!RFC2047] placement or whitespace rules MUST NOT be decoded.
+       character set decoded. Any [@!RFC2047] encoded NUL octets or control characters are dropped from the decoded value. Any text that looks like [@!RFC2047] syntax but violates [@!RFC2047] placement or whitespace rules MUST NOT be decoded.
     5. Any [@!RFC6532] UTF-8 values decoded.
-    6. The resulting unicode is converted to NFC form.
+    6. The resulting unicode converted to NFC form.
 
     If any decodings fail, the parser SHOULD insert a unicode replacement
     character (U+FFFD) and attempt to continue as much as possible.
@@ -129,7 +129,7 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
   * Any header not defined in [@!RFC5322] or [@!RFC2369]
 
 - **URL**
-  The header is parsed as a URL, as described in [@!RFC2369]. This does not include the surrounding angle brackets or any comments in the header with the URL.
+  The header is parsed as a URL, as described in [@!RFC2369], into the `String` type. This does not include the surrounding angle brackets or any comments in the header with the URL.
 
   To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
@@ -153,7 +153,8 @@ The following low-level **Email** properties are specified for complete access t
 
 - **header:{header-field-name}**: `String|null` (immutable)
   The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none. The value is in *Raw* form.
-- **header:{header-field-name}:as{header-form}**: `String|null` (immutable)
+- **header:{header-field-name}:as{header-form}**:
+    `String|String[]|EmailAddress[]|Date|null` (immutable)
   The value of the *last* header field in the message with the given header field name (matched case-insensitively), or `null` if none, decoded according to the parsing algorithm given.
 
 The following convenience properties are also specified for the **Email** object:
