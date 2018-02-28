@@ -4,7 +4,7 @@ The client may make an API request to the server to get or set structured data. 
 
 ## Making an API request
 
-To make an API request, the client makes an authenticated POST request to the API resource, the location of which may be found on the JMAP session object.
+To make an API request, the client makes an authenticated POST request to the API resource, the location of which may be found on the JMAP Session object.
 
 The request MUST consist of a single **Request** object, encoded in UTF-8. If successful, the response MUST be of type `application/json` and consist of a single **Response** object.
 
@@ -15,7 +15,7 @@ A **Request** object has the following properties:
 - **using**: `String[]`
   The set of capabilities the client wishes to use. The client MAY include capability identifiers even if the method calls it makes do not utilise those capabilities.
 
-    The server advertises the set of specifications it supports in the JMAP session resource, as keys on the *capabilities* property.
+    The server advertises the set of specifications it supports in the JMAP Session object, as keys on the *capabilities* property.
 
 - **methodCalls**: `Array[]`
   An array of method calls to process on the server. The method calls MUST be processed sequentially, in order.
@@ -525,7 +525,7 @@ A call to *Foo/query* takes the following arguments:
     - **isAscending**: `Boolean` (optional; default: `true`)
       If true, sort in ascending order. If false, reverse the comparator's results to sort in descending order.
     - **collation**: `String` (optional; default is server-dependent)
-      The identifier, as registered in the collation registry defined in [@!RFC4790], for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the JMAP session resource.
+      The identifier, as registered in the collation registry defined in [@!RFC4790], for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the JMAP Session object.
 
         If omitted, the default algorithm is server-dependent, but:
 

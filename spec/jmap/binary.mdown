@@ -21,7 +21,7 @@ A blob that is not referenced by a JMAP object (e.g. as a message attachment), M
 
 ## Uploading binary data
 
-There is a single endpoint which handles all file uploads for an account, regardless of what they are to be used for. The JMAP session object has an *uploadUrl* property in [@!RFC6570] URI Template (level 1) format, which MAY contain a variable called `accountId`. The client may use this template in combination with an *accountId* (if required in the template) to get the URL of the file upload resource.
+There is a single endpoint which handles all file uploads for an account, regardless of what they are to be used for. The JMAP Session object has an *uploadUrl* property in [@!RFC6570] URI Template (level 1) format, which MAY contain a variable called `accountId`. The client may use this template in combination with an *accountId* (if required in the template) to get the URL of the file upload resource.
 
 To upload a file, the client submits an authenticated POST request to the file upload resource.
 
@@ -40,7 +40,7 @@ If identical binary content to an existing blob in the account is uploaded, the 
 
 ## Downloading binary data
 
-The JMAP session object has a *downloadUrl* property, which is in [@!RFC6570] URI Template (level 1) format. The URL MUST contain a variable called `blobId`, MAY contain a variable called `accountId`, and SHOULD contain a variable called `name`.
+The JMAP Session object has a *downloadUrl* property, which is in [@!RFC6570] URI Template (level 1) format. The URL MUST contain a variable called `blobId`, MAY contain a variable called `accountId`, and SHOULD contain a variable called `name`.
 
 The client may use this template in combination with an *accountId* (if required in the URL template) and *blobId* to download any binary data (files) referenced by other objects. Since a blob is not associated with a particular name, the template SHOULD allow a name to be substituted in as well; the server will return this as the filename if it sets a `Content-Disposition` header.
 
