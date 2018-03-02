@@ -158,11 +158,11 @@ The following low-level **Email** properties are specified for complete access t
 
 The following convenience properties are also specified for the **Email** object:
 
-- **messageId**: `MsgIds[]` (immutable)
+- **messageId**: `String[]` (immutable)
   The value is identical to the value of *header:Message-ID:asMessageIds*.
-- **inReplyTo**: `MsgIds[]` (immutable)
+- **inReplyTo**: `String[]|null` (immutable)
   The value is identical to the value of *header:In-Reply-To:asMessageIds*.
-- **references**: `MsgIds[]` (immutable)
+- **references**: `String[]|null` (immutable)
   The value is identical to the value of *header:References:asMessageIds*.
 - **sender**: `EmailAddress[]|null` (immutable)
   The value is identical to the value of *header:Sender:asAddresses*.
@@ -209,10 +209,6 @@ A **EmailBodyPart** object has the following properties:
   The list of language tags, as defined in [@!RFC3282], in the *Content-Language* header field of the part, if present.
 - **location**: `String|null`
   The URI, as defined in [@!RFC2557], in the *Content-Location* header field of the part, if present.
-- **width**: `Number|null`
-  The width (in px) of the image, if the type is an image and the server is able to determine this information for the image. This MAY not be supported for all or any image types on some servers.
-- **height**: `Number|null`
-  The height (in px) of the image, if the type is an image and the server is able to determine this information for the image. This MAY not be supported for all or any image types on some servers.
 - **subParts**: `EmailBodyPart[]` (optional)
   If type is `multipart/*`, this contains the body parts of each child.
 
@@ -279,7 +275,7 @@ Standard */get* method, with the following additional arguments:
 - **bodyProperties**: `String[]` (optional)
   A list of properties to fetch for each EmailBodyPart returned. If omitted, this defaults to:
 
-    [ "partId", "blobId", "size", "name", "type", "charset", "disposition", cid", "language", "location", "width", "height" ]
+    [ "partId", "blobId", "size", "name", "type", "charset", "disposition", cid", "language", "location" ]
 
 - **fetchTextBodyValues**: `Boolean` (default: `false`)
   If `true`, the *bodyValues* property includes any `text/*` part in the `textBody` property.
