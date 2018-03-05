@@ -161,20 +161,19 @@ Where `{header-field-name}` means any series of one or more printable ASCII char
     This means the value is in a parsed form, where `{header-form}` is one of the parsed-form names specified above. If not given, the value is in *Raw* form.
 
   - **:all**
-    This means the value is an array, with the items corresponding to each instance of the header field, in the order they appear in the message. If this suffix is not used, the result is the value of the **last** instance of the header field (i.e. identical to the **last** item in the array if :all is used).
+    This means the value is an array, with the items corresponding to each instance of the header field, in the order they appear in the message. If this suffix is not used, the result is the value of the **last** instance of the header field (i.e. identical to the **last** item in the array if :all is used), or `null` if none.
 
-If both suffixes are used, they MUST be specified in the order above. Header field names are matched **case-insensitively**. If no header fields exist in the message with the requested name, the value is `null`. Otherwise, the value is typed according to the requested form, or an array of that type if :all is used.
+If both suffixes are used, they MUST be specified in the order above. Header field names are matched case-insensitively. The value is typed according to the requested form, or an array of that type if :all is used. If no header fields exist in the message with the requested name, the value is `null` if fetching a single instance, or the empty array if requesting :all.
 
-As a simple example, if the client requests a property called `header:subject`, this means find the *last* header field in the message named "subject" (matched case-insensitively) and return the value in *Raw* form.
+As a simple example, if the client requests a property called `header:subject`, this means find the *last* header field in the message named "subject" (matched case-insensitively) and return the value in *Raw* form, or `null` if no header of this name is found.
 
 For a more complex example, consider the client requesting a property called `header:Resent-To:asAddresses:all`. This means:
 
-1. Find *all* header fields named Resent-To (matched
-   case-insensitively).
-2. For each instance parse the header field value in the
-   *Addresses* form.
+1. Find *all* header fields named Resent-To (matched case-insensitively).
+2. For each instance parse the header field value in the *Addresses* form.
 3. The result is of type `EmailAddress[][]` – each item in the array
-   corresponds to the parsed value (which is itself an array) of the Resent-To header field instance.
+   corresponds to the parsed value (which is itself an array) of the Resent-To
+   header field instance.
 
 The following convenience properties are also specified for the **Email** object:
 
