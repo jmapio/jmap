@@ -170,11 +170,11 @@ As a simple example, if the client requests a property called `header:subject`, 
 For a more complex example, consider the client requesting a property called `header:Resent-To:asAddresses:all`. This means:
 
 1. Find *all* header fields named Resent-To (matched
-   case-insensitively). If none, the value is `null`, and you're done.
-2. Otherwise, for each instance parse the header field value in the
+   case-insensitively).
+2. For each instance parse the header field value in the
    *Addresses* form.
-
-The result is of type `EmailAddress[][]` – each item in the array corresponds to the parsed value (which is itself an array) of the Resent-To header field instance.
+3. The result is of type `EmailAddress[][]` – each item in the array
+   corresponds to the parsed value (which is itself an array) of the Resent-To header field instance.
 
 The following convenience properties are also specified for the **Email** object:
 
@@ -285,13 +285,116 @@ MIME structures are arbitrary nested trees of documents, but the majority of ema
   Because MIME allows for multiple representations of the same data (using `multipart/alternative`), there is a textBody property (which prefers a plain text representation) and an htmlBody property (which prefers an HTML representation) to accommodate the two most common client requirements. The same part may appear in both lists where there is no alternative between the two.
 
 - *attachedEmails*/*attachedFiles*: These provide a list of parts that should
-  be presented as "attachments" to the message. Emails are presented in a separate list so their contents may be easily fetched via a back-reference with the `Email/parse` method in the same request, if the client wishes to. Some images in attachedFiles may be solely there for embedding within an HTML body part; clients may wish to not present these as attachments in the user interface if they are displaying the HTML with the embedded images directly.
+  be presented as "attachments" to the message. Emails are presented in a separate list so their contents may be easily fetched via a back-reference with the `Email/parse` method in the same request, if the client wishes to. Some images in attachedFiles may be solely there for embedding within an HTML body part; clients may wish to not present these as attachments in the user interface if they are displaying the HTML with the embedded images directly. Some parts may also be in htmlBody/textBody; again, clients may wish to not present these as attachments in the user interface if rendered as part of the body.
 
 The *bodyValues* property allows for clients to fetch the value of text parts directly without having to do a second request for the blob, and have the server handle decoding the charset into unicode. This data is in a separate property rather than on the EmailBodyPart object to avoid duplication of large amounts of data, as the same part may be included twice if the client fetches more than one of bodyStructure, textBody and htmlBody.
 
-The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attachedEmails and attachedFiles part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time.
+The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attachedEmails and attachedFiles part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time. However, the following algorithm (expressed here in JavaScript) is suggested as a starting point, based on real-world experience:
 
-However, we will define a suggested algorithm for the RFC to help implementors. TODO.
+    function parseStructure ( parts, multipartType, inAlternative,
+            htmlBody, textBody, attachedEmails, attachedFiles ) {
+
+        // For multipartType == alternative
+        let textLength = textBody ? textBody.length : -1;
+        let htmlLength = htmlBody ? htmlBody.length : -1;
+
+        for ( let i = 0; i < parts.length; i += 1 ) {
+            let part = parts[i];
+            let isMultipart = part.type.startsWith( 'multipart/' );
+            // Is this a body part rather than an attachment
+            let isInline = part.disposition != "attachment" &&
+                // Must be one of the allowed body types
+                ( part.type == "text/plain" ||
+                  part.type == "text/html" ||
+                  part.type.startsWith( 'image/' ) ) &&
+                // If not the first part and has a filename, assume attachment
+                ( i == 0 || !part.name ) &&
+                // If multipart/related, only the first part can be inline
+                ( i > 0 || multipartType != 'related' );
+
+            if ( isMultipart ) {
+                let subMultiType = part.type.split( '/' )[1];
+                parseStructure( part.subParts, subMultiType,
+                    inAlternative || ( subMultiType == 'alternative' ),
+                    htmlBody, textBody, attachedEmails, attachedFiles );
+            } else if ( isInline ) {
+                if ( inAlternative && part.type == 'text/plain' ) {
+                    htmlBody = null;
+                }
+                if ( inAlternative && part.type == 'text/html' ) {
+                    textBody = null;
+                }
+                if ( textBody ) {
+                    textBody.push( part );
+                }
+                if ( htmlBody ) {
+                    htmlBody.push( part );
+                }
+                if ( ( !textBody || !htmlBody ) &&
+                        part.type.startsWith( 'image/' ) ) {
+                    attachedFiles.push( part );
+                }
+            } else if ( part.type == 'message/rfc822' ||
+                        part.type == 'message/global' ) {
+                attachedEmails.push( part );
+            } else {
+                attachedFiles.push( part );
+            }
+
+            if ( multipartType == 'alternative' ) {
+                // Found HTML part only
+                if ( textBody && textLength == textBody.length &&
+                        htmlLength != htmlBody.length ) {
+                    for ( let i = htmlLength; i < htmlBody.length; i += 1 ) {
+                        textBody.push( htmlBody[i] );
+                    }
+                }
+                // Found plain text part only
+                if ( htmlBody && htmlLength == htmlBody.length &&
+                        textLength != textBody.length ) {
+                    for ( let i = textLength; i < textBody.length; i += 1 ) {
+                        htmlBody.push( textBody[i] );
+                    }
+                }
+            }
+        }
+    }
+
+    // Usage:
+    let htmlBody = [];
+    let textBody = [];
+    let attachedEmails = [];
+    let attachedFiles = [];
+
+    parseStructure( bodyStructure, 'mixed', false,
+        htmlBody, textBody, attachedEmails, attachedFiles );
+
+For instance, consider a message with both text and html versions that's then
+gone through a list software manager that attaches a header/footer. It might have a MIME structure something like:
+
+    multipart/mixed
+      text/plain, content-disposition=inline - A
+      multipart/mixed
+        multipart/alternative
+          multipart/mixed
+            text/plain, content-disposition=inline - B
+            image/jpeg, content-disposition=inline - C
+            text/plain, content-disposition=inline - D
+          multipart/related
+            text/html - E
+            image/jpeg - F
+        image/jpeg, content-disposition=attachment - G
+        application/x-excel - H
+        message/rfc822 - J
+      text/plain, content-disposition=inline - K
+
+In this case, the above algorithm would decompose this to:
+
+    textBody => [ A, B, C, D, K ]
+    htmlBody => [ A, E, K ]
+    attachedEmails: [ J ]
+    attachedFiles => [ C, F, G, H ]
+
 
 ## Email/get
 
