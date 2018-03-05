@@ -52,10 +52,10 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
 
 These properties are derived from the [@!RFC5322] and [@!RFC6532] message header fields. All header fields may be fetched in a raw form. Some headers may also be fetched in a parsed form. The structured form that may be fetched depends on the header. The following forms are defined:
 
-- **Raw**
+- **Raw** (`String`)
   The raw octets of the header field value from the first octet following the header field name terminating colon, up to but excluding the header field terminating CRLF. Any standards-compliant message MUST be either ASCII (RFC5322) or UTF-8 (RFC6532), however other encodings exist in the wild. A server MAY use heuristics to determine a charset and decode the octets, or MAY replace any octet or octet run with the high bit set that violates UTF-8 syntax with the unicode replacement character (U+FFFD). Any NUL octet MUST be dropped.
 
-- **Text**
+- **Text** (`String`)
   The header field value with:
 
     1. White space unfolded (as defined in [@!RFC5322] section 2.2.3)
@@ -75,7 +75,7 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
     * Comment
     * Any header not defined in [@!RFC5322] or [@!RFC2369]
 
-- **Addresses**
+- **Addresses** (`EmailAddress[]`)
   The header is parsed as an `address-list` value, as specified in [@!RFC5322] section 3.4, into the `EmailAddress[]` type. The **EmailAddress** object has the following properties:
 
     - **name**: `String|null`
@@ -108,7 +108,7 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
   * Resent-Bcc
   * Any header not defined in [@!RFC5322] or [@!RFC2369]
 
-- **MessageIds**
+- **MessageIds** (`String[]|null`)
   The header is parsed as a list of `msg-id` values, as specified in [@!RFC5322] section 3.6.4, into the `String[]` type. If parsing fails, the value is `null`.
 
   To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
@@ -119,7 +119,7 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
   * Resent-Message-ID
   * Any header not defined in [@!RFC5322] or [@!RFC2369]
 
-- **Date**
+- **Date** (`Date|null`)
   The header is parsed as a `date-time` value, as specified in [@!RFC5322] section 3.3, into the `Date` type. If parsing fails, the value is `null`.
 
   To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
@@ -128,7 +128,7 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
   * Resent-Date
   * Any header not defined in [@!RFC5322] or [@!RFC2369]
 
-- **URL**
+- **URL** (`String|null`)
   The header is parsed as a URL, as described in [@!RFC2369], into the `String` type. This does not include the surrounding angle brackets or any comments in the header with the URL. If parsing fails, the value is `null`.
 
   To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
