@@ -259,7 +259,12 @@ The following **Email** properties are specified for access to the body data of 
 - **attachedEmails**: `EmailBodyPart[]` (immutable)
   A list of all parts of type `message/rfc822` or `message/global`. Note, this **does not** recurse, so the parts within these are not included. The attached message may be fetched using the Email/parse method and the blobId.
 - **attachedFiles**: `EmailBodyPart[]` (immutable)
-  A list of all parts in *bodyStructure*, traversing depth-first, not of type `multipart/*`, and not included in any of the *textBody*, *htmlBody* or *attachedEmails* properties. Note, an HTML body part may reference image parts in attachedFiles using `cid:` links to reference the *Content-Id* or by referencing the *Content-Location*.
+  A list of all parts in *bodyStructure*, traversing depth-first, which satisfy either of the following conditions:
+
+    - not of type `multipart/*` and not included in *attachedEmails*, *textBody* or *htmlBody*
+    - of type `image/*` and not in both *textBody* and *htmlBody*
+
+    Note, an HTML body part may reference image parts in attachedFiles using `cid:` links to reference the *Content-Id* or by referencing the *Content-Location*.
 - **hasAttachment**: `Boolean` (immutable; server-set)
   This is `true` if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment if either:
 
