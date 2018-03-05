@@ -417,6 +417,8 @@ If a create, update or destroy is rejected, the appropriate error MUST be added 
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
 
+The server MAY skip an update (rejecting it with a `willDestroy` SetError) if that object is destroyed in the same /set request.
+
 Some record objects may hold references to others (foreign keys). When records are created or modified, they may reference other records being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the record being referenced is created in the same or an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to record id for each newly created record, so it can substitute in the correct value if necessary in later method calls.
 
 Creation ids are scoped by type; a separate `creation id -> id` map MUST be kept for each type for the duration of the request. Foreign key references are always for a particular record type, so use of the same creation key in two different types cannot cause any ambiguity. Creation ids sent by the client SHOULD be unique within the single API request for a particular data type. If a creation id is reused for the same type, the server MUST map the creation id to the most recently created item with that id.
@@ -468,6 +470,9 @@ The following SetError types are defined and may be returned for set operations 
 - `notFound`: (update; destroy) The id given cannot be found.
 - `invalidPatch`: (update) The PatchObject given to update the record was
   not a valid patch (see the patch description).
+- `willDestroy` (update)
+  The client requested an object be both updated and destroyed in the same
+  /set request, and the server has decided to therefore ignore the update.
 - `invalidProperties`: (create; update) The record given is invalid in
   some way. For example:
 
