@@ -47,11 +47,9 @@ A user represents a set of permissions relating to what data can be seen.
 
 ### Accounts
 
-An account is a collection of data.
+An account is a collection of data. A single account may contain an arbitrary set of data types, for example a collection of mail, contacts and calendars. Most operations in JMAP are isolated to a single account; there are a few explicit operations to copy data between them. Certain properties are guaranteed for data within the same account, for example uniqueness of ids within a type in that account.
 
-All data, other than the Account objects themselves, belong to a single account. A single account may contain an arbitrary set of data, for example a collection of mail, contacts and calendars. Most operations in JMAP are isolated to a single account; there are a few explicit operations to copy data between them. Certain properties are guaranteed for data within the same account, for example uniqueness of ids within a type in that account.
-
-An account is not the same as a user, although it is common for the primary account to directly belong to the user. For example, you may have an account that contains data for a group or business, to which multiple users have access. Users may also have access to accounts belonging to another user if that user is sharing some of their data.
+An account is not the same as a user, although it is common for the primary account to directly belong to the user. For example, you may have an account that contains data for a group or business, to which multiple users have access. Users may also have access to accounts belonging to another user if that user is sharing some of their data. A single set of credentials may provide access to data in multiple accounts.
 
 ### Data types and records
 
@@ -59,7 +57,7 @@ JMAP provides a uniform interface for creating, retrieving, updating and deletin
 
 ## Ids
 
-All object ids are assigned by the server, and are immutable. They MUST be unique among all objects of the **same type** within the **same account**. Ids may clash across accounts, or for two objects of different types within the same account.
+All record ids are assigned by the server, and are immutable. They MUST be unique among all records of the **same type** within the **same account**. Ids may clash across accounts, or for two records of different types within the same account.
 
 Ids are always `String`s. An id MUST be a valid UTF-8 string of at least 1 character in length and maximum 256 octets in size, but MUST NOT start with the `#` character, as this is reserved for doing back references during object creation (see the */set* description).
 
@@ -71,9 +69,8 @@ All HTTP requests MUST be authenticated. Servers MUST conform with the [@!RFC723
 
 Clients SHOULD understand and be able to handle standard HTTP status codes appropriately.
 
-An authenticated client can fetch the JMAP Session object with details about the data and capabilities the server can provide as shown in section 2. The client may then exchange data with the server using four different mechanisms:
+An authenticated client can fetch the JMAP Session object with details about the data and capabilities the server can provide as shown in section 2. The client may then exchange data with the server in the following ways:
 
-1. The client may make an API request to the server to get or set structured data. This request consists of an ordered series of method calls. These are processed by the server, which then returns an ordered series of responses. This is described in section 3.
-2. The client may download binary files from the server. This is detailed in section 4.
-3. The client may upload binary files to the server. This is specified in section 5.
-4. The client may connect to a push channel on the server, to be notified when data has changed. This is explained in section 6.
+1. The client may make an API request to the server to get or set structured data. This request consists of an ordered series of method calls. These are processed by the server, which then returns an ordered series of responses. This is described in sections 3 and 4.
+2. The client may download or upload binary files from/to the server. This is detailed in section 5.
+3. The client may connect to a push channel on the server, to be notified when data has changed. This is explained in section 6.
