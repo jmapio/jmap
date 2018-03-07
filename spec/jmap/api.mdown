@@ -614,7 +614,7 @@ The `Foo/queryChanges` call allows a client to efficiently update the state of a
   The current state of the client. This is the string that was returned as the *state* argument in the *Foo/query* response. The server will return the changes made since this state.
 - **maxChanges**: `Number|null`
   The maximum number of changes to return in the response. See error descriptions below for more details.
-- **uptoId**: `String|null`
+- **upToId**: `String|null`
   The last (highest-index) id the client currently has cached from the search results. When there are a large number of results, in a common case the client may have only downloaded and cached a small subset from the beginning of the results. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the results, which can significantly increase efficiency. If they are not immutable, this argument is ignored.
 
 The response has the following arguments:
@@ -629,14 +629,14 @@ The response has the following arguments:
   This is the `sinceState` argument echoed back; the state from which the server is returning changes.
 - **newState**: `String`
   This is the state the client will be in after applying the set of changes to the old state.
-- **uptoId**: `String|null`
+- **upToId**: `String|null`
   Echoed back from the call.
 - **total**: `Number`
   The total number of foos in the results (given the *filter*).
 - **removed**: `String[]`
   The *id* for every foo that was in the results in the old state and is not in the results in the new state.
 
-    If the sort and filter are both only on immutable properties and an *uptoId* is supplied and exists in the results, any ids that were removed but have a higher index than *uptoId* SHOULD be omitted.
+    If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were removed but have a higher index than *upToId* SHOULD be omitted.
 
     If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old results but are not in the new results.
 
@@ -645,7 +645,7 @@ The response has the following arguments:
 - **added**: `AddedItem[]`
   The id and index in the search results (in the new state) for every foo that has been added to the results since the old state AND every foo in the current results that was included in the *removed* array (due to a filter or sort based upon a mutable property).
 
-    If the sort and filter are both only on immutable properties and an *uptoId* is supplied and exists in the results, any ids that were added but have a higher index than *uptoId* SHOULD be omitted.
+    If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were added but have a higher index than *upToId* SHOULD be omitted.
 
     The array MUST be sorted in order of index, lowest index first.
 
