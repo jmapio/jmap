@@ -217,7 +217,7 @@ A **EmailBodyPart** object has the following properties:
 - **name**: `String|null`
   This is the [@!RFC2231] decoded *filename* parameter of the *Content-Disposition* header field, or (for compatibility with existing systems) if not present then the [@!RFC2047] decoded *name* parameter of the *Content-Type* header field.
 - **type**: `String`
-  The value of the *Content-Type* header field of the part, if present, otherwise `null`. CFWS is removed and any parameters are stripped.
+  The value of the *Content-Type* header field of the part, if present, otherwise the implicit type as per the MIME standard (`text/plain`, or `message/rfc822` if inside a `multipart/digest`). CFWS is removed and any parameters are stripped.
 - **charset**: `String|null`
   The value of the charset parameter of the *Content-Type* header field, if present.
 - **disposition**: `String|null`
