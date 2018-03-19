@@ -128,8 +128,8 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
   * Resent-Date
   * Any header not defined in [@!RFC5322] or [@!RFC2369]
 
-- **URL** (`String|null`)
-  The header is parsed as a URL, as described in [@!RFC2369], into the `String` type. This does not include the surrounding angle brackets or any comments in the header with the URL. If parsing fails, the value is `null`.
+- **URLs** (`String[]|null`)
+  The header is parsed as a list of URLs, as described in [@!RFC2369], into the `String[]` type. Values do not include the surrounding angle brackets or any comments in the header with the URLs. If parsing fails, the value is `null`.
 
   To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
@@ -451,7 +451,7 @@ Request:
 
     ["Email/get", {
       "ids": [ "f123u456", "f123u457" ],
-      "properties": [ "threadId", "mailboxIds", "from", "subject", "receivedAt", "header:List-POST:asURL" "htmlBody", "bodyValues" ],
+      "properties": [ "threadId", "mailboxIds", "from", "subject", "receivedAt", "header:List-POST:asURLs" "htmlBody", "bodyValues" ],
       "bodyProperties": [ "partId", "blobId", "size", "type" ],
       "fetchHTMLBodyValues": true,
       "maxBodyValueBytes": 256
@@ -470,7 +470,7 @@ and response:
           "from": [{name: "Joe Bloggs", email: "joe@bloggs.com"}],
           "subject": "Dinner on Thursday?",
           "receivedAt": "2013-10-13T14:12:00Z",
-          "header:List-POST:asURL": "mailto:partytime@lists.example.com",
+          "header:List-POST:asURLs": "mailto:partytime@lists.example.com",
           "htmlBody": [{
             "partId": "1",
             "blobId": "841623871",
