@@ -249,7 +249,7 @@ After executing the first 3 method calls the *methodResponses* array might be:
         },
         ...
         ],
-        "notFound": null
+        "notFound": []
     }, "t1" ],
     [ "Thread/get", {
         "accountId": "1",
@@ -263,7 +263,7 @@ After executing the first 3 method calls the *methodResponses* array might be:
         },
         ...
         ],
-        "notFound": null
+        "notFound": []
     }, "t2" ]]
 
 So to execute the final Email/get call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm:
@@ -322,8 +322,8 @@ The response has the following arguments:
 
 - **list**: `Foo[]`
   An array of the Foo objects requested. This is the **empty array** if no objects were found, or if the *ids* argument passed in was also the empty array. The results MAY be in a different order to the *ids* in the request arguments. If an identical id is included more than once in the request, the server MUST only include it once in either the *list* or *notFound* argument of the response.
-- **notFound**: `String[]|null`
-  This array contains the ids passed to the method for records that do not exist. This property is `null` if all requested ids were found, or if the *ids* argument passed in was either `null` or the empty array.
+- **notFound**: `String[]`
+  This array contains the ids passed to the method for records that do not exist. The array is empty if all requested ids were found, or if the *ids* argument passed in was either `null` or the empty array.
 
 The following additional error may be returned instead of the *Foo/get* response:
 
@@ -350,11 +350,10 @@ The response has the following arguments:
   This is the state the client will be in after applying the set of changes to the old state.
 - **hasMoreChanges**: `Boolean`
   If `true`, the client may call *Foo/changes* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
-- **changed**: `String[]|null`
-  An array of ids for records which have been created or modified but not destroyed since the oldState, or `null` if none.
-- **destroyed**: `String[]|null`
-  An array of ids for records which have been destroyed since the old state,
-  or `null` if none.
+- **changed**: `String[]`
+  An array of ids for records which have been created or modified but not destroyed since the oldState.
+- **destroyed**: `String[]`
+  An array of ids for records which have been destroyed since the old state.
 
 If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *destroyed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *Foo/changes* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
 
@@ -813,7 +812,7 @@ and receive in response:
       "oldState": "10324",
       "newState": "871903",
       "hasMoreChanges": false,
-      "changed": null,
+      "changed": [],
       "destroyed": ["b"]
     }, "0"],
     ["Todo/queryChanges", {
