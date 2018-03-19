@@ -411,7 +411,7 @@ Standard */get* method, with the following additional arguments:
 - **fetchAllBodyValues**: `Boolean` (default: `false`)
   If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
 - **maxBodyValueBytes**: `Number` (optional)
-  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
+  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
 
 If the standard *properties* argument is omitted or `null`, the following default MUST be used instead of "all" properties:
 
