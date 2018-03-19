@@ -292,9 +292,7 @@ As always, the server must be strict about data received from the client. Argume
 
 ## Concurrency
 
-Each individual method call within a request MUST be serializable; concurrent execution of methods MUST produce the same effect as running them one at a time in some order.
-
-This means that the observable ordering may interleave method calls from different concurrent API requests, such that the data on the server may change between two method calls within a single API request.
+Method calls within a single request MUST be executed in order. However, method calls from different concurrent API requests may be interleaved. This means that the data on the server may change between two method calls within a single API request.
 
 # Standard methods and naming convention
 
