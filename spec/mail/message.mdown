@@ -109,7 +109,7 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
   * Any header not defined in [@!RFC5322] or [@!RFC2369]
 
 - **MessageIds** (`String[]|null`)
-  The header is parsed as a list of `msg-id` values, as specified in [@!RFC5322] section 3.6.4, into the `String[]` type. If parsing fails, the value is `null`.
+  The header is parsed as a list of `msg-id` values, as specified in [@!RFC5322] section 3.6.4, into the `String[]` type. CFWS and surrounding angle brackets (`<>`) are removed. If parsing fails, the value is `null`.
 
   To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
@@ -223,7 +223,7 @@ A **EmailBodyPart** object has the following properties:
 - **disposition**: `String|null`
   The value of the *Content-Disposition* header field of the part, if present, otherwise `null`. CFWS is removed and any parameters are stripped.
 - **cid**: `String|null`
-  The value of the *Content-Id* header field of the part, if present, otherwise `null`. CFWS is removed. This may be used to reference the content from within an html body part using the `cid:` protocol.
+  The value of the *Content-Id* header field of the part, if present, otherwise `null`. CFWS and surrounding angle brackets (`<>`) are removed. This may be used to reference the content from within an html body part using the `cid:` protocol.
 - **language**: `String[]|null`
   The list of language tags, as defined in [@!RFC3282], in the *Content-Language* header field of the part, if present.
 - **location**: `String|null`
