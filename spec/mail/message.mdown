@@ -233,7 +233,7 @@ A **EmailBodyPart** object has the following properties:
 
 The following **Email** properties are specified for access to the body data of the message:
 
-- **bodyStructure**: `EmailBodyPart[]` (immutable)
+- **bodyStructure**: `EmailBodyPart` (immutable)
   This is the full MIME structure of the message body, including sub parts but not recursing into `message/rfc822` or `message/global` parts.
 - **bodyValues**: `String[BodyValue]` (immutable)
   This is a map of *partId* to an **EmailBodyValue** object for none, some or all `text/*` parts. Which parts are included and whether the value is truncated is determined by various arguments to *Email/get* and *Email/parse*.
@@ -365,7 +365,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
     let attachedEmails = [];
     let attachedFiles = [];
 
-    parseStructure( bodyStructure, 'mixed', false,
+    parseStructure( [ bodyStructure ], 'mixed', false,
         htmlBody, textBody, attachedEmails, attachedFiles );
 
 For instance, consider a message with both text and html versions that's then
