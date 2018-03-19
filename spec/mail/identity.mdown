@@ -6,11 +6,11 @@ An **Identity** object stores information about an email address (or domain) the
   The id of the identity.
 - **name**: `String` (default: `""`)
   The "From" *name* the client SHOULD use when creating a new message from this identity.
-- **email**: `String`
-  The "From" email address the client MUST use when creating a new message from this identity. This property is immutable. The `email` property MAY alternatively be of the form `*@example.com`, in which case the client may use any valid email address ending in `@example.com`.
-- **replyTo**: `Emailer[]|null` (default: `null`)
+- **email**: `String` (immutable)
+  The "From" email address the client MUST use when creating a new message from this identity. The value MAY alternatively be of the form `*@example.com`, in which case the client may use any valid email address ending in `@example.com`.
+- **replyTo**: `EmailAddress[]|null` (default: `null`)
   The Reply-To value the client SHOULD set when creating a new message from this identity.
-- **bcc**: `Emailer[]|null` (default: `null`)
+- **bcc**: `EmailAddress[]|null` (default: `null`)
   The Bcc value the client SHOULD set when creating a new message from this identity.
 - **textSignature**: `String` (default: `""`)
   Signature the client SHOULD insert into new plain-text messages that will be sent from this identity. Clients MAY ignore this and/or combine this with a client-specific signature preference.
@@ -18,6 +18,8 @@ An **Identity** object stores information about an email address (or domain) the
   Signature the client SHOULD insert into new HTML messages that will be sent from this identity. This text MUST be an HTML snippet to be inserted into the `<body></body>` section of the new email. Clients MAY ignore this and/or combine this with a client-specific signature preference.
 - **mayDelete**: `Boolean` (server-set)
   Is the user allowed to delete this identity? Servers may wish to set this to `false` for the user's username or other default address.
+
+See the "Addresses" header form description in the Email object for the definition of *EmailAddress*.
 
 Multiple identities with the same email address MAY exist, to allow for different settings the user wants to pick between (for example with different names/signatures).
 
