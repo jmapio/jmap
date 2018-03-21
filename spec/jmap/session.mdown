@@ -34,11 +34,11 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
       A list of the data profiles available in this account. Each future JMAP data types specification will define a profile name to encompass that set of types.
 
 - **capabilities**: `String[Object]`
-  An object specifying the capabilities of this server. Each key is a URI for a specification supported by the server. The value for each of these keys is an object with further information about the server's capabilities in relation to that specification.
+  An object specifying the capabilities of this server. Each key is a URI or an IANA-registered string for a specification supported by the server. The value for each of these keys is an object with further information about the server's capabilities in relation to that specification.
 
     The client MUST ignore any properties it does not understand.
 
-    The capabilities object MUST include a property called `ietf:jmap`. The value of this property is an object which MUST contain the following information on server capabilities:
+    The capabilities object MUST include a property called `jmap-core`. The value of this property is an object which MUST contain the following information on server capabilities:
 
     - **maxSizeUpload**: `Number`
       The maximum file size, in octets, that the server will accept for a single file upload (for any purpose).
