@@ -640,11 +640,41 @@ Standard */set* method. The *Email/set* method encompasses:
 - Adding/removing an email to/from mailboxes (moving a message)
 - Deleting emails
 
-Due to the format of the Email object, when creating an email there are a number of ways to specify headers. The client MUST NOT supply conflicting information (for example, if a *headers* property is given, no other header field property may be given as these form a complete set). Header fields MUST NOT be specified in parsed forms that are forbidden for that field. Creation attempts that violate any of this MUST be rejected with an `invalidProperties` error.
+Due to the format of the Email object, when creating an email there are a number of ways to specify the same information. To ensure that the RFC5322 email to create is unambiguous, the following constraints apply to Email objects submitted for creation:
+
+- The *headers* property MUST NOT be given, on either the top-level email or an
+  EmailBodyPart – the client must set each header field as an individual
+  property.
+- There MUST NOT be two properties that represent the same header field
+  (e.g. `header:from` and `from`) within the Email or particular EmailBodyPart.
+- Header fields MUST NOT be specified in parsed forms that are forbidden for
+  that particular field.
+- Header fields beginning `Content-` MUST NOT be specified on the Email object,
+  only on EmailBodyPart objects.
+- If a bodyStructure property is given, there MUST NOT be textBody, htmlBody,
+  attachedFiles or attachedEmails properties.
+- If given, the bodyStructure EmailBodyPart MUST NOT contain a property
+  representing a header field that is already defined on the top-level Email
+  object.
+- If given, textBody MUST contain exactly one body part, of type `text/plain`.
+- If given, htmlBody MUST contain exactly one body part, of type `text/html`.
+- Within an EmailBodyPart:
+  - The client may specify a partId OR a blobId but not both. If a partId is
+    given, this partId MUST be present in the bodyValues property.
+  - The charset property MUST be omitted if a partId is given (the part's
+    content is included in bodyValues and the server may choose any appropriate
+    encoding).
+  - The size property MUST be omitted if a partId is given. If a blobId is
+    given, it may be omitted, but otherwise MUST match the size of the blob.
+  - A `Content-Encoding` header field MUST NOT be given.
+- Within an EmailBodyValue object, isEncodingProblem and isTruncated MUST be
+  either `false` or omitted.
+
+Creation attempts that violate any of this SHOULD be rejected with an `invalidProperties` error, however a server MAY choose to modify the Email (e.g. choose between conflicting headers, use a different content-encoding etc.) to comply with its requirements instead.
 
 The server MAY also choose to set additional headers. If not included, the server MUST generate and set a `Message-ID` header field in conformance with [@!RFC5322] section 3.6.4, and a `Date` header field in conformance with section 3.6.1.
 
-Other than making sure it conforms to the correct type, the server MUST NOT attempt to validate *from*/*to*/*cc*/*bcc* (e.g. checking if an email address is valid) when creating an email. This is to ensure drafts can be saved at any point.
+The final RFC5322 email generated may be invalid. For example, if it is a half-finished draft, the "To" field may data that does not currently conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 
 Destroying an email removes it from all mailboxes to which it belonged. To  just delete an email to trash, simply change the `mailboxIds` property so it is now in the mailbox with `role == "trash"`, and remove all other mailbox ids.
 
