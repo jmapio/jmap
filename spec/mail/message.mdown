@@ -319,11 +319,26 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
                     inAlternative || ( subMultiType == 'alternative' ),
                     htmlBody, textBody, attachedEmails, attachedFiles );
             } else if ( isInline ) {
-                if ( inAlternative && part.type == 'text/plain' ) {
-                    htmlBody = null;
-                }
-                if ( inAlternative && part.type == 'text/html' ) {
-                    textBody = null;
+                if ( multipartType == 'alternative' ) {
+                    switch ( part.type ) {
+                    case 'text/plain':
+                        textBody.push( part );
+                        break;
+                    case 'text/html':
+                        htmlBody.push( part );
+                        break;
+                    default:
+                        attachedFiles.push( part );
+                        break;
+                    }
+                    continue;
+                } else if ( inAlternative ) {
+                    if ( part.type == 'text/plain' ) {
+                        htmlBody = null;
+                    }
+                    if ( part.type == 'text/html' ) {
+                        textBody = null;
+                    }
                 }
                 if ( textBody ) {
                     textBody.push( part );
