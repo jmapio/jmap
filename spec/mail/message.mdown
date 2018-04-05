@@ -254,16 +254,17 @@ The following **Email** properties are specified for access to the body data of 
     and heuristic determination of content-type and charset.
 
 - **textBody**: `EmailBodyPart[]` (immutable)
-  A list of `text/plain`, `text/html` and `image/*` parts to display (sequentially) as the message body, with a preference for `text/plain` when alternative versions are available.
+  A list of `text/plain`, `text/html`, `image/*`, `audio/*` and/or `video/*` parts to display (sequentially) as the message body, with a preference for `text/plain` when alternative versions are available.
 - **htmlBody**: `EmailBodyPart[]` (immutable)
-  A list of `text/plain`, `text/html` and `image/*` parts to display (sequentially) as the message body, with a preference for `text/html` when alternative versions are available.
+  A list of `text/plain`, `text/html`, `image/*`, `audio/*` and/or `video/*` parts to display (sequentially) as the message body, with a preference for `text/html` when alternative versions are available.
 - **attachedEmails**: `EmailBodyPart[]` (immutable)
   A list of all parts of type `message/rfc822` or `message/global`. Note, this **does not** recurse, so the parts within these are not included. The attached message may be fetched using the Email/parse method and the blobId.
 - **attachedFiles**: `EmailBodyPart[]` (immutable)
   A list of all parts in *bodyStructure*, traversing depth-first, which satisfy either of the following conditions:
 
     - not of type `multipart/*` and not included in *attachedEmails*, *textBody* or *htmlBody*
-    - of type `image/*` and not in both *textBody* and *htmlBody*
+    - of type `image/*`, `audio/*` or `video/*` and not in both *textBody* and
+     *htmlBody*
 
     Note, an HTML body part may reference image parts in attachedFiles using `cid:` links to reference the *Content-Id* or by referencing the *Content-Location*.
 - **hasAttachment**: `Boolean` (immutable; server-set)
@@ -281,7 +282,7 @@ The following **Email** properties are specified for access to the body data of 
 MIME structures are arbitrary nested trees of documents, but the majority of email clients present a model of an email body (normally plain text or HTML), with a set of attachments. Interpreting the MIME structure to form this flat model represents considerable difficulty and causes inconsistency between clients. Therefore in addition to the *bodyStructure* property, which gives the full tree, the Email object contains 4 alternate properties with flat lists of body parts:
 
 - *textBody*/*htmlBody*: These provide a list of parts that should be
-  rendered as the "body" of the message. This is a list rather than a single part as messages may have headers and/or footers appended/prepended as separate parts as they are transmitted, and some clients send text and images intended to be displayed inline in the body as multiple parts rather than a single HTML part with referenced images.
+  rendered as the "body" of the message. This is a list rather than a single part as messages may have headers and/or footers appended/prepended as separate parts as they are transmitted, and some clients send text and images, or even videos and sound clips, intended to be displayed inline in the body as multiple parts rather than a single HTML part with referenced images.
 
   Because MIME allows for multiple representations of the same data (using `multipart/alternative`), there is a textBody property (which prefers a plain text representation) and an htmlBody property (which prefers an HTML representation) to accommodate the two most common client requirements. The same part may appear in both lists where there is no alternative between the two.
 
@@ -291,6 +292,12 @@ MIME structures are arbitrary nested trees of documents, but the majority of ema
 The *bodyValues* property allows for clients to fetch the value of text parts directly without having to do a second request for the blob, and have the server handle decoding the charset into unicode. This data is in a separate property rather than on the EmailBodyPart object to avoid duplication of large amounts of data, as the same part may be included twice if the client fetches more than one of bodyStructure, textBody and htmlBody.
 
 The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attachedEmails and attachedFiles part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time. However, the following algorithm (expressed here in JavaScript) is suggested as a starting point, based on real-world experience:
+
+    function isInlineMediaType ( type ) {
+      return type.startsWith( 'image/' ) ||
+             type.startsWith( 'audio/' ) ||
+             type.startsWith( 'video/' );
+    }
 
     function parseStructure ( parts, multipartType, inAlternative,
             htmlBody, textBody, attachedEmails, attachedFiles ) {
@@ -307,7 +314,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
                 // Must be one of the allowed body types
                 ( part.type == "text/plain" ||
                   part.type == "text/html" ||
-                  part.type.startsWith( 'image/' ) ) &&
+                  isInlineMediaType( part.type ) &&
                 // If not the first part and has a filename, assume attachment
                 ( i == 0 || !part.name ) &&
                 // If multipart/related, only the first part can be inline
@@ -347,7 +354,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
                     htmlBody.push( part );
                 }
                 if ( ( !textBody || !htmlBody ) &&
-                        part.type.startsWith( 'image/' ) ) {
+                        isInlineMediaType( part.type ) {
                     attachedFiles.push( part );
                 }
             } else if ( part.type == 'message/rfc822' ||
