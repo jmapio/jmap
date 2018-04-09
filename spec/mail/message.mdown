@@ -587,7 +587,7 @@ If zero properties are specified on the FilterCondition, the condition MUST alwa
 The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
 
 - Any syntactically correct [@!RFC2047] encoded sections of header fields with a known encoding SHOULD be decoded before attempting to match text.
-- When searching inside a `text/html` body part, HTML tags and attributes SHOULD be ignored.
+- When searching inside a `text/html` body part, any text considered markup rather than content SHOULD be ignored, including HTML tags and most attributes, anything inside the `<head>` tag, CSS and JavaScript. Attribute content intended for presentation to the user such as "alt" and "title" SHOULD be considered in the search.
 - Text SHOULD be matched in a case-insensitive manner.
 - Text contained in either (but matched) single or double quotes SHOULD be treated as a **phrase search**, that is a match is required for that exact word or sequence of words, excluding the surrounding quotation marks. Use `\"`, `\'` and `\\` to match a literal `"`, `'` and `\` respectively in a phrase.
 - Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately, but MUST all be present for the email to match the filter.
