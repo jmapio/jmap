@@ -26,13 +26,12 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 
     - **name**: `String`
       A user-friendly string to show when presenting content from this account, e.g. the email address representing the owner of the account.
-    - **isPrimary**: `Boolean`
-      This MUST be true for **at most** one of the accounts returned. This is to be considered the user's main or default account by the client. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, then this MAY be `false` for all accounts.
     - **isReadOnly**: `Boolean`
       This is `true` if the entire account is read-only.
     - **hasDataFor**: `String[]`
       A list of the data profiles available in this account. Each future JMAP data types specification will define a profile name to encompass that set of types.
-
+- **primaryAccounts**: `String[String]`
+  A map of data profile name (as found in *hasDataFor*) to account id for the account to be considered the user's main or default account for that data set by the client. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular data profile name.
 - **capabilities**: `String[Object]`
   An object specifying the capabilities of this server. Each key is a URI for a specification supported by the server. The value for each of these keys is an object with further information about the server's capabilities in relation to that specification.
 
@@ -73,6 +72,51 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
   The URL to connect to for push events (see the Push section of this spec).
 
 To ensure future compatibility, other properties MAY be included on the JMAP Session object. Clients MUST ignore any properties they are not expecting.
+
+### Example
+
+In the following example JMAP Session object, the user has access to his own mail and contacts via JMAP, as well as read-only access to shared mail from another user:
+
+    {
+      "username": "john@example.com",
+      "accounts": {
+        "13824": {
+          "name": "john@example.com",
+          "isReadOnly": false,
+          "hasDataFor": [ "mail", "contacts" ]
+        },
+        "97813": {
+          "name": "jane@example.com",
+          "isReadOnly": true,
+          "hasDataFor": [ "mail" ]
+        }
+      },
+      "primaryAccounts": {
+        "mail": "13824",
+        "contacts": "13824"
+      },
+      "capabilities": {
+        "jmap-core": {
+          "maxSizeUpload": 50000000,
+          "maxConcurrentUpload": 8,
+          "maxSizeRequest": 10000000,
+          "maxConcurrentRequest": 8,
+          "maxCallsInRequest": 32,
+          "maxObjectsInGet": 256,
+          "maxObjectsInSet": 128,
+          "collationAlgorithms" [
+            "i;ascii-numeric",
+            "i;ascii-casemap",
+            "i;unicode-casemap"
+          ]
+        },
+        ...
+      },
+      "apiUrl": "https://jmap.example.com/api/",
+      "downloadUrl": "https://jmap.example.com/download/{accountId}/{blobId}/{name}",
+      "uploadUrl": "https://jmap.example.com/upload/{accountId}/",
+      "eventSourceUrl": "https://jmap.example.com/eventsource/"
+    }
 
 ## Service Autodiscovery
 
