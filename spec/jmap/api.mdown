@@ -25,6 +25,12 @@ A **Request** object has the following properties:
     1. A `String` **name** of the method to call.
     2. An `Object` containing *named* **arguments** for that method.
     3. A **client id**: an arbitrary `String` to be echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same client id in the response).
+- **createdIds**: `String[String]` (optional)
+  A map of (client-specified) creation id to the id the server assigned when a record was successfully created.
+
+    As described later in this specification, some records may have a property that contains the id of another record. To allow more efficient network usage, you can set this property to reference a record created earlier in the same API request. Since the real id is unknown when the request is created, the client can instead specify the creation id it assigned, prefixed with a `#`. As the server processes API requests, any time it successfully creates a new record it adds to this map the creation id, with the server-assigned real id as the value. If it comes across a reference to a creation id in a create/update, it looks it up in the map and replaces the reference with the real id, if found.
+
+    The client can pass an initial value for this map as the *createdIds* property of the Request. This MAY be an empty object. If given in the request, the response will also include a createdIds property, with any additionally created ids added. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve.
 
 Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatability, a server MUST ignore any other properties it does not understand on the JMAP request object.
 
@@ -33,9 +39,9 @@ Future specifications MAY add further properties to the Request object to extend
     {
       "using": [ "urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail" ],
       "methodCalls": [
-        ["method1", {"arg1": "arg1data", "arg2": "arg2data"}, "#1"],
-        ["method2", {"arg1": "arg1data"}, "#2"],
-        ["method3", {}, "#3"]
+        ["method1", {"arg1": "arg1data", "arg2": "arg2data"}, "c1"],
+        ["method2", {"arg1": "arg1data"}, "c2"],
+        ["method3", {}, "c3"]
       ]
     }
 
@@ -53,6 +59,8 @@ A **Response** object has the following properties:
 
 - **methodResponses**: `Array[]`
   An array of responses, in the same format as the *methodCalls* on the request object. The output of the methods MUST be added to the *methodResponses* array in the same order as the methods are processed.
+- **createdIds**: `String[String]` (optional; only returned if given in request)
+  A map of (client-specified) creation id to the id the server assigned when a record was successfully created. This includes all values passed in the request, as well as any additional ones added for newly created records.
 
 Unless otherwise specified, if the method call completed successfully its response name is the same as the method name in the request.
 
@@ -60,13 +68,13 @@ Unless otherwise specified, if the method call completed successfully its respon
 
     {
       "methodResponses": [
-        ["method1", {"arg1": 3, "arg2": "foo"}, "#1"],
-        ["method2", {"isBlah": true}, "#2"],
+        ["method1", {"arg1": 3, "arg2": "foo"}, "c1"],
+        ["method2", {"isBlah": true}, "c2"],
         ["anotherResponseFromMethod2", {
           "data": 10,
           "yetmoredata": "Hello"
-        }, "#2"],
-        ["error", {"type":"unknownMethod"}, "#3"]
+        }, "c2"],
+        ["error", {"type":"unknownMethod"}, "c3"]
       ]
     }
 
@@ -418,7 +426,7 @@ The server MAY skip an update (rejecting it with a `willDestroy` SetError) if th
 
 Some record objects may hold references to others (foreign keys). When records are created or modified, they may reference other records being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the record being referenced is created in the same or an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to record id for each newly created record, so it can substitute in the correct value if necessary in later method calls.
 
-Creation ids are scoped by type; a separate `creation id -> id` map MUST be kept for each type for the duration of the request. Foreign key references are always for a particular record type, so use of the same creation key in two different types cannot cause any ambiguity. Creation ids sent by the client SHOULD be unique within the single API request for a particular data type. If a creation id is reused for the same type, the server MUST map the creation id to the most recently created item with that id.
+Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see The Request object specification above).
 
 The response has the following arguments:
 
