@@ -25,7 +25,7 @@ HTML message bodies provide richer formatting for emails but present a number of
 * The link text in HTML has no neccessary correlation with the actual target of
   the link, which can be used to make phishing attacks more convincing.
 * Links opened from an email may leak private info in the `Referer` header sent
-  by default in most systems.
+  by default in most systems. This can be mitigated with the use of a [referrer policy](https://www.w3.org/TR/referrer-policy/).
 
 Sanitizing HTML to mitigate these issues is tricky. Using a well-tested library with a carefully vetted whitelist-only approach is the safest way to avoid vulnerabilities. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
 
@@ -33,7 +33,7 @@ A defence in depth approach can help to mitigate the risks of HTML email. Webmai
 
 Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accurately you need to use the same parser when sanitizing that the HTML rendering engine will use.
 
-As highly complex software components, HTML rendering engines increase the attack surface of a client considerably, especially when being used to process untrusted, potentially malicious content. Serious bugs have been found in image decoders, JavaScript engines and HTML parsers in the past, which could lead to full system compromise. Clients using an engine should ensure they get the latest version and continue to encorporate any security patches released by the vendor.
+As highly complex software components, HTML rendering engines increase the attack surface of a client considerably, especially when being used to process untrusted, potentially malicious content. Serious bugs have been found in image decoders, JavaScript engines and HTML parsers in the past, which could lead to full system compromise. Clients using an engine should ensure they get the latest version and continue to incorporate any security patches released by the vendor.
 
 ## Email submission
 
