@@ -12,26 +12,50 @@ To allow the client to restrict the volume of data it can receive in response to
 
 ## HTML email display
 
-HTML message bodies provide richer formatting for emails but present a number of security challenges especially when embedded in a webmail context in combination with interface HTML. Clients that render HTML email should make careful consideration of the potential risks, including:
+HTML message bodies provide richer formatting for emails but present a number of security challenges, especially when embedded in a webmail context in combination with interface HTML. Clients that render HTML email should make careful consideration of the potential risks, including:
 
-* If JavaScript is allowed to execute it can rewrite email to change its
-  content on subsequent opening, allowing users to be mislead. In webmail systems, if run in the same origin as the interface it can access and exfiltrate all user content accessible via the browser, including all other emails and potentially contacts, calendar events, settings, and credentials. It can also rewrite the interface to undetectably phish passwords. A compromise is likely to be persistent, not just for the duration of page load, due to exfiltration of session credentials or installation of a service worker that can intercept all subsequent network requests (this however would only be possible if blob downloads are also available on the same origin, and the service worker script is attached to the message).
+* Embedded JavaScript can rewrite the email to change its content on subsequent
+  opening, allowing users to be mislead. In webmail systems, if run in the same origin as the interface it can access and exfiltrate all private data accessible to the user, including all other emails and potentially contacts, calendar events, settings, and credentials. It can also rewrite the interface to undetectably phish passwords. A compromise is likely to be persistent, not just for the duration of page load, due to exfiltration of session credentials or installation of a service worker that can intercept all subsequent network requests (this however would only be possible if blob downloads are also available on the same origin, and the service worker script is attached to the message).
 * HTML documents may load content directly from the internet, rather than just
   referencing attached resources. For example you may have an `<img>` tag with an external `src` attribute. This may leak to the sender when a message is opened, as well as the IP address of the recipient. Cookies may also be sent and set by the server, allowing tracking between different emails and even website visits and advertising profiles.
 * In webmail systems, CSS can break the layout or create phishing
   vulnerabilities. For example, the use of `position:fixed` can allow an email to draw content outside of its normal bounds, potentially clickjacking a real interface element.
-* If not inside a separate frame in a webmail context, any styles defined in
-  CSS rules will apply to interface elements as well if the selector matches, allowing the interace to be modified. Similarly, any interface styles that match elements in the email will alter their appearance, potentially breaking the layout of the email.
+* If in a webmail context and not inside a separate frame, any styles defined in
+  CSS rules will apply to interface elements as well if the selector matches, allowing the interface to be modified. Similarly, any interface styles that match elements in the email will alter their appearance, potentially breaking the layout of the email.
 * The link text in HTML has no neccessary correlation with the actual target of
   the link, which can be used to make phishing attacks more convincing.
-* Links opened from an email may leak private info in the `Referer` header sent
-  by default in most systems. This can be mitigated with the use of a [referrer policy](https://www.w3.org/TR/referrer-policy/).
+* Links opened from an email or embedded external content may leak private info
+  in the `Referer` header sent by default in most systems.
+* Forms can be used to mimic login boxes, providing a potent phishing vector if
+  allowed to submit directly from the email display.
 
-Sanitizing HTML to mitigate these issues is tricky. Using a well-tested library with a carefully vetted whitelist-only approach is the safest way to avoid vulnerabilities. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
+There are a number of ways clients can mitigate these issues, and a defence-in-depth approach that uses a combination of techniques will provide the strongest security.
 
-A defence in depth approach can help to mitigate the risks of HTML email. Webmail systems are strongly encouraged to use a strong [Content Security Policy](https://www.w3.org/TR/CSP3/) as a second line of defence to block malicious content should it manage to evade the filter.
+* HTML can be filtered before rendering, stripping potentially malicious
+  content. Sanitizing HTML correctly is tricky, and implementors are strongly recommended to use a well-tested library with a carefully vetted whitelist-only approach. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
 
-Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accurately you need to use the same parser when sanitizing that the HTML rendering engine will use.
+  Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accurately you need to use the same parser when sanitizing that the HTML rendering engine will use.
+
+* Encapsulating the message in an `<iframe sandbox>` can help mitigate a number
+  of risks. This will:
+
+  * Disable JavaScript.
+  * Disable form submission.
+  * Prevent drawing outside of its bounds, or conflict with interface CSS.
+  * Establish a unique anonymous origin, separate to the containing origin.
+
+* A strong [Content Security Policy](https://www.w3.org/TR/CSP3/) can, among
+  other things, block JavaScript and loading of external content should it manage to evade the filter.
+
+* The leakage of information in the Referer header can be mitigated with the
+  use of a [referrer policy](https://www.w3.org/TR/referrer-policy/).
+
+* A `crossorigin=anonymous` attribute on tags that load remote content can
+  prevent cookies from being sent.
+
+* If adding `target=_blank` to open links in new tabs, also add `rel=noopener`
+  to ensure the page that opens cannot change the URL in the original tab to
+  redirect the user to a phishing site.
 
 As highly complex software components, HTML rendering engines increase the attack surface of a client considerably, especially when being used to process untrusted, potentially malicious content. Serious bugs have been found in image decoders, JavaScript engines and HTML parsers in the past, which could lead to full system compromise. Clients using an engine should ensure they get the latest version and continue to incorporate any security patches released by the vendor.
 
