@@ -317,9 +317,8 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
                   part.type == "text/html" ||
                   isInlineMediaType( part.type ) &&
                 // If not the first part and has a filename, assume attachment
-                ( i == 0 || !part.name ) &&
                 // If multipart/related, only the first part can be inline
-                ( i > 0 || multipartType != 'related' );
+                ( i === 0 || ( !part.name && multipartType !== 'related' ) );
 
             if ( isMultipart ) {
                 let subMultiType = part.type.split( '/' )[1];
