@@ -566,7 +566,7 @@ A call to *Foo/query* takes the following arguments:
 - **anchorOffset**: `Number|null`
   The index of the anchor object relative to the index of the first result to return. This MAY be negative. For example, `-1` means the first Foo after the anchor Foo should be the first result in the results returned (see below for more details).
 - **limit**: `Number|null`
-  The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the search is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+  The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the query is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
 
 If an **anchor** argument is given, then after filtering and sorting the anchor is looked for in the results. If found, the **anchor offset** is then subtracted from its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
 
@@ -580,26 +580,28 @@ The response has the following arguments:
 - **accountId**: `String`
   The id of the account used for the call.
 - **filter**: `FilterOperator|FilterCondition|null`
-  The filter to apply to the search. Echoed back from the call.
+  The filter used. Echoed back from the call.
 - **sort**: `Comparator[]|null`
   The sort options used. Echoed back from the call.
 - **state**: `String`
-  A string encoding the current state on the server. This string MUST change if the results of the search *may* have changed (for example, there has been a change to the state of the set of Foos; it does not *guarantee* that anything in the search has changed). It may be passed to *Foo/queryChanges* to efficiently get the set of changes from the client's current state.
+  A string encoding the current state of the query on the server. This string MUST change if the results of the query (i.e. the matching ids and their sort order) have changed. The state string MAY change if something has changed on the server which means the results may have changed but the server doesn't know for sure.
 
-    Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached search and fetch it again (note, this does not require fetching the records again, just the list of ids) or, call *Foo/queryChanges* to get the delta difference.
+    The state string only represents the ordered list of ids that match the particular query (including its sort/filter). There is no requirement for it to change if a property on an object matching the query changes but the query results are unaffected (indeed, it is more efficient if the state string does not change in this case). The state string only has meaning when compared to future responses to a query with the same type/sort/filter, or when used with /queryChanges to fetch changes.
+
+    Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached query and fetch it again (note, this does not require fetching the records again, just the list of ids) or, call *Foo/queryChanges* to get the difference.
 
 - **canCalculateChanges**: `Boolean`
   This is `true` if the server supports calling *Foo/queryChanges* with these `filter`/`sort` parameters. Note, this does not guarantee that the *Foo/queryChanges* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
 - **position**: `Number`
-  The 0-based index of the first result in the `ids` array within the complete list of search results.
+  The 0-based index of the first result in the `ids` array within the complete list of query results.
 - **total**: `Number`
   The total number of foos in the results (given the *filter*).
 - **ids**: `String[]`
-  The list of ids for each foo in the search results, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the results or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
+  The list of ids for each foo in the query results, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the results or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
 
 The following additional errors may be returned instead of the *Foo/query* response:
 
-`anchorNotFound`: An anchor argument was supplied, but it cannot be found in the results of the search.
+`anchorNotFound`: An anchor argument was supplied, but it cannot be found in the results of the query.
 
 `unsupportedSort`: The *sort* is syntactically valid, but includes a property the server does not support sorting on, or a collation method it does not recognise.
 
@@ -607,7 +609,7 @@ The following additional errors may be returned instead of the *Foo/query* respo
 
 ## /queryChanges
 
-The `Foo/queryChanges` call allows a client to efficiently update the state of any cached foo search to match the new state on the server. It takes the following arguments:
+The `Foo/queryChanges` call allows a client to efficiently update the state of any cached foo query to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `String|null`
   The id of the account to use for this call. If `null`, the primary account will be used.
@@ -616,30 +618,30 @@ The `Foo/queryChanges` call allows a client to efficiently update the state of a
 - **sort**: `Comparator[]|null`
   The sort argument that was used with *Foo/query*.
 - **sinceState**: `String`
-  The current state of the client. This is the string that was returned as the *state* argument in the *Foo/query* response. The server will return the changes made since this state.
+  The current state of the client. This is the string that was returned as the *state* argument in the *Foo/query* response with the same sort/filter. The server will return the changes made to the query since this state.
 - **maxChanges**: `Number|null`
   The maximum number of changes to return in the response. See error descriptions below for more details.
 - **upToId**: `String|null`
-  The last (highest-index) id the client currently has cached from the search results. When there are a large number of results, in a common case the client may have only downloaded and cached a small subset from the beginning of the results. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the results, which can significantly increase efficiency. If they are not immutable, this argument is ignored.
+  The last (highest-index) id the client currently has cached from the query results. When there are a large number of results, in a common case the client may have only downloaded and cached a small subset from the beginning of the results. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the results, which can significantly increase efficiency. If they are not immutable, this argument is ignored.
 
 The response has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for the call.
 - **filter**: `FilterOperator|FilterCondition|null`
-  The filter to apply to the search. Echoed back from the call.
+  The filter used. Echoed back from the call.
 - **sort**: `Comparator[]|null`
   The sort options used. Echoed back from the call.
 - **oldState**: `String`
   This is the `sinceState` argument echoed back; the state from which the server is returning changes.
 - **newState**: `String`
-  This is the state the client will be in after applying the set of changes to the old state.
+  This is the state the query will be in after applying the set of changes to the old state.
 - **upToId**: `String|null`
   Echoed back from the call.
 - **total**: `Number`
   The total number of foos in the results (given the *filter*).
 - **removed**: `String[]`
-  The *id* for every foo that was in the results in the old state and is not in the results in the new state.
+  The *id* for every foo that was in the query results in the old state and is not in the results in the new state.
 
     If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were removed but have a higher index than *upToId* SHOULD be omitted.
 
@@ -648,7 +650,7 @@ The response has the following arguments:
     If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current results for which this property MAY have changed.
 
 - **added**: `AddedItem[]`
-  The id and index in the search results (in the new state) for every foo that has been added to the results since the old state AND every foo in the current results that was included in the *removed* array (due to a filter or sort based upon a mutable property).
+  The id and index in the query results (in the new state) for every foo that has been added to the results since the old state AND every foo in the current results that was included in the *removed* array (due to a filter or sort based upon a mutable property).
 
     If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were added but have a higher index than *upToId* SHOULD be omitted.
 
@@ -677,9 +679,9 @@ and **truncates** or **extends** to the new total length, then the results will 
 
 The following additional errors may be returned instead of the *Foo/queryChanges* response:
 
-`tooManyChanges`: There are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the search results.
+`tooManyChanges`: There are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the query results.
 
-`cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the search results.
+`cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the query results.
 
 ## Examples
 
