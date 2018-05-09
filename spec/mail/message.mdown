@@ -817,7 +817,14 @@ The following additional errors may be returned instead of the *Email/copy* resp
 
 ## Email/parse
 
-This method allows you to parse blobs as [@!RFC5322] messages to get Email objects (excluding the metadata properties).
+This method allows you to parse blobs as [@!RFC5322] messages to get Email objects. The following metadata properties on the Email objects will be `null` if requested:
+
+- id
+- mailboxIds
+- keywords
+- receivedAt
+
+The *threadId* property of the Email MAY be present if the server can calculate which thread the Email would be assigned to were it to be imported. Otherwise, this too is `null` if fetched.
 
 The *Email/parse* method takes the following arguments:
 
@@ -826,7 +833,10 @@ The *Email/parse* method takes the following arguments:
 - **blobIds**: `String[]`
   The ids of the blobs to parse.
 - **properties**: `String[]`
-  If supplied, only the properties listed in the array are returned for each Email object. If omitted, defaults to the same value as the Email/get "properties" default argument.
+  If supplied, only the properties listed in the array are returned for each Email object. If omitted, defaults to:
+
+      [ "messageId", "inReplyTo", "references", "sender", "from", "to", "cc", "bcc", "replyTo", "subject", "sentAt", "hasAttachment", "preview", "bodyValues", "textBody", "htmlBody", "attachedFiles", "attachedEmails" ]
+
 - **bodyProperties**: `String[]` (optional)
   A list of properties to fetch for each EmailBodyPart returned. If omitted, defaults to the same value as the Email/get "bodyProperties" default argument.
 - **fetchTextBodyValues**: `Boolean` (default: `false`)
