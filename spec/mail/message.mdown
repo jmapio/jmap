@@ -315,7 +315,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
                 // Must be one of the allowed body types
                 ( part.type == "text/plain" ||
                   part.type == "text/html" ||
-                  isInlineMediaType( part.type ) &&
+                  isInlineMediaType( part.type ) ) &&
                 // If multipart/related, only the first part can be inline
                 // If a text part with a filename, and not the first item in the
                 // multipart, assume it is an attachment
@@ -357,7 +357,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
                     htmlBody.push( part );
                 }
                 if ( ( !textBody || !htmlBody ) &&
-                        isInlineMediaType( part.type ) {
+                        isInlineMediaType( part.type ) ) {
                     attachedFiles.push( part );
                 }
             } else if ( part.type == 'message/rfc822' ||
