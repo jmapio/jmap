@@ -15,19 +15,6 @@ When something changes on the server, the server pushes a **StateChange** object
 
     The client can compare the new state strings with its current values to see whether it has the current data for these types. If not, the changes can then be efficiently fetched in a single standard API request (using the */changes* type methods).
 
-- **trigger**: `String`
-  What caused this change. The following causes are defined:
-
-    - `delivery`: The arrival of a new message caused the change.
-    - `user`: An action by the user caused the change.
-    - `unknown`: The cause of the change is unknown.
-
-    Future specifications may define further values. Clients MUST treat an
-    unrecognised value the same as `unknown`.
-
-    Clients in battery constrained environments may use this information to decide whether to immediately fetch the changes.
-
-
 ## PushSubscription
 
 A push subscription is a message delivery context established between the client and a push service. A **PushSubscription** object has the following properties:

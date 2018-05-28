@@ -74,3 +74,11 @@ The capabilities object is returned as part of the standard JMAP Session object;
 The data profile name for the set of types defined in this specification is `mail`.
 
 The JMAP Session object has an *accounts* property with the set of accounts to which the user has access. Any account that contains data of the types defined in this specification MUST include the string `"mail"` in the *hasDataFor* property of the account object.
+
+## Push
+
+Servers MUST support the standard JMAP push mechanisms to receive notifications when the state changes for any of the types defined in this specification.
+
+In addition, servers MUST support a psuedo-type called "EmailDelivery" in the push mechanisms. The state string for this MUST change whenever a new Email is added to the store, but SHOULD NOT change upon any other change to the Email objects.
+
+Clients in battery constrained environments may wish to delay fetching changes initiated by the user, but fetch new messages immediately so they can notify the user.
