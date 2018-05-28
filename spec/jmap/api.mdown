@@ -86,15 +86,25 @@ Unless otherwise specified in a method description, `null` is the default value 
 
 ## Errors
 
-### Request-level errors
+### Error responses
 
-If the data sent as an API request is not valid JSON or does not match the structure above, or includes a capability that the server does not support in the "using" property of the request, a `400 Bad Request` error will be returned at the HTTP level. The body of the response SHOULD include a short description of the problem to help client developers debug the issue.
+When an HTTP error response is returned to the client, the server
+SHOULD return a JSON "problem details" object in the response body,
+as per [@!RFC7807]. Every JSON "problem details" object MUST include a
+"type" member with a URI either one of the following values, or a value defined in a future RFC, or a value beginning with a domain owned by the vendor.
+
+- `urn:ietf:params:jmap:error:unknowncapability`
+  The client included a capability in the "using" property of the request that the server does not support.
+- `urn:ietf:params:jmap:error:notjson`
+  The content type of the request was not `application/json` or the request did not parse as I-JSON.
+- `urn:ietf:params:jmap:error:notrequest`
+  The request parsed as JSON but did not match the structure of the Request object.
 
 ### Method-level errors
 
 If a method encounters an error, the appropriate `error` response MUST be inserted at the current point in the *methodResponses* array and, unless otherwise specified, further processing MUST NOT happen within that method call.
 
-Any further method calls in the request MUST then be processed as normal.
+Any further method calls in the request MUST then be processed as normal. Errors at the method level MUST NOT generate an HTTP-level error.
 
 An `error` response looks like this:
 
