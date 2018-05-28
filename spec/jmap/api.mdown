@@ -239,7 +239,7 @@ After executing the first 3 method calls the *methodResponses* array might be:
         "filter": { inMailbox: "id_of_inbox" },
         "sort": [{ property: "receivedAt", isAscending: false }],
         "collapseThreads": true,
-        "state": "abcdefg",
+        "queryState": "abcdefg",
         "canCalculateChanges": true,
         "position": 0,
         "total": 101,
@@ -583,12 +583,12 @@ The response has the following arguments:
   The filter used. Echoed back from the call.
 - **sort**: `Comparator[]|null`
   The sort options used. Echoed back from the call.
-- **state**: `String`
-  A string encoding the current state of the query on the server. This string MUST change if the results of the query (i.e. the matching ids and their sort order) have changed. The state string MAY change if something has changed on the server which means the results may have changed but the server doesn't know for sure.
+- **queryState**: `String`
+  A string encoding the current state of the query on the server. This string MUST change if the results of the query (i.e. the matching ids and their sort order) have changed. The queryState string MAY change if something has changed on the server which means the results may have changed but the server doesn't know for sure.
 
-    The state string only represents the ordered list of ids that match the particular query (including its sort/filter). There is no requirement for it to change if a property on an object matching the query changes but the query results are unaffected (indeed, it is more efficient if the state string does not change in this case). The state string only has meaning when compared to future responses to a query with the same type/sort/filter, or when used with /queryChanges to fetch changes.
+    The queryState string only represents the ordered list of ids that match the particular query (including its sort/filter). There is no requirement for it to change if a property on an object matching the query changes but the query results are unaffected (indeed, it is more efficient if the queryState string does not change in this case). The queryState string only has meaning when compared to future responses to a query with the same type/sort/filter, or when used with /queryChanges to fetch changes.
 
-    Should a client receive back a response with a different state string to a previous call, it MUST either throw away the currently cached query and fetch it again (note, this does not require fetching the records again, just the list of ids) or, call *Foo/queryChanges* to get the difference.
+    Should a client receive back a response with a different queryState string to a previous call, it MUST either throw away the currently cached query and fetch it again (note, this does not require fetching the records again, just the list of ids) or, call *Foo/queryChanges* to get the difference.
 
 - **canCalculateChanges**: `Boolean`
   This is `true` if the server supports calling *Foo/queryChanges* with these `filter`/`sort` parameters. Note, this does not guarantee that the *Foo/queryChanges* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
@@ -617,8 +617,8 @@ The `Foo/queryChanges` call allows a client to efficiently update the state of a
   The filter argument that was used with *Foo/query*.
 - **sort**: `Comparator[]|null`
   The sort argument that was used with *Foo/query*.
-- **sinceState**: `String`
-  The current state of the client. This is the string that was returned as the *state* argument in the *Foo/query* response with the same sort/filter. The server will return the changes made to the query since this state.
+- **sinceQueryState**: `String`
+  The current state of the query in the client. This is the string that was returned as the *queryState* argument in the *Foo/query* response with the same sort/filter. The server will return the changes made to the query since this state.
 - **maxChanges**: `Number|null`
   The maximum number of changes to return in the response. See error descriptions below for more details.
 - **upToId**: `String|null`
@@ -632,9 +632,9 @@ The response has the following arguments:
   The filter used. Echoed back from the call.
 - **sort**: `Comparator[]|null`
   The sort options used. Echoed back from the call.
-- **oldState**: `String`
-  This is the `sinceState` argument echoed back; the state from which the server is returning changes.
-- **newState**: `String`
+- **oldQueryState**: `String`
+  This is the `sinceQueryState` argument echoed back; the state from which the server is returning changes.
+- **newQueryState**: `String`
   This is the state the query will be in after applying the set of changes to the old state.
 - **upToId**: `String|null`
   Echoed back from the call.
@@ -681,7 +681,7 @@ The following additional errors may be returned instead of the *Foo/queryChanges
 
 `tooManyChanges`: There are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the query results.
 
-`cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the query results.
+`cannotCalculateChanges`: The server cannot calculate the changes from the queryState string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the query results.
 
 ## Examples
 
@@ -721,7 +721,7 @@ This would query the server for the set of todos with a keyword of "music", sort
       "accountId": "x",
       "filter": { "hasKeyword": "music" },
       "sort": [{ "property": "title" }],
-      "state": "y13213",
+      "queryState": "y13213",
       "canCalculateChanges": true,
       "position": 0,
       "total": 26,
@@ -811,7 +811,7 @@ Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user
     ["Todo/queryChanges", {
       "filter": { "hasKeyword": "music" },
       "sort": [{ "property": "title" }],
-      "sinceState": "y13213"
+      "sinceQueryState": "y13213"
       "maxChanges": 50,
     }, "1"]]
 
@@ -828,8 +828,8 @@ and receive in response:
     ["Todo/queryChanges", {
       "filter": { "hasKeyword": "music" },
       "sort": [{ "property": "title" }],
-      "oldState": "y13213"
-      "newState": "y13218"
+      "oldQueryState": "y13213"
+      "newQueryState": "y13218"
       "total": 25,
       "removed": ["b"],
       "added": null
