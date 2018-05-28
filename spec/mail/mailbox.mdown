@@ -55,6 +55,9 @@ A **Mailbox** object has the following properties:
     - **maySubmit**: `Boolean`
       Messages may be submitted directly to this mailbox. Corresponds to IMAP ACL `p`.
 
+- **isSubscribed**: `Boolean`
+  Has the user indicated they wish to see this mailbox in their client? This SHOULD default to `false` for mailboxes in shared accounts the user has access to, and `true` for any new mailboxes created by the user themself. This MUST be stored separately per-user where multiple users have access to a shared mailbox.
+
 The Trash mailbox (that is a mailbox with `role == "trash"`) MUST be treated specially for the purpose of unread counts:
 
 1. Emails that are **only** in the Trash (and no other mailbox) are ignored when calculating the `unreadThreads` count of other mailboxes.
@@ -91,6 +94,8 @@ A **FilterCondition** object has the following properties, any of which may be o
   The Mailbox *parentId* property must match the given value exactly.
 - **hasRole**: `Boolean`
   If this is `true`, a Mailbox matches if it has a non-`null` value for its *role* property. If `false`, it must has a `null` *role* value to match.
+- **isSubscribed**: `Boolean`
+  The `isSubscribed` property of the mailbox must be identical to the value given to match the condition.
 
 A Mailbox object matches the filter if and only if all of the given conditions given match. If zero properties are specified, it is automatically `true` for all objects.
 
