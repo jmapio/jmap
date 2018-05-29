@@ -366,21 +366,21 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
             } else {
                 attachedFiles.push( part );
             }
+        }
 
-            if ( multipartType == 'alternative' ) {
-                // Found HTML part only
-                if ( textBody && textLength == textBody.length &&
-                        htmlLength != htmlBody.length ) {
-                    for ( let i = htmlLength; i < htmlBody.length; i += 1 ) {
-                        textBody.push( htmlBody[i] );
-                    }
+        if ( multipartType == 'alternative' && textBody && htmlBody ) {
+            // Found HTML part only
+            if ( textLength == textBody.length &&
+                    htmlLength != htmlBody.length ) {
+                for ( let i = htmlLength; i < htmlBody.length; i += 1 ) {
+                    textBody.push( htmlBody[i] );
                 }
-                // Found plain text part only
-                if ( htmlBody && htmlLength == htmlBody.length &&
-                        textLength != textBody.length ) {
-                    for ( let i = textLength; i < textBody.length; i += 1 ) {
-                        htmlBody.push( textBody[i] );
-                    }
+            }
+            // Found plain text part only
+            if ( htmlLength == htmlBody.length &&
+                    textLength != textBody.length ) {
+                for ( let i = textLength; i < textBody.length; i += 1 ) {
+                    htmlBody.push( textBody[i] );
                 }
             }
         }
