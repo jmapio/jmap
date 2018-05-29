@@ -29,7 +29,27 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
     - **isReadOnly**: `Boolean`
       This is `true` if the entire account is read-only.
     - **hasDataFor**: `String[]`
-      A list of the data profiles available in this account. Each future JMAP data types specification will define a profile name to encompass that set of types.
+      A list of specification URIs for the object types supported in this account.
+
+        The server advertises the list of specifications it supports in general
+        in the capabilities object, as defined below. If the specification
+        includes new object type definitions, the server MUST include it the
+        *hasDataFor* array if, and only if, the user may use thos data types
+        with this account.
+
+        For example, you may have access to your own account with mail,
+        calendars and contacts data, and also a shared account that only has
+        contacts data (a  business address book for example). In this case the
+        *hasDataFor* property on the first account would include something like
+        `urn:ietf:params:jmap:mail`, `urn:ietf:params:jmap:calendars`,
+        `urn:ietf:params:jmap:contacts`, while the second account would just
+        have the last of these.
+
+        Attempts to use the methods defined in a specification with one of the
+        accounts that does not contain those data types are rejected with an
+        *accountNotSupportedByMethod* error (see the Method-level errors
+        section below).
+
 - **primaryAccounts**: `String[String]`
   A map of data profile name (as found in *hasDataFor*) to account id for the account to be considered the user's main or default account for that data set by the client. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular data profile name.
 - **capabilities**: `String[Object]`
