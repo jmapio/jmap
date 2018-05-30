@@ -726,7 +726,7 @@ For **create** and **update**:
 The *Email/import* method adds [@!RFC5322] messages to a user's set of emails. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
 
 - **accountId**: `String|null`
-  The id of the account to use for this call. If `null`, defaults to the primary account.
+  The id of the account to use for this call. If `null`, defaults to the `urn:ietf:params:jmap:mail` primary account.
 - **emails**: `String[EmailImport]`
   A map of creation id (client specified) to EmailImport objects
 
@@ -767,9 +767,9 @@ The only way to move messages **between** two different accounts is to copy them
 The *Email/copy* method takes the following arguments:
 
 - **fromAccountId**: `String|null`
-  The id of the account to copy emails from. If `null`, defaults to the primary account.
+  The id of the account to copy emails from. If `null`, defaults to the `urn:ietf:params:jmap:mail` primary account.
 - **toAccountId**: `String|null`
-  The id of the account to copy emails to. If `null`, defaults to the primary account.
+  The id of the account to copy emails to. If `null`, defaults to the `urn:ietf:params:jmap:mail` primary account.
 - **create**: `String[EmailCopy]`
   A map of *creation id* to an EmailCopy object.
 - **onSuccessDestroyOriginal**: `Boolean` (default: `false`)
@@ -807,9 +807,9 @@ The **SetError** may be any of the standard set errors that may be returned for 
 
 The following additional errors may be returned instead of the *Email/copy* response:
 
-`fromAccountNotFound`: A *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account.
+`fromAccountNotFound`: A *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account; or, *fromAccountId* was null but there is no primary account for `urn:ietf:params:jmap:mail`.
 
-`toAccountNotFound`: A *toAccountId* was explicitly included with the request, but it does not correspond to a valid account.
+`toAccountNotFound`: A *toAccountId* was explicitly included with the request, but it does not correspond to a valid account; or, *toAccountId* was null but there is no primary account for `urn:ietf:params:jmap:mail`.
 
 `fromAccountNotSupportedByMethod`: The *fromAccountId* given corresponds to a valid account, but does not contain any mail data.
 
