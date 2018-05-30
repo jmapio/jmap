@@ -34,7 +34,7 @@ A push subscription is a message delivery context established between the client
 
 Clients may register the push subscription with the JMAP server, which will then make a POST request to the associated push endpoint whenever an event occurs.
 
-The POST request MUST have a content type of `application/json` and contain the utf-8 JSON encoded *StateChange* object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030].
+The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON encoded *StateChange* object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030].
 
 If the response code is `503` (Service Unavailable), the JMAP server MAY try again later, but may also just drop the event. If the response code is `429` (Too Many Requests) the JMAP server SHOULD attempt to reduce the frequency of pushes to that URL. Any other `4xx` or `5xx` response code MUST be considered a **permanent failure** and the push subscription should be deregistered (not tried again even for future events unless explicitly re-registered by the client).
 
