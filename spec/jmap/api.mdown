@@ -128,7 +128,7 @@ The following error types are defined which may be returned for any method call 
 
 `timedOut`: The method failed to execute because it timed out waiting for a lock, or was taking too much compute time.
 
-`accountNotFound`: An *accountId* was included with the method call that does not correspond to a valid account.
+`accountNotFound`: An *accountId* was included with the method call that does not correspond to a valid account, or *accountId* was null but there is no primary account for the capability that defines the data type.
 
 `accountNotSupportedByMethod`: An *accountId* given corresponds to a valid account, but the account does not support this data type.
 
@@ -323,7 +323,7 @@ Objects of type **Foo** are fetched via a call to *Foo/get*.
 It takes the following arguments:
 
 - **accountId**: `String|null`
-  The id of the Account to use. If `null`, the primary account is used.
+  The id of the Account to use. If `null`, the primary account for the capability that defines the data type is used.
 - **ids**: `String[]|null`
   The ids of the Foo objects to return. If `null` then **all** records of the data type are returned, if this is supported for that data type.
 - **properties**: `String[]|null`
@@ -352,7 +352,7 @@ The following additional error may be returned instead of the *Foo/get* response
 When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *Foo/get* response will change. The *Foo/changes* method allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `String|null`
-  The id of the Account to use. If `null`, the primary account is used.
+  The id of the Account to use. If `null`, the primary account for the capability that defines the data type is used.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *Foo/get* response. The server will return the changes that have occurred since this state.
 - **maxChanges**: `Number|null`
@@ -390,7 +390,7 @@ Modifying the state of Foo objects on the server is done via the *Foo/set* metho
 The *Foo/set* method takes the following arguments:
 
 - **accountId**: `String|null`
-  The id of the Account to use. If `null`, the primary account is used.
+  The id of the Account to use. If `null`, the primary account for the capability that defines the data type is used.
 - **ifInState**: `String|null`
   This is a state string as returned by the *Foo/get* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **create**: `String[Foo]|null`
@@ -519,7 +519,7 @@ A query on the set of Foos in an account is made by calling *Foo/query*. This ta
 A call to *Foo/query* takes the following arguments:
 
 - **accountId**: `String|null`
-  The id of the Account to use. If `null`, the primary account is used.
+  The id of the Account to use. If `null`, the primary account for the capability that defines the data type is used.
 - **filter**: `FilterOperator|FilterCondition|null`
   Determines the set of Foos returned in the results. If `null`, all objects in the account of this type are included in the results.
 
@@ -622,7 +622,7 @@ The following additional errors may be returned instead of the *Foo/query* respo
 The `Foo/queryChanges` call allows a client to efficiently update the state of any cached foo query to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `String|null`
-  The id of the account to use for this call. If `null`, the primary account will be used.
+  The id of the account to use. If `null`, the primary account for the capability that defines the data type will be used.
 - **filter**: `FilterOperator|FilterCondition|null`
   The filter argument that was used with *Foo/query*.
 - **sort**: `Comparator[]|null`
