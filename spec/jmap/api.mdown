@@ -32,7 +32,7 @@ A **Request** object has the following properties:
 
     The client can pass an initial value for this map as the *createdIds* property of the Request. This MAY be an empty object. If given in the request, the response will also include a createdIds property, with any additionally created ids added. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve.
 
-Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatability, a server MUST ignore any other properties it does not understand on the JMAP request object.
+Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatibility, a server MUST ignore any other properties it does not understand on the JMAP request object.
 
 ### Example request
 
@@ -47,7 +47,7 @@ Future specifications MAY add further properties to the Request object to extend
 
 ## Vendor-specific extensions
 
-Individual services will have custom features they wish to expose over JMAP. This may take the form of extra datatypes and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names).
+Individual services will have custom features they wish to expose over JMAP. This may take the form of extra data types and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names).
 
 The server can advertise custom extensions it supports by including the identifiers in the capabilities object. Identifiers for vendor extensions MUST be a URL belonging to a domain owned by the vendor, to avoid conflict. The URL SHOULD resolve to documentation for the changes the extension makes.
 
@@ -118,7 +118,7 @@ With the exception of `serverError`, the externally-visible state of the server 
 
 The following error types are defined which may be returned for any method call where appropriate:
 
-`serverError`: An unexpected or unknown error occured during the processing of the call. The state of the server after such an error is undefined.
+`serverError`: An unexpected or unknown error occurred during the processing of the call. The state of the server after such an error is undefined.
 
 `unknownMethod`: The server does not recognise this method name.
 
@@ -153,7 +153,7 @@ A **ResultReference** object has the following properties:
 - **name**: `String`
   The expected name of the response.
 - **path**: `String`
-  A pointer into the arguments. This is an RFC6901 JSON Pointer, except it also allows the use of `*` to map through an array (see description below).
+  A pointer into the arguments. This is an [@!RFC6901] JSON Pointer, except it also allows the use of `*` to map through an array (see description below).
 
 To resolve:
 
@@ -164,7 +164,7 @@ To resolve:
    *ResultReference*, evaluation fails.
 
 3. Apply the *path* to the arguments object of the response (the second item in
-   the response array) following the [@!RFC6901] JSON pointer algorithm, except with the following addition in Section 4 (Evaluation):
+   the response array) following the [@!RFC6901] JSON Pointer algorithm, except with the following addition in Section 4 (Evaluation):
 
    If the currently referenced value is a JSON array, the reference token may
    be exactly the single character `*`, making the new referenced value the result of applying the rest of the JSON pointer tokens to every item in the array and returning the results in the same order in a new array. If the result of applying the rest of the pointer tokens to a value was itself an array, its items should be included individually in the output rather than including the array itself (i.e. the result is flattened from an array of arrays to a single array).
@@ -212,8 +212,8 @@ The JMAP server now continues to process the Foo/get call as though the argument
 Now a more complicated example using the JMAP Mail data model: fetch the "from"/"date"/"subject" for every email in the first 10 threads in the Inbox (sorted newest first):
 
     [[ "Email/query", {
-      "filter": { inMailbox: "id_of_inbox" },
-      "sort": [{ property: "receivedAt", isAscending: false }],
+      "filter": { "inMailbox": "id_of_inbox" },
+      "sort": [{ "property": "receivedAt", "isAscending": false }],
       "collapseThreads": true,
       "position": 0,
       "limit": 10
@@ -246,8 +246,8 @@ After executing the first 3 method calls the *methodResponses* array might be:
 
     [[ "Email/query", {
         "accountId": "1",
-        "filter": { inMailbox: "id_of_inbox" },
-        "sort": [{ property: "receivedAt", isAscending: false }],
+        "filter": { "inMailbox": "id_of_inbox" },
+        "sort": [{ "property": "receivedAt", "isAscending": false }],
         "collapseThreads": true,
         "queryState": "abcdefg",
         "canCalculateChanges": true,
@@ -300,7 +300,7 @@ So to execute the final Email/get call, we look through the arguments and find t
 The JMAP server now continues to process the Email/get call as though the arguments were:
 
     {
-        "ids": [ "msg1020", "msg1021", "msg1023", "msg201", "msg223", etc... ],
+        "ids": [ "msg1020", "msg1021", "msg1023", "msg201", "msg223", ... ],
         "properties": [ "from", "receivedAt", "subject" ]
     }
 
@@ -689,7 +689,7 @@ and **truncates** or **extends** to the new total length, then the results will 
 
 The following additional errors may be returned instead of the *Foo/queryChanges* response:
 
-`tooManyChanges`: There are more changes the the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the query results.
+`tooManyChanges`: There are more changes than the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the query results.
 
 `cannotCalculateChanges`: The server cannot calculate the changes from the queryState string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the query results.
 

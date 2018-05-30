@@ -44,7 +44,7 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
     - `$notjunk`: The email is definitely not spam. Clients SHOULD set this flag when users indicate an email is legitimate, to help train automated spam-detection systems.
 
 - **size**: `Number` (immutable; server-set)
-  The size, in octets, of the raw data for the RFC5322 message (as referenced by the *blobId*, i.e. the number of octets in the file the user would download).
+  The size, in octets, of the raw data for the [@!RFC5322] message (as referenced by the *blobId*, i.e. the number of octets in the file the user would download).
 - **receivedAt**: `UTCDate` (immutable; default: time of creation on server)
   The date the email was received by the message store. This is the *internal date* in IMAP.
 
@@ -148,9 +148,9 @@ The following low-level **Email** property is specified for complete access to t
   This is a list of all [@!RFC5322] header fields, in the same order they appear in the message. An **EmailHeader** object has the following properties:
 
     - **name**: `String`
-      The header *field name* as defined in RFC5322, with the same capitalization that it has in the message.
+      The header *field name* as defined in [@!RFC5322], with the same capitalization that it has in the message.
     - **value**: `String`
-      The header *field value* as defined in RFC5322, in *Raw* form.
+      The header *field value* as defined in [@!RFC5322], in *Raw* form.
 
 In addition, the client may request/send properties representing individual header fields of the form:
 
@@ -735,7 +735,7 @@ An **EmailImport** object has the following properties:
 - **blobId**: `String`
   The id of the blob containing the raw [@!RFC5322] message.
 - **mailboxIds** `String[Boolean]`
-  The ids of the mailbox(es) to assign this email to. At least one mailbox MUST be given.
+  The ids of the mailboxes to assign this email to. At least one mailbox MUST be given.
 - **keywords**: `String[Boolean]` (default: `{}`)
   The keywords to apply to the email.
 - **receivedAt**: `UTCDate` (default: time of import on server)

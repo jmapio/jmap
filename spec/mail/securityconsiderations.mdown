@@ -22,7 +22,7 @@ HTML message bodies provide richer formatting for emails but present a number of
   vulnerabilities. For example, the use of `position:fixed` can allow an email to draw content outside of its normal bounds, potentially clickjacking a real interface element.
 * If in a webmail context and not inside a separate frame, any styles defined in
   CSS rules will apply to interface elements as well if the selector matches, allowing the interface to be modified. Similarly, any interface styles that match elements in the email will alter their appearance, potentially breaking the layout of the email.
-* The link text in HTML has no neccessary correlation with the actual target of
+* The link text in HTML has no necessary correlation with the actual target of
   the link, which can be used to make phishing attacks more convincing.
 * Links opened from an email or embedded external content may leak private info
   in the `Referer` header sent by default in most systems.
@@ -32,7 +32,7 @@ HTML message bodies provide richer formatting for emails but present a number of
 There are a number of ways clients can mitigate these issues, and a defence-in-depth approach that uses a combination of techniques will provide the strongest security.
 
 * HTML can be filtered before rendering, stripping potentially malicious
-  content. Sanitizing HTML correctly is tricky, and implementors are strongly recommended to use a well-tested library with a carefully vetted whitelist-only approach. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
+  content. Sanitizing HTML correctly is tricky, and implementers are strongly recommended to use a well-tested library with a carefully vetted whitelist-only approach. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
 
   Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accurately you need to use the same parser when sanitizing that the HTML rendering engine will use.
 
@@ -63,4 +63,4 @@ As highly complex software components, HTML rendering engines increase the attac
 
 SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP Submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de-facto XCLIENT extension to SMTP can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorized proxies. JMAP servers that proxy to an SMTP Submission server SHOULD allow use of the *submissions* port [@!RFC8314] and SHOULD implement SASL PLAIN over TLS [@!RFC4616] and/or TLS client certificate authentication with SASL EXTERNAL [@!RFC4422] appendix A. Implementation of a mechanism similar to SMTP XCLIENT is strongly encouraged.
 
-In the event the JMAP server directly relays mail to SMTP servers in other administrative domains, then implementation of the de-facto milter protocol is strongly encouranged to integrate with third-party products that address security issues including anti-virus/anti-spam, reputation protection, compliance archiving, and data loss prevention. Proxying to a local SMTP Submission server may be a simpler way to provide such security services.
+In the event the JMAP server directly relays mail to SMTP servers in other administrative domains, then implementation of the de-facto milter protocol is strongly encouraged to integrate with third-party products that address security issues including anti-virus/anti-spam, reputation protection, compliance archiving, and data loss prevention. Proxying to a local SMTP Submission server may be a simpler way to provide such security services.
