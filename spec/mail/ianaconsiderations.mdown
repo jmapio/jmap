@@ -1,0 +1,231 @@
+# IANA Considerations
+## JMAP Capability Registration for "mail"
+
+IANA will register the "mail" JMAP Capability as follows:
+
+Capability Name: `urn:ietf:params:jmap:mail`
+
+Specification document: this document
+
+Intended use: common
+
+Change Controller: IETF
+
+Security and privacy considerations: this document, section 9
+
+## IMAP and JMAP Keywords Registry
+
+This document makes two changes to the IMAP keywords registry as defined in [@!RFC5788].
+
+First, the name of the registry is changed to the "IMAP and JMAP keywords Registry".
+
+Second, a scope column is added to the template and registry indicating
+whether a keyword applies to IMAP-only, JMAP-only, both, or reserved. All
+keywords presently in the IMAP keyword registry will be marked with a
+scope of both. The "reserved" status can be used to prevent future
+registration of a name that would be confusing if registered.
+Registration of keywords with scope 'reserved' omit most fields in the
+registration template (see example for `$recent` subsection of this
+section); such registrations are intended to be infrequent.
+
+IMAP clients MAY silently ignore any keywords marked JMAP-only or
+reserved in the event they appear in protocol. JMAP clients MAY silently
+ignore any keywords marked IMAP-only or reserved in the event they appear
+in protocol.
+
+New JMAP-only keywords are registered in the following sub-sections.
+These keywords correspond to IMAP system keywords and are thus not
+appropriate for use in IMAP. These keywords can not be subsequently
+registered for use in IMAP except via standards action.
+
+### Registration of JMAP keyword '$draft'
+
+This registers the JMAP-only keyword '$draft' in the "IMAP and JMAP keywords Registry".
+
+Keyword name: `$draft`
+
+Scope: JMAP-only
+
+Purpose (description): This is set when the user wants to treat the
+message as a draft the user is composing. This is the JMAP equivalent of the IMAP \Draft flag.
+
+Private or Shared on a server: BOTH
+
+Is it an advisory keyword or may it cause an automatic action:
+Automatic. If the account has a mailbox marked with the \Drafts special
+use [RFC6154], setting this flag MAY cause the message to appear in that
+mailbox automatically. Certain JMAP computed values such as
+*unreadEmails* will change as a result of changing this flag. In
+addition, mail clients typically will present draft messages in a
+composer window rather than a viewer window.
+
+When/by whom the keyword is set/cleared:
+This is typically set by a JMAP client when referring to a draft
+message. One model for draft emails would result in clearing this flag
+in an EmailSubmission/set operation with an onSuccessUpdateEmail
+attribute. In a mailstore shared by JMAP and IMAP, this is also set and
+cleared as necessary so it matches the IMAP \Draft flag.
+
+Related keywords: None
+
+Related IMAP/JMAP Capabilities: SPECIAL-USE [RFC6154]
+
+Security Considerations:
+A server implementing this keyword as a shared keyword may disclose that
+a user considers the message a draft message. This information would be
+exposed to other users with read permission for the mailbox keywords.
+
+Published specification (recommended): this document
+
+Person & email address to contact for further information:
+<editor-contact-goes-here>
+
+Intended usage: COMMON
+
+Owner/Change controller: IESG
+
+### Registration of JMAP keyword '$seen'
+
+This registers the JMAP-only keyword '$seen' in the "IMAP and JMAP
+keywords Registry".
+
+Keyword name: `$seen`
+
+Scope: JMAP-only
+
+Purpose (description): This is set when the user wants to treat the
+message as read. This is the JMAP equivalent of the IMAP \Seen flag.
+
+Private or Shared on a server: BOTH
+
+Is it an advisory keyword or may it cause an automatic action:
+Advisory. However, certain JMAP computed values such as *unreadEmails*
+will change as a result of changing this flag.
+
+When/by whom the keyword is set/cleared:
+This is set by a JMAP client when it presents the message content to the
+user; clients often offer an option to clear this flag. In a mailstore
+shared by JMAP and IMAP, this is also set and cleared as necessary so it
+matches the IMAP \Seen flag.
+
+Related keywords: None
+
+Related IMAP/JMAP Capabilities: None
+
+Security Considerations:
+A server implementing this keyword as a shared keyword may disclose that
+a user considers the message to have been read. This information would be
+exposed to other users with read permission for the mailbox keywords.
+
+Published specification (recommended): this document
+
+Person & email address to contact for further information:
+<editor-contact-goes-here>
+
+Intended usage: COMMON
+
+Owner/Change controller: IESG
+
+### Registration of JMAP keyword '$flagged'
+
+This registers the JMAP-only keyword '$flagged' in the "IMAP and JMAP
+keywords Registry".
+
+Keyword name: `$flagged`
+
+Scope: JMAP-only
+
+Purpose (description): This is set when the user wants to treat the
+message as flagged for urgent/special attention. This is the JMAP
+equivalent of the IMAP \Flagged flag.
+
+Private or Shared on a server: BOTH
+
+Is it an advisory keyword or may it cause an automatic action:
+Automatic. If the account has a mailbox marked with the \Flagged special
+use [RFC6154], setting this flag MAY cause the message to appear in that
+mailbox automatically.
+
+When/by whom the keyword is set/cleared:
+JMAP clients typically allow a user to set/clear this flag as desired.
+In a mailstore shared by JMAP and IMAP, this is also set and cleared as
+necessary so it matches the IMAP \Flagged flag.
+
+Related keywords: None
+
+Related IMAP/JMAP Capabilities: SPECIAL-USE [RFC6154]
+
+Security Considerations:
+A server implementing this keyword as a shared keyword may disclose that
+a user considers the message as flagged for urgent/special attention.
+This information would be exposed to other users with read permission
+for the mailbox keywords.
+
+Published specification (recommended): this document
+
+Person & email address to contact for further information:
+<editor-contact-goes-here>
+
+Intended usage: COMMON
+
+Owner/Change controller: IESG
+
+### Registration of JMAP keyword '$answered'
+
+This registers the JMAP-only keyword '$answered' in the "IMAP and JMAP
+keywords Registry".
+
+Keyword name: `$answered`
+
+Scope: JMAP-only
+
+Purpose (description): This is set when the message has been answered.
+
+Private or Shared on a server: BOTH
+
+Is it an advisory keyword or may it cause an automatic action:
+Advisory.
+
+When/by whom the keyword is set/cleared:
+JMAP clients typically set this when submitting a reply or answer to the
+message. It may be set by the EmailSubmission/set operation with an
+onSuccessUpdateEmail attribute. In a mailstore shared by JMAP and IMAP,
+this is also set and cleared as necessary so it matches the IMAP
+\Answered flag.
+
+Related keywords: None
+
+Related IMAP/JMAP Capabilities: None
+
+Security Considerations:
+A server implementing this keyword as a shared keyword may disclose that
+a user considers the message as flagged for urgent/special attention.
+This information would be exposed to other users with read permission
+for the mailbox keywords.
+
+Published specification (recommended): this document
+
+Person & email address to contact for further information:
+<editor-contact-goes-here>
+
+Intended usage: COMMON
+
+Owner/Change controller: IESG
+
+### Registration of '$recent' Keyword
+
+This registers the keyword '$recent' in the "IMAP and JMAP keywords Registry".
+
+Keyword name: `$recent`
+
+Scope: reserved
+
+Purpose (description): This keyword is not used to avoid confusion with
+the IMAP \Recent system flag.
+
+Published specification (recommended): this document
+
+Person & email address to contact for further information:
+<editor-contact-goes-here>
+
+Owner/Change controller: IESG
