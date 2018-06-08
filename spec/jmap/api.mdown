@@ -574,11 +574,11 @@ A call to *Foo/query* takes the following arguments:
 - **anchor**: `String|null`
   A Foo id. If supplied the *position* argument is ignored. The index of this id in the results will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see below for more details).
 - **anchorOffset**: `Number|null`
-  The index of the anchor object relative to the index of the first result to return. This MAY be negative. For example, `-1` means the first Foo after the anchor Foo should be the first result in the results returned (see below for more details).
+  The index of the first result to return relative to the index of the anchor. This MAY be negative. For example, `-1` means the first Foo before the anchor Foo should be the first result in the results returned (see below for more details).
 - **limit**: `Number|null`
   The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the query is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
 
-If an **anchor** argument is given, then after filtering and sorting the anchor is looked for in the results. If found, the **anchor offset** is then subtracted from its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
+If an **anchor** argument is given, then after filtering and sorting the anchor is looked for in the results. If found, the **anchor offset** is then added to its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
 
 If an *anchor* is specified, any position argument supplied by the client MUST be ignored. If *anchorOffset* is `null`, it defaults to `0`. If no *anchor* is supplied, any anchor offset argument MUST be ignored.
 
