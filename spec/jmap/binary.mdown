@@ -15,7 +15,7 @@ A blob that is not referenced by a JMAP object (e.g. as a message attachment) MA
 * When an upload would take the user over quota, the server MUST delete
   unreferenced blobs in date order, oldest first, until there is room for the new blob.
 * Except where quota restrictions force early deletion, an unreferenced blob
-  SHOULD NOT be deleted for at least 24h from the time of upload; if reuploaded, the same blobId MAY be returned, but this SHOULD reset the expiry time.
+  MUST NOT be deleted for at least 1 hour from the time of upload; if reuploaded, the same blobId MAY be returned, but this SHOULD reset the expiry time.
 * A blob MUST NOT be deleted during the method call which removed the last
   reference, so that a client can issue a create and a destroy that both reference the blob within the same method call.
 
