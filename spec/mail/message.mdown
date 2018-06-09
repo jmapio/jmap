@@ -4,7 +4,21 @@ The **Email** object is a representation of an [@!RFC5322] message, which allows
 
 ## Properties of the Email object
 
-Broadly, a message consists of two parts: a list of header fields, then a body. The body is normally a MIME-encoded set of documents in a tree structure. The JMAP Email object provides a way to access the full structure, or to use simplified properties and avoid some complexity if this is sufficient for the client application.
+Broadly, a message consists of two parts: a list of header fields, then a body. The JMAP Email object provides a way to access the full structure, or to use simplified properties and avoid some complexity if this is sufficient for the client application.
+
+While raw headers can be fetched and set, the vast majority of clients should use an appropriate parsed form for each of the headers it wants to process, as this allows it to avoid the complexities of various encodings that are required in a valid RFC5322 message.
+
+The body of a message is normally a MIME-encoded set of documents in a tree structure. This may be arbitrarily nested, but the majority of email clients present a flat model of an email body (normally plain text or HTML), with a set of attachments. Flattening the MIME structure to form this model can be difficult, and causes inconsistency between clients. Therefore in addition to the *bodyStructure* property, which gives the full tree, the Email object contains 3 alternate properties with flat lists of body parts:
+
+- *textBody*/*htmlBody*: These provide a list of parts that should be
+  rendered sequentially as the "body" of the message. This is a list rather than a single part as messages may have headers and/or footers appended/prepended as separate parts as they are transmitted, and some clients send text and images, or even videos and sound clips, intended to be displayed inline in the body as multiple parts rather than a single HTML part with referenced images.
+
+  Because MIME allows for multiple representations of the same data (using `multipart/alternative`), there is a textBody property (which prefers a plain text representation) and an htmlBody property (which prefers an HTML representation) to accommodate the two most common client requirements. The same part may appear in both lists where there is no alternative between the two.
+
+- *attachments*: This provides a list of parts that should be presented as
+  "attachments" to the message. Some images may be solely there for embedding within an HTML body part; clients may wish to not present these as attachments in the user interface if they are displaying the HTML with the embedded images directly. Some parts may also be in htmlBody/textBody; again, clients may wish to not present these as attachments in the user interface if rendered as part of the body.
+
+The *bodyValues* property allows for clients to fetch the value of text parts directly without having to do a second request for the blob, and have the server handle decoding the charset into unicode. This data is in a separate property rather than on the EmailBodyPart object to avoid duplication of large amounts of data, as the same part may be included twice if the client fetches more than one of bodyStructure, textBody and htmlBody.
 
 Due to the number of properties involved, the set of *Email* properties is specified over the following three sub-sections.
 
@@ -284,17 +298,6 @@ The following **Email** properties are specified for access to the body data of 
 
 - **preview**: `String` (immutable; server-set)
   Up to 255 octets of plain text, summarising the message body. This is intended to be shown as a preview line on a mailbox listing, and may be truncated when shown. The server may choose which part of the message to include in the preview, for example skipping quoted sections and salutations and collapsing white-space can result in a more useful preview.
-
-MIME structures are arbitrary nested trees of documents, but the majority of email clients present a model of an email body (normally plain text or HTML), with a set of attachments. Interpreting the MIME structure to form this flat model represents considerable difficulty and causes inconsistency between clients. Therefore in addition to the *bodyStructure* property, which gives the full tree, the Email object contains 4 alternate properties with flat lists of body parts:
-
-- *textBody*/*htmlBody*: These provide a list of parts that should be
-  rendered as the "body" of the message. This is a list rather than a single part as messages may have headers and/or footers appended/prepended as separate parts as they are transmitted, and some clients send text and images, or even videos and sound clips, intended to be displayed inline in the body as multiple parts rather than a single HTML part with referenced images.
-
-  Because MIME allows for multiple representations of the same data (using `multipart/alternative`), there is a textBody property (which prefers a plain text representation) and an htmlBody property (which prefers an HTML representation) to accommodate the two most common client requirements. The same part may appear in both lists where there is no alternative between the two.
-
-- *attachments*: These provide a list of parts that should be presented as "attachments" to the message. Some images may be solely there for embedding within an HTML body part; clients may wish to not present these as attachments in the user interface if they are displaying the HTML with the embedded images directly. Some parts may also be in htmlBody/textBody; again, clients may wish to not present these as attachments in the user interface if rendered as part of the body.
-
-The *bodyValues* property allows for clients to fetch the value of text parts directly without having to do a second request for the blob, and have the server handle decoding the charset into unicode. This data is in a separate property rather than on the EmailBodyPart object to avoid duplication of large amounts of data, as the same part may be included twice if the client fetches more than one of bodyStructure, textBody and htmlBody.
 
 The exact algorithm for decomposing bodyStructure into textBody, htmlBody and attachments part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time. However, the following algorithm (expressed here in JavaScript) is suggested as a starting point, based on real-world experience:
 
