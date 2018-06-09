@@ -264,21 +264,20 @@ The following **Email** properties are specified for access to the body data of 
   A list of `text/plain`, `text/html`, `image/*`, `audio/*` and/or `video/*` parts to display (sequentially) as the message body, with a preference for `text/plain` when alternative versions are available.
 - **htmlBody**: `EmailBodyPart[]` (immutable)
   A list of `text/plain`, `text/html`, `image/*`, `audio/*` and/or `video/*` parts to display (sequentially) as the message body, with a preference for `text/html` when alternative versions are available.
-- **attachedEmails**: `EmailBodyPart[]` (immutable)
-  A list of all parts of type `message/rfc822` or `message/global`. Note, this **does not** recurse, so the parts within these are not included. The attached message may be fetched using the Email/parse method and the blobId.
-- **attachedFiles**: `EmailBodyPart[]` (immutable)
+- **attachments**: `EmailBodyPart[]` (immutable)
   A list of all parts in *bodyStructure*, traversing depth-first, which satisfy either of the following conditions:
 
-    - not of type `multipart/*` and not included in *attachedEmails*, *textBody* or *htmlBody*
+    - not of type `multipart/*` and not included in *textBody* or *htmlBody*
     - of type `image/*`, `audio/*` or `video/*` and not in both *textBody* and
      *htmlBody*
 
-    Note, an HTML body part may reference image parts in attachedFiles using `cid:` links to reference the *Content-Id* or by referencing the *Content-Location*.
+    None of these parts include subParts, including `message/*` types. Attached messages may be fetched using the Email/parse method and the blobId.
+
+    Note, an HTML body part may reference image parts in attachments using `cid:` links to reference the *Content-Id* or by referencing the *Content-Location*.
 - **hasAttachment**: `Boolean` (immutable; server-set)
   This is `true` if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment if either:
 
-    * The *attachedEmails* list contains at least one item.
-    * The *attachedFiles* list contains at least one item that does not have
+    * The *attachments* list contains at least one item that does not have
       `Content-Disposition: inline`. The server MAY ignore parts in this list that are processed automatically in some way, or are referenced as embedded images in one of the `text/html` parts of the message.
 
     The server MAY set hasAttachment based on implementation-defined or site configurable heuristics.
@@ -293,12 +292,11 @@ MIME structures are arbitrary nested trees of documents, but the majority of ema
 
   Because MIME allows for multiple representations of the same data (using `multipart/alternative`), there is a textBody property (which prefers a plain text representation) and an htmlBody property (which prefers an HTML representation) to accommodate the two most common client requirements. The same part may appear in both lists where there is no alternative between the two.
 
-- *attachedEmails*/*attachedFiles*: These provide a list of parts that should
-  be presented as "attachments" to the message. Emails are presented in a separate list so their contents may be easily fetched via a back-reference with the `Email/parse` method in the same request, if the client wishes to. Some images in attachedFiles may be solely there for embedding within an HTML body part; clients may wish to not present these as attachments in the user interface if they are displaying the HTML with the embedded images directly. Some parts may also be in htmlBody/textBody; again, clients may wish to not present these as attachments in the user interface if rendered as part of the body.
+- *attachments*: These provide a list of parts that should be presented as "attachments" to the message. Some images may be solely there for embedding within an HTML body part; clients may wish to not present these as attachments in the user interface if they are displaying the HTML with the embedded images directly. Some parts may also be in htmlBody/textBody; again, clients may wish to not present these as attachments in the user interface if rendered as part of the body.
 
 The *bodyValues* property allows for clients to fetch the value of text parts directly without having to do a second request for the blob, and have the server handle decoding the charset into unicode. This data is in a separate property rather than on the EmailBodyPart object to avoid duplication of large amounts of data, as the same part may be included twice if the client fetches more than one of bodyStructure, textBody and htmlBody.
 
-The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attachedEmails and attachedFiles part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time. However, the following algorithm (expressed here in JavaScript) is suggested as a starting point, based on real-world experience:
+The exact algorithm for decomposing bodyStructure into textBody, htmlBody and attachments part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time. However, the following algorithm (expressed here in JavaScript) is suggested as a starting point, based on real-world experience:
 
     function isInlineMediaType ( type ) {
       return type.startsWith( 'image/' ) ||
@@ -307,7 +305,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
     }
 
     function parseStructure ( parts, multipartType, inAlternative,
-            htmlBody, textBody, attachedEmails, attachedFiles ) {
+            htmlBody, textBody, attachments ) {
 
         // For multipartType == alternative
         let textLength = textBody ? textBody.length : -1;
@@ -333,7 +331,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
                 let subMultiType = part.type.split( '/' )[1];
                 parseStructure( part.subParts, subMultiType,
                     inAlternative || ( subMultiType == 'alternative' ),
-                    htmlBody, textBody, attachedEmails, attachedFiles );
+                    htmlBody, textBody, attachments );
             } else if ( isInline ) {
                 if ( multipartType == 'alternative' ) {
                     switch ( part.type ) {
@@ -344,7 +342,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
                         htmlBody.push( part );
                         break;
                     default:
-                        attachedFiles.push( part );
+                        attachments.push( part );
                         break;
                     }
                     continue;
@@ -364,13 +362,10 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
                 }
                 if ( ( !textBody || !htmlBody ) &&
                         isInlineMediaType( part.type ) ) {
-                    attachedFiles.push( part );
+                    attachments.push( part );
                 }
-            } else if ( part.type == 'message/rfc822' ||
-                        part.type == 'message/global' ) {
-                attachedEmails.push( part );
             } else {
-                attachedFiles.push( part );
+                attachments.push( part );
             }
         }
 
@@ -395,11 +390,10 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, attac
     // Usage:
     let htmlBody = [];
     let textBody = [];
-    let attachedEmails = [];
-    let attachedFiles = [];
+    let attachments = [];
 
     parseStructure( [ bodyStructure ], 'mixed', false,
-        htmlBody, textBody, attachedEmails, attachedFiles );
+        htmlBody, textBody, attachments );
 
 For instance, consider a message with both text and html versions that's then
 gone through a list software manager that attaches a header/footer. It might have a MIME structure something like:
@@ -424,8 +418,7 @@ In this case, the above algorithm would decompose this to:
 
     textBody => [ A, B, C, D, K ]
     htmlBody => [ A, E, K ]
-    attachedEmails: [ J ]
-    attachedFiles => [ C, F, G, H ]
+    attachments => [ C, F, G, H, J ]
 
 
 ## Email/get
@@ -448,7 +441,7 @@ Standard */get* method, with the following additional arguments:
 
 If the standard *properties* argument is omitted or `null`, the following default MUST be used instead of "all" properties:
 
-    [ "id", "blobId", "threadId", "mailboxIds", "keywords", "size", "receivedAt", "messageId", "inReplyTo", "references", "sender", "from", "to", "cc", "bcc", "replyTo", "subject", "sentAt", "hasAttachment", "preview", "bodyValues", "textBody", "htmlBody", "attachedFiles", "attachedEmails" ]
+    [ "id", "blobId", "threadId", "mailboxIds", "keywords", "size", "receivedAt", "messageId", "inReplyTo", "references", "sender", "from", "to", "cc", "bcc", "replyTo", "subject", "sentAt", "hasAttachment", "preview", "bodyValues", "textBody", "htmlBody", "attachments" ]
 
 The following properties are expected to be fast to fetch in a quality implementation:
 
@@ -682,8 +675,8 @@ Due to the format of the Email object, when creating an email there are a number
   that particular field.
 - Header fields beginning `Content-` MUST NOT be specified on the Email object,
   only on EmailBodyPart objects.
-- If a bodyStructure property is given, there MUST NOT be textBody, htmlBody,
-  attachedFiles or attachedEmails properties.
+- If a bodyStructure property is given, there MUST NOT be textBody, htmlBody or
+  attachments properties.
 - If given, the bodyStructure EmailBodyPart MUST NOT contain a property
   representing a header field that is already defined on the top-level Email
   object.
@@ -841,7 +834,7 @@ The *Email/parse* method takes the following arguments:
 - **properties**: `String[]`
   If supplied, only the properties listed in the array are returned for each Email object. If omitted, defaults to:
 
-      [ "messageId", "inReplyTo", "references", "sender", "from", "to", "cc", "bcc", "replyTo", "subject", "sentAt", "hasAttachment", "preview", "bodyValues", "textBody", "htmlBody", "attachedFiles", "attachedEmails" ]
+      [ "messageId", "inReplyTo", "references", "sender", "from", "to", "cc", "bcc", "replyTo", "subject", "sentAt", "hasAttachment", "preview", "bodyValues", "textBody", "htmlBody", "attachments" ]
 
 - **bodyProperties**: `String[]` (optional)
   A list of properties to fetch for each EmailBodyPart returned. If omitted, defaults to the same value as the Email/get "bodyProperties" default argument.
