@@ -243,8 +243,8 @@ In addition, the client may request/send EmailBodyPart properties representing i
 The following **Email** properties are specified for access to the body data of the message:
 
 - **bodyStructure**: `EmailBodyPart` (immutable)
-  This is the full MIME structure of the message body, including sub parts but not recursing into `message/rfc822` or `message/global` parts.
-- **bodyValues**: `String[BodyValue]` (immutable)
+  This is the full MIME structure of the message body, represented as an array of the message's top-level MIME parts, without recursing into `message/rfc822` or `message/global` parts. Note that EmailBodyParts may have subParts if they are of type `multipart/*`.
+- **bodyValues**: `String[EmailBodyValue]` (immutable)
   This is a map of *partId* to an **EmailBodyValue** object for none, some or all `text/*` parts. Which parts are included and whether the value is truncated is determined by various arguments to *Email/get* and *Email/parse*.
 
     An **EmailBodyValue** object has the following properties:
