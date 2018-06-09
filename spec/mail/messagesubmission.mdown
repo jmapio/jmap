@@ -223,3 +223,41 @@ For **update**:
 
 - `cannotUnsend`: The client attempted to update the *undoStatus* of a valid
   EmailSubmission object from `pending` to `canceled`, but the email cannot be unsent.
+
+### Example
+
+The following example presumes a draft of the message to be sent has already been saved, and its Email id is "M7f6ed5bcfd7e2604d1753f6c". This call then sends the email immediately, and if successful removes the draft flag and moves it from the Drafts folder (which has Mailbox id "7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e") to the Sent folder (which we presume has Mailbox id "73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6").
+
+    [
+      "EmailSubmission/set",
+      {
+        "accountId": "ue411d190",
+        "create": {
+          "k1490": {
+            "identityId": "64588216",
+            "emailId": "M7f6ed5bcfd7e2604d1753f6c",
+            "envelope": {
+              "mailFrom": {
+                "email": "john@example.com",
+                "parameters": null
+              },
+              "rcptTo": [
+                {
+                  "email": "jane@example.com",
+                  "parameters": null
+                }
+              ]
+            }
+          }
+        },
+        "onSuccessUpdateEmail": {
+          "#k1490": {
+            "mailboxIds/7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e": null,
+            "mailboxIds/73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6": true,
+            "keywords/$draft": null
+          }
+        }
+      },
+      "0"
+    ]
+
