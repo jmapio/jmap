@@ -178,7 +178,7 @@ As a simple example, suppose we have the following API request *methodCalls*:
         "#ids": {
             "resultOf": "t0",
             "name": "Foo/changes",
-            "path": "/changed"
+            "path": "/created"
         }
     }, "t1" ]]
 
@@ -189,7 +189,8 @@ After executing the first method call the *methodResponses* array is:
         "oldState": "abcdef",
         "newState": "123456",
         "hasMoreChanges": false,
-        "changed": [ "f1", "f4" ],
+        "created": [ "f1", "f4" ],
+        "updated": [],
         "destroyed": []
     }, "t0" ]]
 
@@ -200,7 +201,7 @@ So to execute the Foo/get call, we look through the arguments and find there is 
 2. Check the response name is the same as in the result reference. It is, so
    this is fine.
 3. Apply the *path* as a JSON pointer to the arguments object. This simply
-   selects the "changed" property, so the result of evaluating is:
+   selects the "created" property, so the result of evaluating is:
    `[ "f1", "f4" ]`
 
 The JMAP server now continues to process the Foo/get call as though the arguments were:
@@ -368,14 +369,18 @@ The response has the following arguments:
   This is the state the client will be in after applying the set of changes to the old state.
 - **hasMoreChanges**: `Boolean`
   If `true`, the client may call *Foo/changes* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
-- **changed**: `String[]`
-  An array of ids for records which have been created or modified but not destroyed since the oldState.
+- **created**: `String[]`
+  An array of ids for records which have been created since the old state.
+- **updated**: `String[]`
+  An array of ids for records which have been updated since the old state.
 - **destroyed**: `String[]`
   An array of ids for records which have been destroyed since the old state.
 
-If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *changed* and *destroyed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *Foo/changes* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
+If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *created*, *updated* and *destroyed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *Foo/changes* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
 
-If a Foo record has been modified AND destroyed since the oldState, the server SHOULD just return the id in the *destroyed* list, but MAY return it in the *changed* list as well. If a Foo record has been created AND destroyed since the oldState, the server SHOULD remove the id from the response entirely, but MAY include it in the *destroyed* list.
+If a Foo record has been created AND destroyed since the old state, the server SHOULD remove the id from the response entirely, but MAY include it in the *destroyed* list, and if so MAY also include it in the *created* list.
+
+If a Foo record has been updated AND destroyed since the old state, the server SHOULD just return the id in the *destroyed* list, but MAY return it in the *updated* list as well.
 
 The following additional errors may be returned instead of the *Foo/changes* response:
 
@@ -832,7 +837,8 @@ and receive in response:
       "oldState": "10324",
       "newState": "871903",
       "hasMoreChanges": false,
-      "changed": [],
+      "created": [],
+      "updated": [],
       "destroyed": ["b"]
     }, "0"],
     ["Todo/queryChanges", {
