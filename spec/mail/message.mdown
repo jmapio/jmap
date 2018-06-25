@@ -266,6 +266,9 @@ The following **Email** properties are specified for access to the body data of 
     * **value**: `String`
       The value of the body part after decoding *Content-Transport-Encoding* and
       decoding the *Content-Type* charset, if known to the server, and with any CRLF replaced with a single LF. The server MAY use heuristics to determine the charset to use for decoding if the charset is unknown, or if no charset is given, or if it believes the charset given is incorrect. Decoding is best-effort and SHOULD insert the unicode replacement character (U+FFFD) and continue when a malformed section is encountered.
+
+        Note that due to the charset decoding and line ending normalisation, the length of this string will probably not be exactly the same as the *size* property on the corresponding EmailBodyPart.
+
     * **isEncodingProblem**: `Boolean` (default: `false`)
       This is `true` if malformed sections were found while decoding the charset, or the charset was unknown.
     * **isTruncated**: `Boolean` (default: `false`)
