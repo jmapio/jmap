@@ -114,19 +114,21 @@ An `error` response looks like this:
 
 The response name is `error`, and it MUST have a type property. Other properties may be present with further information; these are detailed in the error type descriptions where appropriate.
 
-With the exception of `serverError`, the externally-visible state of the server MUST NOT have changed if an error is returned at the method level.
+With the exception of `serverPartialFail`, the externally-visible state of the server MUST NOT have changed if an error is returned at the method level.
 
 The following error types are defined which may be returned for any method call where appropriate:
 
-`serverError`: An unexpected or unknown error occurred during the processing of the call. The state of the server after such an error is undefined.
+`serverUnavailable`: Some internal server resource was temporarily unavailable. Attempting the same operation later (perhaps after a backoff with a random factor) may succeed.
+
+`serverFail`: An unexpected or unknown error occurred during the processing of the call. A *description* property should provide more details about the error. The method call made no changes to the server's state. Attempting the same operation again is expected to fail again. Contacting the service administrator is likely necessary to resolve this problem if it is persistent.
+
+`serverPartialFail`: Some, but not all expected changes described by the method occurred. The client MUST re-synchronise impacted data to determine server state. Use of this error is strongly discouraged.
 
 `unknownMethod`: The server does not recognise this method name.
 
 `invalidArguments`: One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing. A `description` property MAY be present to help debug with an explanation of what the problem was. This is a non-localised string, and is not intended to be shown directly to end users.
 
 `forbidden`: The method and arguments are valid, but executing the method would violate an ACL or other permissions policy.
-
-`timedOut`: The method failed to execute because it timed out waiting for a lock, or was taking too much compute time.
 
 `accountNotFound`: An *accountId* was included with the method call that does not correspond to a valid account, or *accountId* was null but there is no primary account for the capability that defines the data type.
 
@@ -136,7 +138,7 @@ The following error types are defined which may be returned for any method call 
 
 Further possible errors for a particular method are specified in the method descriptions.
 
-Further general errors MAY be defined in future RFCs. Should a client receive an error type it does not understand, it MUST treat it the same as the `serverError` type.
+Further general errors MAY be defined in future RFCs. Should a client receive an error type it does not understand, it MUST treat it the same as the `serverFail` type.
 
 ## References to previous method results
 
