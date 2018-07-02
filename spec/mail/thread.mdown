@@ -2,7 +2,12 @@
 
 Replies are grouped together with the original message to form a thread. In JMAP, a thread is simply a flat list of emails, ordered by date. Every email MUST belong to a thread, even if it is the only email in the thread.
 
-The JMAP spec does not require the server to use any particular algorithm for determining whether two emails belong to the same thread, however there is a recommended algorithm in the [implementation guide](server.html).
+The exact algorithm for determining whether two emails belong to the same thread is not mandated in this spec to allow for compatibility with different existing systems. For new implementations, it is suggested that two messages belong in the same thread if both of the following conditions apply:
+
+  1. An identical RFC5322 message id appears in both messages in any of the
+     Message-Id, In-Reply-To and References headers.
+  2. After stripping automatically added prefixes such as "Fwd:", "Re:",
+     "[List-Tag]" etc. and ignoring whitespace, the subjects are the same. This avoids the situation where a person replies to an old message as a convenient way of finding the right recipient to send to, but changes the subject and starts a new conversation.
 
 If emails are delivered out of order for some reason, a user may receive two emails in the same thread but without headers that associate them with each other. The arrival of a third email in the thread may provide the missing references to join them all together into a single thread. Since the *threadId* of an email is immutable, if the server wishes to merge the threads, it MUST handle this by deleting and reinserting (with a new email id) the emails that change threadId.
 
