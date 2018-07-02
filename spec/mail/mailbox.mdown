@@ -127,3 +127,131 @@ For **destroy**:
   client MUST remove these before it can delete the parent mailbox.
 - `mailboxHasEmail`: The mailbox has at least one message assigned to it and
   the *onDestroyRemoveMessages* argument was `false`.
+
+## Example
+
+Fetching all mailboxes in an account:
+
+    [
+      "Mailbox/get",
+      {
+        "accountId": "u33084183",
+        "ids": null
+      },
+      "0"
+    ]
+
+And response:
+
+    [ "Mailbox/get",
+      {
+        "accountId": "u33084183",
+        "state": "78540",
+        "list": [
+        {
+          "id": "23cfa8094c0f41e6",
+          "name": "Inbox",
+          "parentId": null,
+          "role": "inbox",
+          "sortOrder": 10,
+          "totalEmails": 16307,
+          "unreadEmails": 13905,
+          "totalThreads": 5833,
+          "unreadThreads": 5128,
+          "myRights": {
+            "mayAddItems": true,
+            "mayRename": false,
+            "maySubmit": true,
+            "mayDelete": false,
+            "maySetKeywords": true,
+            "mayRemoveItems": true,
+            "mayCreateChild": true,
+            "maySetSeen": true,
+            "mayReadItems": true
+          },
+          "isSubscribed": true
+        },
+        ...
+        ],
+        "notFound": []
+      },
+      "0"
+    ]
+
+Now suppose a message is marked read and we get a push update that the Mailbox state has changed. You might fetch the updates like this:
+
+    [
+      "Mailbox/changes",
+      {
+        "accountId": "u33084183",
+        "sinceState": "78540"
+      },
+      "0"
+    ],
+    [
+      "Mailbox/get",
+      {
+        "accountId": "u33084183",
+        "#ids": {
+          "resultOf": "0",
+          "name": "Mailbox/changes",
+          "path": "/created"
+        }
+      },
+      "1"
+    ],
+    [
+      "Mailbox/get",
+      {
+        "accountId": "u33084183",
+        "#ids": {
+          "resultOf": "0",
+          "name": "Mailbox/changes",
+          "path": "/updated"
+        },
+        "#properties": {
+          "resultOf": "0",
+          "name": "Mailbox/changes",
+          "path": "/changedProperties"
+        }
+      },
+      "2"
+    ]
+
+This fetches the list of ids for created/updated/destroyed mailboxes, then using back references fetches the data for just the created/updated mailboxes in the same request. The response may look something like this:
+
+    [
+      "Mailbox/changes",
+      {
+        "accountId": "u33084183",
+        "oldState": "78541",
+        "newState": "78542",
+        "hasMoreChanges": false,
+        "changedProperties": [
+          "totalEmails", "unreadEmails",
+          "totalThreads", "unreadThreads"
+        ],
+        "created": [],
+        "updated": ["23cfa8094c0f41e6"],
+        "destroyed": []
+      },
+      "0"
+    ],
+    ["Mailbox/get", {
+      "accountId": "u33084183",
+      "state": "78542",
+      "list": [],
+      "notFound": []
+    }, "1"],
+    ["Mailbox/get", {
+      "accountId": "u33084183",
+      "state": "78542",
+      "list": [{
+        "id": "23cfa8094c0f41e6",
+        "totalEmails": 16307,
+        "unreadEmails": 13903,
+        "totalThreads": 5833,
+        "unreadThreads": 5127
+      }],
+      "notFound": []
+    }, "2"],
