@@ -47,3 +47,42 @@ For **create**:
 For **destroy**:
 
 - `forbidden`: Returned if the identity's *mayDelete* value is `false`.
+
+## Example
+
+Request:
+
+    [ "Identity/get", {}, "0" ]
+
+with response:
+
+    [ "Identity/get", {
+      "accountId": "acme",
+      "state": "99401312ae-11-333",
+      "list": [
+        {
+          "id": "3301-222-11_22AAz",
+          "name": "Joe Bloggs",
+          "email": "joe@example.com",
+          "replyTo": null,
+          "bcc": [{
+            "name": null,
+            "email": "joe+archive@example.com"
+          }],
+          "textSignature": "-- \nJoe Bloggs\nMaster of Email",
+          "htmlSignature": "<div><b>Joe Bloggs</b></div><div>Master of Email</div>",
+          "mayDelete": false,
+        },
+        {
+          "id": "9911312-11_22AAz",
+          "name": "Joe B",
+          "email": "joebloggs@example.com",
+          "replyTo": null,
+          "bcc": null,
+          "textSignature": "",
+          "htmlSignature": "",
+          "mayDelete": true
+        }
+      ],
+      "notFound": []
+    }, "0" ]
