@@ -25,10 +25,10 @@ To fetch search snippets, make a call to `SearchSnippet/get`. It takes the follo
 
 - **accountId**: `String|null`
   The id of the account to use for this call. If `null`, defaults to the `urn:ietf:params:jmap:mail` primary account.
-- **emailIds**: `String[]`
-  The list of ids of emails to fetch the snippets for.
 - **filter**: `FilterOperator|FilterCondition|null`
   The same filter as passed to Email/query; see the description of this method for details.
+- **emailIds**: `String[]`
+  The list of ids of emails to fetch the snippets for.
 
 The response has the following arguments:
 
@@ -49,3 +49,52 @@ The following additional errors may be returned instead of the *searchSnippets* 
 `requestTooLarge`: Returned if the number of *emailIds* requested by the client exceeds the maximum number the server is willing to process in a single method call.
 
 `unsupportedFilter`: Returned if the server is unable to process the given *filter* for any reason.
+
+## Example
+
+Here we did an Email/query to search for any email in the account containing the word "foo", now we are fetching the search snippets for some of the ids that were returned in the results:
+
+    [
+      "SearchSnippet/get",
+      {
+        "accountId": "ue150411c",
+        "filter": {
+          "text": "foo"
+        },
+        "emailIds": [
+          "M44200ec123de277c0c1ce69c",
+          "M7bcbcb0b58d7729686e83d99",
+          "M28d12783a0969584b6deaac0",
+          ...
+        ]
+      },
+      "tag-0"
+    ]
+
+Example response:
+
+    [
+      "SearchSnippet/get", {
+        "accountId": "ue150411c",
+        "filter": {
+          "text": "foo"
+        },
+        "list": [{
+            "emailId": "M44200ec123de277c0c1ce69c"
+            "subject": null,
+            "preview": "...via <mark>foo</mark> 536 + my $DataCenter = $Self-&gt;GetDataCenter(); 537 + 538 + # Automatically route datacenter by percentage of traffic 539 + if ( $DataCenter eq 'auto...",
+        }, {
+            "emailId": "M7bcbcb0b58d7729686e83d99",
+            "subject": "The <mark>Foo</mark>sball competition"
+            "preview": "...year the <mark>foo</mark>sball competition will be held in the Stadium de ...",
+        }, {
+            "emailId": "M28d12783a0969584b6deaac0",
+            "subject": null
+            "preview": "...mail  <mark>Foo</mark>/changes results often return current-state-minus-1 rather than new...",
+        },
+        ...
+        ],
+        "notFound": null
+      },
+      "0"
+    ]
