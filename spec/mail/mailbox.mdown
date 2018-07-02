@@ -171,6 +171,11 @@ And response:
           },
           "isSubscribed": true
         },
+        {
+          "id": "674cc24095db49ce",
+          "name": "Important mail",
+          ...
+        }
         ...
         ],
         "notFound": []
@@ -255,3 +260,44 @@ This fetches the list of ids for created/updated/destroyed mailboxes, then using
       }],
       "notFound": []
     }, "2"],
+
+Here's an example where we try to rename one mailbox and destroy another:
+
+    [
+      "Mailbox/set",
+      {
+        "accountId": "u33084183",
+        "ifInState": "78542",
+        "update": {
+          "674cc24095db49ce": {
+            "name": "Maybe important mail"
+          }
+        },
+        "destroy": [ "23cfa8094c0f41e6" ]
+      },
+      "0"
+    ]
+
+Suppose the rename succeeds, but we don't have permission to destroy the mailbox we tried to destroy, we might get back:
+
+    [
+      "Mailbox/set",
+      {
+        "accountId": "u33084183",
+        "oldState": "78542",
+        "newState": "78549",
+        "created": null,
+        "notCreated": null,
+        "updated": {
+            "674cc24095db49ce": null
+        },
+        "notUpdated": null,
+        "destroyed": null,
+        "notDestroyed": {
+          "23cfa8094c0f41e6": {
+            "type": "forbidden"
+          }
+        }
+      },
+      "0"
+    ]
