@@ -39,9 +39,14 @@ Future specifications MAY add further properties to the Request object to extend
     {
       "using": [ "urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail" ],
       "methodCalls": [
-        ["method1", {"arg1": "arg1data", "arg2": "arg2data"}, "c1"],
-        ["method2", {"arg1": "arg1data"}, "c2"],
-        ["method3", {}, "c3"]
+        [ "method1", {
+          "arg1": "arg1data",
+          "arg2": "arg2data"
+        }, "c1" ],
+        [ "method2", {
+          "arg1": "arg1data"
+        }, "c2" ],
+        [ "method3", {}, "c3" ]
       ]
     }
 
@@ -68,13 +73,20 @@ Unless otherwise specified, if the method call completed successfully its respon
 
     {
       "methodResponses": [
-        ["method1", {"arg1": 3, "arg2": "foo"}, "c1"],
-        ["method2", {"isBlah": true}, "c2"],
-        ["anotherResponseFromMethod2", {
+        [ "method1", {
+          "arg1": 3,
+          "arg2": "foo"
+        }, "c1" ],
+        [ "method2", {
+          "isBlah": true
+        }, "c2" ],
+        [ "anotherResponseFromMethod2", {
           "data": 10,
           "yetmoredata": "Hello"
         }, "c2"],
-        ["error", {"type":"unknownMethod"}, "c3"]
+        [ "error", {
+          "type":"unknownMethod"
+        }, "c3" ]
       ]
     }
 
@@ -108,9 +120,9 @@ Any further method calls in the request MUST then be processed as normal. Errors
 
 An `error` response looks like this:
 
-    ["error", {
+    [ "error", {
       "type": "unknownMethod"
-    }, "client-id"]
+    }, "client-id" ]
 
 The response name is `error`, and it MUST have a type property. Other properties may be present with further information; these are detailed in the error type descriptions where appropriate.
 
@@ -718,23 +730,23 @@ and the server supports querying by keyword using the syntax `{ hasKeyword: "foo
 
 Now, a client might want to display the list of todos with a particular query, so it makes the following method call:
 
-    [["Todo/query", {
+    [[ "Todo/query", {
       "filter": { "hasKeyword": "music" },
       "sort": [{ "property": "title" }],
       "position": 0,
       "limit": 10
-    }, "0"],
-    ["Todo/get", {
+    }, "0" ],
+    [ "Todo/get", {
       "#ids": {
         "resultOf": "0",
         "name": "Todo/query",
         "path": "/ids"
       },
-    }, "1"]]
+    }, "1" ]]
 
 This would query the server for the set of todos with a keyword of "music", sorted by title, and limited to the first 10 results. It fetches the full object for each of these Todos using backreferences to reference the result of the query. The response might look something like:
 
-    [["Todo/query", {
+    [[ "Todo/query", {
       "accountId": "x",
       "filter": { "hasKeyword": "music" },
       "sort": [{ "property": "title" }],
@@ -743,8 +755,8 @@ This would query the server for the set of todos with a keyword of "music", sort
       "position": 0,
       "total": 26,
       "ids": [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" ]
-    }, "0"],
-    ["Todo/get", {
+    }, "0" ],
+    [ "Todo/get", {
       "accountId": "x",
       "state": "10324",
       "list": [{
@@ -769,11 +781,11 @@ This would query the server for the set of todos with a keyword of "music", sort
       },
       ...
       ]
-    }, "1"]]
+    }, "1" ]]
 
 Now suppose the user adds a keyword "chopin" and removes the keyword "mozart" from the "Practise Piano" task. The client may send the whole object to the server, as this is a valid PatchObject:
 
-    [["Todo/set", {
+    [[ "Todo/set", {
       "ifInState": "10324",
       "update": {
         "a": {
@@ -789,11 +801,11 @@ Now suppose the user adds a keyword "chopin" and removes the keyword "mozart" fr
           "neuralNetworkTimeEstimation": 360
         }
       }
-    }, "0"]]
+    }, "0" ]]
 
 or it may send a minimal patch:
 
-    [["Todo/set", {
+    [[ "Todo/set", {
       "ifInState": "10324",
       "update": {
         "a": {
@@ -801,11 +813,11 @@ or it may send a minimal patch:
           "keywords/mozart": null
         }
       }
-    }, "0"]]
+    }, "0" ]]
 
 The effect is exactly the same on the server in either case, and presuming the server is still in state "10324" it will probably return success:
 
-    [["Todo/set", {
+    [[ "Todo/set", {
       "accountId": "x",
       "oldState": "10324",
       "newState": "10329",
@@ -814,27 +826,27 @@ The effect is exactly the same on the server in either case, and presuming the s
           "neuralNetworkTimeEstimation": 5400
         }
       }
-    }, "0"]]
+    }, "0" ]]
 
 The server changed the "neuralNetworkTimeEstimation" property on the object as part of this change; as this changed in a way *not* explicitly requested by the PatchObject sent to the server, it is returned with the "updated" confirmation.
 
 Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user will receive a push notification (see later in the spec) with the changed state string for the "Todo" type. Since the new string does not match its current state, it knows it needs to check for updates. It may make a request like:
 
-    [["Todo/changes", {
+    [[ "Todo/changes", {
       "accountId": "x",
       "sinceState": "10324",
       "maxChanges": 50,
-    }, "0"],
-    ["Todo/queryChanges", {
+    }, "0" ],
+    [ "Todo/queryChanges", {
       "filter": { "hasKeyword": "music" },
       "sort": [{ "property": "title" }],
       "sinceQueryState": "y13213"
       "maxChanges": 50,
-    }, "1"]]
+    }, "1" ]]
 
 and receive in response:
 
-    [["Todo/changes", {
+    [[ "Todo/changes", {
       "accountId": "x",
       "oldState": "10324",
       "newState": "871903",
@@ -842,8 +854,8 @@ and receive in response:
       "created": [],
       "updated": [],
       "destroyed": ["b"]
-    }, "0"],
-    ["Todo/queryChanges", {
+    }, "0" ],
+    [ "Todo/queryChanges", {
       "filter": { "hasKeyword": "music" },
       "sort": [{ "property": "title" }],
       "oldQueryState": "y13213"
@@ -851,4 +863,4 @@ and receive in response:
       "total": 25,
       "removed": ["b"],
       "added": null
-    }, "1"]]
+    }, "1" ]]
