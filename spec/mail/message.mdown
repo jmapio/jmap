@@ -868,3 +868,225 @@ The response has the following arguments:
 As specified above, parsed forms of headers may only be used on appropriate header fields. Attempting to fetch a form that is forbidden (e.g. `header:From:asDate`) MUST result in the method call being rejected with an `invalidArguments` error.
 
 Where a specific header is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
+
+## Examples
+
+A client logs in for the first time. It first fetches the set of mailboxes. Now it will display the inbox to the user, which we will presume has mailbox id "fb666a55". The inbox may be (very!) large, but the user's screen is only so big, so the client will just load the start and then can load in more as necessary. The client sends this request:
+
+    [[ "Email/query",{
+      "accountId": "ue150411c",
+      "filter": {
+        "inMailbox": "fb666a55"
+      },
+      "sort": [{
+        "isAscending": false,
+        "property": "receivedAt"
+      }],
+      "collapseThreads": true,
+      "position": 0,
+      "limit": 30
+    }, "0" ],
+    [ "Email/get", {
+      "accountId": "ue150411c",
+      "#ids": {
+        "resultOf": "0",
+        "name": "Email/query",
+        "path": "/ids"
+      },
+      "properties": [
+        "threadId"
+      ]
+    }, "1" ],
+    [ "Thread/get", {
+      "accountId": "ue150411c",
+      "#ids": {
+        "resultOf": "1",
+        "name": "Email/get",
+        "path": "/list/*/threadId"
+      }
+    }, "2" ],
+    [ "Email/get", {
+      "accountId": "ue150411c",
+      "#ids": {
+        "resultOf": "2",
+        "name": "Thread/get",
+        "path": "/list/*/emailIds"
+      },
+      "properties": [
+        "threadId",
+        "mailboxIds",
+        "keywords",
+        "hasAttachment",
+        "from",
+        "subject",
+        "receivedAt",
+        "size",
+        "preview"
+      ]
+    }, "3" ]]
+
+Let's break down the 4 method calls to see what they're doing:
+
+0. This asks the server for the ids of the first 30 Email objects in the inbox,
+   sorted newest first, ignoring messages from the same thread as a newer message in the mailbox (i.e. it is the first 30 unique threads).
+
+1. Now we use a backreference to fetch the thread ids for each of these email
+   ids.
+
+2. Another backreference fetches the Thread object for each of these thread ids.
+
+3. Finally, we fetch the information we need to display the mailbox listing (
+   but no more!) for every message in each of these 30 threads. The client may aggregate this data for display, for example showing the thread as "flagged" if any of the messages in it contain the `$flagged` keyword.
+
+The response from the server may look something like this:
+
+    [[ "Email/query", {
+      "accountId": "ue150411c",
+      "filter": {
+        "inMailbox": "fb666a55"
+      },
+      "sort": [{
+        "property": "receivedAt",
+        "isAscending": false
+      }],
+      "collapseThreads": true,
+      "queryState": "09aa9a075588-780599:0",
+      "canCalculateChanges": true,
+      "position": 0,
+      "total": 115,
+      "ids": [ "Ma783e5cdf5f2deffbc97930a", "M9bd17497e2a99cb345fc1d0a", ... ]
+    }, "0" ],
+    [ "Email/get", {
+      "accountId": "ue150411c",
+      "state": "780599",
+      "list": [{
+        "id": "Ma783e5cdf5f2deffbc97930a",
+        "threadId": "T36703c2cfe9bd5ed"
+      }, {
+        "id": "M9bd17497e2a99cb345fc1d0a"
+        "threadId": "T0a22ad76e9c097a1",
+      }, ... ],
+      "notFound": []
+    }, "1" ],
+    [ "Thread/get", {
+      "accountId": "ue150411c",
+      "state": "22a8728b",
+      "list": [{
+        "id": "T36703c2cfe9bd5ed"
+        "emailIds": [ "Ma783e5cdf5f2deffbc97930a" ],
+      }, {
+        "id": "T0a22ad76e9c097a1"
+        "emailIds": [ "M3b568670a63e5d100f518fa5", "M9bd17497e2a99cb345fc1d0a" ],
+      },  ... ],
+      "notFound": []
+    }, "2" ],
+    [ "Email/get", {
+      "accountId": "ue150411c",
+      "state": "780599",
+      "list": [{
+        "id": "Ma783e5cdf5f2deffbc97930a"
+        "threadId": "T36703c2cfe9bd5ed",
+        "mailboxIds": {
+          "fb666a55": true
+        },
+        "keywords": {
+          "$seen": true,
+          "$flagged": true
+        },
+        "hasAttachment": true,
+        "from": [{
+          "email": "jdoe@example.com",
+          "name": "Jane Doe"
+        }],
+        "subject": "The Big Reveal",
+        "receivedAt": "2018-06-27T00:20:35Z",
+        "size": 175047,
+        "preview": "As you may be aware, we are required to prepare a presentation where we wow a panel of 5 random members of the public, on or before 30 June each year. We have drafted the …",
+      },
+      ...
+      ],
+      "notFound": []
+    }, "3" ]]
+
+Now, on another device the user marks the first message as unread, sending this API request:
+
+    [[ "Email/set", {
+      "accountId": "ue150411c",
+      "update": {
+        "Ma783e5cdf5f2deffbc97930a": {
+          "keywords/$seen": null
+        }
+      }
+    }, "0" ]]
+
+The server applies this and sends the success response:
+
+    [[ "Email/set", {
+      "accountId": "ue150411c",
+      "oldState": "780605"
+      "newState": "780606",
+      "updated": {
+        "Ma783e5cdf5f2deffbc97930a": null
+      },
+      ...
+    }, "0" ]]
+
+The user also deletes a few messages, and then a new message arrives.
+
+Back on our original machine, we receive a push update that the state string for Email is now `780800`. As this does not match the client's current state, it issues a request for the changes:
+
+    [[ "Email/changes", {
+      "accountId": "ue150411c",
+      "sinceState": "780605",
+      "maxChanges": 50
+    }, "3" ],
+    [ "Email/queryChanges", {
+      "accountId": "ue150411c",
+      "filter": {
+        "inMailbox": "fb666a55"
+      },
+      "sort": [{
+        "property": "receivedAt",
+        "isAscending": false
+      }],
+      "collapseThreads": true,
+      "sinceQueryState": "09aa9a075588-780599:0",
+      "upToId": "Mc2781d5e856a908d8a35a564",
+      "maxChanges": 25
+    }, "11" ]]
+
+The response:
+
+    [ "Email/changes", {
+      "accountId": "ue150411c",
+      "oldState": "780605",
+      "newState": "780800",
+      "hasMoreChanges": false,
+      "created": [ "Me8de6c9f6de198239b982ea2" ],
+      "updated": [ "Ma783e5cdf5f2deffbc97930a" ],
+      "destroyed": [ "M9bd17497e2a99cb345fc1d0a", ... ],
+    }, "3" ],
+    [ "Email/queryChanges", {
+      "accountId": "ue150411c",
+      "oldQueryState": "09aa9a075588-780599:0"
+      "newQueryState": "e35e9facf117-780615:0",
+      "filter": {
+        "inMailbox": "fb666a55"
+      },
+      "sort": [{
+        "property": "receivedAt",
+        "isAscending": false
+      }],
+      "collapseThreads": true,
+      "upToId": "Mc2781d5e856a908d8a35a564",
+      "added": [{
+        "id": "Me8de6c9f6de198239b982ea2",
+        "index": 0
+      }],
+      "removed": [ "M9bd17497e2a99cb345fc1d0a" ],
+      "total": 115,
+    }, "11" ],
+
+The client can update its local cache of the query results by removing "M9bd17497e2a99cb345fc1d0a" and then splicing in "Me8de6c9f6de198239b982ea2" at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using backreferences).
+
+It knows something has changed about "Ma783e5cdf5f2deffbc97930a", so it will refetch the mailboxes and keywords (the only mutable properties) for this email too.
