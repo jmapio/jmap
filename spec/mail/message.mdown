@@ -34,7 +34,7 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
   The id of the Thread to which this Email belongs.
 - **mailboxIds**: `String[Boolean]`
   The set of mailbox ids this email belongs to. An email MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
-- **keywords**: `String[Boolean]` (default: `{}`)
+- **keywords**: `String[Boolean]` (default: {})
   A set of keywords that apply to the email. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 
     Keywords are shared with IMAP. The six system keywords from IMAP are treated specially. The following four keywords have their first character changed from `\` in IMAP to `$` in JMAP and have particular semantic meaning:
@@ -300,9 +300,9 @@ The following **Email** properties are specified for access to the body data of 
 
         Note that due to the charset decoding and line ending normalisation, the length of this string will probably not be exactly the same as the *size* property on the corresponding EmailBodyPart.
 
-    * **isEncodingProblem**: `Boolean` (default: `false`)
+    * **isEncodingProblem**: `Boolean` (default: false)
       This is `true` if malformed sections were found while decoding the charset, or the charset was unknown.
-    * **isTruncated**: `Boolean` (default: `false`)
+    * **isTruncated**: `Boolean` (default: false)
       This is `true` if the *value* has been truncated.
 
     See the security considerations section for issues related to truncation
@@ -467,11 +467,11 @@ Standard "/get" method, with the following additional arguments:
 
     [ "partId", "blobId", "size", "name", "type", "charset", "disposition", cid", "language", "location" ]
 
-- **fetchTextBodyValues**: `Boolean` (default: `false`)
+- **fetchTextBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `textBody` property.
-- **fetchHTMLBodyValues**: `Boolean` (default: `false`)
+- **fetchHTMLBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `htmlBody` property.
-- **fetchAllBodyValues**: `Boolean` (default: `false`)
+- **fetchAllBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
 - **maxBodyValueBytes**: `Number` (optional)
   If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
@@ -574,7 +574,7 @@ Standard "/changes" method.
 
 Standard "/query" method, but with the following additional arguments:
 
-- **collapseThreads**: `Boolean` (default: `false`)
+- **collapseThreads**: `Boolean` (default: false)
   If `true`, emails in the same thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means at most only one email will be included in the list for any given thread.
 
 ### Filtering
@@ -684,7 +684,7 @@ The response has the following additional argument:
 
 Standard "/queryChanges" method, with the following additional arguments:
 
-- **collapseThreads**: `Boolean` (default: `false`)
+- **collapseThreads**: `Boolean` (default: false)
   The *collapseThreads* argument that was used with *Email/query*.
 
 The response has the following additional argument:
@@ -773,7 +773,7 @@ An **EmailImport** object has the following properties:
   The id of the blob containing the raw [@!RFC5322] message.
 - **mailboxIds** `String[Boolean]`
   The ids of the mailboxes to assign this email to. At least one mailbox MUST be given.
-- **keywords**: `String[Boolean]` (default: `{}`)
+- **keywords**: `String[Boolean]` (default: {})
   The keywords to apply to the email.
 - **receivedAt**: `UTCDate` (default: time of import on server)
   The *receivedAt* date to set on the email.
@@ -809,7 +809,7 @@ The *Email/copy* method takes the following arguments:
   The id of the account to copy emails to. If `null`, defaults to the `urn:ietf:params:jmap:mail` primary account.
 - **create**: `String[EmailCopy]`
   A map of *creation id* to an EmailCopy object.
-- **onSuccessDestroyOriginal**: `Boolean` (default: `false`)
+- **onSuccessDestroyOriginal**: `Boolean` (default: false)
   If `true`, an attempt will be made to destroy the emails that were successfully copied: after emitting the *Email/copy* response, but before processing the next method, the server MUST make a single call to *Email/set* to destroy the original of each successfully copied message; the output of this is added to the responses as normal to be returned to the client.
 
 An **EmailCopy** object has the following properties:
@@ -818,9 +818,9 @@ An **EmailCopy** object has the following properties:
   The id of the email to be copied in the "from" account.
 - **mailboxIds**: `String[Boolean]`
   The ids of the mailboxes (in the "to" account) to add the copied email to. At least one mailbox MUST be given.
-- **keywords**: `String[Boolean]` (default: `{}`)
+- **keywords**: `String[Boolean]` (default: {})
   The *keywords* property for the copy.
-- **receivedAt**: `UTCDate` (default: *receivedAt* date of original)
+- **receivedAt**: `UTCDate` (default: receivedAt date of original)
   The *receivedAt* date to set on the copy.
 
 The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account. If duplicates are allowed though, the "from" account may be the same as the "to" account to copy emails within an account.
@@ -876,11 +876,11 @@ The *Email/parse* method takes the following arguments:
 
 - **bodyProperties**: `String[]` (optional)
   A list of properties to fetch for each EmailBodyPart returned. If omitted, defaults to the same value as the Email/get "bodyProperties" default argument.
-- **fetchTextBodyValues**: `Boolean` (default: `false`)
+- **fetchTextBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `textBody` property.
-- **fetchHTMLBodyValues**: `Boolean` (default: `false`)
+- **fetchHTMLBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `htmlBody` property.
-- **fetchAllBodyValues**: `Boolean` (default: `false`)
+- **fetchAllBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
 - **maxBodyValueBytes**: `Number` (optional)
   If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
