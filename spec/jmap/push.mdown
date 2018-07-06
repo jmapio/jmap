@@ -19,50 +19,125 @@ When something changes on the server, the server pushes a **StateChange** object
 
 A push subscription is a message delivery context established between the client and a push service. A **PushSubscription** object has the following properties:
 
-- **url**: `String`
+- **id**: `String` (immutable; server-set)
+  The id of the push subscription.
+- **deviceClientId**: `String` (immutable)
+  An id that uniquely identifies the client + device it is running on. The purpose of this is to allow clients to identify which PushSubscription objects they created even if they lose their local state, so they can revoke or update them. This string MUST be different on different devices, and be different from other vendors. It SHOULD be easy to re-generate, not depend on persisted state. A secure hash that includes both a device id and vendor id is one way this could be achieved.
+- **url**: `String` (immutable)
   An absolute URL where the JMAP server will POST the data for the push message.
   This MUST begin with `https://`.
-- **expires**: `UTCDate|null`
-  The time this push subscription expires. If specified, the JMAP server MUST NOT make further requests to this resource after this time. It MAY automatically remove the push subscription at or after this time.
-- **keys**: `Object|null`
+- **keys**: `Object|null` (immutable)
   Client-generated encryption keys. If supplied the server MUST use them as specified in [@!RFC8291] to encrypt all data sent to the push subscription. The object MUST have the following properties:
 
-    - **p256dh**: the P-256 ECDH Diffie-Hellman public key as described in [@!RFC8291], encoded in URL-safe base64 representation as defined in [@!RFC4648].
+    - **p256dh**: the P-256 ECDH Diffie-Hellman public key as described in [@!RFC8291], encoded in URL-safe Base64 representation as defined in [@!RFC4648].
     - **auth**: the authentication secret as described in [@!RFC8291], encoded in URL-safe base64 representation as defined in [@!RFC4648].
+
+- **expires**: `UTCDate|null`
+  The time this push subscription expires. If specified, the JMAP server MUST NOT make further requests to this resource after this time. It MAY automatically destroy the push subscription at or after this time.
+
+    The server MAY choose to set an expiry if none is given by the client, or modify the expiry time given by the client to a shorter duration.
+
 - **types**: `String[]|null`
   A list of types the client is interested in (using the same names as the keys in the *TypeState* object). Push events will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If `null`, changes will be pushed for all types.
 
-Clients may register the push subscription with the JMAP server, which will then make a POST request to the associated push endpoint whenever an event occurs.
+Clients may create a push subscription on the JMAP server, which will then make a POST request to the associated push endpoint whenever an event occurs.
 
 The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON encoded *StateChange* object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030].
 
-If the response code is `503` (Service Unavailable), the JMAP server MAY try again later, but may also just drop the event. If the response code is `429` (Too Many Requests) the JMAP server SHOULD attempt to reduce the frequency of pushes to that URL. Any other `4xx` or `5xx` response code MUST be considered a **permanent failure** and the push subscription should be deregistered (not tried again even for future events unless explicitly re-registered by the client).
+If the response code is `503` (Service Unavailable), the JMAP server MAY try again later, but may also just drop the event. If the response code is `429` (Too Many Requests) the JMAP server SHOULD attempt to reduce the frequency of pushes to that URL. Any other `4xx` or `5xx` response code MUST be considered a **permanent failure** and the push subscription SHOULD be destroyed.
 
 The use of this push endpoint conforms with the use of a push endpoint by an Application Server as defined in [@!RFC8030]. A client MAY use the rest of [@!RFC8030] in combination with its own Push Server to form a complete end-to-end solution, or MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
 
-### PushSubscription/set
+The push subscription is tied to the credentials used to authenticate the API request that created it. Should these credentials expire or be revoked, the push subscription MUST be destroyed by the JMAP server.
 
-Each session may only have a single push subscription registered. The push subscription is tied to the access token used to create it. Should the access token expire or be revoked, the push subscription MUST be removed by the JMAP server. The client MUST re-register the push subscription after reauthenticating to resume callbacks.
+When these credentials have their own expiry (i.e. it is a session with a timeout), the server SHOULD NOT set or bound the expiry time for the push subscription given by the client, but MUST expire it when the session expires.
 
-To set the push subscription, make a call to *PushSubscription/set*. It takes the following argument:
-
-- **pushSubscription**: `PushSubscription|null`
-  The PushSubscription object representing the endpoint the JMAP server will POST events to. This will replace any previously set subscription. Set to `null` to remove any previously registered subscription.
-
-The response has no arguments.
-
-The following additional errors may be returned instead of the *PushSubscription/set* response:
-
-`invalidUrl`: Returned if the URL does not begin with `https://`, or is otherwise syntactically invalid or does not resolve.
-
-`forbidden`: Returned if the URL is valid, but for policy reasons the server is not willing to connect to it.
+When these credentials are not time bounded (e.g. basic auth), the server SHOULD set an expiry time for the push subscription if none given, and limit the expiry time if set too far in the future. This maximum expiry time MUST be at least 48h in the future and SHOULD be at least 7 days in the future.
 
 ### PushSubscription/get
 
-To check the currently set push subscription (if any), make a call to *PushSubscription/set*. It does not take any arguments. The response has a single argument:
+Standard */get* method, except it does **not** take or return an *accountId* argument, as push subscriptions are not tied to specific accounts. It also does **not** return a *state* argument. The *ids* argument may be `null` to fetch all at once.
 
-- **pushSubscription**: `PushSubscription|null`
-  The PushSubscription object the JMAP server is currently posting push events to, or `null` if none.
+As the *url* and *keys* properties may contain data that is private to a particular device, the values for these properties MUST NOT be returned. If the *properties* argument is `null` or omitted, the server MUST default to all properties excluding these two. If one of them is explicitly requested, the method call MUST be rejected with a `forbidden` error.
+
+### PushSubscription/set
+
+Standard */set* method except it does **not** take or return an *accountId* argument, as push subscriptions are not tied to specific accounts. It also does **not** take an *ifInState* argument or return *oldState* or *newState* arguments.
+
+The *url* and *keys* properties are immutable; if the client wishes to change these, it must destroy the current push subscription and create a new one.
+
+The client may update the *expires* property to extend (or, less commonly, shorten) the lifetime of a push subscription. The server MAY modify the proposed new expiry time to enforce server-defined limits.
+
+Clients SHOULD NOT update or destroy a push subscription that they did not create (i.e. has a *deviceClientId* that they do not recognise).
+
+### Example
+
+A client with deviceClientId `a889-ffea-910` fetches the set of push subscriptions currently on the server, making an API request with:
+
+    [[ "PushSubscription/get", {
+      "ids": null,
+    }, "0" ]]
+
+Which returns:
+
+    [[ "PushSubscription/get", {
+      "list": [{
+          "id": "e50b2c1d-9553-41a3-b0a7-a7d26b599ee1",
+          "deviceClientId": "b37ff8001ca0",
+          "expires": "2018-01-31T00:13:21Z",
+          "types": [ "Todo" ]
+      }, {
+          "id": "f2d0aab5-e976-4e8b-ad4b-b380a5b987e4",
+          "deviceClientId": "8980f37f6c71",
+          "expires": "2018-02-12T05:55:00Z",
+          "types": [ "Mailbox", "Email", "EmailDelivery" ]
+      }],
+      "notFound": []
+    }, "0" ]]
+
+Since neither of the returned push subscription objects have the client's deviceClientId, it knows it does not have a current push subscription active on the server. So it creates one, sending this request:
+
+    [[ "PushSubscription/set", {
+      "create": {
+        "4f29": {
+          "deviceClientId": "a889-ffea-910",
+          "url": "https://example.com/push/?device=8980f37f6c&client=12c6d086",
+          "types": null
+        }
+      }
+    }, "0" ]]
+
+The server creates the push subscription but limits the expiry time to 7 days in the future, returning this response:
+
+    [[ "PushSubscription/set", {
+      "created": {
+        "4f29": {
+          "id": "043dcfa4-1dd4-41ef-9156-2c89b3b19c60",
+          "keys": null,
+          "expires": "2018-07-13T02:14:29Z"
+        }
+      }
+    }, "0" ]]
+
+Two days later, the client updates the subscription to extend its lifetime, sending this request:
+
+    [[ "PushSubscription/set", {
+      "update": {
+        "043dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
+          "expires": "2018-08-13T00:00:00Z"
+        }
+      }
+    }, "0" ]]
+
+The server extends the expiry time, but only again to its maximum limit of 7 days in the future, returning this response:
+
+    [[ "PushSubscription/set", {
+      "updated": {
+        "043dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
+          "expires": "2018-07-16T02:22:50Z"
+        }
+      }
+    }, "0" ]]
 
 ## Event Source
 
