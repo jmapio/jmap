@@ -94,10 +94,12 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
 
 - **Addresses** (`EmailAddress[]`)
 
-    The header is parsed as an `address-list` value, as specified in [@!RFC5322] section 3.4, into the `EmailAddress[]` type. The **EmailAddress** object has the following properties:
+    The header is parsed as an `address-list` value, as specified in [@!RFC5322] section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each `mailbox` parsed from the `address-list`, and for each `group` there is an item at both the beginning and the end position of the group, so the client can tell which addresses are part of it.
+
+    The **EmailAddress** object has the following properties:
 
     - **name**: `String|null`
-      The *display-name* of the [@!RFC5322] *mailbox* or *group*, or `null` if none. If this is a *quoted-string*:
+      The *display-name* of the [@!RFC5322] *mailbox* or *group*, or `null` if none, or if marking the end of a group. If this is a *quoted-string*:
       1. The surrounding DQUOTE characters are removed.
       2. Any *quoted-pair* is decoded.
       3. White-space is unfolded, and then any leading or trailing white-space
@@ -107,8 +109,23 @@ These properties are derived from the [@!RFC5322] and [@!RFC6532] message header
 
     Any syntactically correct [@!RFC2047] encoded sections with a known encoding MUST be decoded, following the same rules as for the *Text* form. Any [@!RFC6532] UTF-8 values MUST be decoded.
 
-    Parsing SHOULD be best-effort in the face of invalid structure to accommodate
-    invalid messages and semi-complete drafts. EmailAddress objects MAY have an *email* property that does not conform to the *addr-spec* form (for example, may not contain an @ symbol).
+    Parsing SHOULD be best-effort in the face of invalid structure to
+    accommodate invalid messages and semi-complete drafts. EmailAddress objects
+    MAY have an *email* property that does not conform to the *addr-spec* form (for example, may not contain an @ symbol).
+
+    For example, the following `address-list` string:
+
+        "  James Smythe" <james@example.com>, Friends: jane@example.com, =?UTF-8?Q?John_Sm=C3=AEth?= <john@example.com>;
+
+    would be parsed as:
+
+        [
+          { "name": "James Smythe", "email": "james@example.com" },
+          { "name": "Friends", "email": null },
+          { "name": null, "email": "jane@example.com" },
+          { "name": "John Smîth", "email": "john@example.com" },
+          { "name": null, "email": null }
+        ]
 
     To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
