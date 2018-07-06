@@ -75,11 +75,11 @@ The following JMAP methods are supported:
 
 ## Mailbox/get
 
-Standard */get* method. The *ids* argument may be `null` to fetch all at once.
+Standard "/get" method. The *ids* argument may be `null` to fetch all at once.
 
 ## Mailbox/changes
 
-Standard */changes* method, but with one extra argument to the response:
+Standard "/changes" method, but with one extra argument to the response:
 
 - **changedProperties**: `String[]|null`
   If only the mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e. `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
@@ -88,7 +88,7 @@ Since counts frequently change but the rest of the mailboxes state for most use 
 
 ## Mailbox/query
 
-Standard */query* method.
+Standard "/query" method.
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
@@ -110,11 +110,11 @@ The following properties MUST be supported for sorting:
 
 ## Mailbox/queryChanges
 
-Standard */queryChanges* method.
+Standard "/queryChanges" method.
 
 ## Mailbox/set
 
-Standard */set* method, but with the following additional argument:
+Standard "/set" method, but with the following additional argument:
 
 - **onDestroyRemoveMessages**: `Boolean` (default: `false`)
   If `false`, attempts to destroy a mailbox that still has any messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the mailbox will be removed from it, and if in no other mailboxes will be destroyed when the mailbox is destroyed.
