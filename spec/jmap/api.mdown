@@ -412,11 +412,36 @@ The response has the following arguments:
 - **destroyed**: `String[]`
   An array of ids for records which have been destroyed since the old state.
 
-If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *created*, *updated* and *destroyed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the update returned SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *Foo/changes* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
+If a record has been created AND updated since the old state, the server SHOULD just return the id in the *created* list, but MAY return it in the *updated* list as well.
 
-If a Foo record has been created AND destroyed since the old state, the server SHOULD remove the id from the response entirely, but MAY include it in the *destroyed* list, and if so MAY also include it in the *created* list.
+If a record has been updated AND destroyed since the old state, the server SHOULD just return the id in the *destroyed* list, but MAY return it in the *updated* list as well.
 
-If a Foo record has been updated AND destroyed since the old state, the server SHOULD just return the id in the *destroyed* list, but MAY return it in the *updated* list as well.
+If a record has been created AND destroyed since the old state, the server SHOULD remove the id from the response entirely, but MAY include it in the *destroyed* list, and if so MAY also include it in the *created* list.
+
+If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *created*, *updated* and *destroyed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the server SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *Foo/changes* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
+
+When generating intermediate states, the server may choose how to divide up the changes. For many types it will provide a better user experience to return the more recent changes first, as this is more likely to be what the user is most interested in. The client can then continue to page in the older changes while the user is viewing the newer data. For example, suppose a server went through the following states:
+
+    A -> B -> C -> D -> E
+
+And a client asks for changes from state `B`. The server might first get the ids of records created, updated or destroyed between states D and E, returning them with:
+
+    state: "B-D-E"
+    hasMoreChanges: true
+
+The client will then ask for the change from state `B-D-E`, and the server can return the changes between states C and D, returning:
+
+    state: "B-C-E"
+    hasMoreChanges: true
+
+Finally the client will request the changes from `B-C-E` and the server can return the changes between states B and C, returning:
+
+    state: "E"
+    hasMoreChanges: false
+
+Should the state on the server be modified in the middle of all this (to `F`), the server still does the same but now when the update to state `E` is returned, it would indicate that it still has more changes for the client to fetch.
+
+Where multiple changes to a record are split across different intermediate states, the server MUST NOT return a record as created in a later response than one which gives it as updated or destroyed, and MUST NOT return a record as destroyed before a response that gives it as created or updated. The server may have to coalesce multiple changes to a record to satisfy this requirement.
 
 The following additional errors may be returned instead of the *Foo/changes* response:
 
