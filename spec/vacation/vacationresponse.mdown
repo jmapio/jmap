@@ -1,0 +1,76 @@
+# Introduction
+
+JMAP <https://tools.ietf.org/html/draft-ietf-jmap-core-05> is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
+
+This specification defines an object representing a vacation response that may be configured to automatically reply to emails sent to an account.
+
+## Notational conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [@!RFC2119].
+
+Type signatures, examples and property descriptions in this document follow the conventions established in Section 1.1 of <https://tools.ietf.org/html/draft-ietf-jmap-core-05>.
+
+## The Date data types
+
+Where `UTCDate` is given as a type, it means a a string in [@!RFC3339] *date-time* format where the *time-offset* component MUST be `Z` (i.e. it must be in UTC time), the *time-secfrac* MUST always be omitted and any letters in the string (e.g. "T" and "Z") MUST be upper-case. For example, `"2014-10-30T06:12:00Z"`.
+
+## Terminology
+
+The same terminology is used in this document as in the core JMAP specification.
+
+## Addition to the capabilities object
+
+The capabilities object is returned as part of the standard JMAP Session object; see the JMAP spec. Servers supporting *this* specification MUST add a property called `urn:ietf:params:jmap:vacationresponse` to the capabilities object. The value of this property is an object which MUST contain the following information on server capabilities:
+
+- **maxMailboxesPerEmail**: `Number|null`
+  The maximum number of mailboxes that can be can assigned to a single email. This MUST be an integer >= 1, or `null` for no limit (or rather, the limit is always the number of mailboxes in the account).
+
+The server MUST also include the string `urn:ietf:params:jmap:vacationresponse` in the *hasDataFor* property of any account in which the user may use the data type contained in this specification.
+
+# Vacation response
+
+The **VacationResponse** object represents the state of vacation-response
+related settings for an account. It has the following properties:
+
+- **id**: `String` (immutable)
+  The id of the object. There is only ever one vacation response object, and its id is `"singleton"`.
+- **isEnabled** `Boolean`
+  Should a vacation response be sent if an email arrives between the *fromDate* and *toDate*?
+- **fromDate**: `UTCDate|null`
+  If *isEnabled* is `true`, the date/time in UTC after which emails that arrive should receive the user's vacation response. If `null`, the vacation response is effective immediately.
+- **toDate**: `UTCDate|null`
+  If *isEnabled* is `true`, the date/time in UTC after which emails that arrive should no longer receive the user's vacation response. If `null`, the vacation response is effective indefinitely.
+- **subject**: `String|null`
+  The subject that will be used by the message sent in response to emails when the vacation response is enabled. If null, an appropriate subject SHOULD be set by the server.
+- **textBody**: `String|null`
+  The plain text part of the message to send in response to emails when the vacation response is enabled. If this is `null`, when the vacation message is sent a plain-text body part SHOULD be generated from the *htmlBody* but the server MAY choose to send the response as HTML only.
+- **htmlBody**: `String|null`
+  The HTML message to send in response to emails when the vacation response is enabled. If this is `null`, when the vacation message is sent an HTML body part MAY be generated from the *textBody*, or the server MAY choose to send the response as plain-text only.
+
+The following JMAP methods are supported:
+
+## VacationResponse/get
+
+Standard */get* method.
+
+There MUST only be exactly one VacationResponse object in an account. It MUST have the id `"singleton"`.
+
+## VacationResponse/set
+
+Standard */set* method.
+
+# IANA Considerations
+
+## JMAP Capability Registration for "vacationresponse"
+
+IANA will register the "vacationresponse" JMAP Capability as follows:
+
+Capability Name: `urn:ietf:params:jmap:vacationresponse`
+
+Specification document: this document
+
+Intended use: common
+
+Change Controller: IETF
+
+Security and privacy considerations: this document, section 4.
