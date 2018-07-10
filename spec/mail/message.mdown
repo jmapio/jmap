@@ -1121,3 +1121,68 @@ The response:
 The client can update its local cache of the query results by removing "M9bd17497e2a99cb345fc1d0a" and then splicing in "Me8de6c9f6de198239b982ea2" at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using backreferences).
 
 It knows something has changed about "Ma783e5cdf5f2deffbc97930a", so it will refetch the mailboxes and keywords (the only mutable properties) for this email too.
+
+The user composes a new message and saves a draft. The client sends:
+
+    [[ "Email/set", {
+      "accountId": "ue150411c",
+      "create": {
+        "k1546": {
+          "mailboxIds": {
+            "2ea1ca41b38e": true
+          },
+          "keywords": {
+            "$seen": true,
+            "$draft": true
+          },
+          "from": [{
+            "name": "Joe Bloggs",
+            "email": "joe@example.com"
+          }],
+          "to": [{
+            "name": "John",
+            "email": "john@example.com"
+          }],
+          "subject": "World domination",
+          "receivedAt": "2018-07-10T01:05:08Z",
+          "sentAt": "2018-07-10T11:05:08+10:00",
+          "bodyStructure": {
+            "type": "multipart/alternative",
+            "subParts": [{
+              "partId": "49db",
+              "type": "text/html"
+            }, {
+              "partId": "bd48",
+              "type": "text/plain"
+            }]
+          },
+          "bodyValues": {
+            "bd48": {
+              "value": "I have the most brilliant plan. Let me tell you all about it. What we do is, we",
+              "isTruncated": false
+            },
+            "49db": {
+              "value": "<!DOCTYPE html><html><head><title></title><style type=\"text/css\">div{font-size:16px}</style></head><body><div>I have the most brilliant plan. Let me tell you all about it. What we do is, we</div></body></html>",
+              "isTruncated": false
+            }
+          }
+        }
+      }
+    }, "0" ]]
+
+The server creates the message and sends the success response:
+
+    [[ "Email/set", {
+      "accountId": "ue150411c",
+      "oldState": "780823"
+      "newState": "780839",
+      "created": {
+        "k1546": {
+          "id": "Md45b47b4877521042cec0938",
+          "blobId": "Ge8de6c9f6de198239b982ea214e0f3a704e4af74",
+          "threadId": "Td957e72e89f516dc",
+          "size": 11721
+        }
+      },
+      ...
+    }, "0" ]]
