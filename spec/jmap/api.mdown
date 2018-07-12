@@ -353,6 +353,8 @@ Response:
 
 JMAP provides a uniform interface for creating, retrieving, updating and deleting objects of a particular type. For a `Foo` data type, records of that type would be fetched via a Foo/get call and modified via a Foo/set call. Delta updates may be fetched via a Foo/changes call. These methods all follow a standard format as described below.
 
+Not all types may have all methods. Specifications defining types MUST specify which methods are available for the type.
+
 ## /get
 
 Objects of type **Foo** are fetched via a call to *Foo/get*.
@@ -576,6 +578,52 @@ The following additional errors may be returned instead of the *Foo/set* respons
 
 `stateMismatch`: An `ifInState` argument was supplied and it does not match the current state.
 
+## /copy
+
+The only way to move Foo records **between** two different accounts is to copy them using the *Foo/copy* method, then once the copy has succeeded, delete the original. The *onSuccessDestroyOriginal* argument allows you to try to do this in one method call, however note that the two different actions are not atomic, and so it is possible for the copy to succeed but the original not to be destroyed for some reason.
+
+The *Foo/copy* method takes the following arguments:
+
+- **fromAccountId**: `String|null`
+  The id of the account to copy records from. If `null`, the primary account for the capability that defines the data type is used.
+- **toAccountId**: `String|null`
+  The id of the account to copy records to. If `null`, the primary account for the capability that defines the data type is used.
+- **create**: `String[Foo]`
+  A map of *creation id* to a Foo object. The object MUST contain an id property: the id of the record to be copied. Any other properties included are used instead of the current value for that property on the original when creating the copy.
+- **onSuccessDestroyOriginal**: `Boolean` (default: false)
+  If `true`, an attempt will be made to destroy the original records that were successfully copied: after emitting the *Foo/copy* response, but before processing the next method, the server MUST make a single call to *Foo/set* to destroy the original of each successfully copied record; the output of this is added to the responses as normal to be returned to the client.
+
+Each record copy is considered an atomic unit which may succeed or fail individually. Copying successfully MUST create a new record object, with separate ids and mutable properties to the original, even if copied within a single account.
+
+The response has the following arguments:
+
+- **fromAccountId**: `String`
+  The id of the account records were copied from.
+- **toAccountId**: `String`
+  The id of the account records were copied to.
+- **created**: `String[Foo]|null`
+  A map of the creation id to an object containing any properties of the copied Foo object that are set by the server (such as the *id* in most object types).
+
+    This argument is `null` if no Foo objects were successfully copied.
+
+- **notCreated**: `String[SetError]|null`
+  A map of creation id to a SetError object for each record that failed to be copied, `null` if none.
+
+The **SetError** may be any of the standard set errors that may be returned for a *create* or *update*. In addition, the following SetError is defined:
+
+`alreadyExists`: The server forbids duplicates and the record already exists in the target account. An *existingId* property of type `String` MUST be included on the error object with the id of the existing record.
+
+The following additional errors may be returned instead of the *Foo/copy* response:
+
+`fromAccountNotFound`: A *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account; or, *fromAccountId* was null but there is no primary account for the capability that defines the data type.
+
+`toAccountNotFound`: A *toAccountId* was explicitly included with the request, but it does not correspond to a valid account; or, *toAccountId* was null but there is no primary account for the capability that defines the data type.
+
+`fromAccountNotSupportedByMethod`: The *fromAccountId* given corresponds to a valid account, but the account does not support this data type.
+
+`toAccountNotSupportedByMethod`: The *toAccountId* given corresponds to a valid account, but the account does not support this data type.
+
+
 ## /query
 
 For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g. multi-gigabyte mailboxes), the client needs to be able to search/sort/window the data type on the server.
@@ -597,7 +645,7 @@ A call to *Foo/query* takes the following arguments:
       - **OR**: at least one of the conditions must match for the filter to match.
       - **NOT**: none of the conditions must match for the filter to match.
     - **conditions**: `(FilterOperator|FilterCondition)[]`
-      The conditions to evaluate against each email.
+      The conditions to evaluate against each record.
 
     A **FilterCondition** is an `object`, whose allowed properties and semantics depend on the data type and is defined in the */query* method specification for that type.
 
@@ -773,7 +821,7 @@ Suppose we have a type *Todo* with the following properties:
   The title and keywords are fed into the server's state-of-the-art neural
   network to get an estimation of how long this todo will take, in seconds.
 
-and the server supports querying by keyword using the syntax `{ hasKeyword: "foo" }` in the *filter* argument to */query*.
+and the server supports all the standard methods for the type, including querying by keyword using the syntax `{ hasKeyword: "foo" }` in the *filter* argument to */query*.
 
 Now, a client might want to display the list of todos with a particular query, so it makes the following method call:
 
@@ -911,3 +959,37 @@ and receive in response:
       "removed": ["b"],
       "added": null
     }, "1" ]]
+
+Suppose the user has access to another account `y`, for example a team account shared between multiple users. To move an existing Todo from account `x`, the client would call:
+
+    [[ "Todo/copy", {
+      "fromAccountId": "x",
+      "toAccountId": "y",
+      "create": {
+        "k5122": {
+          "id": "a"
+        }
+      },
+      "onSuccessDestroyOriginal": true,
+    }, "0" ]]
+
+The server successfully copies the Todo to a new account (where it receives a new id) and deletes the original. Due to the implicit call to "Todo/set", there are two responses to the single method call, both with the same client id:
+
+    [[ "Todo/copy", {
+      "fromAccountId": "x",
+      "toAccountId": "y",
+      "created": {
+        "k5122": {
+          "id": "97"
+        }
+      },
+      "notCreated": null
+    }, "0" ],
+    [ "Todo/set", {
+      "accountId": "x",
+      "oldState": "871903"
+      "newState": "871909",
+      "destroyed": [ "a" ],
+      ...
+    }, "0" ]]
+

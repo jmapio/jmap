@@ -19,6 +19,25 @@ Standard "/get" method.
 
 Standard "/changes" method
 
+## CalendarEvent/set
+
+Standard "/set" method.
+
+When an event is created, updated or destroyed, the server MUST also ensure the following:
+
+- Any alerts are scheduled/cancelled correctly.
+- If there is a *participantId*, and the corresponding participant has a *role*
+  of `owner`:
+  - If an event is created/updated: send a REQUEST iMIP email with the event as
+    an ICS attachment to all participants that are not "you".
+  - When an event is destroyed, if it is in the future, then email all
+    participants other than you the appropriate iMIP email to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
+- If there is a *participantId*, and the corresponding participant does not have a *role* of `owner`, and the *scheduleStatus* is updated for this participant, send the appropriate iMIP email to the *replyTo* address.
+
+## CalendarEvent/copy
+
+Standard "/copy" method.
+
 ## CalendarEvent/query
 
 Standard "/query" method.
@@ -65,19 +84,3 @@ The following properties MUST be supported for sorting:
 ## CalendarEvent/queryChanges
 
 Standard "/queryChanges" method.
-
-## CalendarEvent/set
-
-Standard "/set" method.
-
-When an event is created, updated or destroyed, the server MUST also ensure the following:
-
-- Any alerts are scheduled/cancelled correctly.
-- If there is a *participantId*, and the corresponding participant has a *role*
-  of `owner`:
-  - If an event is created/updated: send a REQUEST iMIP email with the event as
-    an ICS attachment to all participants that are not "you".
-  - When an event is destroyed, if it is in the future, then email all
-    participants other than you the appropriate iMIP email to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
-- If there is a *participantId*, and the corresponding participant does not have a *role* of `owner`, and the *scheduleStatus* is updated for this participant, send the appropriate iMIP email to the *replyTo* address.
-

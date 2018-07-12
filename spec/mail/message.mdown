@@ -758,6 +758,15 @@ For **create** and **update**:
 - `tooManyMailboxes`: The change to the email's mailboxes would exceed a
   server-defined maximum.
 
+## Email/copy
+
+Standard "/copy" method.
+
+The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account. If duplicates are allowed though, the "from" account may be the same as the "to" account to copy emails within an account.
+
+For successfully copied Email objects, the *created* response MUST contain the *id*, *blobId*, *threadId* and *size* properties of the object.
+
+
 ## Email/import
 
 The *Email/import* method adds [@!RFC5322] messages to a user's set of emails. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
@@ -797,60 +806,6 @@ The response has the following arguments:
 - **notCreated**: `String[SetError]`
   A map of creation id to a SetError object for each Email that failed to be created. The possible errors are defined above.
 
-## Email/copy
-
-The only way to move messages **between** two different accounts is to copy them using the *Email/copy* method, then once the copy has succeeded, delete the original. The *onSuccessDestroyOriginal* argument allows you to try to do this in one method call, however note that the two different actions are not atomic, and so it is possible for the copy to succeed but the original not to be destroyed for some reason.
-
-The *Email/copy* method takes the following arguments:
-
-- **fromAccountId**: `String|null`
-  The id of the account to copy emails from. If `null`, defaults to the `urn:ietf:params:jmap:mail` primary account.
-- **toAccountId**: `String|null`
-  The id of the account to copy emails to. If `null`, defaults to the `urn:ietf:params:jmap:mail` primary account.
-- **create**: `String[EmailCopy]`
-  A map of *creation id* to an EmailCopy object.
-- **onSuccessDestroyOriginal**: `Boolean` (default: false)
-  If `true`, an attempt will be made to destroy the emails that were successfully copied: after emitting the *Email/copy* response, but before processing the next method, the server MUST make a single call to *Email/set* to destroy the original of each successfully copied message; the output of this is added to the responses as normal to be returned to the client.
-
-An **EmailCopy** object has the following properties:
-
-- **id**: `String`
-  The id of the email to be copied in the "from" account.
-- **mailboxIds**: `String[Boolean]`
-  The ids of the mailboxes (in the "to" account) to add the copied email to. At least one mailbox MUST be given.
-- **keywords**: `String[Boolean]` (default: {})
-  The *keywords* property for the copy.
-- **receivedAt**: `UTCDate` (default: receivedAt date of original)
-  The *receivedAt* date to set on the copy.
-
-The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account. If duplicates are allowed though, the "from" account may be the same as the "to" account to copy emails within an account.
-
-Each email copy is considered an atomic unit which may succeed or fail individually. Copying successfully MUST create a new email object, with separate ids and mutable properties (e.g. mailboxes and keywords) to the original email.
-
-The response has the following arguments:
-
-- **fromAccountId**: `String`
-  The id of the account emails were copied from.
-- **toAccountId**: `String`
-  The id of the account emails were copied to.
-- **created**: `String[Email]|null`
-  A map of the creation id to an object containing the *id*, *blobId*, *threadId* and *size* properties for each successfully copied Email.
-- **notCreated**: `String[SetError]|null`
-  A map of creation id to a SetError object for each Email that failed to be copied, `null` if none.
-
-The **SetError** may be any of the standard set errors that may be returned for a *create*. The following extra *SetError* type is also defined:
-
-`alreadyExists`: The server forbids duplicates and the email already exists in the target account. An *emailId* property of type `String` MUST be included on the error object with the id of the existing email.
-
-The following additional errors may be returned instead of the *Email/copy* response:
-
-`fromAccountNotFound`: A *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account; or, *fromAccountId* was null but there is no primary account for `urn:ietf:params:jmap:mail`.
-
-`toAccountNotFound`: A *toAccountId* was explicitly included with the request, but it does not correspond to a valid account; or, *toAccountId* was null but there is no primary account for `urn:ietf:params:jmap:mail`.
-
-`fromAccountNotSupportedByMethod`: The *fromAccountId* given corresponds to a valid account, but does not contain any mail data.
-
-`toAccountNotSupportedByMethod`: The *toAccountId* given corresponds to a valid account, but does not contain any mail data.
 
 ## Email/parse
 
@@ -899,6 +854,7 @@ The response has the following arguments:
 As specified above, parsed forms of headers may only be used on appropriate header fields. Attempting to fetch a form that is forbidden (e.g. `header:From:asDate`) MUST result in the method call being rejected with an `invalidArguments` error.
 
 Where a specific header is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
+
 
 ## Examples
 
@@ -1174,7 +1130,7 @@ The server creates the message and sends the success response:
 
     [[ "Email/set", {
       "accountId": "ue150411c",
-      "oldState": "780823"
+      "oldState": "780823",
       "newState": "780839",
       "created": {
         "k1546": {
@@ -1184,5 +1140,44 @@ The server creates the message and sends the success response:
           "size": 11721
         }
       },
+      ...
+    }, "0" ]]
+
+The client moves this draft to a different account. The only way to do this is via the `/copy` method. It MUST set a new mailboxIds property, since the current value will not be valid mailbox ids in the destination account:
+
+    [[ "Email/copy", {
+      "fromAccountId": "ue150411c",
+      "toAccountId": "6c6c41ac",
+      "create": {
+        "k45": {
+          "id": "Md45b47b4877521042cec0938",
+          "mailboxIds": {
+            "75a4c956": true
+          }
+        }
+      },
+      "onSuccessDestroyOriginal": true
+    }, "0" ]]
+
+The server successfully copies the email and deletes the original. Due to the implicit call to "Email/set", there are two responses to the single method call, both with the same client id:
+
+    [[ "Email/copy", {
+      "fromAccountId": "ue150411c",
+      "toAccountId": "6c6c41ac",
+      "created": {
+        "k45": {
+          "id": "M138f9954a5cd2423daeafa55",
+          "blobId": "G6b9fb047cba722c48c611e79233d057c6b0b74e8",
+          "threadId": "T2f242ea424a4079a",
+          "size": 11721
+        }
+      },
+      "notCreated": null
+    }, "0" ],
+    [ "Email/set", {
+      "accountId": "ue150411c",
+      "oldState": "780839"
+      "newState": "780871",
+      "destroyed": [ "Ma783e5cdf5f2deffbc97930a" ],
       ...
     }, "0" ]]
