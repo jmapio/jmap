@@ -101,7 +101,7 @@ Unless otherwise specified in a method description, `null` is the default value 
 ### Error responses
 
 When an HTTP error response is returned to the client, the server
-SHOULD return a JSON "problem details" object in the response body,
+SHOULD return a JSON "problem details" object as the response body,
 as per [@!RFC7807]. Every JSON "problem details" object MUST include a
 "type" member with a URI either one of the following values, or a value defined in a future RFC, or a value beginning with a domain owned by the vendor.
 
@@ -111,6 +111,12 @@ as per [@!RFC7807]. Every JSON "problem details" object MUST include a
   The content type of the request was not `application/json` or the request did not parse as I-JSON.
 - `urn:ietf:params:jmap:error:notrequest`
   The request parsed as JSON but did not match the structure of the Request object.
+- `urn:ietf:params:jmap:error:limit`
+  The request was not processed as it would have exceeded one of the **request**
+  limits defined on the capability object, such as maxSizeRequest,
+  maxCallsInRequest or maxConcurrentRequests. A "limit" property MUST also be
+  present on the "problem details" object, containing the name of the limit
+  being applied.
 
 ### Method-level errors
 
