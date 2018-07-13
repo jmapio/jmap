@@ -1,10 +1,10 @@
 # Binary data
 
-Binary data is referenced by a *blobId* in JMAP, and uploaded/downloaded separately to the core API. A blobId does not have a name inherent to it, but this is normally given in the same object that contains the blobId. The data represented by a blobId is immutable.
+Binary data is referenced by a *blobId* in JMAP, and uploaded/downloaded separately to the core API. The blobId solely represents the raw bytes of data, not any associated metadata such as a file name or content type. Such metadata is stored alongside the blobId in the object referencing it. The data represented by a blobId is immutable.
 
-Any blobId that exists within an account may be used when creating/updating another object in that account. For example, an Email type may have a blobId that represents the [@!RFC5322] representation of the message. A client could create a new Email object with an attachment and use this blobId, in effect attaching the old message to the new one. Similarly it could attach any existing existing attachment of an old message without having to download and upload it again.
+Any blobId that exists within an account may be used when creating/updating another object in that account. For example, an Email type may have a blobId that represents the [@!RFC5322] representation of the message. A client could create a new Email object with an attachment and use this blobId, in effect attaching the old message to the new one. Similarly it could attach any existing attachment of an old message without having to download and upload it again.
 
-When the client uses a blobId in a create/update, the server MAY assign a new blobId to refer to the same binary data from the new/updated object. If it does so, it MUST return any properties that contain a changed blobId in the created/updated response so the client gets the new ids.
+When the client uses a blobId in a create/update, the server MAY assign a new blobId to refer to the same binary data within the new/updated object. If it does so, it MUST return any properties that contain a changed blobId in the created/updated response so the client gets the new ids.
 
 A blob that is not referenced by a JMAP object (e.g. as a message attachment) MAY be deleted by the server to free up resources. Uploads (see below) are initially unreferenced blobs. To ensure interoperability:
 
@@ -21,7 +21,7 @@ A blob that is not referenced by a JMAP object (e.g. as a message attachment) MA
 
 ## Uploading binary data
 
-There is a single endpoint which handles all file uploads for an account, regardless of what they are to be used for. The JMAP Session object has an *uploadUrl* property in [@!RFC6570] URI Template (level 1) format, which MAY contain a variable called `accountId`. The client may use this template in combination with an *accountId* (if required in the template) to get the URL of the file upload resource.
+There is a single endpoint which handles all file uploads for an account, regardless of what they are to be used for. The JMAP Session object has an *uploadUrl* property in [@!RFC6570] URI Template (level 1) format, which MUST contain a variable called `accountId`. The client may use this template in combination with an *accountId* to get the URL of the file upload resource.
 
 To upload a file, the client submits an authenticated POST request to the file upload resource.
 
@@ -40,11 +40,17 @@ If identical binary content to an existing blob in the account is uploaded, the 
 
 ## Downloading binary data
 
-The JMAP Session object has a *downloadUrl* property, which is in [@!RFC6570] URI Template (level 1) format. The URL MUST contain a variable called `blobId`, MAY contain a variable called `accountId`, and SHOULD contain a variable called `name`.
+The JMAP Session object has a *downloadUrl* property, which is in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `accountId`, `blobId`, `type` and `name`.
 
-The client may use this template in combination with an *accountId* (if required in the URL template) and *blobId* to download any binary data (files) referenced by other objects. Since a blob is not associated with a particular name, the template SHOULD allow a name to be substituted in as well; the server will return this as the filename if it sets a `Content-Disposition` header.
+To download a file, the client makes an authenticated GET request to the download URL with the appropriate variables substituted in:
 
-To download the data the client makes an authenticated GET request to the download URL with the appropriate variables substituted in. The client SHOULD send an `Accept` header with the content type they would like the server to return for the file. The `Content-Type` header of a successful response SHOULD be set to the type as requested in the `Accept` header by the client, or `application/octet-stream` if unknown and no `Accept` header given.
+- `accountId`: The id of the account to which the record with the blobId
+   belongs.
+- `blobId`: The blobId representing the data of the file to download.
+- `type`: The type for the server to set in the `Content-Type` header of the
+  response; the blobId only represents the binary data and does not have a content-type inately associated with it.
+- `name`: The name for the file; the server MUST return this as the filename if
+  it sets a `Content-Disposition` header.
 
 ## Blob/copy
 
@@ -66,9 +72,9 @@ The response has the following arguments:
 - **toAccountId**: `String`
   The id of the account emails were copied to.
 - **copied**: `String[String]|null`
-  A map of the blob id in the *fromAccount* to the id for the blob in the *toAccount*, or `null` if none were successfully copied.
+  A map of the blobId in the *fromAccount* to the id for the blob in the *toAccount*, or `null` if none were successfully copied.
 - **notCopied**: `String[SetError]|null`
-  A map of blob id to a SetError object for each blob that failed to be copied, `null` if none.
+  A map of blobId to a SetError object for each blob that failed to be copied, `null` if none.
 
 The **SetError** may be any of the standard set errors that may be returned for a *create*.
 

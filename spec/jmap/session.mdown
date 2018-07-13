@@ -85,9 +85,9 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
 - **downloadUrl**: `String`
-  The URL endpoint to use when downloading files (see the Download section of this spec), in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `blobId`, MAY contain a variables called `accountId` and SHOULD contain a variable called `name`.
+  The URL endpoint to use when downloading files (see the Download section of this spec), in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `accountId`, `blobId`, `type` and `name`. Due to potential encoding issues with slashes in content types, it is recommended to put the `type` variable in the query section of the URL.
 - **uploadUrl**: `String`
-  The URL endpoint to use when uploading files (see the Upload section of this spec), in [@!RFC6570] URI Template (level 1) format. The URL MAY contain a variable called `accountId`.
+  The URL endpoint to use when uploading files (see the Upload section of this spec), in [@!RFC6570] URI Template (level 1) format. The URL MUST contain a variable called `accountId`.
 - **eventSourceUrl**: `String`
   The URL to connect to for push events (see the Push section of this spec).
 
@@ -136,7 +136,7 @@ In the following example JMAP Session object, the user has access to his own mai
         ...
       },
       "apiUrl": "https://jmap.example.com/api/",
-      "downloadUrl": "https://jmap.example.com/download/{accountId}/{blobId}/{name}",
+      "downloadUrl": "https://jmap.example.com/download/{accountId}/{blobId}/{name}?accept={type}",
       "uploadUrl": "https://jmap.example.com/upload/{accountId}/",
       "eventSourceUrl": "https://jmap.example.com/eventsource/"
     }
