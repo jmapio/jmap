@@ -4,7 +4,7 @@ This document describes a recommended set of database tables and algorithms for 
 
 ## Assigning Email Ids
 
-A good way of assigning a message id is to use a secure hash function on the RFC5322 message. If you want to support having identical messages with different ids, you'll then need to keep hashing the result if there are collisions until you find an unused id. In general, I recommend not doing this.
+A good way of assigning an Email id is to use a secure hash function on the RFC5322 message. If you want to support having identical messages with different ids, you'll then need to keep hashing the result if there are collisions until you find an unused id. In general, I recommend not doing this.
 
 ## Modification sequences
 
@@ -48,7 +48,7 @@ Data sync properties:
 - **id**: `String` (The thread id; UUID suggested)
 
 - **emails**: `ThreadEmail[]`
-  The list of Emails belonging to the thread, sorted with drafts immediately after the Email they are in reply to, then by date order.
+  The list of Emails belonging to the thread, sorted as required in the spec, with drafts immediately after the Email they are in reply to, then by date order.
 
     A **ThreadEmail** has the following properties:
 
@@ -126,25 +126,29 @@ Note, the updatedModSeq is set at the same time as the deleted field when the me
 
 ### 5. EmailChangeLog
 
-A log of modseqs when messages are created/updated/deleted, for faster responses to *Email/changes*.
+A log of modseqs when messages are created/updated/destroyed, for faster responses to *Email/changes*.
 
 - **id**: The modseq of the change
 
-- **changed**: `String[]`
-  The list of message ids for messages that were changed or updated.
-- **removed**: `String[]`
-  The list of message ids for messages that were deleted.
+- **created**: `String[]`
+  The list of email ids for messages that were created.
+- **updated**: `String[]`
+  The list of email ids for messages that were updated.
+- **destroyed**: `String[]`
+  The list of email ids for messages that were destroyed.
 
 ### 6. ThreadChangeLog
 
-A log of modseqs when threads are created/updated/deleted, for faster responses to *Thread/changes*.
+A log of modseqs when threads are created/updated/destroyed, for faster responses to *Thread/changes*.
 
 - **id**: The modseq of the change
 
-- **changed**: `String[]`
-  The list of thread ids for threads that were changed or updated.
-- **removed**: `String[]`
-  The list of thread ids for threads that were deleted.
+- **created**: `String[]`
+  The list of thread ids for threads that were created.
+- **updated**: `String[]`
+  The list of thread ids for threads that were updated.
+- **destroyed**: `String[]`
+  The list of thread ids for threads that were destroyed.
 
 ### 7. Refs to Thread
 
@@ -164,7 +168,7 @@ This is solely used to look up the conversation to assign to a message on creati
   The date of the last time this id was seen in a new message. This is used to
   clean up older entries after a while.
 
-If two messages share a common RFC5322 message id in the set of such ids within  of each message, and the messages have the same `Subject` header hash, then they should belong in the same thread. Otherwise they should belong in different threads.
+If two messages share a common RFC5322 message id in the set of such ids within each message, and the messages have the same `Subject` header hash, then they should belong in the same thread. Otherwise they should belong in different threads.
 
 ### 8. HighLowModSeqCache
 
