@@ -1,6 +1,8 @@
 # JSON Meta Application Protocol (JMAP) Specification
 
-This repo contains the specifications for JMAP. JMAP is a protocol specification intended to be a new standard for email clients to connect to mail stores. It therefore intends to primarily replace IMAP + SMTP submission. It is also designed to be more generic such that it can be extended with contacts, calendars in the future (replacing CardDAV/CalDAV). It does not replace MTA-to-MTA SMTP transmission.
+This repo contains the specifications for JMAP. 
+
+JMAP is a modern standard for email clients to connect to mail stores. It therefore primarily replaces IMAP + SMTP submission. It does not replace MTA-to-MTA SMTP transmission. JMAP was built by the community, and continues to improve via the [IETF standardization process](https://datatracker.ietf.org/wg/jmap/about/). Upcoming work includes adding contacts and calendars (replacing CardDAV/CalDAV).
 
 The pretty HTML version of the spec along with more JMAP info and resources can be found at http://jmap.io.
 
