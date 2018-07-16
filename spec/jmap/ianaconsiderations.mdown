@@ -42,11 +42,13 @@ IANA Registry Reference: {insert IANA registry URL for registry in next section,
 
 IANA will create a registry for JMAP capabilities as described in section 2.1. JMAP capabilities are advertised in the *capabilities* property of the *JMAP Session* resource. They are used to extend the functionality of a JMAP server. A capability is referenced by a URI. The JMAP capability URI can be a URN starting with `urn:ietf:params:jmap:` plus a unique suffix which is the index value in the jmap URN sub-namespace. Registration of a JMAP capability with another form of URI has no impact on the jmap URN sub-namespace.
 
-This registry follows the expert review process unless the "intended use" field is *common* in which case registration follows the specification required process.
+This registry follows the expert review process unless the "intended use" field is *common* or *placeholder* in which case registration follows the specification required process.
 
-A JMAP capability registration can have an intended use of 'common', 'limited', or 'obsolete'. IANA will list common use registrations prominently and separately from those with other intended use values.
+A JMAP capability registration can have an intended use of *common*, *placeholder*, *limited*, or *obsolete*. IANA will list common use registrations prominently and separately from those with other intended use values.
 
 The JMAP capability registration procedure is not a formal standards process, but rather an administrative procedure intended to allow community comment and sanity checking without excessive time delay.
+
+A *placeholder* registration reserves part of the jmap urn namespace for another purpose but is typically not included in the *capabilities* property of the *JMAP Session* resource.
 
 ### Preliminary Community Review
 
@@ -88,7 +90,7 @@ Change controller: (*IETF* for standards-track/BCP RFCs)
 
 Security and privacy considerations:
 
-### Initial Registration
+### Initial Registration for JMAP core
 
 Capability Name: `urn:ietf:params:jmap:core`
 
@@ -99,3 +101,83 @@ Intended use: common
 Change Controller: IETF
 
 Security and privacy considerations: this document, section 7.
+
+### Registration for JMAP error placeholder in JMAP Capabilities Registry
+
+Capability Name: `urn:ietf:params:jmap:error:'
+
+Specification document: this document, next section.
+
+Intended use: placeholder
+
+Change Controller: IETF
+
+Security and privacy considerations: this document, section 7.
+
+## Creation of "JMAP Error Codes" Registry
+
+IANA will create a registry for JMAP error codes. JMAP error codes appear in the "type" member of a JSON problem details object (as described in section 3.6.1), in the "type" member in a JMAP error object (as described in section 3.6.2), or the "type" member of a JMAP method-specific error object (such as SetError in section 4.3). When used in a problem details object, the prefix 'urn:ietf:params:jmap:error:' is always included, and when used in JMAP objects, the prefix is always omitted.
+
+This registry follows the expert review process. Preliminary community review for this registry follows the same procedures as the JMAP capabilities registry but is optional. The change procedures for this registry are the same as the change procedures for the JMAP capabilities registry.
+
+### Designated Expert Review
+
+The designated expert should review the following aspects of the registration:
+
+1. Verify the error code does not conflict with existing names.
+
+2. Verify the error code follows the syntax limitations (does not require URI encoding).
+
+3. Encourage the error code to follow the naming convention of previously registered errors.
+
+4. Encourage description of client behaviors that are recommended in response to the error code. These may distinguish the error code from other error codes.
+
+5. Encourage description of when the server should issue the error as opposed to some other error code.
+
+6. Encourage the submitter to note any security considerations associated with the error, if any. For example, an error code that might disclose existence of data the authenticated user does not have permission to know about.
+
+Steps 3-6 are meant to promote a higher-quality registry. However, the expert is encouraged to approve any registration that would not actively harm JMAP interoperability to make this a relatively light-weight process.
+
+### JMAP Error Codes Registry Template:
+
+JMAP Error Code:
+
+Intended use: (one of *common*, *limited*, *obsolete*)
+
+Change Controller: (*IETF* for standards-track/BCP RFCs)
+
+Description or Reference:
+
+### Initial JMAP Error Codes Registry
+
+| JMAP Error Code | Intended Use | Change Controller | Description or Reference |
+| --- | --- | --- | --- |
+| accountNotFound | common | IETF | RFC XXXX section 3.6.2 |
+| accountNotSupportedByMethod | common | IETF | RFC XXXX section 3.6.2 |
+| accountReadOnly | common | IETF | RFC XXXX section 3.6.2 |
+| anchorNotFound | common | IETF | RFC XXXX section 4.4 |
+| cannotCalculateChanges | common | IETF | RFC XXXX sections 4.2 and 4.5 |
+| forbidden | common | IETF | RFC XXXX sections 3.6.2, 4.3, and 6.2.1 |
+| fromAccountNotFound | common | IETF | RFC XXXX sections 5.3 |
+| invalidArguments | common | IETF | RFC XXXX section 3.6.2 |
+| invalidPatch | common | IETF | RFC XXXX section 4.3 |
+| invalidProperties | common | IETF | RFC XXXX section 4.3 |
+| invalidUrl | common | IETF | RFC XXXX section 6.2.1 |
+| notFound | common | IETF | RFC XXXX section 4.3 |
+| notjson | common | IETF | RFC XXXX section 3.6.1 |
+| notrequest | common | IETF | RFC XXXX section 3.6.1 |
+| overQuota | common | IETF | RFC XXXX section 4.3 |
+| rateLimit | common | IETF | RFC XXXX section 4.3 |
+| requestTooLarge | common | IETF | RFC XXXX sections 4.1 and 4.3 |
+| resultReference | common | IETF | RFC XXXX section 3.7 |
+| serverFail | common | IETF | RFC XXXX section 3.6.2 |
+| serverPartialFail | limited | IETF | RFC XXXX section 3.6.2 |
+| serverUnavailable | common | IETF | RFC XXXX section 3.6.2 |
+| stateMismatch | common | IETF | RFC XXXX section 4.3 |
+| toAccountNotFound | common | IETF | RFC XXXX section 5.3 |
+| tooManyChanges | common | IETF | RFC XXXX section 4.6 |
+| unknowncapability | common | IETF | RFC XXXX section 3.6.1 |
+| unknownMethod | common | IETF | RFC XXXX section 3.6.2 |
+| unsupportedFilter | common | IETF | RFC XXXX section 4.4 |
+| unsupportedSort | common | IETF | RFC XXXX section 4.4 |
+| willDestroy | common | IETF | RFC XXXX section 4.3 |
