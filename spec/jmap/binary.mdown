@@ -58,10 +58,10 @@ Binary data may be copied **between** two different accounts using the *Blob/cop
 
 The *Blob/copy* method takes the following arguments:
 
-- **fromAccountId**: `String|null`
-  The id of the account to copy blobs from. If `null`, defaults to the primary account.
-- **toAccountId**: `String|null`
-  The id of the account to copy blobs to. If `null`, defaults to the primary account.
+- **fromAccountId**: `String`
+  The id of the account to copy blobs from.
+- **toAccountId**: `String`
+  The id of the account to copy blobs to.
 - **blobIds**: `String[]`
   A list of ids of blobs to copy to the other account.
 
@@ -76,7 +76,7 @@ The response has the following arguments:
 - **notCopied**: `String[SetError]|null`
   A map of blobId to a SetError object for each blob that failed to be copied, `null` if none.
 
-The **SetError** may be any of the standard set errors that may be returned for a *create*.
+The **SetError** may be any of the standard set errors that may be returned for a *create*. In addition, the `notFound` SetError error may be returned if the blobId to be copied cannot be found.
 
 The following additional errors may be returned instead of the *Blob/copy* response:
 
