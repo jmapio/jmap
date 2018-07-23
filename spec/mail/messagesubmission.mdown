@@ -199,30 +199,31 @@ The following extra *SetError* types are defined:
 
 For **create**:
 
-- `tooLarge` - The email size is larger than the server supports sending.
-   A *maxSize* `Number` property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
+- `emailNotFound` - The *emailId* is not a valid id for an email in the
+  account.
+- `emailTooLarge` - The email size is larger than the server supports sending.
+  A *maxSize* `Number` property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
+- `invalidEmail` - The email to be sent is invalid in some way. The
+  SetError SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties of the email that were invalid.
 - `tooManyRecipients` - The envelope (supplied or generated) has more
-  recipients than the server allows. A *maxRecipients* `Number` property MUST be present on the SetError specifying the maximum number of allowed recipients.
+  recipients than the server allows. A *maxRecipients* `Number` property MUST also be present on the SetError specifying the maximum number of allowed recipients.
 - `noRecipients` – The envelope (supplied or generated) does not have any
   rcptTo emails.
 - `invalidRecipients` – The *rcptTo* property of the envelope (supplied or
   generated) contains at least one rcptTo value which is not a valid email
-  for sending to. An *invalidRecipients* `String[]` property MUST be present on the SetError, which is a list of the invalid addresses.
+  for sending to. An *invalidRecipients* `String[]` property MUST also be present on the SetError, which is a list of the invalid addresses.
 - `forbiddenMailFrom` – The server does not permit the user to send an email
   with the [@!RFC5321] envelope From.
 - `forbiddenFrom` – The server does not permit the user to send an email
   with the [@!RFC5322] From header of the email to be sent.
 - `forbiddenToSend` – The user does not have permission to send at all right
   now for some reason. A *description* `String` property MAY be present on the SetError object to display to the user why they are not permitted. The server MAY choose to localise this string into the user's preferred language, if known.
-- `emailNotFound` - The *emailId* is not a valid id for an email in the
-  account.
-- `invalidEmail` - The email to be sent is invalid in some way. The
-  SetError SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties of the email that were invalid.
 
 For **update**:
 
 - `cannotUnsend`: The client attempted to update the *undoStatus* of a valid
   EmailSubmission object from `pending` to `canceled`, but the email cannot be unsent.
+
 
 ### Example
 
@@ -242,7 +243,9 @@ The following example presumes a draft of the message to be sent has already bee
             "rcptTo": [{
               "email": "jane@example.com",
               "parameters": null
-            }]
+            },
+            ...
+            ]
           }
         }
       },
@@ -259,7 +262,7 @@ A successful response might look like this. Note there are two responses due to 
 
     [[ "EmailSubmission/set", {
       "accountId": "ue411d190",
-      "oldState": "012421s6-8nrq-4ps4-n0p4-9330r951ns21,
+      "oldState": "012421s6-8nrq-4ps4-n0p4-9330r951ns21",
       "newState": "355421f6-8aed-4cf4-a0c4-7377e951af36",
       "created": {
         "k1490": {
@@ -281,6 +284,25 @@ A successful response might look like this. Note there are two responses due to 
       "updated": {
           "M7f6ed5bcfd7e2604d1753f6c": null
       },
+      "notUpdated": null,
+      "destroyed": null,
+      "notDestroyed": null
+    }, "0" ]]
+
+If the email submission was not accepted on the other hand, the response may look like this:
+
+    [[ "EmailSubmission/set", {
+      "accountId": "ue411d190",
+      "oldState": "012421s6-8nrq-4ps4-n0p4-9330r951ns21",
+      "newState": "012421s6-8nrq-4ps4-n0p4-9330r951ns21",
+      "created": null,
+      "notCreated": {
+        "k1490": {
+          "type": "tooManyRecipients",
+          "maxRecipients": 10
+        }
+      },
+      "updated": null,
       "notUpdated": null,
       "destroyed": null,
       "notDestroyed": null
