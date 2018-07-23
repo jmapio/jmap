@@ -17,7 +17,7 @@ An **Identity** object stores information about an email address (or domain) the
 - **htmlSignature**: `String` (default: "")
   Signature the client SHOULD insert into new HTML messages that will be sent from this identity. This text MUST be an HTML snippet to be inserted into the `<body></body>` section of the new email. Clients MAY ignore this and/or combine this with a client-specific signature preference.
 - **mayDelete**: `Boolean` (server-set)
-  Is the user allowed to delete this identity? Servers may wish to set this to `false` for the user's username or other default address.
+  Is the user allowed to delete this identity? Servers may wish to set this to `false` for the user's username or other default address. Attempts to destroy an identity with `mayDelete: false` will be rejected with a standard `forbidden` SetError.
 
 See the "Addresses" header form description in the Email object for the definition of *EmailAddress*.
 
@@ -39,14 +39,8 @@ Standard "/set" method. The following extra *SetError* types are defined:
 
 For **create**:
 
-- `maxQuotaReached`: The user has reached a server-defined limit on the number
-  of identities.
-- `emailNotPermitted`: The user is not allowed to send from the address given as
+- `forbiddenFrom`: The user is not allowed to send from the address given as
   the *email* property of the identity.
-
-For **destroy**:
-
-- `forbidden`: Returned if the identity's *mayDelete* value is `false`.
 
 ## Example
 
