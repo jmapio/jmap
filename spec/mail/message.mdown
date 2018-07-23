@@ -271,7 +271,7 @@ A **EmailBodyPart** object has the following properties:
 - **type**: `String`
   The value of the *Content-Type* header field of the part, if present, otherwise the implicit type as per the MIME standard (`text/plain`, or `message/rfc822` if inside a `multipart/digest`). CFWS is removed and any parameters are stripped.
 - **charset**: `String|null`
-  The value of the charset parameter of the *Content-Type* header field, if present, or `null` if the header field is present but has no charset parameter. If there is no *Content-Type* header field, this is the implicit charset as per the MIME standard (`us-ascii`).
+  The value of the charset parameter of the *Content-Type* header field, if present, or `null` if the header field is present but not of type `text/*`. If there is no *Content-Type* header field, or it exists and is of type `text/*` but has no charset parameter, this is the implicit charset as per the MIME standard: `us-ascii`.
 - **disposition**: `String|null`
   The value of the *Content-Disposition* header field of the part, if present, otherwise `null`. CFWS is removed and any parameters are stripped.
 - **cid**: `String|null`
