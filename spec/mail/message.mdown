@@ -577,6 +577,8 @@ Standard "/query" method, but with the following additional arguments:
 - **collapseThreads**: `Boolean` (default: false)
   If `true`, emails in the same thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means at most only one email will be included in the list for any given thread.
 
+In quality implementations, the query "total" property is expected to be fast to calculate when the filter consists solely of a single `inMailbox` property, as it is the same as the totalEmails or totalThreads properties (depending on whether collapseThreads is true) of the associated Mailbox object.
+
 ### Filtering
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
@@ -871,7 +873,8 @@ A client logs in for the first time. It first fetches the set of mailboxes. Now 
       }],
       "collapseThreads": true,
       "position": 0,
-      "limit": 30
+      "limit": 30,
+      "calculateTotal": true
     }, "0" ],
     [ "Email/get", {
       "accountId": "ue150411c",
@@ -1039,7 +1042,8 @@ Back on our original machine, we receive a push update that the state string for
       "collapseThreads": true,
       "sinceQueryState": "09aa9a075588-780599:0",
       "upToId": "Mc2781d5e856a908d8a35a564",
-      "maxChanges": 25
+      "maxChanges": 25,
+      "calculateTotal": true
     }, "11" ]]
 
 The response:

@@ -237,7 +237,8 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
       "sort": [{ "property": "receivedAt", "isAscending": false }],
       "collapseThreads": true,
       "position": 0,
-      "limit": 10
+      "limit": 10,
+      "calculateTotal": true
     }, "t0" ],
     [ "Email/get", {
       "#ids": {
@@ -697,6 +698,8 @@ A call to *Foo/query* takes the following arguments:
   The index of the first result to return relative to the index of the anchor. This MAY be negative. For example, `-1` means the first Foo before the anchor Foo should be the first result in the results returned (see below for more details).
 - **limit**: `Number|null`
   The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the query is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+- **calculateTotal**: `Boolean` (default: false)
+  Does the client wish to know the total number of results in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.
 
 If an **anchor** argument is given, then after filtering and sorting the anchor is looked for in the results. If found, the **anchor offset** is then added to its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
 
@@ -724,8 +727,8 @@ The response has the following arguments:
   This is `true` if the server supports calling *Foo/queryChanges* with these `filter`/`sort` parameters. Note, this does not guarantee that the *Foo/queryChanges* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
 - **position**: `Number`
   The 0-based index of the first result in the `ids` array within the complete list of query results.
-- **total**: `Number`
-  The total number of foos in the results (given the *filter*).
+- **total**: `Number` (only if requested)
+  The total number of foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
 - **ids**: `String[]`
   The list of ids for each foo in the query results, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the results or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
 
@@ -753,6 +756,8 @@ The `Foo/queryChanges` call allows a client to efficiently update the state of a
   The maximum number of changes to return in the response. See error descriptions below for more details.
 - **upToId**: `String|null`
   The last (highest-index) id the client currently has cached from the query results. When there are a large number of results, in a common case the client may have only downloaded and cached a small subset from the beginning of the results. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the results, which can significantly increase efficiency. If they are not immutable, this argument is ignored.
+- **calculateTotal**: `Boolean` (default: false)
+  Does the client wish to know the total number of results now in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.
 
 The response has the following arguments:
 
@@ -768,8 +773,8 @@ The response has the following arguments:
   This is the state the query will be in after applying the set of changes to the old state.
 - **upToId**: `String|null`
   Echoed back from the call.
-- **total**: `Number`
-  The total number of foos in the results (given the *filter*).
+- **total**: `Number` (only if requested)
+  The total number of foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
 - **removed**: `String[]`
   The *id* for every foo that was in the query results in the old state and is not in the results in the new state.
 
@@ -854,7 +859,6 @@ This would query the server for the set of todos with a keyword of "music", sort
       "queryState": "y13213",
       "canCalculateChanges": true,
       "position": 0,
-      "total": 26,
       "ids": [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" ]
     }, "0" ],
     [ "Todo/get", {
@@ -961,7 +965,6 @@ and receive in response:
       "sort": [{ "property": "title" }],
       "oldQueryState": "y13213"
       "newQueryState": "y13218"
-      "total": 25,
       "removed": ["b"],
       "added": null
     }, "1" ]]
