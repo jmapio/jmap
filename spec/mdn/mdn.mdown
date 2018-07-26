@@ -1,0 +1,86 @@
+# Introduction
+
+JMAP <https://tools.ietf.org/html/draft-ietf-jmap-core-06> is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
+
+This specification defines a method helping to send MDN (Message Disposition Nodification) messages. MDN are defined in [@!RFC8098] and are used as "read receipts", "acknowledgements", or "receipt notifications".
+
+## Notational conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [@!RFC2119].
+
+Type signatures, examples and property descriptions in this document follow the conventions established in Section 1.1 of <https://tools.ietf.org/html/draft-ietf-jmap-core-06>.
+Email object and methods are defined in <https://tools.ietf.org/html/draft-ietf-jmap-mail-06>.
+
+## Terminology
+
+The same terminology is used in this document as in the core JMAP specification.
+
+## Addition to the capabilities object
+
+The capabilities object is returned as part of the standard JMAP Session object; see the JMAP spec. Servers supporting *this* specification MUST add a property called `urn:ietf:params:jmap:mdn` to the capabilities object.
+
+
+# Email/createMDN
+
+The Email/createMDN method create a [@!RFC5322] message from MDN properties.
+
+It takes the following arguments:
+
+- **accountId**: `String|null`
+  The id of the account to use for this call. If `null`, defaults to the `urn:ietf:params:jmap:mail` primary account.
+- **mdns**: `String[MDN]`
+  A map of creation id (client specified) to MDN objects
+
+An **MDN** object has the following properties:
+
+- **referencedMessageId**: `String`
+  Message Id of the received message the user wants to create an MDN for.
+- **subject**: `String`
+  Subject that will be used as `Subject` header for this MDN.
+- **textBody**: `String`
+  Human readable part of the MDN, as plain text.
+- **reportingUA**: `String`
+  Name of the MUA creating this MDN. It is used to build the MDN Report part of the MDN.
+- **disposition**: `Disposition`
+  Object containing the diverse MDN disposition options.
+
+  A **Disposition** object has the following properties:
+
+  - **actionMode**: `String`
+    This MUST be one of the following strings: "manual-action" / "automatic-action"
+  - **sendingMode**: `String`
+    This MUST be one of the following strings: "MDN-sent-manually" / "MDN-sent-automatically"
+  - **type**: `String`
+    This MUST be one of the following strings: "deleted" / "dispatched" / "displayed" / "processed"
+
+  See [@!RFC8098] for the exact meaning of these different fields.
+
+If the *referencedMessageId*, *subject*, *textBody*, *reportingUA*, *disposition* properties are invalid (e.g. missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
+
+If the email cannot be created because it would take the account over quota, the creation should be rejected with a `maxQuotaReached` SetError.
+
+The response has the following arguments:
+
+- **accountId**: `String`
+  The id of the account used for this call.
+- **created**: `String[Email]`
+  A map of the creation id to an object build from the referenced properties. The *blobId* field of the Email objects can then be used to effectively send the MDN.
+- **notCreated**: `String[SetError]`
+  A map of creation id to a SetError object for each Email that failed to be created. The possible errors are defined above.
+
+# IANA Considerations
+
+## JMAP Capability Registration for "mdn"
+
+IANA will register the "mdn" JMAP Capability as follows:
+
+Capability Name: `urn:ietf:params:jmap:mdn`
+
+Specification document: this document
+
+Intended use: common
+
+Change Controller: IETF
+
+Security and privacy considerations: this document, section 4.
+
