@@ -795,7 +795,7 @@ The server MAY forbid two email objects with the same exact [@!RFC5322] content,
 
 If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g. missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
 
-If the email cannot be imported because it would take the account over quota, the import should be rejected with a `maxQuotaReached` SetError.
+If the email cannot be imported because it would take the account over quota, the import should be rejected with a `overQuota` SetError.
 
 If the blob referenced is not a valid [@!RFC5322] message, the server MAY modify the message to fix errors (such as removing NUL octets or fixing invalid headers). If it does this, the *blobId* on the response MUST represent the new representation and therefore be different to the *blobId* on the EmailImport object. Alternatively, the server MAY reject the import with an `invalidEmail` SetError.
 
