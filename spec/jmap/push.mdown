@@ -15,6 +15,26 @@ When something changes on the server, the server pushes a **StateChange** object
 
     The client can compare the new state strings with its current values to see whether it has the current data for these types. If not, the changes can then be efficiently fetched in a single standard API request (using the */changes* type methods).
 
+### Example
+
+In this example, the server has almalgamated a few changes together across two different accounts the user has access to, before pushing the following StateChange object to the client:
+
+    {
+      "changed": {
+        "a3123": {
+          "Email": "d35ecb040aab",
+          "EmailDelivery": "428d565f2440",
+          "CalendarEvent": "87accfac587a"
+        },
+        "a43461d": {
+          "Mailbox": "0af7a512ce70",
+          "CalendarEvent": "7a4297cecd76"
+        },
+      }
+    }
+
+The client can compare the state strings with its current state for the Email, CalendarEvent etc. object types in the appropriate accounts to see if it needs to fetch changes. If the client is itself making changes, it may receive a StateChange object while the /set API call is in flight. It can wait until the call completes and then compare if the new state string after the /set is the same as was pushed in the StateChange object; if so, it does not need to waste a request asking for changes it already knows.
+
 ## PushSubscription
 
 A push subscription is a message delivery context established between the client and a push service. A **PushSubscription** object has the following properties:
