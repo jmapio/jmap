@@ -146,6 +146,8 @@ The following error types are defined which may be returned for any method call 
 
 `invalidArguments`: One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing. A `description` property MAY be present to help debug with an explanation of what the problem was. This is a non-localised string, and is not intended to be shown directly to end users.
 
+`invalidResultReference`: The method used a back reference for one of its arguments (see the next section), but this failed to resolve.
+
 `forbidden`: The method and arguments are valid, but executing the method would violate an ACL or other permissions policy.
 
 `accountNotFound`: An *accountId* was included with the method call that does not correspond to a valid account, or *accountId* was null but there is no primary account for the capability that defines the data type.
@@ -164,7 +166,7 @@ To allow clients to make more efficient use of the network and avoid round
 trips, an argument to one method can be taken from the result of a previous
 method call.
 
-To do this, the client prefixes the argument name with "#". The value is a *ResultReference* object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with "#". If found, the back reference should be resolved and the value used as the "real" argument. The method is then processed as normal. If any back reference fails to resolve, the whole method MUST be rejected with a `resultReference` error. If an argument object contains the same argument name in normal and referenced form (e.g. `foo` and `#foo`), the method MUST return an `invalidArguments` error.
+To do this, the client prefixes the argument name with "#". The value is a *ResultReference* object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with "#". If found, the back reference should be resolved and the value used as the "real" argument. The method is then processed as normal. If any back reference fails to resolve, the whole method MUST be rejected with an `invalidResultReference` error. If an argument object contains the same argument name in normal and referenced form (e.g. `foo` and `#foo`), the method MUST return an `invalidArguments` error.
 
 A **ResultReference** object has the following properties:
 
