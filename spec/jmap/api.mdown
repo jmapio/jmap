@@ -90,7 +90,15 @@ Unless otherwise specified in a method description, `null` is the default value 
 
 ## Errors
 
-### Error responses
+There are three different levels of granularity at which an error may be returned in JMAP.
+
+When an API request is made, the request as a whole may be rejected due to rate limiting, malformed JSON, request for an unknown capability etc. In this case the entire request is rejected with an appropriate HTTP error response code, and an additional JSON body with more detail for the client.
+
+Provided the request itself is syntactically valid, the methods within it are executed sequentially by the server. Each method may individually fail, for example if invalid arguments are given, or an unknown method name is called.
+
+Finally, methods that make changes to the server state often act upon a number of different records within a single call. Each record change may be separately rejected with a SetError, as described below.
+
+### Request-level errors
 
 When an HTTP error response is returned to the client, the server
 SHOULD return a JSON "problem details" object as the response body,
