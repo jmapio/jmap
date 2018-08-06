@@ -57,7 +57,7 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
     - `$junk`: The email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
     - `$notjunk`: The email is definitely not spam. Clients SHOULD set this flag when users indicate an email is legitimate, to help train automated spam-detection systems.
 
-- **size**: `Number` (immutable; server-set)
+- **size**: `PositiveInt` (immutable; server-set)
   The size, in octets, of the raw data for the [@!RFC5322] message (as referenced by the *blobId*, i.e. the number of octets in the file the user would download).
 - **receivedAt**: `UTCDate` (immutable; default: time of creation on server)
   The date the email was received by the message store. This is the *internal date* in IMAP.
@@ -262,7 +262,7 @@ A **EmailBodyPart** object has the following properties:
   Identifies this part uniquely within the Email. This is scoped to the *emailId* and has no meaning outside of the JMAP Email object representation. This is `null` if, and only if, the part is of type `multipart/*`.
 - **blobId**: `String|null`
   The id representing the raw octets of the contents of the part after decoding any *Content-Transfer-Encoding* (as defined in [@!RFC2045]), or `null` if, and only if, the part is of type `multipart/*`. Note, two parts may be transfer-encoded differently but have same the same blob id if their decoded octets are identical and the server is using a secure hash of the data for the blob id.
-- **size**: `Number`
+- **size**: `PositiveInt`
   The size, in octets, of the raw data after content transfer decoding (as referenced by the *blobId*, i.e. the number of octets in the file the user would download).
 - **headers**: `EmailHeader[]`
   This is a list of all header fields in the part, in the order they appear. The values are in *Raw* form.
@@ -473,7 +473,7 @@ Standard "/get" method, with the following additional arguments:
   If `true`, the *bodyValues* property includes any `text/*` part in the `htmlBody` property.
 - **fetchAllBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
-- **maxBodyValueBytes**: `Number` (optional)
+- **maxBodyValueBytes**: `PositiveInt` (optional)
   If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
 
 If the standard *properties* argument is omitted or `null`, the following default MUST be used instead of "all" properties:
@@ -591,9 +591,9 @@ A **FilterCondition** object has the following properties, any of which may be o
   The *receivedAt* date of the email must be before this date to match the condition.
 - **after**: `UTCDate`
   The *receivedAt* date of the email must be on or after this date to match the condition.
-- **minSize**: `Number`
+- **minSize**: `PositiveInt`
   The *size* of the email in octets must be equal to or greater than this number to match the condition.
-- **maxSize**: `Number`
+- **maxSize**: `PositiveInt`
   The size of the email in octets must be less than this number to match the condition.
 - **allInThreadHaveKeyword**: `String`
   All emails (including this one) in the same thread as this email must have the given keyword to match the condition.
@@ -841,7 +841,7 @@ The *Email/parse* method takes the following arguments:
   If `true`, the *bodyValues* property includes any `text/*` part in the `htmlBody` property.
 - **fetchAllBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
-- **maxBodyValueBytes**: `Number` (optional)
+- **maxBodyValueBytes**: `PositiveInt` (optional)
   If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
 
 The response has the following arguments:
