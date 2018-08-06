@@ -280,7 +280,7 @@ A **EmailBodyPart** object has the following properties:
   The list of language tags, as defined in [@!RFC3282], in the *Content-Language* header field of the part, if present.
 - **location**: `String|null`
   The URI, as defined in [@!RFC2557], in the *Content-Location* header field of the part, if present.
-- **subParts**: `EmailBodyPart[]` (optional)
+- **subParts**: `EmailBodyPart[]|null`
   If type is `multipart/*`, this contains the body parts of each child.
 
 In addition, the client may request/send EmailBodyPart properties representing individual header fields, following the same syntax and semantics as for the Email object, e.g. `header:Content-Type`.
@@ -462,10 +462,11 @@ In this case, the above algorithm would decompose this to:
 
 Standard "/get" method, with the following additional arguments:
 
-- **bodyProperties**: `String[]` (optional)
+- **bodyProperties**: `String[]`
   A list of properties to fetch for each EmailBodyPart returned. If omitted, this defaults to:
 
-    [ "partId", "blobId", "size", "name", "type", "charset", "disposition", "cid", "language", "location" ]
+        [ "partId", "blobId", "size", "name", "type", "charset",
+          "disposition", "cid", "language", "location" ]
 
 - **fetchTextBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `textBody` property.
@@ -473,8 +474,10 @@ Standard "/get" method, with the following additional arguments:
   If `true`, the *bodyValues* property includes any `text/*` part in the `htmlBody` property.
 - **fetchAllBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
-- **maxBodyValueBytes**: `PositiveInt` (optional)
-  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
+- **maxBodyValueBytes**: `PositiveInt` (default: 0)
+  If greater than zero, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. If `0` (the default), no truncation occurs.
+
+    The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
 
 If the standard *properties* argument is omitted or `null`, the following default MUST be used instead of "all" properties:
 
@@ -833,7 +836,7 @@ The *Email/parse* method takes the following arguments:
 
       [ "messageId", "inReplyTo", "references", "sender", "from", "to", "cc", "bcc", "replyTo", "subject", "sentAt", "hasAttachment", "preview", "bodyValues", "textBody", "htmlBody", "attachments" ]
 
-- **bodyProperties**: `String[]` (optional)
+- **bodyProperties**: `String[]`
   A list of properties to fetch for each EmailBodyPart returned. If omitted, defaults to the same value as the Email/get "bodyProperties" default argument.
 - **fetchTextBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `textBody` property.
@@ -841,8 +844,10 @@ The *Email/parse* method takes the following arguments:
   If `true`, the *bodyValues* property includes any `text/*` part in the `htmlBody` property.
 - **fetchAllBodyValues**: `Boolean` (default: false)
   If `true`, the *bodyValues* property includes any `text/*` part in the `bodyStructure` property.
-- **maxBodyValueBytes**: `PositiveInt` (optional)
-  If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error. When given, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag.
+- **maxBodyValueBytes**: `PositiveInt` (default: 0)
+  If greater than zero, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. If `0` (the default), no truncation occurs.
+
+    The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
 
 The response has the following arguments:
 
