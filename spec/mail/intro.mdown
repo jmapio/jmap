@@ -25,25 +25,36 @@ Data types defined in the core specification are used in this document.
 
 The same terminology is used in this document as in the core JMAP specification.
 
-## Addition to the capabilities object
+## Additions to the capabilities object
 
-The capabilities object is returned as part of the standard JMAP Session object; see the JMAP spec. Servers supporting *this* specification MUST add a property called `urn:ietf:params:jmap:mail` to the capabilities object. The value of this property is an object which MUST contain the following information on server capabilities:
+The capabilities object is returned as part of the standard JMAP Session object; see the JMAP Core specification.
+
+This document defines three additional capability objects.
+
+### urn:ietf:params:jmap:mail
+
+This represents support for the Mailbox, Thread, Email, and SearchSnippet data types and associated API methods. The value of this property is an object which MUST contain the following information on server capabilities:
 
 - **maxMailboxesPerEmail**: `PositiveInt|null`
   The maximum number of mailboxes that can be can assigned to a single email. This MUST be an integer >= 1, or `null` for no limit (or rather, the limit is always the number of mailboxes in the account).
 - **maxSizeAttachmentsPerEmail**: `PositiveInt`
-  The maximum total size of attachments, in octets, allowed for a single email. A server MAY still reject emails with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
+  The maximum total size of attachments, in octets, allowed for a single email. A server MAY still reject import or creation of emails with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
 
     Note, this limit is for the sum of unencoded attachment sizes. Users are generally not knowledgeable about encoding overhead etc., nor should they need to be, so services marketing and help materials normally tells them the "max size attachments". This is the unencoded size they see on their hard drive, and so this capability matches that and allows the client to consistently enforce what the user understands as the limit.
 
     The server may separately have a limit for the total size of the RFC5322 message, which will have attachments Base64 encoded and message headers and bodies too. For example, suppose the server advertises `maxSizeAttachmentsPerEmail: 50000000` (50 MB). The enforced server limit may be for an RFC5322 size of 70000000 octets (70 MB). Even with Base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.
 
-- **maxDelayedSend**: `PositiveInt`
-  The number in seconds of the maximum delay the server supports in sending
-  (see the EmailSubmission object). This is `0` if the server does not support
-  delayed send.
 - **emailsListSortOptions**: `String[]`
   A list of all the email properties the server supports for sorting by. This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
+
+### urn:ietf:params:jmap:submission
+
+This represents support for the Identity and MessageSubmission data types and associated API methods. The value of this property is an object which MUST contain the following information on server capabilities:
+
+- **maxDelayedSend**: `PositiveInt`
+  The number in seconds of the maximum delay the server supports in sending
+  (see the EmailSubmission object description). This is `0` if the server does
+  not support delayed send.
 - **submissionExtensions**: `String[String[]]`
   A JMAP implementation that talks to a Submission [@!RFC6409] server SHOULD have a configuration setting that allows an administrator to expose a new submission EHLO capability in this field. This allows a JMAP server to gain access to a new submission extension without code changes. By default, the JMAP server should show only known safe-to-expose EHLO capabilities in this field, and hide EHLO capabilities that are only relevant to the JMAP server.
 
@@ -61,7 +72,13 @@ The capabilities object is returned as part of the standard JMAP Session object;
 
     The full IANA registry of submission extensions can be found at https://www.iana.org/assignments/mail-parameters/mail-parameters.xhtml#mail-parameters-2
 
-The server MUST also include the string `urn:ietf:params:jmap:mail` in the *hasDataFor* property of any account in which the user may use the data types contained in this specification.
+### urn:ietf:params:jmap:vacationresponse
+
+This represents support for the VacationResponse data type and associated API methods. The value of this property is an empty object.
+
+## Data type support in different accounts
+
+The server MUST include the appropriate capability strings in the *hasDataFor* property of any account in which the user may use the data types represented by that URN. Supported data types may differ between accounts the user has access to. For example, in the user's personal account they may have access to all three sets of data, but in a shared account they may only have data for `urn:ietf:params:jmap:mail`. This means they can access Mailbox/Thread/Email data in the shared account but are not allowed to send as that account (and so do not have access to Identity/MessageSubmission objects) or view/set its vacation response.
 
 ## Push
 
