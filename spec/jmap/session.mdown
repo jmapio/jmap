@@ -14,15 +14,7 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 - **username**: `String`
   The username associated with the given credentials.
 - **accounts**: `String[Account]`
-  A map of **account id** to Account object for each account the user has access to.
-
-    A single set of credentials may provide access to multiple accounts, for example if another user is sharing their mail with the logged in user, or if there is an account that contains data for a group or business.
-
-    All data belongs to a single account. With the exception of a few explicit operations to copy data between accounts, all JMAP methods take an *accountId* argument that specifies on which account the operations are to take place. This argument is always optional; if not specified, the primary account for the capability that defines the data type is used. (Though if there is no primary account for that capability, an `accountNotFound` error will be returned.) All ids (other than account ids, of course) are only unique within their account.
-
-    In the event of a severe internal error, a server may have to reallocate ids or do something else that violates standard JMAP data constraints. In this situation, the data on the server is no longer compatible with cached data the client may have from before. The server MUST treat this as though the account has been deleted and then recreated with a new account id. Clients will then be forced to throw away any data with the old account id and refetch all data from scratch.
-
-    An **Account** object has the following properties:
+  A map of **account id** to Account object for each account (see section 1.5.2) the user has access to. An **Account** object has the following properties:
 
     - **name**: `String`
       A user-friendly string to show when presenting content from this account, e.g. the email address representing the owner of the account.
