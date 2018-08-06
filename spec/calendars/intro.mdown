@@ -10,11 +10,18 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 Type signatures, examples and property descriptions in this document follow the conventions established in Section 1.1 of <https://tools.ietf.org/html/draft-ietf-jmap-core-05>.
 
+Object properties may also have a set of attributes defined along with the type
+signature. These have the following meanings:
+
+* **server-set**: Only the server can set the value for this property. The
+  client MUST NOT send this property when creating a new object of this type.
+* **immutable**: The value MUST NOT change after the object is created.
+* **default**: (This is followed by a JSON value). The value that will be used
+  for this property if it is omitted in an argument, or when creating a new object of this type.
+
+Data types defined in the core specification are used in this document.
+
 ## The Date datatypes
-
-Where `Date` is given as a type, it means a string in [@!RFC3339] *date-time* format. To ensure a normalised form, the *time-secfrac* MUST always  be omitted and any letters in the string (e.g. "T" and "Z") MUST be upper-case. For example, `"2014-10-30T14:12:00+08:00"`.
-
-Where `UTCDate` is given as a type, it means a `Date` where the *time-offset* component MUST be `Z` (i.e. it must be in UTC time). For example, `"2014-10-30T06:12:00Z"`.
 
 Where `LocalDate` is given as a type, it means a string in the same format as `Date`, but with the *time-offset* omitted from the end. The interpretation in absolute time depends upon the time zone for the event, which may not be a fixed offset (for example when daylight saving time occurs). For example, `"2014-10-30T14:12:00"`.
 
