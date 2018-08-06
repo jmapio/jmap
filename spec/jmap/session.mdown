@@ -72,7 +72,7 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 
     Future specifications will define their own properties on the capabilities object.
 
-    Servers MAY advertise vendor-specific JMAP extensions. To avoid conflict, the identifiers for these MUST be a URI beginning with a domain owned by the vendor. Clients MUST opt in to any specifications it wishes to use (see "Making an API request").
+    Servers MAY advertise vendor-specific JMAP extensions, as described in section 3.3. To avoid conflict, the identifiers for these MUST be a URL with a domain owned by the vendor. Clients MUST opt in to any specifications it wishes to use (see section 3.1).
 
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
@@ -87,7 +87,7 @@ To ensure future compatibility, other properties MAY be included on the JMAP Ses
 
 ## Example
 
-In the following example JMAP Session object, the user has access to his own mail and contacts via JMAP, as well as read-only access to shared mail from another user:
+In the following example JMAP Session object, the user has access to his own mail and contacts via JMAP, as well as read-only access to shared mail from another user. The server is advertising a custom "https://example.com/apis/foobar" capability.
 
     {
       "username": "john@example.com",
@@ -124,6 +124,9 @@ In the following example JMAP Session object, the user has access to his own mai
             "i;ascii-casemap",
             "i;unicode-casemap"
           ]
+        },
+        "https://example.com/apis/foobar": {
+          "maxFoosFinangled": 42
         },
         ...
       },
