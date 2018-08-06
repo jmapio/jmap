@@ -517,7 +517,7 @@ Request:
 
     [ "Email/get", {
       "ids": [ "f123u456", "f123u457" ],
-      "properties": [ "threadId", "mailboxIds", "from", "subject", "receivedAt", "header:List-POST:asURLs" "htmlBody", "bodyValues" ],
+      "properties": [ "threadId", "mailboxIds", "from", "subject", "receivedAt", "header:List-POST:asURLs", "htmlBody", "bodyValues" ],
       "bodyProperties": [ "partId", "blobId", "size", "type" ],
       "fetchHTMLBodyValues": true,
       "maxBodyValueBytes": 256
@@ -672,7 +672,7 @@ This would sort emails in flagged threads first (the thread is considered flagge
 
 ### Thread collapsing
 
-When `collapseThreads == true`, then after filtering and sorting the email list, the list is further winnowed by removing any emails for a thread id that has already been seen (when passing through the list sequentially). A thread will therefore only appear **once** in the result, at the position of the first email in the list that belongs to the thread (given the current sort/filter).
+When *collapseThreads* is `true`, then after filtering and sorting the email list, the list is further winnowed by removing any emails for a thread id that has already been seen (when passing through the list sequentially). A thread will therefore only appear **once** in the result, at the position of the first email in the list that belongs to the thread (given the current sort/filter).
 
 ### Response
 
@@ -782,7 +782,7 @@ An **EmailImport** object has the following properties:
 
 - **blobId**: `String`
   The id of the blob containing the raw [@!RFC5322] message.
-- **mailboxIds** `String[Boolean]`
+- **mailboxIds**: `String[Boolean]`
   The ids of the mailboxes to assign this email to. At least one mailbox MUST be given.
 - **keywords**: `String[Boolean]` (default: {})
   The keywords to apply to the email.
