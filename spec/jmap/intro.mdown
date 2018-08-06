@@ -91,3 +91,11 @@ An authenticated client can fetch the JMAP Session object with details about the
 1. The client may make an API request to the server to get or set structured data. This request consists of an ordered series of method calls. These are processed by the server, which then returns an ordered series of responses. This is described in sections 3 and 4.
 2. The client may download or upload binary files from/to the server. This is detailed in section 5.
 3. The client may connect to a push channel on the server, to be notified when data has changed. This is explained in section 6.
+
+## Vendor-specific extensions
+
+Individual services will have custom features they wish to expose over JMAP. This may take the form of extra data types and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names).
+
+The server can advertise custom extensions it supports by including the identifiers in the capabilities object. Identifiers for vendor extensions MUST be a URL belonging to a domain owned by the vendor, to avoid conflict. The URL SHOULD resolve to documentation for the changes the extension makes.
+
+To ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP, to use an extension the client MUST opt in by passing the appropriate capability identifier in the *using* array of the Request object, as described in section 3.2. The server MUST only follow the specifications that are opted-into and behave as though it does not implement anything else when processing a request.

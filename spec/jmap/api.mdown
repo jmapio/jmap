@@ -30,7 +30,7 @@ A **Request** object has the following properties:
 
     As described later in this specification, some records may have a property that contains the id of another record. To allow more efficient network usage, you can set this property to reference a record created earlier in the same API request. Since the real id is unknown when the request is created, the client can instead specify the creation id it assigned, prefixed with a `#`. As the server processes API requests, any time it successfully creates a new record it adds to this map the creation id, with the server-assigned real id as the value. If it comes across a reference to a creation id in a create/update, it looks it up in the map and replaces the reference with the real id, if found.
 
-    The client can pass an initial value for this map as the *createdIds* property of the Request. This MAY be an empty object. If given in the request, the response will also include a createdIds property, with any additionally created ids added. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve.
+    The client can pass an initial value for this map as the *createdIds* property of the Request. This may be an empty object. If given in the request, the response will also include a createdIds property, with any additionally created ids added. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve.
 
 Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatibility, a server MUST ignore any other properties it does not understand on the JMAP request object.
 
@@ -49,14 +49,6 @@ Future specifications MAY add further properties to the Request object to extend
         [ "method3", {}, "c3" ]
       ]
     }
-
-## Vendor-specific extensions
-
-Individual services will have custom features they wish to expose over JMAP. This may take the form of extra data types and/or methods not in the spec, or extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names).
-
-The server can advertise custom extensions it supports by including the identifiers in the capabilities object. Identifiers for vendor extensions MUST be a URL belonging to a domain owned by the vendor, to avoid conflict. The URL SHOULD resolve to documentation for the changes the extension makes.
-
-To ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP, to use an extension the client MUST opt in by passing the appropriate capability identifier in the *using* array of the Request object. The server MUST only follow the specifications that are opted-into and behave as though it does not implement anything else when processing a request.
 
 ## The Response object
 
