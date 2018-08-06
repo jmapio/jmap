@@ -96,14 +96,15 @@ When an API request is made, the request as a whole may be rejected due to rate 
 
 Provided the request itself is syntactically valid, the methods within it are executed sequentially by the server. Each method may individually fail, for example if invalid arguments are given, or an unknown method name is called.
 
-Finally, methods that make changes to the server state often act upon a number of different records within a single call. Each record change may be separately rejected with a SetError, as described below.
+Finally, methods that make changes to the server state often act upon a number of different records within a single call. Each record change may be separately rejected with a SetError, as described in section 4.3.
 
 ### Request-level errors
 
 When an HTTP error response is returned to the client, the server
 SHOULD return a JSON "problem details" object as the response body,
-as per [@!RFC7807]. Every JSON "problem details" object MUST include a
-"type" member with a URI either one of the following values, or a value defined in a future RFC, or a value beginning with a domain owned by the vendor.
+as per [@!RFC7807].
+
+The following problem types are defined:
 
 - `urn:ietf:params:jmap:error:unknownCapability`
   The client included a capability in the "using" property of the request that the server does not support.
@@ -117,6 +118,15 @@ as per [@!RFC7807]. Every JSON "problem details" object MUST include a
   maxCallsInRequest or maxConcurrentRequests. A "limit" property MUST also be
   present on the "problem details" object, containing the name of the limit
   being applied.
+
+#### Example
+
+    {
+      "type": "urn:ietf:params:jmap:error:unknownCapability",
+      "status": 400,
+      "detail": "The request object used capability 'https://example.com/apis/foobar', which is not supported by this server."
+    }
+
 
 ### Method-level errors
 
