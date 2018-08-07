@@ -843,7 +843,7 @@ Suppose we have a type *Todo* with the following properties:
   The id of the object.
 - **title**: `String`
   A brief summary of what is to be done.
-- **keywords**: `String[Boolean]` (mutable; default: {})
+- **keywords**: `String[Boolean]` (default: {})
   A set of keywords that apply to the todo. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 - **neuralNetworkTimeEstimation**: `Number` (server-set)
   The title and keywords are fed into the server's state-of-the-art neural
@@ -851,10 +851,16 @@ Suppose we have a type *Todo* with the following properties:
 
 and the server supports all the standard methods for the type, including querying by keyword using the syntax `{ hasKeyword: "foo" }` in the *filter* argument to */query*.
 
-Now, a client might want to display the list of todos with a particular query, so it makes the following method call:
+Now, a client might want to display the list of todos with either a "music" keyword or a "video" keyword, so it makes the following method call:
 
     [[ "Todo/query", {
-      "filter": { "hasKeyword": "music" },
+      "filter": {
+        "operator": "OR",
+        "conditions": [
+          { "hasKeyword": "music" },
+          { "hasKeyword": "video" }
+        ]
+      },
       "sort": [{ "property": "title" }],
       "position": 0,
       "limit": 10
@@ -871,7 +877,13 @@ This would query the server for the set of todos with a keyword of "music", sort
 
     [[ "Todo/query", {
       "accountId": "x",
-      "filter": { "hasKeyword": "music" },
+      "filter": {
+        "operator": "OR",
+        "conditions": [
+          { "hasKeyword": "music" },
+          { "hasKeyword": "video" }
+        ]
+      },
       "sort": [{ "property": "title" }],
       "queryState": "y13213",
       "canCalculateChanges": true,
@@ -960,7 +972,13 @@ Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user
       "maxChanges": 50,
     }, "0" ],
     [ "Todo/queryChanges", {
-      "filter": { "hasKeyword": "music" },
+      "filter": {
+        "operator": "OR",
+        "conditions": [
+          { "hasKeyword": "music" },
+          { "hasKeyword": "video" }
+        ]
+      },
       "sort": [{ "property": "title" }],
       "sinceQueryState": "y13213"
       "maxChanges": 50,
@@ -978,7 +996,13 @@ and receive in response:
       "destroyed": ["b"]
     }, "0" ],
     [ "Todo/queryChanges", {
-      "filter": { "hasKeyword": "music" },
+      "filter": {
+        "operator": "OR",
+        "conditions": [
+          { "hasKeyword": "music" },
+          { "hasKeyword": "video" }
+        ]
+      },
       "sort": [{ "property": "title" }],
       "oldQueryState": "y13213"
       "newQueryState": "y13218"
