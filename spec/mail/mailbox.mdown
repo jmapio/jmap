@@ -32,7 +32,21 @@ A **Mailbox** object has the following properties:
 - **totalThreads**: `PositiveInt` (server-set)
   The number of threads where at least one email in the thread is in this mailbox.
 - **unreadThreads**: `PositiveInt` (server-set)
-  The number of threads where at least one email in the thread has neither the `$seen` keyword nor the `$draft` keyword AND at least one email in the thread is in this mailbox (but see below for special case handling of Trash). Note, the unread email does not need to be the one in this mailbox.
+  An indication of the number of "unread" threads in the mailbox. This may be
+  presented by the client as a badge or marker associated with the mailbox.
+
+    For compatibility with existing implementations, the way "unread threads" is
+    determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this mailbox and has neither the `$seen` nor `$draft` keywords.
+
+    However, a quality implementation will make return the number of unread items the user would see if they opened that mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore `unreadThreads` should be the number of threads where at least one email in the thread has neither the `$seen` nor the `$draft` keyword AND at least one email in the thread is in this mailbox. Note, the unread email does not need to be the one in this mailbox. In addition, the Trash mailbox (that is a mailbox whose `role` is `trash`) is treated specially:
+
+    1. Emails that are **only** in the Trash (and no other mailbox) are ignored when calculating the `unreadThreads` count of other mailboxes.
+    2. Emails that are **not** in the Trash are ignored when calculating the `unreadThreads` count for the Trash mailbox.
+
+    The result of this is that emails in the Trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the Trash when viewing a thread in another mailbox and vice versa. This allows you to delete a single email to the Trash out of a thread.
+
+    So for example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the Trash and a read email in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
+
 - **myRights**: `MailboxRights` (server-set)
   The set of rights (ACLs) the user has in relation to this mailbox. A *MailboxRights* object has the following properties:
 
@@ -59,15 +73,6 @@ A **Mailbox** object has the following properties:
   Has the user indicated they wish to see this mailbox in their client? This SHOULD default to `false` for mailboxes in shared accounts the user has access to, and `true` for any new mailboxes created by the user themself. This MUST be stored separately per-user where multiple users have access to a shared mailbox.
 
     A user may have permission to access a large number of shared accounts, or a shared account with a very large set of mailboxes, but only be interested in the contents of a few of these. Clients may choose only to display mailboxes to the user that have the `isSubscribed` property set to `true`, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of mailboxes. However, clients MAY choose to ignore this property, either entirely, for ease of implementation, or just for the primary account (which is normally the user's own, rather than a shared account).
-
-The Trash mailbox (that is a mailbox with `role == "trash"`) MUST be treated specially for the purpose of unread counts:
-
-1. Emails that are **only** in the Trash (and no other mailbox) are ignored when calculating the `unreadThreads` count of other mailboxes.
-2. Emails that are **not** in the Trash are ignored when calculating the `unreadThreads` count for the Trash mailbox.
-
-The result of this is that emails in the Trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the Trash when viewing a thread in another mailbox and vice versa. This allows you to delete a single email to the Trash out of a thread.
-
-So for example, suppose you have an account where the entire contents is a single conversation with 2 emails: an unread email in the Trash and a read email in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
 
 For IMAP compatibility, an email in both the Trash and another mailbox SHOULD be treated by the client as existing in both places (i.e. when emptying the trash, the client SHOULD just remove the Trash mailbox and leave it in the other mailbox).
 
