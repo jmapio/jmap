@@ -195,14 +195,14 @@ If the referenced email is destroyed at any point after the EmailSubmission obje
 
 Similarly, destroying a EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the email submission. The server MAY automatically destroy EmailSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
 
+If the email to be sent is larger than the server supports sending, a standard `tooLarge` SetError MUST be returned. A *maxSize* `PositiveInt` property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
+
+If the email or identity id given cannot be found, the submission creation is rejected with a standard `invalidProperties` SetError.
+
 The following extra *SetError* types are defined:
 
 For **create**:
 
-- `emailNotFound` - The *emailId* is not a valid id for an email in the
-  account.
-- `emailTooLarge` - The email size is larger than the server supports sending.
-  A *maxSize* `PositiveInt` property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
 - `invalidEmail` - The email to be sent is invalid in some way. The
   SetError SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties of the email that were invalid.
 - `tooManyRecipients` - The envelope (supplied or generated) has more
