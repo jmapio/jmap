@@ -17,14 +17,15 @@ A **Request** object has the following properties:
 
     The server advertises the set of specifications it supports in the JMAP Session object, as keys on the *capabilities* property.
 
-- **methodCalls**: `Array[]`
+- **methodCalls**: `Invocation[]`
   An array of method calls to process on the server. The method calls MUST be processed sequentially, in order.
 
-    A **method call** is represented by an array containing three elements:
+    An **Invocation** is a tuple, represented as a JSON array containing three elements:
 
     1. A `String` **name** of the method to call.
-    2. An `String[*]` object containing *named* **arguments** for that method.
-    3. A **client id**: an arbitrary `String` to be echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same client id in the response).
+    2. A `String[*]` object containing *named* **arguments** for that method.
+    3. A `String` **client id**: an arbitrary string from the client to be echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same client id in the response).
+
 - **createdIds**: `String[String]` (optional)
   A map of (client-specified) creation id to the id the server assigned when a record was successfully created.
 
@@ -54,7 +55,7 @@ Future specifications MAY add further properties to the Request object to extend
 
 A **Response** object has the following properties:
 
-- **methodResponses**: `Array[]`
+- **methodResponses**: `Invocation[]`
   An array of responses, in the same format as the *methodCalls* on the request object. The output of the methods MUST be added to the *methodResponses* array in the same order as the methods are processed.
 - **createdIds**: `String[String]` (optional; only returned if given in request)
   A map of (client-specified) creation id to the id the server assigned when a record was successfully created. This includes all values passed in the request, as well as any additional ones added for newly created records.
