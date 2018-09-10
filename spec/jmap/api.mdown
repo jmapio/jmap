@@ -1062,3 +1062,17 @@ The server successfully copies the Todo to a new account (where it receives a ne
       ...
     }, "0" ]]
 
+## Proxy considerations
+
+JMAP has been designed to allow an API endpoint to easily proxy through to one
+or more JMAP servers. This may be useful for load balancing, augmenting capabilities, or presenting a single endpoint to accounts hosted on different JMAP servers (splitting the request based on each method's "accountId" argument). The proxy need only understand the general structure of a JMAP Request object, it does not need to know anything specifically about the methods and arguments it will pass through to other servers.
+
+If splitting up the methods in a request to call them on different backend servers, the proxy must do two things to ensure back-references and creation id references resolve the same as if the entire request were processed on a single server:
+
+1. It must pass a `createdIds` property with each subrequest. If this is not
+   given by the client, an empty object should be used for the first subrequest. The `createIds` property of each subresponse should be passed on in the next subrequest.
+
+2. It must resolve back references to previous method results that were
+   processed on a different server. This is a relatively simple syntactic substitution, described in section 3.6.
+
+When splitting a request based on accountId, proxy implementors do need to be aware of `/copy` methods, that copy between accounts. If the accounts are on different servers, the proxy will have to implement this functionality directly.
