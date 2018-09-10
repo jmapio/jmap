@@ -52,6 +52,8 @@ To download a file, the client makes an authenticated GET request to the downloa
 - `name`: The name for the file; the server MUST return this as the filename if
   it sets a `Content-Disposition` header.
 
+As the data for a particular blobId is immutable, and thus the response in the generated download URL is too, implementors are recommended to set long cache times for successful responses, for example `Cache-Control: private, max-age=31536000`.
+
 ## Blob/copy
 
 Binary data may be copied **between** two different accounts using the *Blob/copy* method, rather than having to download then reupload on the client.
