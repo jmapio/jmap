@@ -59,6 +59,9 @@ A **Response** object has the following properties:
   An array of responses, in the same format as the *methodCalls* on the request object. The output of the methods MUST be added to the *methodResponses* array in the same order as the methods are processed.
 - **createdIds**: `String[String]` (optional; only returned if given in request)
   A map of (client-specified) creation id to the id the server assigned when a record was successfully created. This includes all values passed in the request, as well as any additional ones added for newly created records.
+- **sessionState**: `String` The current value of the "state" string on the
+  JMAP Session object. Clients may use this to detect if this object has
+  changed and needs to be refetched.
 
 Unless otherwise specified, if the method call completed successfully its response name is the same as the method name in the request.
 
@@ -80,7 +83,8 @@ Unless otherwise specified, if the method call completed successfully its respon
         [ "error", {
           "type":"unknownMethod"
         }, "c3" ]
-      ]
+      ],
+      "sessionState": "75128aab4b1b"
     }
 
 ## Omitting arguments

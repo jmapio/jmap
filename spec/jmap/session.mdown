@@ -84,8 +84,12 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
   The URL endpoint to use when uploading files in [@!RFC6570] URI Template (level 1) format. The URL MUST contain a variable called `accountId`. The use of this variable is described in section 5.1.
 - **eventSourceUrl**: `String`
   The URL to connect to for push events, as described in section 6.3.
+- **state**: `String`
+  A string representing the state of this object on the server. If the value of any other property on the session object changes, this string will change. The current value is also returned on the API Response object, allowing clients to quickly determine if the session information has changed (e.g. an account has been added or removed) and so they need to refetch the object.
 
 To ensure future compatibility, other properties MAY be included on the JMAP Session object. Clients MUST ignore any properties they are not expecting.
+
+Implementors must take care to avoid inappropriate caching of the session object at the HTTP layer. Since the client should only refetch when it detects there is a change (via the sessionState property of an API response), it is recommended to disable HTTP caching altogether, for example by setting `Cache-Control: no-cache, no-store, must-revalidate` on the response.
 
 ## Example
 
@@ -137,7 +141,8 @@ In the following example JMAP Session object, the user has access to his own mai
       "apiUrl": "https://jmap.example.com/api/",
       "downloadUrl": "https://jmap.example.com/download/{accountId}/{blobId}/{name}?accept={type}",
       "uploadUrl": "https://jmap.example.com/upload/{accountId}/",
-      "eventSourceUrl": "https://jmap.example.com/eventsource/"
+      "eventSourceUrl": "https://jmap.example.com/eventsource/",
+      "state": "75128aab4b1b"
     }
 
 ## Service Autodiscovery
