@@ -38,6 +38,8 @@ A successful request MUST return a single JSON object with the following propert
 
 If identical binary content to an existing blob in the account is uploaded, the existing blobId MAY be returned.
 
+When an HTTP error response is returned to the client, the server SHOULD return a JSON "problem details" object as the response body, as per [@!RFC7807].
+
 ## Downloading binary data
 
 The JMAP Session object has a *downloadUrl* property, which is in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `accountId`, `blobId`, `type` and `name`.
@@ -53,6 +55,8 @@ To download a file, the client makes an authenticated GET request to the downloa
   it sets a `Content-Disposition` header.
 
 As the data for a particular blobId is immutable, and thus the response in the generated download URL is too, implementors are recommended to set long cache times for successful responses, for example `Cache-Control: private, max-age=31536000`.
+
+When an HTTP error response is returned to the client, the server SHOULD return a JSON "problem details" object as the response body, as per [@!RFC7807].
 
 ## Blob/copy
 
