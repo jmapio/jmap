@@ -619,13 +619,13 @@ The *Foo/copy* method takes the following arguments:
 - **fromAccountId**: `String`
   The id of the account to copy records from.
 - **toAccountId**: `String`
-  The id of the account to copy records to.
+  The id of the account to copy records to. This MUST be different to the `fromAccountId`.
 - **create**: `String[Foo]`
   A map of *creation id* to a Foo object. The object MUST contain an id property: the id of the record to be copied. Any other properties included are used instead of the current value for that property on the original when creating the copy.
 - **onSuccessDestroyOriginal**: `Boolean` (default: false)
   If `true`, an attempt will be made to destroy the original records that were successfully copied: after emitting the *Foo/copy* response, but before processing the next method, the server MUST make a single call to *Foo/set* to destroy the original of each successfully copied record; the output of this is added to the responses as normal to be returned to the client.
 
-Each record copy is considered an atomic unit which may succeed or fail individually. Copying successfully MUST create a new record object, with separate ids and mutable properties to the original, even if copied within a single account.
+Each record copy is considered an atomic unit which may succeed or fail individually.
 
 The response has the following arguments:
 

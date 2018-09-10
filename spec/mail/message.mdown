@@ -804,7 +804,7 @@ For **create** and **update**:
 
 Standard "/copy" method, except only the *mailboxIds*, *keywords* and *receivedAt* properties may be set during the copy. This method cannot modify the RFC5322 representation of an email.
 
-The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account. If duplicates are allowed though, the "from" account may be the same as the "to" account to copy emails within an account.
+The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account; if the target account already has the email the copy will be rejected with a standard `alreadyExists` error.
 
 For successfully copied Email objects, the *created* response contains the *id*, *blobId*, *threadId* and *size* properties of the new object.
 
@@ -831,11 +831,11 @@ An **EmailImport** object has the following properties:
 
 Each email to import is considered an atomic unit which may succeed or fail individually. Importing successfully creates a new email object from the data referenced by the blobId and applies the given mailboxes, keywords and receivedAt date.
 
-The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account. In this case, it MUST reject attempts to import an email considered a duplicate with an `alreadyExists` SetError. An *existingId* property of type `String` MUST be included on the error object with the id of the existing email.
+The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account. In this case, it MUST reject attempts to import an email considered a duplicate with an `alreadyExists` SetError. An *existingId* property of type `String` MUST be included on the error object with the id of the existing email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
 
 If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g. missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
 
-If the email cannot be imported because it would take the account over quota, the import should be rejected with a `overQuota` SetError.
+If the email cannot be imported because it would take the account over quota, the import should be rejected with an `overQuota` SetError.
 
 If the blob referenced is not a valid [@!RFC5322] message, the server MAY modify the message to fix errors (such as removing NUL octets or fixing invalid headers). If it does this, the *blobId* on the response MUST represent the new representation and therefore be different to the *blobId* on the EmailImport object. Alternatively, the server MAY reject the import with an `invalidEmail` SetError.
 
