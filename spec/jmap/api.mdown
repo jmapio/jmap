@@ -165,9 +165,9 @@ The following error types are defined which may be returned for any method call 
 
 `forbidden`: The method and arguments are valid, but executing the method would violate an ACL or other permissions policy.
 
-`accountNotFound`: An *accountId* was included with the method call that does not correspond to a valid account, or *accountId* was null but there is no primary account for the capability that defines the data type.
+`accountNotFound`: The *accountId* does not correspond to a valid account.
 
-`accountNotSupportedByMethod`: An *accountId* given corresponds to a valid account, but the account does not support this data type.
+`accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
 
 `accountReadOnly`: This method call would modify state in an account that has `isReadOnly == true`.
 
@@ -209,9 +209,11 @@ To resolve:
 As a simple example, suppose we have the following API request *methodCalls*:
 
     [[ "Foo/changes", {
+        "accountId": "1",
         "sinceState": "abcdef"
     }, "t0" ],
     [ "Foo/get", {
+        "accountId": "1",
         "#ids": {
             "resultOf": "t0",
             "name": "Foo/changes",
@@ -250,6 +252,7 @@ The JMAP server now continues to process the Foo/get call as though the argument
 Now a more complicated example using the JMAP Mail data model: fetch the "from"/"date"/"subject" for every email in the first 10 threads in the Inbox (sorted newest first):
 
     [[ "Email/query", {
+      "accountId": "1",
       "filter": { "inMailbox": "id_of_inbox" },
       "sort": [{ "property": "receivedAt", "isAscending": false }],
       "collapseThreads": true,
@@ -258,6 +261,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
       "calculateTotal": true
     }, "t0" ],
     [ "Email/get", {
+      "accountId": "1",
       "#ids": {
         "resultOf": "t0",
         "name": "Email/query",
@@ -266,6 +270,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
       "properties": [ "threadId" ]
     }, "t1" ],
     [ "Thread/get", {
+      "accountId": "1",
       "#ids": {
         "resultOf": "t1",
         "name": "Email/get",
@@ -273,6 +278,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
       }
     }, "t2" ],
     [ "Email/get", {
+      "accountId": "1",
       "#ids": {
         "resultOf": "t2",
         "name": "Thread/get",
@@ -385,8 +391,8 @@ Objects of type **Foo** are fetched via a call to *Foo/get*.
 
 It takes the following arguments:
 
-- **accountId**: `String|null`
-  The id of the Account to use. If `null`, the primary account for the capability that defines the data type is used.
+- **accountId**: `String`
+  The id of the account to use.
 - **ids**: `String[]|null`
   The ids of the Foo objects to return. If `null` then **all** records of the data type are returned, if this is supported for that data type.
 - **properties**: `String[]|null`
@@ -414,8 +420,8 @@ The following additional error may be returned instead of the *Foo/get* response
 
 When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *Foo/get* response will change. The *Foo/changes* method allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
 
-- **accountId**: `String|null`
-  The id of the Account to use. If `null`, the primary account for the capability that defines the data type is used.
+- **accountId**: `String`
+  The id of the account to use.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *Foo/get* response. The server will return the changes that have occurred since this state.
 - **maxChanges**: `PositiveInt|null`
@@ -481,8 +487,8 @@ Modifying the state of Foo objects on the server is done via the *Foo/set* metho
 
 The *Foo/set* method takes the following arguments:
 
-- **accountId**: `String|null`
-  The id of the Account to use. If `null`, the primary account for the capability that defines the data type is used.
+- **accountId**: `String`
+  The id of the account to use.
 - **ifInState**: `String|null`
   This is a state string as returned by the *Foo/get* method. If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **create**: `String[Foo]|null`
@@ -610,10 +616,10 @@ The only way to move Foo records **between** two different accounts is to copy t
 
 The *Foo/copy* method takes the following arguments:
 
-- **fromAccountId**: `String|null`
-  The id of the account to copy records from. If `null`, the primary account for the capability that defines the data type is used.
-- **toAccountId**: `String|null`
-  The id of the account to copy records to. If `null`, the primary account for the capability that defines the data type is used.
+- **fromAccountId**: `String`
+  The id of the account to copy records from.
+- **toAccountId**: `String`
+  The id of the account to copy records to.
 - **create**: `String[Foo]`
   A map of *creation id* to a Foo object. The object MUST contain an id property: the id of the record to be copied. Any other properties included are used instead of the current value for that property on the original when creating the copy.
 - **onSuccessDestroyOriginal**: `Boolean` (default: false)
@@ -641,9 +647,9 @@ The **SetError** may be any of the standard set errors that may be returned for 
 
 The following additional errors may be returned instead of the *Foo/copy* response:
 
-`fromAccountNotFound`: A *fromAccountId* was explicitly included with the request, but it does not correspond to a valid account; or, *fromAccountId* was null but there is no primary account for the capability that defines the data type.
+`fromAccountNotFound`: The *fromAccountId* does not correspond to a valid account.
 
-`toAccountNotFound`: A *toAccountId* was explicitly included with the request, but it does not correspond to a valid account; or, *toAccountId* was null but there is no primary account for the capability that defines the data type.
+`toAccountNotFound`: The *toAccountId* does not correspond to a valid account.
 
 `fromAccountNotSupportedByMethod`: The *fromAccountId* given corresponds to a valid account, but the account does not support this data type.
 
@@ -658,8 +664,8 @@ A query on the set of Foos in an account is made by calling *Foo/query*. This ta
 
 A call to *Foo/query* takes the following arguments:
 
-- **accountId**: `String|null`
-  The id of the Account to use. If `null`, the primary account for the capability that defines the data type is used.
+- **accountId**: `String`
+  The id of the account to use.
 - **filter**: `FilterOperator|FilterCondition|null`
   Determines the set of Foos returned in the results. If `null`, all objects in the account of this type are included in the results.
 
@@ -768,8 +774,8 @@ SHOULD suggest the user simplify their search.
 
 The `Foo/queryChanges` call allows a client to efficiently update the state of any cached foo query to match the new state on the server. It takes the following arguments:
 
-- **accountId**: `String|null`
-  The id of the account to use. If `null`, the primary account for the capability that defines the data type will be used.
+- **accountId**: `String`
+  The id of the account to use.
 - **filter**: `FilterOperator|FilterCondition|null`
   The filter argument that was used with *Foo/query*.
 - **sort**: `Comparator[]|null`
@@ -861,6 +867,7 @@ and the server supports all the standard methods for the type, including queryin
 Now, a client might want to display the list of todos with either a "music" keyword or a "video" keyword, so it makes the following method call:
 
     [[ "Todo/query", {
+      "accountId": "x",
       "filter": {
         "operator": "OR",
         "conditions": [
@@ -873,6 +880,7 @@ Now, a client might want to display the list of todos with either a "music" keyw
       "limit": 10
     }, "0" ],
     [ "Todo/get", {
+      "accountId": "x",
       "#ids": {
         "resultOf": "0",
         "name": "Todo/query",
@@ -927,6 +935,7 @@ This would query the server for the set of todos with a keyword of "music", sort
 Now suppose the user adds a keyword "chopin" and removes the keyword "mozart" from the "Practise Piano" task. The client may send the whole object to the server, as this is a valid PatchObject:
 
     [[ "Todo/set", {
+      "accountId": "x",
       "ifInState": "10324",
       "update": {
         "a": {
@@ -947,6 +956,7 @@ Now suppose the user adds a keyword "chopin" and removes the keyword "mozart" fr
 or it may send a minimal patch:
 
     [[ "Todo/set", {
+      "accountId": "x",
       "ifInState": "10324",
       "update": {
         "a": {
@@ -979,6 +989,7 @@ Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user
       "maxChanges": 50,
     }, "0" ],
     [ "Todo/queryChanges", {
+      "accountId": "x",
       "filter": {
         "operator": "OR",
         "conditions": [
@@ -1003,6 +1014,7 @@ and receive in response:
       "destroyed": ["b"]
     }, "0" ],
     [ "Todo/queryChanges", {
+      "accountId": "x",
       "filter": {
         "operator": "OR",
         "conditions": [
