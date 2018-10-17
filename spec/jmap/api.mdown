@@ -618,12 +618,16 @@ The *Foo/copy* method takes the following arguments:
 
 - **fromAccountId**: `String`
   The id of the account to copy records from.
-- **toAccountId**: `String`
+- **accountId**: `String`
   The id of the account to copy records to. This MUST be different to the `fromAccountId`.
+- **ifInState**: `String|null`
+  This is a state string as returned by the *Foo/get* method. If supplied, the string must match the current state of the account referenced by the accountId, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **create**: `String[Foo]`
-  A map of *creation id* to a Foo object. The object MUST contain an id property: the id of the record to be copied. Any other properties included are used instead of the current value for that property on the original when creating the copy.
+  A map of *creation id* to a Foo object. The object MUST contain an id property: the id (in the fromAccount) of the record to be copied. Any other properties included are used instead of the current value for that property on the original when creating the copy.
 - **onSuccessDestroyOriginal**: `Boolean` (default: false)
   If `true`, an attempt will be made to destroy the original records that were successfully copied: after emitting the *Foo/copy* response, but before processing the next method, the server MUST make a single call to *Foo/set* to destroy the original of each successfully copied record; the output of this is added to the responses as normal to be returned to the client.
+- **destroyFromIfInState**: `String|null`
+  This argument is passed on as the `ifInState` argument to the implicit *Foo/set* call, if made at the end of this request.
 
 Each record copy is considered an atomic unit which may succeed or fail individually.
 
@@ -631,8 +635,12 @@ The response has the following arguments:
 
 - **fromAccountId**: `String`
   The id of the account records were copied from.
-- **toAccountId**: `String`
+- **accountId**: `String`
   The id of the account records were copied to.
+- **oldState**: `String|null`
+  The state string that would have been returned by *Foo/get* on this account before making the requested changes, or `null` if the server doesn't know what the previous state string was.
+- **newState**: `String`
+  The state string that will now be returned by *Foo/get* on this account.
 - **created**: `String[Foo]|null`
   A map of the creation id to an object containing any properties of the copied Foo object that are set by the server (such as the *id* in most object types).
 
@@ -649,11 +657,9 @@ The following additional errors may be returned instead of the *Foo/copy* respon
 
 `fromAccountNotFound`: The *fromAccountId* does not correspond to a valid account.
 
-`toAccountNotFound`: The *toAccountId* does not correspond to a valid account.
-
 `fromAccountNotSupportedByMethod`: The *fromAccountId* given corresponds to a valid account, but the account does not support this data type.
 
-`toAccountNotSupportedByMethod`: The *toAccountId* given corresponds to a valid account, but the account does not support this data type.
+`stateMismatch`: An `ifInState` argument was supplied and it does not match the current state.
 
 
 ## /query
@@ -1033,7 +1039,7 @@ Suppose the user has access to another account `y`, for example a team account s
 
     [[ "Todo/copy", {
       "fromAccountId": "x",
-      "toAccountId": "y",
+      "accountId": "y",
       "create": {
         "k5122": {
           "id": "a"
@@ -1046,13 +1052,14 @@ The server successfully copies the Todo to a new account (where it receives a ne
 
     [[ "Todo/copy", {
       "fromAccountId": "x",
-      "toAccountId": "y",
+      "accountId": "y",
       "created": {
         "k5122": {
           "id": "97"
         }
       },
-      "notCreated": null
+      "oldState": "c1d64ecb038c",
+      "newState": "33844835152b"
     }, "0" ],
     [ "Todo/set", {
       "accountId": "x",
