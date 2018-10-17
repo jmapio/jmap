@@ -816,6 +816,8 @@ The *Email/import* method adds [@!RFC5322] messages to a user's set of emails. T
 
 - **accountId**: `String`
   The id of the account to use.
+- **ifInState**: `String|null`
+  This is a state string as returned by the *Email/get* method. If supplied, the string must match the current state of the account referenced by the accountId, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **emails**: `String[EmailImport]`
   A map of creation id (client specified) to EmailImport objects
 
@@ -844,11 +846,18 @@ The response has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for this call.
+- **oldState**: `String|null`
+  The state string that would have been returned by *Email/get* on this account before making the requested changes, or `null` if the server doesn't know what the previous state string was.
+- **newState**: `String`
+  The state string that will now be returned by *Email/get* on this account.
 - **created**: `String[Email]`
   A map of the creation id to an object containing the *id*, *blobId*, *threadId* and *size* properties for each successfully imported Email.
 - **notCreated**: `String[SetError]`
   A map of creation id to a SetError object for each Email that failed to be created. The possible errors are defined above.
 
+The following additional errors may be returned instead of the *Foo/copy* response:
+
+`stateMismatch`: An `ifInState` argument was supplied and it does not match the current state
 
 ## Email/parse
 
