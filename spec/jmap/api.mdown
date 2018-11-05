@@ -867,6 +867,8 @@ Suppose we have a type *Todo* with the following properties:
 - **neuralNetworkTimeEstimation**: `Number` (server-set)
   The title and keywords are fed into the server's state-of-the-art neural
   network to get an estimation of how long this todo will take, in seconds.
+- **subTodoIds**: `String[]|null`
+  The ids of a list of subtodos to complete as part of this todo.
 
 and the server supports all the standard methods for the type, including querying by keyword using the syntax `{ hasKeyword: "foo" }` in the *filter* argument to */query*.
 
@@ -987,7 +989,23 @@ The effect is exactly the same on the server in either case, and presuming the s
 
 The server changed the "neuralNetworkTimeEstimation" property on the object as part of this change; as this changed in a way *not* explicitly requested by the PatchObject sent to the server, it is returned with the "updated" confirmation.
 
-Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user will receive a push notification (see later in the spec) with the changed state string for the "Todo" type. Since the new string does not match its current state, it knows it needs to check for updates. It may make a request like:
+Let us now add a subtodo to our new "Practice Piano" todo. In this example we can see the use of a reference to a creation id to allow us to set a foreign key reference to a record created in the same request:
+
+    [[ "Todo/set", {
+      "accountId": "x",
+      "create": {
+        "k15": {
+          "title": "Warm up with scales"
+        }
+      },
+      "update": {
+        "a": {
+          "subTodoIds": [ "#k15" ]
+        }
+      }
+    }, "0" ]]
+
+Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user will receive a push notification (see section 7) with the changed state string for the "Todo" type. Since the new string does not match its current state, it knows it needs to check for updates. It may make a request like:
 
     [[ "Todo/changes", {
       "accountId": "x",
