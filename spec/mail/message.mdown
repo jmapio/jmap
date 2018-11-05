@@ -11,7 +11,7 @@ While raw headers can be fetched and set, the vast majority of clients should us
 The body of a message is normally a MIME-encoded set of documents in a tree structure. This may be arbitrarily nested, but the majority of email clients present a flat model of an email body (normally plain text or HTML), with a set of attachments. Flattening the MIME structure to form this model can be difficult, and causes inconsistency between clients. Therefore in addition to the *bodyStructure* property, which gives the full tree, the Email object contains 3 alternate properties with flat lists of body parts:
 
 - *textBody*/*htmlBody*: These provide a list of parts that should be
-  rendered sequentially as the "body" of the message. This is a list rather than a single part as messages may have headers and/or footers appended/prepended as separate parts as they are transmitted, and some clients send text and images, or even videos and sound clips, intended to be displayed inline in the body as multiple parts rather than a single HTML part with referenced images.
+  rendered sequentially as the "body" of the message. This is a list rather than a single part as messages may have headers and/or footers appended/prepended as separate parts as they are transmitted, and some clients send text and images intended to be displayed inline in the body (or even videos and sound clips) as multiple parts rather than a single HTML part with referenced images.
 
   Because MIME allows for multiple representations of the same data (using `multipart/alternative`), there is a textBody property (which prefers a plain text representation) and an htmlBody property (which prefers an HTML representation) to accommodate the two most common client requirements. The same part may appear in both lists where there is no alternative between the two.
 
@@ -33,7 +33,7 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
 - **threadId**: `String` (immutable; server-set)
   The id of the Thread to which this Email belongs.
 - **mailboxIds**: `String[Boolean]`
-  The set of mailbox ids this email belongs to. An email MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
+  The set of Mailbox ids this email belongs to. An email MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
 - **keywords**: `String[Boolean]` (default: {})
   A set of keywords that apply to the email. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 
@@ -44,7 +44,7 @@ These properties represent metadata about the [@!RFC5322] message, and are not d
     - `$flagged`: The email has been flagged for urgent/special attention.
     - `$answered`: The email has been replied to.
 
-    The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP.
+    The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP (including as part of any mailbox counts).
 
     Users may add arbitrary keywords to an email. For compatibility with IMAP, a keyword is a case-insensitive string of 1–255 characters in the ASCII subset %x21–%x7e (excludes control chars and space), and MUST NOT include any of these characters: `( ) { ] % * " \`
 
@@ -78,9 +78,9 @@ Type: `String`
 
 The header field value with:
 
-1. White space unfolded (as defined in [@!RFC5322] section 2.2.3)
-2. The terminating CRLF at the end of the value removed
-3. Any SP characters at the beginning of the value removed
+1. White space unfolded (as defined in [@!RFC5322] section 2.2.3).
+2. The terminating CRLF at the end of the value removed.
+3. Any SP characters at the beginning of the value removed.
 4. Any syntactically correct [@!RFC2047] encoded sections with a known
    character set decoded. Any [@!RFC2047] encoded NUL octets or control characters are dropped from the decoded value. Any text that looks like [@!RFC2047] syntax but violates [@!RFC2047] placement or whitespace rules MUST NOT be decoded.
 5. Any [@!RFC6532] UTF-8 values decoded.
@@ -296,11 +296,11 @@ A **EmailBodyPart** object has the following properties:
 - **partId**: `String|null`
   Identifies this part uniquely within the Email. This is scoped to the *emailId* and has no meaning outside of the JMAP Email object representation. This is `null` if, and only if, the part is of type `multipart/*`.
 - **blobId**: `String|null`
-  The id representing the raw octets of the contents of the part after decoding any *Content-Transfer-Encoding* (as defined in [@!RFC2045]), or `null` if, and only if, the part is of type `multipart/*`. Note, two parts may be transfer-encoded differently but have same the same blob id if their decoded octets are identical and the server is using a secure hash of the data for the blob id.
+  The id representing the raw octets of the contents of the part after decoding any *Content-Transfer-Encoding* (as defined in [@!RFC2045]), or `null` if, and only if, the part is of type `multipart/*`. Note, two parts may be transfer-encoded differently but have the same blob id if their decoded octets are identical and the server is using a secure hash of the data for the blob id.
 - **size**: `PositiveInt`
   The size, in octets, of the raw data after content transfer decoding (as referenced by the *blobId*, i.e. the number of octets in the file the user would download).
 - **headers**: `EmailHeader[]`
-  This is a list of all header fields in the part, in the order they appear. The values are in *Raw* form.
+  This is a list of all header fields in the part, in the order they appear in the message. The values are in *Raw* form.
 - **name**: `String|null`
   This is the [@!RFC2231] decoded *filename* parameter of the *Content-Disposition* header field, or (for compatibility with existing systems) if not present then the [@!RFC2047] decoded *name* parameter of the *Content-Type* header field.
 - **type**: `String`
@@ -358,15 +358,12 @@ The following **Email** properties are specified for access to the body data of 
 
     Note, an HTML body part may reference image parts in attachments using `cid:` links to reference the *Content-Id* or by referencing the *Content-Location*.
 - **hasAttachment**: `Boolean` (immutable; server-set)
-  This is `true` if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment if either:
-
-    * The *attachments* list contains at least one item that does not have
-      `Content-Disposition: inline`. The server MAY ignore parts in this list that are processed automatically in some way, or are referenced as embedded images in one of the `text/html` parts of the message.
+  This is `true` if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment to `true` if the *attachments* list contains at least one item that does not have `Content-Disposition: inline`. The server MAY ignore parts in this list that are processed automatically in some way, or are referenced as embedded images in one of the `text/html` parts of the message.
 
     The server MAY set hasAttachment based on implementation-defined or site configurable heuristics.
 
 - **preview**: `String` (immutable; server-set)
-  Up to 255 octets of plain text, summarising the message body. This is intended to be shown as a preview line on a mailbox listing, and may be truncated when shown. The server may choose which part of the message to include in the preview, for example skipping quoted sections and salutations and collapsing white-space can result in a more useful preview.
+  Up to 255 octets of plain text, summarising the message body. This is intended to be shown as a preview line on a mailbox listing, and may be truncated when shown. The server may choose which part of the message to include in the preview; skipping quoted sections and salutations and collapsing white-space can result in a more useful preview.
 
 The exact algorithm for decomposing bodyStructure into textBody, htmlBody and attachments part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time. However, the following algorithm (expressed here in JavaScript) is suggested as a starting point, based on real-world experience:
 
@@ -512,7 +509,7 @@ Standard "/get" method, with the following additional arguments:
 - **maxBodyValueBytes**: `PositiveInt` (default: 0)
   If greater than zero, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. If `0` (the default), no truncation occurs.
 
-    The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
+    The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag, e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
 
 If the standard *properties* argument is omitted or `null`, the following default MUST be used instead of "all" properties:
 
@@ -613,7 +610,7 @@ Standard "/changes" method. If generating intermediate states for a large set of
 Standard "/query" method, but with the following additional arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
-  If `true`, emails in the same thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means at most only one email will be included in the list for any given thread.
+  If `true`, emails in the same thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means only one email at most will be included in the list for any given thread.
 
 In quality implementations, the query "total" property is expected to be fast to calculate when the filter consists solely of a single `inMailbox` property, as it is the same as the totalEmails or totalThreads properties (depending on whether collapseThreads is true) of the associated Mailbox object.
 
@@ -626,13 +623,13 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **inMailboxOtherThan**: `String[]`
   A list of mailbox ids. An email must be in at least one mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.
 - **before**: `UTCDate`
-  The *receivedAt* date of the email must be before this date to match the condition.
+  The *receivedAt* date-time of the email must be before this date-time to match the condition.
 - **after**: `UTCDate`
-  The *receivedAt* date of the email must be on or after this date to match the condition.
+  The *receivedAt* date-time of the email must be the same or after this date-time to match the condition.
 - **minSize**: `PositiveInt`
   The *size* of the email in octets must be equal to or greater than this number to match the condition.
 - **maxSize**: `PositiveInt`
-  The size of the email in octets must be less than this number to match the condition.
+  The *size* of the email in octets must be less than this number to match the condition.
 - **allInThreadHaveKeyword**: `String`
   All emails (including this one) in the same thread as this email must have the given keyword to match the condition.
 - **someInThreadHaveKeyword**: `String`
@@ -658,7 +655,7 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **subject**: `String`
   Looks for the text in the *subject* property of the email.
 - **body**: `String`
-  Looks for the text in one of the body parts of the email. The server MAY exclude MIME body parts with content media types other than "text/*" and "message/*" from consideration in search matching. Care should be taken to match based on the text content actually presented to an end-user by viewers for that media type, or otherwise identified as appropriate for search indexing. Matching document metadata uninteresting to an end-user (e.g., markup tag and attribute names), is undesirable.
+  Looks for the text in one of the body parts of the email. The server MAY exclude MIME body parts with content media types other than "text/*" and "message/*" from consideration in search matching. Care should be taken to match based on the text content actually presented to an end-user by viewers for that media type, or otherwise identified as appropriate for search indexing. Matching document metadata uninteresting to an end-user (e.g., markup tag and attribute names) is undesirable.
 - **header**: `String[]`
   The array MUST contain either one or two elements. The first element is the name of the header field to match against. The second (optional) element is the text to look for in the header field value. If not supplied, the message matches simply if it *has* a header field of the given name.
 
@@ -681,7 +678,7 @@ The following properties MUST be supported for sorting:
 
 The following properties SHOULD be supported for sorting:
 
-- **size** - The size as returned in the Email object.
+- **size** - The *size* as returned in the Email object.
 - **from** – This is taken to be either the "name" part, or if `null`/empty then the "email" part, of the **first** EmailAddress object in the *from* property. If still none, consider the value to be the empty string.
 - **to** - This is taken to be either the "name" part, or if `null`/empty then the "email" part, of the **first** EmailAddress object in the *to* property. If still none, consider the value to be the empty string.
 - **subject** - This is taken to be the base subject of the email, as defined in section 2.1 of [@!RFC5256].
@@ -690,7 +687,7 @@ The following properties SHOULD be supported for sorting:
 - **allInThreadHaveKeyword** - This value MUST be considered `true` for the email if **all** of the emails in the same thread (regardless of mailbox) have the keyword given as an additional *keyword* property on the *Comparator* object.
 - **someInThreadHaveKeyword** - This value MUST be considered `true` for the email if **any** of the emails in the same thread (regardless of mailbox) have the keyword given as an additional *keyword* property on the *Comparator* object.
 
-The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's *capabilities* object (see section 1).
+The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's *capabilities* object (see section 1.3).
 
 Example sort:
 
@@ -779,7 +776,7 @@ Creation attempts that violate any of this SHOULD be rejected with an `invalidPr
 
 The server MAY also choose to set additional headers. If not included, the server MUST generate and set a `Message-ID` header field in conformance with [@!RFC5322] section 3.6.4, and a `Date` header field in conformance with section 3.6.1.
 
-The final RFC5322 email generated may be invalid. For example, if it is a half-finished draft, the "To" field may data that does not currently conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
+The final RFC5322 email generated may be invalid. For example, if it is a half-finished draft, the "To" field may have a value that does not conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 
 Destroying an email removes it from all mailboxes to which it belonged. To  just delete an email to trash, simply change the `mailboxIds` property so it is now in the mailbox with `role == "trash"`, and remove all other mailbox ids.
 
@@ -812,7 +809,7 @@ For successfully copied Email objects, the *created* response contains the *id*,
 
 ## Email/import
 
-The *Email/import* method adds [@!RFC5322] messages to a user's set of emails. The messages must first be uploaded as a file using the standard upload mechanism. It takes the following arguments:
+The *Email/import* method adds [@!RFC5322] messages to the set of emails in an account. The messages must first be uploaded as files using the standard upload mechanism. It takes the following arguments:
 
 - **accountId**: `String`
   The id of the account to use.
@@ -857,7 +854,7 @@ The response has the following arguments:
 
 The following additional errors may be returned instead of the *Foo/copy* response:
 
-`stateMismatch`: An `ifInState` argument was supplied and it does not match the current state
+`stateMismatch`: An `ifInState` argument was supplied and it does not match the current state.
 
 ## Email/parse
 
@@ -894,7 +891,7 @@ The *Email/parse* method takes the following arguments:
 - **maxBodyValueBytes**: `PositiveInt` (default: 0)
   If greater than zero, the *value* property of any EmailBodyValue object returned in *bodyValues* MUST be truncated if necessary so it does not exceed this number of octets in size. If `0` (the default), no truncation occurs.
 
-    The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
+    The server MUST ensure the truncation results in valid UTF-8 and does not occur mid-codepoint. If the part is of type `text/html`, the server SHOULD NOT truncate inside an HTML tag, e.g. in the middle of `<a href="https://example.com">`. There is no requirement for the truncated form to be a balanced tree or valid HTML (indeed, the original source may well be neither of these things).
 
 The response has the following arguments:
 
@@ -971,16 +968,13 @@ A client logs in for the first time. It first fetches the set of mailboxes. Now 
 
 Let's break down the 4 method calls to see what they're doing:
 
-0. This asks the server for the ids of the first 30 Email objects in the inbox,
-   sorted newest first, ignoring messages from the same thread as a newer message in the mailbox (i.e. it is the first 30 unique threads).
+"0": This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same thread as a newer message in the mailbox (i.e. it is the first 30 unique threads).
 
-1. Now we use a backreference to fetch the thread ids for each of these email
-   ids.
+"1": Now we use a back-reference to fetch the thread ids for each of these email ids.
 
-2. Another backreference fetches the Thread object for each of these thread ids.
+"2": Another back-reference fetches the Thread object for each of these thread ids.
 
-3. Finally, we fetch the information we need to display the mailbox listing (
-   but no more!) for every message in each of these 30 threads. The client may aggregate this data for display, for example showing the thread as "flagged" if any of the messages in it contain the `$flagged` keyword.
+"3": Finally, we fetch the information we need to display the mailbox listing (but no more!) for every message in each of these 30 threads. The client may aggregate this data for display, for example showing the thread as "flagged" if any of the messages in it contain the `$flagged` keyword.
 
 The response from the server may look something like this:
 
@@ -1077,7 +1071,7 @@ The server applies this and sends the success response:
 
 The user also deletes a few messages, and then a new message arrives.
 
-Back on our original machine, we receive a push update that the state string for Email is now `780800`. As this does not match the client's current state, it issues a request for the changes:
+Back on our original machine, we receive a push update that the state string for Email is now "780800". As this does not match the client's current state, it issues a request for the changes:
 
     [[ "Email/changes", {
       "accountId": "ue150411c",
@@ -1132,7 +1126,7 @@ The response:
       "total": 115
     }, "11" ],
 
-The client can update its local cache of the query results by removing "M9bd17497e2a99cb345fc1d0a" and then splicing in "Me8de6c9f6de198239b982ea2" at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using backreferences).
+The client can update its local cache of the query results by removing "M9bd17497e2a99cb345fc1d0a" and then splicing in "Me8de6c9f6de198239b982ea2" at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using back-references).
 
 It knows something has changed about "Ma783e5cdf5f2deffbc97930a", so it will refetch the mailboxes and keywords (the only mutable properties) for this email too.
 

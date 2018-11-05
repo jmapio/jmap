@@ -72,7 +72,7 @@ A **Mailbox** object has the following properties:
 - **isSubscribed**: `Boolean`
   Has the user indicated they wish to see this mailbox in their client? This SHOULD default to `false` for mailboxes in shared accounts the user has access to, and `true` for any new mailboxes created by the user themself. This MUST be stored separately per-user where multiple users have access to a shared mailbox.
 
-    A user may have permission to access a large number of shared accounts, or a shared account with a very large set of mailboxes, but only be interested in the contents of a few of these. Clients may choose only to display mailboxes to the user that have the `isSubscribed` property set to `true`, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of mailboxes. However, clients MAY choose to ignore this property, either entirely, for ease of implementation, or just for the primary account (which is normally the user's own, rather than a shared account).
+    A user may have permission to access a large number of shared accounts, or a shared account with a very large set of mailboxes, but only be interested in the contents of a few of these. Clients may choose only to display mailboxes to the user that have the `isSubscribed` property set to `true`, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation, or just for the primary account (which is normally the user's own, rather than a shared account).
 
 For IMAP compatibility, an email in both the Trash and another mailbox SHOULD be treated by the client as existing in both places (i.e. when emptying the trash, the client SHOULD just remove the Trash mailbox and leave it in the other mailbox).
 
@@ -89,7 +89,7 @@ Standard "/changes" method, but with one extra argument to the response:
 - **updatedProperties**: `String[]|null`
   If only the mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e. `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
-Since counts frequently change but the rest of the mailboxes state for most use cases changes rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separately to other state changes. The *updatedProperties* array may be used directly via a result reference in a subsequent Mailbox/get call in a single request.
+Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separately to other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same single request so only these properties are returned if nothing else has changed.
 
 ## Mailbox/query
 
@@ -115,7 +115,7 @@ The following properties MUST be supported for sorting:
 - `sortOrder`
 - `name`
 - `parent/name`: This is a pseudo-property, just for sorting, with the
-  following semantics: if two mailboxes have a common parent, sort them by name. Otherwise, find the nearest ancestors of each that share a common parent and sort by their names instead. (i.e. This sorts the mailbox list in tree order).
+  following semantics: if two mailboxes have a common parent, sort them by name. Otherwise, find the nearest ancestors of each that share a common parent and sort by their names instead. (i.e. This sorts the mailbox list in alphabetical tree order).
 
 ## Mailbox/queryChanges
 
@@ -126,7 +126,7 @@ Standard "/queryChanges" method.
 Standard "/set" method, but with the following additional argument:
 
 - **onDestroyRemoveMessages**: `Boolean` (default: false)
-  If `false`, attempts to destroy a mailbox that still has any messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the mailbox will be removed from it, and if in no other mailboxes will be destroyed when the mailbox is destroyed.
+  If `false`, any attempt to destroy a mailbox that still has messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the mailbox will be removed from it, and if in no other mailboxes will be destroyed when the mailbox is destroyed.
 
 The following extra *SetError* types are defined:
 

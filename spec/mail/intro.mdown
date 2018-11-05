@@ -2,15 +2,13 @@
 
 JMAP (RFC XXXX) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
 
-This specification defines a data model for synchronising mail between a client and a server using JMAP.
+This specification defines a data model for mail over JMAP.
 
 ## Notational conventions
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [@!RFC2119].
 
-Type signatures, examples and property descriptions in this document follow the conventions established in Section 1.1 of RFC XXXX.
-
-Data types defined in the core specification are used in this document.
+Type signatures, examples and property descriptions in this document follow the conventions established in Section 1.1 of RFC XXXX. Data types defined in the core specification are also used in this document.
 
 ## Terminology
 
@@ -18,9 +16,9 @@ The same terminology is used in this document as in the core JMAP specification.
 
 ## Additions to the capabilities object
 
-The capabilities object is returned as part of the standard JMAP Session object; see the JMAP Core specification.
+The capabilities object is returned as part of the standard JMAP Session object; see RFC XXXX, section 2.
 
-This document defines three additional capability objects.
+This document defines three additional capability URIs.
 
 ### urn:ietf:params:jmap:mail
 
@@ -35,12 +33,12 @@ This represents support for the Mailbox, Thread, Email, and SearchSnippet data t
 - **maxSizeAttachmentsPerEmail**: `PositiveInt`
   The maximum total size of attachments, in octets, allowed for a single email. A server MAY still reject import or creation of emails with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
 
-    Note, this limit is for the sum of unencoded attachment sizes. Users are generally not knowledgeable about encoding overhead etc., nor should they need to be, so services marketing and help materials normally tells them the "max size attachments". This is the unencoded size they see on their hard drive, and so this capability matches that and allows the client to consistently enforce what the user understands as the limit.
+    Note, this limit is for the sum of unencoded attachment sizes. Users are generally not knowledgeable about encoding overhead etc., nor should they need to be, so marketing and help materials normally tell them the "max size attachments". This is the unencoded size they see on their hard drive, and so this capability matches that and allows the client to consistently enforce what the user understands as the limit.
 
     The server may separately have a limit for the total size of the RFC5322 message, which will have attachments Base64 encoded and message headers and bodies too. For example, suppose the server advertises `maxSizeAttachmentsPerEmail: 50000000` (50 MB). The enforced server limit may be for an RFC5322 size of 70000000 octets (70 MB). Even with Base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.
 
 - **emailsListSortOptions**: `String[]`
-  A list of all the email properties the server supports for sorting by. This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
+  A list of all the email properties the server supports sorting by. This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
 
 ### urn:ietf:params:jmap:submission
 
@@ -65,7 +63,7 @@ This represents support for the Identity and MessageSubmission data types and as
 
     A JMAP server MAY advertise an extension and implement the semantics of that extension locally on the JMAP server even if a submission server used by JMAP doesn't implement it.
 
-    The full IANA registry of submission extensions can be found at https://www.iana.org/assignments/mail-parameters/mail-parameters.xhtml#mail-parameters-2
+    The full IANA registry of submission extensions can be found at <https://www.iana.org/assignments/mail-parameters/mail-parameters.xhtml#mail-parameters-2>.
 
 ### urn:ietf:params:jmap:vacationresponse
 
@@ -73,7 +71,7 @@ This represents support for the VacationResponse data type and associated API me
 
 ## Data type support in different accounts
 
-The server MUST include the appropriate capability strings in the *hasDataFor* property of any account in which the user may use the data types represented by that URN. Supported data types may differ between accounts the user has access to. For example, in the user's personal account they may have access to all three sets of data, but in a shared account they may only have data for `urn:ietf:params:jmap:mail`. This means they can access Mailbox/Thread/Email data in the shared account but are not allowed to send as that account (and so do not have access to Identity/MessageSubmission objects) or view/set its vacation response.
+The server MUST include the appropriate capability strings in the *hasDataFor* property of any account with which the user may use the data types represented by that URI. Supported data types may differ between accounts the user has access to. For example, in the user's personal account they may have access to all three sets of data, but in a shared account they may only have data for `urn:ietf:params:jmap:mail`. This means they can access Mailbox/Thread/Email data in the shared account but are not allowed to send as that account (and so do not have access to Identity/MessageSubmission objects) or view/set its vacation response.
 
 ## Push
 
