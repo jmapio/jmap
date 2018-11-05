@@ -32,6 +32,15 @@ Type signatures are given for all JSON values in this document. The following co
 
 Other types may also be given, with their representation defined elsewhere in this document.
 
+Object properties may also have a set of attributes defined along with the type
+signature. These have the following meanings:
+
+* **server-set**: Only the server can set the value for this property. The
+  client MUST NOT send this property when creating a new object of this type.
+* **immutable**: The value MUST NOT change after the object is created.
+* **default**: (This is followed by a JSON value). The value that will be used
+  for this property if it is omitted in an argument, or when creating a new object of this type.
+
 ## The Int and PositiveInt data types
 
 Where `Int` is given as a data type, it means an integer in the range -2^53 <= value <= 2^53 (the maximum integer that may be reliably stored in a floating-point double), represented as a JSON `Number`.
