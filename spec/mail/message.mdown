@@ -697,13 +697,13 @@ Example sort:
     [{
       "property": "someInThreadHaveKeyword",
       "keyword": "$flagged",
-      "isAscending": false,
+      "isAscending": false
     }, {
       "property": "subject",
       "collation": "i;ascii-casemap"
     }, {
       "property": "receivedAt",
-      "isAscending": false,
+      "isAscending": false
     }]
 
 This would sort emails in flagged threads first (the thread is considered flagged if any email within it is flagged), and then in subject order, then newest first for messages with the same subject. If two emails have both identical flagged status, subject and date, the order is server-dependent but must be stable.
@@ -1007,8 +1007,8 @@ The response from the server may look something like this:
         "id": "Ma783e5cdf5f2deffbc97930a",
         "threadId": "T36703c2cfe9bd5ed"
       }, {
-        "id": "M9bd17497e2a99cb345fc1d0a"
-        "threadId": "T0a22ad76e9c097a1",
+        "id": "M9bd17497e2a99cb345fc1d0a",
+        "threadId": "T0a22ad76e9c097a1"
       }, ... ],
       "notFound": []
     }, "1" ],
@@ -1016,11 +1016,11 @@ The response from the server may look something like this:
       "accountId": "ue150411c",
       "state": "22a8728b",
       "list": [{
-        "id": "T36703c2cfe9bd5ed"
-        "emailIds": [ "Ma783e5cdf5f2deffbc97930a" ],
+        "id": "T36703c2cfe9bd5ed",
+        "emailIds": [ "Ma783e5cdf5f2deffbc97930a" ]
       }, {
-        "id": "T0a22ad76e9c097a1"
-        "emailIds": [ "M3b568670a63e5d100f518fa5", "M9bd17497e2a99cb345fc1d0a" ],
+        "id": "T0a22ad76e9c097a1",
+        "emailIds": [ "M3b568670a63e5d100f518fa5", "M9bd17497e2a99cb345fc1d0a" ]
       },  ... ],
       "notFound": []
     }, "2" ],
@@ -1109,7 +1109,7 @@ The response:
       "hasMoreChanges": false,
       "created": [ "Me8de6c9f6de198239b982ea2" ],
       "updated": [ "Ma783e5cdf5f2deffbc97930a" ],
-      "destroyed": [ "M9bd17497e2a99cb345fc1d0a", ... ],
+      "destroyed": [ "M9bd17497e2a99cb345fc1d0a", ... ]
     }, "3" ],
     [ "Email/queryChanges", {
       "accountId": "ue150411c",
@@ -1129,7 +1129,7 @@ The response:
         "index": 0
       }],
       "removed": [ "M9bd17497e2a99cb345fc1d0a" ],
-      "total": 115,
+      "total": 115
     }, "11" ],
 
 The client can update its local cache of the query results by removing "M9bd17497e2a99cb345fc1d0a" and then splicing in "Me8de6c9f6de198239b982ea2" at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using backreferences).
