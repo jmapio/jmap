@@ -34,7 +34,7 @@ There are a number of ways clients can mitigate these issues, and a defence-in-d
 * HTML can be filtered before rendering, stripping potentially malicious
   content. Sanitizing HTML correctly is tricky, and implementers are strongly recommended to use a well-tested library with a carefully vetted whitelist-only approach. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
 
-  Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accurately you need to use the same parser when sanitizing that the HTML rendering engine will use.
+  Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accuracy you need to use the same parser when sanitizing that the HTML rendering engine will use.
 
 * Encapsulating the message in an `<iframe sandbox>` can help mitigate a number
   of risks. This will:
@@ -61,7 +61,7 @@ As highly complex software components, HTML rendering engines increase the attac
 
 ## Email submission
 
-SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP Submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de-facto XCLIENT extension to SMTP (http://www.postfix.org/XCLIENT_README.html) can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorized proxies.
+SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP Submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de-facto XCLIENT extension to SMTP <http://www.postfix.org/XCLIENT_README.html> can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorized proxies.
 
 JMAP servers that proxy to an SMTP Submission server SHOULD allow use of the *submissions* port [@!RFC8314] and SHOULD implement SASL PLAIN over TLS [@!RFC4616] and/or TLS client certificate authentication with SASL EXTERNAL [@!RFC4422] appendix A. Implementation of a mechanism similar to SMTP XCLIENT is strongly encouraged.
 
