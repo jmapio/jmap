@@ -169,13 +169,13 @@ When a change occurs in the data on the server, it pushes an event called **stat
 
 The server SHOULD also send a new event id that encodes the entire server state visible to the user immediately after sending a *state* event. When a new connection is made to the event-source endpoint, a client following the [server-sent events specification](https://html.spec.whatwg.org/multipage/server-sent-events.html) will send a Last-Event-ID HTTP header with the last id it saw, which the server can use to work out whether the client has missed some changes. If so, it SHOULD send these changes immediately on connection.
 
-The client MAY add a query parameter called `types`, with the value being a comma-separated list of type names. If present, the server MUST only push changes for the types in this list. If omitted, changes to all types are pushed.
+The client may add a query parameter called `types`, with the value being a comma-separated list of type names. If present, the server MUST only push changes for the types in this list. If omitted, changes to all types are pushed.
 
-The client MAY add a query parameter called `closeafter` with value `state` to the event-source resource URL when requesting the event-source resource. If set, the server MUST end the HTTP response after pushing a *state* event. This can be used by clients in environments where buffering proxies prevent the pushed data from arriving immediately, or indeed at all, when operating in the usual mode.
+The client may add a query parameter called `closeafter` with value `state` to the event-source resource URL when requesting the event-source resource. If set, the server MUST end the HTTP response after pushing a *state* event. This can be used by clients in environments where buffering proxies prevent the pushed data from arriving immediately, or indeed at all, when operating in the usual mode.
 
-The client MAY add a query parameter called `ping`, with a positive integer value representing a length of time in seconds, e.g. `ping=300`. If set, the server MUST send an event called **ping** whenever this time elapses since the previous event was sent. This MUST NOT set a new event id.
+The client may add a query parameter called `ping`, with a positive integer value representing a length of time in seconds, e.g. `ping=300`. If set, the server MUST send an event called **ping** whenever this time elapses since the previous event was sent. This MUST NOT set a new event id.
 
-The server MAY modify the interval given as a query parameter to be subject to a minimum and/or maximum value. For interoperability, servers MUST NOT have a minimum allowed value higher than 30 or a maximum allowed value less than 300.
+The server MAY modify the ping interval given as a query parameter to be subject to a minimum and/or maximum value. For interoperability, servers MUST NOT have a minimum allowed value higher than 30 or a maximum allowed value less than 300.
 
 The data for the ping event MUST be a JSON object containing an *interval* property, the value (type `PositiveInt`) being the interval in seconds the server is using to send pings (this may be different to the requested value if the server clamped it to be within a min/max value).
 

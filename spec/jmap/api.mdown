@@ -169,7 +169,7 @@ The following error types are defined which may be returned for any method call 
 
 `accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this data type.
 
-`accountReadOnly`: This method call would modify state in an account that has `isReadOnly == true`.
+`accountReadOnly`: This method call would modify state in an account that is read-only (as returned on the corresponding Account object in the JMAP Session resource).
 
 Further possible errors for a particular method are specified in the method descriptions.
 
@@ -181,7 +181,7 @@ To allow clients to make more efficient use of the network and avoid round
 trips, an argument to one method can be taken from the result of a previous
 method call in the same request.
 
-To do this, the client prefixes the argument name with "#". The value is a *ResultReference* object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with "#". If found, the back reference should be resolved and the value used as the "real" argument. The method is then processed as normal. If any back reference fails to resolve, the whole method MUST be rejected with an `invalidResultReference` error. If an argument object contains the same argument name in normal and referenced form (e.g. `foo` and `#foo`), the method MUST return an `invalidArguments` error.
+To do this, the client prefixes the argument name with `#`. The value is a *ResultReference* object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with `#`. If found, the back reference should be resolved and the value used as the "real" argument. The method is then processed as normal. If any back reference fails to resolve, the whole method MUST be rejected with an `invalidResultReference` error. If an argument object contains the same argument name in normal and referenced form (e.g. `foo` and `#foo`), the method MUST return an `invalidArguments` error.
 
 A **ResultReference** object has the following properties:
 
@@ -233,7 +233,7 @@ After executing the first method call the *methodResponses* array is:
         "destroyed": []
     }, "t0" ]]
 
-So to execute the Foo/get call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm above:
+To execute the Foo/get call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm above:
 
 1. Find the first response with client id "t0". The Foo/changes response
    fulfils this criterion.
@@ -246,6 +246,7 @@ So to execute the Foo/get call, we look through the arguments and find there is 
 The JMAP server now continues to process the Foo/get call as though the arguments were:
 
     {
+        "accountId": "1",
         "ids": [ "f1", "f4" ]
     }
 
@@ -339,12 +340,13 @@ So to execute the final Email/get call, we look through the arguments and find t
      a) `list`: get the array of thread objects
      b) `*`: for each of the items in the array:
 
-        i) `emailIds`: get the array of email ids
-        ii) Concatenate these into a single array of all the ids in the result.
+       i) `emailIds`: get the array of email ids
+       ii) Concatenate these into a single array of all the ids in the result.
 
 The JMAP server now continues to process the Email/get call as though the arguments were:
 
     {
+        "accountId": "1",
         "ids": [ "msg1020", "msg1021", "msg1023", "msg201", "msg223", ... ],
         "properties": [ "from", "receivedAt", "subject" ]
     }
@@ -381,7 +383,7 @@ Response:
 
 # Standard methods and naming convention
 
-JMAP provides a uniform interface for creating, retrieving, updating and deleting objects of a particular type. For a `Foo` data type, records of that type would be fetched via a Foo/get call and modified via a Foo/set call. Delta updates may be fetched via a Foo/changes call. These methods all follow a standard format as described below.
+JMAP provides a uniform interface for creating, retrieving, updating and deleting objects of a particular type. For a `Foo` data type, records of that type would be fetched via a `Foo/get` call and modified via a `Foo/set` call. Delta updates may be fetched via a `Foo/changes` call. These methods all follow a standard format as described below.
 
 Not all types may have all methods. Specifications defining types MUST specify which methods are available for the type.
 
@@ -396,7 +398,7 @@ It takes the following arguments:
 - **ids**: `String[]|null`
   The ids of the Foo objects to return. If `null` then **all** records of the data type are returned, if this is supported for that data type.
 - **properties**: `String[]|null`
-  If supplied, only the properties listed in the array are returned for each Foo object. If `null`, all properties of the object are returned. The id of the object is **always** returned, even if not explicitly requested. If an invalid property is requested, the call MUST be rejected with an `invalidArguments` error.
+  If supplied, only the properties listed in the array are returned for each Foo object. If `null`, all properties of the object are returned. The id property of the object is **always** returned, even if not explicitly requested. If an invalid property is requested, the call MUST be rejected with an `invalidArguments` error.
 
 The response has the following arguments:
 
@@ -418,7 +420,7 @@ The following additional error may be returned instead of the *Foo/get* response
 
 ## /changes
 
-When the state of the set of Foo records changes on the server (whether due to creation, updates or deletion), the *state* property of the *Foo/get* response will change. The *Foo/changes* method allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
+When the state of the set of Foo records in an account changes on the server (whether due to creation, updates or deletion), the *state* property of the *Foo/get* response will change. The *Foo/changes* method allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `String`
   The id of the account to use.
@@ -495,7 +497,7 @@ The *Foo/set* method takes the following arguments:
   A map of *creation id* (an arbitrary string set by the client) to Foo
   objects, or `null` if no objects are to be created.
 
-    The Foo object type definition MAY define default values for properties. Any such property MAY be omitted by the client.
+    The Foo object type definition may define default values for properties. Any such property may be omitted by the client.
 
     The client MUST omit any properties that may only be set by the server (for example, the *id* property on most object types).
 
@@ -522,7 +524,7 @@ The *Foo/set* method takes the following arguments:
 - **destroy**: `String[]|null`
   A list of ids for Foo objects to permanently delete, or `null` if no objects are to be destroyed.
 
-Each creation, modification or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it is not permissible to only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
+Each creation, modification or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it MUST NOT only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
 
 The final state MUST be valid after the Foo/set is finished, however the server may have to transition through invalid intermediate states (not exposed to the client) while processing the individual create/update/destroy requests. For example, suppose there is a "name" property that must be unique. A single method call could rename an object A => B, and simultaneously rename another object B => A. If the final state is valid, this is allowed. Otherwise, each creation, modification or destruction of an object should be processed sequentially and accepted/rejected based on the current server state.
 
@@ -532,9 +534,9 @@ If an id given cannot be found, the update or destroy MUST be rejected with a `n
 
 The server MAY skip an update (rejecting it with a `willDestroy` SetError) if that object is destroyed in the same /set request.
 
-Some record objects may hold references to others (foreign keys). When records are created or modified, they may reference other records being created *in the same API request* by using the creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the record being referenced is created in the same or an earlier call. The server thus never has to look ahead. Instead, while processing a request (a series of method calls), the server MUST keep a simple map for the duration of the request of creation id to record id for each newly created record, so it can substitute in the correct value if necessary in later method calls.
+Some records may hold references to other records (foreign keys). That reference may be set (via create or update) in the same request as the referenced record is created. To do this, the client refers to the new record using its creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the record being referenced is created in the same or an earlier call. The server thus never has to look ahead. Instead, while processing a request the server MUST keep a simple map for the duration of the request of creation id to record id for each newly created record, so it can substitute in the correct value if necessary in later method calls.
 
-Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see The Request object specification above).
+Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see The Request object in section 3.2).
 
 The response has the following arguments:
 
@@ -550,13 +552,15 @@ The response has the following arguments:
     This argument is `null` if no Foo objects were successfully created.
 
 - **updated**: `String[Foo|null]|null`
-  The *keys* in this map are the ids of all Foos that were successfully updated, or `null` if none successful.
+  The *keys* in this map are the ids of all Foos that were successfully updated.
 
     The *value* for each id is a Foo object containing any property that
     changed in a way *not* explicitly requested by the *PatchObject* sent to the server, or `null` if none. This lets the client know of any changes to server-set or computed properties.
 
+    This argument is `null` if no Foo objects were successfully updated.
+
 - **destroyed**: `String[]|null`
-  A list of Foo ids for records that were successfully destroyed, or `null` if none successful.
+  A list of Foo ids for records that were successfully destroyed, or `null` if none.
 - **notCreated**: `String[SetError]|null`
   A map of creation id to a SetError object for each record that failed to be created, or `null` if all successful.
 - **notUpdated**: `String[SetError]|null`
@@ -575,8 +579,8 @@ The following SetError types are defined and may be returned for set operations 
 
 - `forbidden`: (create; update; destroy) The create/update/destroy would
    violate an ACL or other permissions policy.
-- `overQuota`: (create) The create would exceed a server-defined limit on
-  the number or total size of objects of this type.
+- `overQuota`: (create; update) The create would exceed a server-defined limit
+  on the number or total size of objects of this type.
 - `tooLarge`: (create; update) The create/update would result in an object
   that exceeds a server-defined limit for the maximum size of a single object of this type.
 - `rateLimit`: (create) Too many objects of this type have been created
@@ -592,7 +596,7 @@ The following SetError types are defined and may be returned for set operations 
   some way. For example:
 
     - It contains properties which are invalid according to the type specification of this record type.
-    - It contains a property that may only be set by the server (e.g. "id") and are different to the current value. Note, to allow clients to pass whole objects back, it is not an error to include a server-set property so long as the value is identical to the current value on the server (or the value that will be set by the server if a create).
+    - It contains a property that may only be set by the server (e.g. "id") and is different to the current value. Note, to allow clients to pass whole objects back, it is not an error to include a server-set property in an update so long as the value is identical to the current value on the server.
     - There is a reference to another record (foreign key) and the given id does not correspond to a valid record.
 
     The SetError object SHOULD also have a property called *properties* of type `String[]` that lists **all** the properties that were invalid.
@@ -678,14 +682,14 @@ A call to *Foo/query* takes the following arguments:
     A **FilterOperator** object has the following properties:
 
     - **operator**: `String`
-      This MUST be one of the following strings: "AND"/"OR"/"NOT":
+      This MUST be one of the following strings: "AND" / "OR" / "NOT":
       - **AND**: all of the conditions must match for the filter to match.
       - **OR**: at least one of the conditions must match for the filter to match.
       - **NOT**: none of the conditions must match for the filter to match.
     - **conditions**: `(FilterOperator|FilterCondition)[]`
       The conditions to evaluate against each record.
 
-    A **FilterCondition** is an `object`, whose allowed properties and semantics depend on the data type and is defined in the */query* method specification for that type. It MUST NOT have an *operator* property.
+    A **FilterCondition** is an `object` whose allowed properties and semantics depend on the data type and is defined in the */query* method specification for that type. It MUST NOT have an *operator* property.
 
 - **sort**: `Comparator[]|null`
   Lists the names of properties to compare between two Foo records, and how to compare them, to determine which comes first in the sort. If two Foo records have an identical value for the first comparator, the next comparator will be considered and so on. If all comparators are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to Foo/query.
@@ -695,7 +699,7 @@ A call to *Foo/query* takes the following arguments:
     - **property**: `String`
       The name of the property on the Foo objects to compare.
     - **isAscending**: `Boolean` (optional; default: true)
-      If true, sort in ascending order. If false, reverse the comparator's results to sort in descending order.
+      If `true`, sort in ascending order. If `false`, reverse the comparator's results to sort in descending order.
     - **collation**: `String` (optional; default is server-dependent)
       The identifier, as registered in the collation registry defined in [@!RFC4790], for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the JMAP Session object.
 
@@ -717,8 +721,8 @@ A call to *Foo/query* takes the following arguments:
         - `Number`: A lower number comes before a higher number.
         - `Date`/`UTCDate`: The earlier date comes first.
 
-    The object may also have additional properties as required for specific
-    sort operations defined in a type's /query method.
+    The Comparator object may also have additional properties as required for
+    specific sort operations defined in a type's /query method.
 
 - **position**: `Int` (default: 0)
   The 0-based index of the first id in the full list of results to return.
@@ -728,16 +732,16 @@ A call to *Foo/query* takes the following arguments:
     If the index is greater than or equal to the total number of objects in the results list then the *ids* array in the response will be empty, but this is not an error.
 - **anchor**: `String|null`
   A Foo id. If supplied the *position* argument is ignored. The index of this id in the results will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see below for more details).
-- **anchorOffset**: `Int|null`
-  The index of the first result to return relative to the index of the anchor. This MAY be negative. For example, `-1` means the first Foo before the anchor Foo should be the first result in the results returned (see below for more details).
+- **anchorOffset**: `Int` (default: 0)
+  The index of the first result to return relative to the index of the anchor, if an anchor is given. This MAY be negative. For example, `-1` means the Foo immediately preceding the anchor is the first result in the list returned (see below for more details).
 - **limit**: `PositiveInt|null`
-  The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit should be clamped to the maximum; since the total number of results in the query is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+  The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit is clamped to the maximum; since the total number of results in the query is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
 - **calculateTotal**: `Boolean` (default: false)
   Does the client wish to know the total number of results in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.
 
 If an **anchor** argument is given, then after filtering and sorting the anchor is looked for in the results. If found, the **anchor offset** is then added to its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
 
-If an *anchor* is specified, any position argument supplied by the client MUST be ignored. If *anchorOffset* is `null`, it defaults to `0`. If no *anchor* is supplied, any anchor offset argument MUST be ignored.
+If an *anchor* is specified, any position argument supplied by the client MUST be ignored. If no *anchor* is supplied, any anchor offset argument MUST be ignored.
 
 A client can use *anchor* instead of *position* to find the index of an id
 within a large set of results.
@@ -755,7 +759,7 @@ The response has the following arguments:
 
     The queryState string only represents the ordered list of ids that match the particular query (including its sort/filter). There is no requirement for it to change if a property on an object matching the query changes but the query results are unaffected (indeed, it is more efficient if the queryState string does not change in this case). The queryState string only has meaning when compared to future responses to a query with the same type/sort/filter, or when used with /queryChanges to fetch changes.
 
-    Should a client receive back a response with a different queryState string to a previous call, it MUST either throw away the currently cached query and fetch it again (note, this does not require fetching the records again, just the list of ids) or, call *Foo/queryChanges* to get the difference.
+    Should a client receive back a response with a different queryState string to a previous call it MUST either throw away the currently cached query and fetch it again (note, this does not require fetching the records again, just the list of ids) or call *Foo/queryChanges* to get the difference.
 
 - **canCalculateChanges**: `Boolean`
   This is `true` if the server supports calling *Foo/queryChanges* with these `filter`/`sort` parameters. Note, this does not guarantee that the *Foo/queryChanges* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
@@ -778,7 +782,7 @@ SHOULD suggest the user simplify their search.
 
 ## /queryChanges
 
-The `Foo/queryChanges` call allows a client to efficiently update the state of any cached foo query to match the new state on the server. It takes the following arguments:
+The `Foo/queryChanges` method allows a client to efficiently update the state of a cached query to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `String`
   The id of the account to use.
@@ -814,9 +818,9 @@ The response has the following arguments:
 - **removed**: `String[]`
   The *id* for every foo that was in the query results in the old state and is not in the results in the new state.
 
-    If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were removed but have a higher index than *upToId* SHOULD be omitted.
-
     If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old results but are not in the new results.
+
+    If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were removed but have a higher index than *upToId* SHOULD be omitted.
 
     If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current results for which this property MAY have changed.
 
@@ -832,7 +836,7 @@ The response has the following arguments:
     - **id**: `String`
     - **index**: `PositiveInt`
 
-The result of this is that if the client has a cached sparse array of foo ids in the results in the old state:
+The result of this is that if the client has a cached sparse array of foo ids corresponding to the results in the old state:
 
     fooIds = [ "id1", "id2", null, null, "id3", "id4", null, null, null ]
 
@@ -870,9 +874,9 @@ Suppose we have a type *Todo* with the following properties:
 - **subTodoIds**: `String[]|null`
   The ids of a list of subtodos to complete as part of this todo.
 
-and the server supports all the standard methods for the type, including querying by keyword using the syntax `{ hasKeyword: "foo" }` in the *filter* argument to */query*.
+Suppose also that all the standard methods are defined for this type, and the FilterCondition object supports a `hasKeyword` property to match todos with the given keyword.
 
-Now, a client might want to display the list of todos with either a "music" keyword or a "video" keyword, so it makes the following method call:
+A client might want to display the list of todos with either a "music" keyword or a "video" keyword, so it makes the following method call:
 
     [[ "Todo/query", {
       "accountId": "x",

@@ -1,12 +1,12 @@
 # Introduction
 
-JMAP is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
+JMAP is a protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
 
 This specification is for the generic mechanism of data synchronisation. Further specifications define the data models for different data types that may be synchronised via JMAP.
 
 JMAP is designed to make efficient use of limited network resources. Multiple API calls may be batched in a single request to the server, reducing round trips and improving battery life on mobile devices. Push connections remove the need for polling, and an efficient delta update mechanism ensures a minimum of data is transferred.
 
-JMAP is designed to be horizontally scalable to a very large number of users. This is facilitated by the separate end points for users after login, the separation of binary and structured data, and a shared data model that does not allow data dependencies between accounts.
+JMAP is designed to be horizontally scalable to a very large number of users. This is facilitated by separate end points for users after login, the separation of binary and structured data, and a data model for sharing that does not allow data dependencies between accounts.
 
 ## Notational conventions
 
@@ -84,7 +84,7 @@ JMAP uses HTTP [@!RFC7230] to expose API, Push, Upload and Download resources. I
 
 All HTTP requests MUST be authenticated. Servers MUST conform with the [@!RFC7235] HTTP Authentication framework to reject requests that fail authentication and inform the client of available authentication schemes.
 
-Clients SHOULD understand and be able to handle standard HTTP status codes appropriately.
+Clients MUST understand and be able to handle standard HTTP status codes appropriately.
 
 An authenticated client can fetch the JMAP Session object with details about the data and capabilities the server can provide as shown in section 2. The client may then exchange data with the server in the following ways:
 

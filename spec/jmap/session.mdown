@@ -27,7 +27,7 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 
         The server advertises the list of specifications it supports in general
         in the capabilities object, as defined below. If the specification
-        includes new object type definitions, the server MUST include it the
+        includes new object type definitions, the server MUST include it in the
         *hasDataFor* array if, and only if, the user may use those data types
         with this account.
 
@@ -41,11 +41,10 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 
         Attempts to use the methods defined in a specification with one of the
         accounts that does not contain those data types are rejected with an
-        *accountNotSupportedByMethod* error (see the Method-level errors
-        section below).
+        *accountNotSupportedByMethod* error (see section 3.5.2: method-level errors).
 
 - **primaryAccounts**: `String[String]`
-  A map of capability URIs (as found in *hasDataFor*) to the account id to be considered the user's main or default account for data pertaining to that capability. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular data profile name. `urn:ietf:params:jmap:core` SHOULD NOT be present.
+  A map of specification URIs (as found in *hasDataFor*) to the account id to be considered the user's main or default account for data pertaining to that capability. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular URI, even though that specification is supported by the server (and in the capabilities object). `urn:ietf:params:jmap:core` SHOULD NOT be present.
 - **capabilities**: `String[Object]`
   An object specifying the capabilities of this server. Each key is a URI for a specification supported by the server. The value for each of these keys is an object with further information about the server's capabilities in relation to that specification.
 
