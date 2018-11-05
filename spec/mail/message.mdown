@@ -829,7 +829,7 @@ An **EmailImport** object has the following properties:
   The ids of the mailboxes to assign this email to. At least one mailbox MUST be given.
 - **keywords**: `String[Boolean]` (default: {})
   The keywords to apply to the email.
-- **receivedAt**: `UTCDate` (default: time of import on server)
+- **receivedAt**: `UTCDate` (default: time of most recent Received header, or time of import on server if none)
   The *receivedAt* date to set on the email.
 
 Each email to import is considered an atomic unit which may succeed or fail individually. Importing successfully creates a new email object from the data referenced by the blobId and applies the given mailboxes, keywords and receivedAt date.
