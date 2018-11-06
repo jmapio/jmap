@@ -58,7 +58,7 @@ A push subscription is a message delivery context established between the client
     The server MAY choose to set an expiry if none is given by the client, or modify the expiry time given by the client to a shorter duration.
 
 - **types**: `String[]|null`
-  A list of types the client is interested in (using the same names as the keys in the *TypeState* object). Push events will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If `null`, changes will be pushed for all types.
+  A list of types the client is interested in (using the same names as the keys in the *TypeState* object defined in the previous section). Push events will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If `null`, changes will be pushed for all types.
 
 Clients may create a push subscription on the JMAP server, which will then make a POST request to the associated push endpoint whenever an event occurs.
 
@@ -181,6 +181,6 @@ The data for the ping event MUST be a JSON object containing an *interval* prope
 
 Clients can monitor for the *ping* event to help determine when the closeafter mode may be required.
 
-Refer to the JMAP Session resource section of this spec for details on how to get the URL for the event-source resource. Requests to the resource MUST be authenticated.
+Refer to the JMAP Session resource in section 2 for details on how to get the URL for the event-source resource. Requests to the resource MUST be authenticated.
 
 A client MAY hold open multiple connections to the event-source resource, although it SHOULD try to use a single connection for efficiency.

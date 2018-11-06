@@ -31,7 +31,7 @@ A **Request** object has the following properties:
 
     As described later in this specification, some records may have a property that contains the id of another record. To allow more efficient network usage, you can set this property to reference a record created earlier in the same API request. Since the real id is unknown when the request is created, the client can instead specify the creation id it assigned, prefixed with a `#`. As the server processes API requests, any time it successfully creates a new record it adds to this map the creation id, with the server-assigned real id as the value. If it comes across a reference to a creation id in a create/update, it looks it up in the map and replaces the reference with the real id, if found.
 
-    The client can pass an initial value for this map as the *createdIds* property of the Request. This may be an empty object. If given in the request, the response will also include a createdIds property, with any additionally created ids added. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve.
+    The client can pass an initial value for this map as the *createdIds* property of the Request. This may be an empty object. If given in the request, the response will also include a createdIds property, with any additionally created ids added. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve. See section 5.8 for further discussion of proxy considerations.
 
 Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatibility, a server MUST ignore any other properties it does not understand on the JMAP request object.
 
@@ -60,8 +60,7 @@ A **Response** object has the following properties:
 - **createdIds**: `String[String]` (optional; only returned if given in request)
   A map of (client-specified) creation id to the id the server assigned when a record was successfully created. This includes all values passed in the request, as well as any additional ones added for newly created records.
 - **sessionState**: `String` The current value of the "state" string on the
-  JMAP Session object. Clients may use this to detect if this object has
-  changed and needs to be refetched.
+  JMAP Session object, as described in section 2. Clients may use this to detect if this object has changed and needs to be refetched.
 
 Unless otherwise specified, if the method call completed successfully its response name is the same as the method name in the request.
 
@@ -536,7 +535,7 @@ The server MAY skip an update (rejecting it with a `willDestroy` SetError) if th
 
 Some records may hold references to other records (foreign keys). That reference may be set (via create or update) in the same request as the referenced record is created. To do this, the client refers to the new record using its creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the record being referenced is created in the same or an earlier call. The server thus never has to look ahead. Instead, while processing a request the server MUST keep a simple map for the duration of the request of creation id to record id for each newly created record, so it can substitute in the correct value if necessary in later method calls.
 
-Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see The Request object in section 3.2).
+Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see The Request object in section 3.2) and the final state of the map passed out with the response (see section 3.3).
 
 The response has the following arguments:
 
