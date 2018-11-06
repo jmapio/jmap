@@ -1,0 +1,108 @@
+A number of JSON-based email access protocols have been developed that
+are proprietary, non-standard, and incompatible with each other. These
+protocols are proliferating due to existing standards being insufficient
+or poorly suited to the environments they are operating in, particularly
+mobile and webmail.
+
+The use of multiple protocols to perform actions within a single
+application creates significant support challenges, as users may get a
+variety of partial failure modes (for example, can receive email but
+cannot send new messages). This is further exacerbated if the different
+protocols are authenticated separately.
+
+JMAP specifies the interactions between email clients and mail stores,
+providing an alternative to IMAP and SMTP submission. The JMAP working
+group will specify a mechanism to allow clients to both view and send
+email from a server over a single HTTPS channel with minimal round
+trips. A single protocol for receipt and submission will resolve long-
+standing difficulties users face setting up clients to talk to servers.
+
+The protocol will support push notification of changes using the
+mechanism defined in RFC 8030. This will give mobile clients benefits in
+terms of battery life and network usage. It will also support push
+notifications via server-sent events
+(https://www.w3.org/TR/eventsource/) for direct connection to clients
+that can support persistent TCP connections.
+
+Work on JMAP will be bound by the following constraints:
+
+1) The protocol will operate on RFC 5322/MIME (RFC 2045-2047, etc.)
+   message objects or information extracted from them.
+
+2) JMAP needs to be implementable on top of an IMAP server, which also
+   supports IMAP extensions specified below. The JMAP data model needs
+   to remain backwards compatible with the IMAP mailstore model (where a
+   message is always associated with a single mailbox), but it might
+   support other underlying models (e.g. Gmail-style labels).
+
+   The Working Group will discuss and document how a single server
+   or proxy implementation can implement both IMAP and JMAP at the
+   same time.
+
+3) "Email submission by placing into designated outbox mailbox" will
+   take into consideration extensive IMAPEXT mailing list discussions
+   on message submission through IMAP.
+
+4) The work of this group is limited to developing a protocol for a
+   client synchronising data with a server. Any server-to-server issues
+   are out of scope for this working group.
+
+5) New end-to-end encryption mechanisms are out of scope, but the work
+   should consider how to integrate with existing standards such as
+   S/MIME and OpenPGP.
+
+6) The working group will coordinate with the Security Area on
+   credential management and authentication.
+
+The work will be based on draft-jenkins-jmap and draft-jenkins-jmapmail.
+Note that consensus is required both for changes to the current protocol
+mechanisms and retention of current mechanisms. In particular, because
+something is in the initial document set does not imply that there is
+consensus around the feature or around how it is specified. However
+gratuitous changes to proposed design should be avoided.
+
+Input to working group discussions shall include:
+
+- CONDSTORE and QRESYNC [RFC 7162]
+
+- Collection Synchronisation for WebDav [RFC 6578]
+
+- IMAP SPECIAL-USE [RFC 6154]
+
+- IMAP SORT and THREAD Extensions [RFC 5256]
+
+- LEMONADE and experiences from adoption of its output
+  [https://datatracker.ietf.org/wg/lemonade/charter/]
+
+- SMTP SUBMISSION [RFC 6409]
+
+- SMTP BURL [RFC 4468]
+
+The working group will deliver the following:
+
+- A problem statement detailing the deployment environment and
+  situations that motivate work on a new protocol for client to server
+  email synchronisation. The working group may choose not to publish
+  this as an RFC.
+
+- A document describing an extensible protocol and data structures, with
+  support for flood control and batched operations.
+
+- A document describing how to use the extensible protocol over HTTPS
+  with the data structures expressed as JSON.
+
+- A document describing a data model for email viewing, management,
+  searching, and submission on top of the extensible protocol.
+
+- A document describing how JMAP to IMAP/SUBMIT proxies can be
+  implemented. Among different considerations, the document will cover
+  security considerations involved in operating such a proxy.
+
+- A document describing how a dual IMAP and JMAP server implementation
+  can be done. This can be combined with the above document, if that
+  makes sense.
+
+- An executable test suite and documented test cases to assist
+  developers of JMAP servers to ensure they conform to the
+  specifications.
+
