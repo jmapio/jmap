@@ -302,7 +302,7 @@ After executing the first 3 method calls the *methodResponses* array might be:
         "state": "123456",
         "list": [{
             "id": "msg1023",
-            "threadId": "trd194",
+            "threadId": "trd194"
         }, {
             "id": "msg223",
             "threadId": "trd114"
@@ -315,10 +315,10 @@ After executing the first 3 method calls the *methodResponses* array might be:
         "accountId": "1",
         "state": "123456",
         "list": [{
-            "id: "trd194",
+            "id": "trd194",
             "emailIds": [ "msg1020", "msg1021", "msg1023" ]
         }, {
-            "id: "trd114",
+            "id": "trd114",
             "emailIds": [ "msg201", "msg223" ]
         },
         ...
@@ -883,7 +883,7 @@ A client might want to display the list of todos with either a "music" keyword o
         "resultOf": "0",
         "name": "Todo/query",
         "path": "/ids"
-      },
+      }
     }, "1" ]]
 
 This would query the server for the set of todos with a keyword of "music", sorted by title, and limited to the first 10 results. It fetches the full object for each of these Todos using back-references to reference the result of the query. The response might look something like:
@@ -936,8 +936,8 @@ Now suppose the user adds a keyword "chopin" and removes the keyword "mozart" fr
             "beethoven": true,
             "chopin": true,
             "liszt": true,
-            "rachmaninov": true,
-          }
+            "rachmaninov": true
+          },
           "neuralNetworkTimeEstimation": 360
         }
       }
@@ -992,7 +992,7 @@ Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user
     [[ "Todo/changes", {
       "accountId": "x",
       "sinceState": "10324",
-      "maxChanges": 50,
+      "maxChanges": 50
     }, "0" ],
     [ "Todo/queryChanges", {
       "accountId": "x",
@@ -1004,8 +1004,8 @@ Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user
         ]
       },
       "sort": [{ "property": "title" }],
-      "sinceQueryState": "y13213"
-      "maxChanges": 50,
+      "sinceQueryState": "y13213",
+      "maxChanges": 50
     }, "1" ]]
 
 and receive in response:
@@ -1021,8 +1021,8 @@ and receive in response:
     }, "0" ],
     [ "Todo/queryChanges", {
       "accountId": "x",
-      "oldQueryState": "y13213"
-      "newQueryState": "y13218"
+      "oldQueryState": "y13213",
+      "newQueryState": "y13218",
       "removed": ["b"],
       "added": null
     }, "1" ]]
@@ -1037,7 +1037,7 @@ Suppose the user has access to another account `y`, for example a team account s
           "id": "a"
         }
       },
-      "onSuccessDestroyOriginal": true,
+      "onSuccessDestroyOriginal": true
     }, "0" ]]
 
 The server successfully copies the Todo to a new account (where it receives a new id) and deletes the original. Due to the implicit call to "Todo/set", there are two responses to the single method call, both with the same client id:
@@ -1055,7 +1055,7 @@ The server successfully copies the Todo to a new account (where it receives a ne
     }, "0" ],
     [ "Todo/set", {
       "accountId": "x",
-      "oldState": "871903"
+      "oldState": "871903",
       "newState": "871909",
       "destroyed": [ "a" ],
       ...
