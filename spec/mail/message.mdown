@@ -128,7 +128,7 @@ would be parsed as:
     [
       { "name": "James Smythe", "email": "james@example.com" },
       { "name": null, "email": "jane@example.com" },
-      { "name": "John Smîth", "email": "john@example.com" },
+      { "name": "John Smîth", "email": "john@example.com" }
     ]
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
@@ -550,17 +550,17 @@ Where a specific header is requested as a property, the capitalization of the pr
 
 Request:
 
-    [ "Email/get", {
+    [[ "Email/get", {
       "ids": [ "f123u456", "f123u457" ],
       "properties": [ "threadId", "mailboxIds", "from", "subject", "receivedAt", "header:List-POST:asURLs", "htmlBody", "bodyValues" ],
       "bodyProperties": [ "partId", "blobId", "size", "type" ],
       "fetchHTMLBodyValues": true,
       "maxBodyValueBytes": 256
-    }, "#1" ]
+    }, "#1" ]]
 
 and response:
 
-    [ "Email/get", {
+    [[ "Email/get", {
       "accountId": "abc",
       "state": "41234123231",
       "list": [
@@ -568,7 +568,7 @@ and response:
           "id": "f123u457",
           "threadId": "ef1314a",
           "mailboxIds": { "f123": true },
-          "from": [{name: "Joe Bloggs", email: "joe@example.com"}],
+          "from": [{ "name": "Joe Bloggs", "email": "joe@example.com" }],
           "subject": "Dinner on Thursday?",
           "receivedAt": "2013-10-13T14:12:00Z",
           "header:List-POST:asURLs": [ "mailto:partytime@lists.example.com" ],
@@ -592,13 +592,13 @@ and response:
             "2": {
               "isEncodingProblem": false,
               "isTruncated": false,
-              "value": "-- \nSent by your friendly mailing list ..."
+              "value": "-- Sent by your friendly mailing list ..."
             }
           }
         }
       ],
-      notFound: [ "f123u456" ]
-    }, "#1" ]
+      "notFound": [ "f123u456" ]
+    }, "#1" ]]
 
 
 ## Email/changes
@@ -1000,7 +1000,7 @@ The response from the server may look something like this:
       "accountId": "ue150411c",
       "state": "780599",
       "list": [{
-        "id": "Ma783e5cdf5f2deffbc97930a"
+        "id": "Ma783e5cdf5f2deffbc97930a",
         "threadId": "T36703c2cfe9bd5ed",
         "mailboxIds": {
           "fb666a55": true
@@ -1017,7 +1017,7 @@ The response from the server may look something like this:
         "subject": "The Big Reveal",
         "receivedAt": "2018-06-27T00:20:35Z",
         "size": 175047,
-        "preview": "As you may be aware, we are required to prepare a presentation where we wow a panel of 5 random members of the public, on or before 30 June each year. We have drafted the …",
+        "preview": "As you may be aware, we are required to prepare a presentation where we wow a panel of 5 random members of the public, on or before 30 June each year. We have drafted the …"
       },
       ...
       ],
@@ -1039,7 +1039,7 @@ The server applies this and sends the success response:
 
     [[ "Email/set", {
       "accountId": "ue150411c",
-      "oldState": "780605"
+      "oldState": "780605",
       "newState": "780606",
       "updated": {
         "Ma783e5cdf5f2deffbc97930a": null
@@ -1074,7 +1074,7 @@ Back on our original machine, we receive a push update that the state string for
 
 The response:
 
-    [ "Email/changes", {
+    [[ "Email/changes", {
       "accountId": "ue150411c",
       "oldState": "780605",
       "newState": "780800",
@@ -1093,7 +1093,7 @@ The response:
       }],
       "removed": [ "M9bd17497e2a99cb345fc1d0a" ],
       "total": 115
-    }, "11" ],
+    }, "11" ]]
 
 The client can update its local cache of the query results by removing "M9bd17497e2a99cb345fc1d0a" and then splicing in "Me8de6c9f6de198239b982ea2" at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using back-references).
 
@@ -1199,7 +1199,7 @@ The server successfully copies the email and deletes the original. Due to the im
     }, "0" ],
     [ "Email/set", {
       "accountId": "ue150411c",
-      "oldState": "780839"
+      "oldState": "780839",
       "newState": "780871",
       "destroyed": [ "Ma783e5cdf5f2deffbc97930a" ],
       ...
