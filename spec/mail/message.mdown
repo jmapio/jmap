@@ -709,26 +709,12 @@ This would sort emails in flagged threads first (the thread is considered flagge
 
 When *collapseThreads* is `true`, then after filtering and sorting the email list, the list is further winnowed by removing any emails for a thread id that has already been seen (when passing through the list sequentially). A thread will therefore only appear **once** in the result, at the position of the first email in the list that belongs to the thread (given the current sort/filter).
 
-### Response
-
-The response has the following additional argument:
-
-- **collapseThreads**: `Boolean`
-  The *collapseThreads* value that was used when calculating the email list
-  for this call.
-
 ## Email/queryChanges
 
 Standard "/queryChanges" method, with the following additional arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
   The *collapseThreads* argument that was used with *Email/query*.
-
-The response has the following additional argument:
-
-- **collapseThreads**: `Boolean`
-  The *collapseThreads* value that was used when calculating the email list
-  for this call.
 
 ## Email/set
 
@@ -980,14 +966,6 @@ The response from the server may look something like this:
 
     [[ "Email/query", {
       "accountId": "ue150411c",
-      "filter": {
-        "inMailbox": "fb666a55"
-      },
-      "sort": [{
-        "property": "receivedAt",
-        "isAscending": false
-      }],
-      "collapseThreads": true,
       "queryState": "09aa9a075588-780599:0",
       "canCalculateChanges": true,
       "position": 0,
@@ -1109,15 +1087,6 @@ The response:
       "accountId": "ue150411c",
       "oldQueryState": "09aa9a075588-780599:0"
       "newQueryState": "e35e9facf117-780615:0",
-      "filter": {
-        "inMailbox": "fb666a55"
-      },
-      "sort": [{
-        "property": "receivedAt",
-        "isAscending": false
-      }],
-      "collapseThreads": true,
-      "upToId": "Mc2781d5e856a908d8a35a564",
       "added": [{
         "id": "Me8de6c9f6de198239b982ea2",
         "index": 0

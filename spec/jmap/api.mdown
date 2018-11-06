@@ -291,9 +291,6 @@ After executing the first 3 method calls the *methodResponses* array might be:
 
     [[ "Email/query", {
         "accountId": "1",
-        "filter": { "inMailbox": "id_of_inbox" },
-        "sort": [{ "property": "receivedAt", "isAscending": false }],
-        "collapseThreads": true,
         "queryState": "abcdefg",
         "canCalculateChanges": true,
         "position": 0,
@@ -749,10 +746,6 @@ The response has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for the call.
-- **filter**: `FilterOperator|FilterCondition|null`
-  The filter used. Echoed back from the call.
-- **sort**: `Comparator[]|null`
-  The sort options used. Echoed back from the call.
 - **queryState**: `String`
   A string encoding the current state of the query on the server. This string MUST change if the results of the query (i.e. the matching ids and their sort order) have changed. The queryState string MAY change if something has changed on the server which means the results may have changed but the server doesn't know for sure.
 
@@ -802,16 +795,10 @@ The response has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for the call.
-- **filter**: `FilterOperator|FilterCondition|null`
-  The filter used. Echoed back from the call.
-- **sort**: `Comparator[]|null`
-  The sort options used. Echoed back from the call.
 - **oldQueryState**: `String`
   This is the `sinceQueryState` argument echoed back; the state from which the server is returning changes.
 - **newQueryState**: `String`
   This is the state the query will be in after applying the set of changes to the old state.
-- **upToId**: `String|null`
-  Echoed back from the call.
 - **total**: `PositiveInt` (only if requested)
   The total number of foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
 - **removed**: `String[]`
@@ -903,14 +890,6 @@ This would query the server for the set of todos with a keyword of "music", sort
 
     [[ "Todo/query", {
       "accountId": "x",
-      "filter": {
-        "operator": "OR",
-        "conditions": [
-          { "hasKeyword": "music" },
-          { "hasKeyword": "video" }
-        ]
-      },
-      "sort": [{ "property": "title" }],
       "queryState": "y13213",
       "canCalculateChanges": true,
       "position": 0,
@@ -1042,14 +1021,6 @@ and receive in response:
     }, "0" ],
     [ "Todo/queryChanges", {
       "accountId": "x",
-      "filter": {
-        "operator": "OR",
-        "conditions": [
-          { "hasKeyword": "music" },
-          { "hasKeyword": "video" }
-        ]
-      },
-      "sort": [{ "property": "title" }],
       "oldQueryState": "y13213"
       "newQueryState": "y13218"
       "removed": ["b"],
