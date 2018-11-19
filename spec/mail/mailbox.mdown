@@ -93,7 +93,22 @@ Since counts frequently change but other properties are generally only changed r
 
 ## Mailbox/query
 
-Standard "/query" method.
+Standard "/query" method, but with the following additional argument:
+
+- **sortAsTree**: `Boolean` (default: false)
+  If `true`, when sorting the query results and comparing two mailboxes a and b:
+
+    - If a is an ancestor of b, it always comes first regardless of the *sort*
+      comparators. Similarly, if a is descendant of b, then b always comes
+      first.
+    - Otherwise, if a and b do not share a *parentId*, find the nearest
+      ancestors of each that do have the same *parentId* and compare the sort
+      properties on those mailboxes instead.
+
+    The result of this is that the mailboxes are sorted as a tree according to the parentId properties, with each set of children with a common parent sorted according to the standard sort comparators.
+- **filterAsTree**: `Boolean` (default: false)
+  If `true`, a mailbox is only included in the query if all its ancestors are
+  also included in the query according to the filter.
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
@@ -114,8 +129,6 @@ The following properties MUST be supported for sorting:
 
 - `sortOrder`
 - `name`
-- `parent/name`: This is a pseudo-property, just for sorting, with the
-  following semantics: if two mailboxes have a common parent, sort them by name. Otherwise, find the nearest ancestors of each that share a common parent and sort by their names instead. (i.e. This sorts the mailbox list in alphabetical tree order).
 
 ## Mailbox/queryChanges
 
