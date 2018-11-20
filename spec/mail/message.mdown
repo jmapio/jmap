@@ -26,13 +26,13 @@ Due to the number of properties involved, the set of *Email* properties is speci
 
 These properties represent metadata about the [@!RFC5322] message, and are not derived from parsing the message itself.
 
-- **id**: `String` (immutable; server-set)
+- **id**: `Id` (immutable; server-set)
   The id of the Email object. Note, this is the JMAP object id, NOT the [@!RFC5322] Message-ID header field value.
-- **blobId**: `String` (immutable; server-set)
+- **blobId**: `Id` (immutable; server-set)
   The id representing the raw octets of the [@!RFC5322] message. This may be used to download the raw original message, or to attach it directly to another Email etc.
-- **threadId**: `String` (immutable; server-set)
+- **threadId**: `Id` (immutable; server-set)
   The id of the Thread to which this Email belongs.
-- **mailboxIds**: `String[Boolean]`
+- **mailboxIds**: `Id[Boolean]`
   The set of Mailbox ids this email belongs to. An email MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
 - **keywords**: `String[Boolean]` (default: {})
   A set of keywords that apply to the email. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
@@ -295,7 +295,7 @@ A **EmailBodyPart** object has the following properties:
 
 - **partId**: `String|null`
   Identifies this part uniquely within the Email. This is scoped to the *emailId* and has no meaning outside of the JMAP Email object representation. This is `null` if, and only if, the part is of type `multipart/*`.
-- **blobId**: `String|null`
+- **blobId**: `Id|null`
   The id representing the raw octets of the contents of the part after decoding any *Content-Transfer-Encoding* (as defined in [@!RFC2045]), or `null` if, and only if, the part is of type `multipart/*`. Note, two parts may be transfer-encoded differently but have the same blob id if their decoded octets are identical and the server is using a secure hash of the data for the blob id.
 - **size**: `PositiveInt`
   The size, in octets, of the raw data after content transfer decoding (as referenced by the *blobId*, i.e. the number of octets in the file the user would download).
@@ -618,9 +618,9 @@ In quality implementations, the query "total" property is expected to be fast to
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
-- **inMailbox**: `String`
+- **inMailbox**: `Id`
   A mailbox id. An email must be in this mailbox to match the condition.
-- **inMailboxOtherThan**: `String[]`
+- **inMailboxOtherThan**: `Id[]`
   A list of mailbox ids. An email must be in at least one mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.
 - **before**: `UTCDate`
   The *receivedAt* date-time of the email must be before this date-time to match the condition.
@@ -775,7 +775,7 @@ The following extra *SetError* types are defined:
 For **create**:
 
 - `blobNotFound`: At least one blob id given for an EmailBodyPart doesn't
-  exist. An extra *notFound* property of type `String[]` MUST be included in the error object containing every *blobId* referenced by an EmailBodyPart that could not be found on the server.
+  exist. An extra *notFound* property of type `Id[]` MUST be included in the error object containing every *blobId* referenced by an EmailBodyPart that could not be found on the server.
 
 For **create** and **update**:
 
@@ -797,18 +797,18 @@ For successfully copied Email objects, the *created* response contains the *id*,
 
 The *Email/import* method adds [@!RFC5322] messages to the set of emails in an account. The messages must first be uploaded as files using the standard upload mechanism. It takes the following arguments:
 
-- **accountId**: `String`
+- **accountId**: `Id`
   The id of the account to use.
 - **ifInState**: `String|null`
   This is a state string as returned by the *Email/get* method. If supplied, the string must match the current state of the account referenced by the accountId, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
-- **emails**: `String[EmailImport]`
+- **emails**: `Id[EmailImport]`
   A map of creation id (client specified) to EmailImport objects
 
 An **EmailImport** object has the following properties:
 
-- **blobId**: `String`
+- **blobId**: `Id`
   The id of the blob containing the raw [@!RFC5322] message.
-- **mailboxIds**: `String[Boolean]`
+- **mailboxIds**: `Id[Boolean]`
   The ids of the mailboxes to assign this email to. At least one mailbox MUST be given.
 - **keywords**: `String[Boolean]` (default: {})
   The keywords to apply to the email.
@@ -817,7 +817,7 @@ An **EmailImport** object has the following properties:
 
 Each email to import is considered an atomic unit which may succeed or fail individually. Importing successfully creates a new email object from the data referenced by the blobId and applies the given mailboxes, keywords and receivedAt date.
 
-The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account. In this case, it MUST reject attempts to import an email considered a duplicate with an `alreadyExists` SetError. An *existingId* property of type `String` MUST be included on the error object with the id of the existing email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
+The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account. In this case, it MUST reject attempts to import an email considered a duplicate with an `alreadyExists` SetError. An *existingId* property of type `Id` MUST be included on the error object with the id of the existing email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
 
 If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g. missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
 
@@ -827,15 +827,15 @@ If the blob referenced is not a valid [@!RFC5322] message, the server MAY modify
 
 The response has the following arguments:
 
-- **accountId**: `String`
+- **accountId**: `Id`
   The id of the account used for this call.
 - **oldState**: `String|null`
   The state string that would have been returned by *Email/get* on this account before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by *Email/get* on this account.
-- **created**: `String[Email]`
+- **created**: `Id[Email]`
   A map of the creation id to an object containing the *id*, *blobId*, *threadId* and *size* properties for each successfully imported Email.
-- **notCreated**: `String[SetError]`
+- **notCreated**: `Id[SetError]`
   A map of creation id to a SetError object for each Email that failed to be created. The possible errors are defined above.
 
 The following additional errors may be returned instead of the *Foo/copy* response:
@@ -857,9 +857,9 @@ The *threadId* property of the Email MAY be present if the server can calculate 
 
 The *Email/parse* method takes the following arguments:
 
-- **accountId**: `String`
+- **accountId**: `Id`
   The id of the account to use.
-- **blobIds**: `String[]`
+- **blobIds**: `Id[]`
   The ids of the blobs to parse.
 - **properties**: `String[]`
   If supplied, only the properties listed in the array are returned for each Email object. If omitted, defaults to:
@@ -881,13 +881,13 @@ The *Email/parse* method takes the following arguments:
 
 The response has the following arguments:
 
-- **accountId**: `String`
+- **accountId**: `Id`
   The id of the account used for the call.
-- **parsed**: `String[Email]|null`
+- **parsed**: `Id[Email]|null`
   A map of blob id to parsed Email representation for each successfully parsed blob, or `null` if none.
-- **notParsable**: `String[]|null`
+- **notParsable**: `Id[]|null`
   A list of ids given that corresponded to blobs that could not be parsed as emails, or `null` if none.
-- **notFound**: `String[]|null`
+- **notFound**: `Id[]|null`
   A list of blob ids given that could not be found, or `null` if none.
 
 As specified above, parsed forms of headers may only be used on appropriate header fields. Attempting to fetch a form that is forbidden (e.g. `header:From:asDate`) MUST result in the method call being rejected with an `invalidArguments` error.

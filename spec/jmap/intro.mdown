@@ -41,6 +41,28 @@ signature. These have the following meanings:
 * **default**: (This is followed by a JSON value). The value that will be used
   for this property if it is omitted in an argument, or when creating a new object of this type.
 
+## The Id data type
+
+All record ids are assigned by the server, and are immutable.
+
+Where `Id` is given as a datatype, it means a `String` of at least 1 and maximum 255 octets in size, and MUST only contain characters from the "URL and Filename safe" Base 64 Alphabet, as defined in section 5 of [@!RFC4648]. This is the ASCII alphanumeric characters (`A-Za-z0-9`), hyphen (`-`), and underscore (`_`).
+
+These characters are safe to use in almost any context (e.g., filesystems,
+URIs, IMAP atoms). For maximum safety, servers should also follow defensive
+allocation strategies to avoid creating risks where glob completion or data type
+detection may be present (e.g., on filesystems or in spreadsheets). In
+particular, it is wise to avoid:
+
+* Ids starting with a dash
+* Ids starting with digits
+* Ids that contain only digits
+* Ids that differ only by ASCII case (for example, A vs. a)
+* the specific sequence of three characters "NIL" (because this sequence can be
+  confused with the IMAP protocol expression of the null value)
+
+A good solution to these issues is to prefix every id with a single
+alphabetical character.
+
 ## The Int and PositiveInt data types
 
 Where `Int` is given as a data type, it means an integer in the range -2^53 <= value <= 2^53 (the maximum integer that may be reliably stored in a floating-point double), represented as a JSON `Number`.
@@ -81,11 +103,7 @@ In the event of a severe internal error, a server may have to reallocate ids or 
 
 JMAP provides a uniform interface for creating, retrieving, updating and deleting various types of objects. A **data type** is a collection of named, typed properties, just like the schema for a database table. Each instance of a data type is called a **record**.
 
-## Ids
-
-All record ids are assigned by the server, and are immutable. They MUST be unique among all records of the **same type** within the **same account**. Ids may clash across accounts, or for two records of different types within the same account.
-
-Ids are always `String`s. An id MUST be at least 1 character in length and maximum 255 octets in size, and MUST only contain characters from the "URL and Filename safe" Base 64 Alphabet, as defined in section 5 of [@!RFC4648]. This is the ASCII alphanumeric characters (`A-Za-z0-9`), hyphen (`-`), and underscore (`_`).
+The id of a record is immutable, and normally assigned by the server. The id MUST be unique among all records of the **same type** within the **same account**. Ids may clash across accounts, or for two records of different types within the same account.
 
 ## The JMAP API model
 

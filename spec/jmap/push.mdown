@@ -8,7 +8,7 @@ The general model for push is simple and sends minimal data over the push channe
 
 When something changes on the server, the server pushes a **StateChange** object to the client. A **StateChange** object has the following properties:
 
-- **changed**: `String[TypeState]`
+- **changed**: `Id[TypeState]`
   A map of *account id* to an object encoding the state of data types that have changed for that account since the last push event, for each of the accounts to which the user has access and for which something has changed.
 
     A **TypeState** object is a map. The keys are the type name `Foo` (e.g. "Mailbox" or "Email"), and the value is the *state* property that would currently be returned by a call to *Foo/get*.
@@ -39,7 +39,7 @@ The client can compare the state strings with its current state for the Email, C
 
 A push subscription is a message delivery context established between the client and a push service. A **PushSubscription** object has the following properties:
 
-- **id**: `String` (immutable; server-set)
+- **id**: `Id` (immutable; server-set)
   The id of the push subscription.
 - **deviceClientId**: `String` (immutable)
   An id that uniquely identifies the client + device it is running on. The purpose of this is to allow clients to identify which PushSubscription objects they created even if they lose their local state, so they can revoke or update them. This string MUST be different on different devices, and be different from other vendors. It SHOULD be easy to re-generate, not depend on persisted state. A secure hash that includes both a device id and vendor id is one way this could be achieved.

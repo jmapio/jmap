@@ -27,9 +27,9 @@ To upload a file, the client submits an authenticated POST request to the file u
 
 A successful request MUST return a single JSON object with the following properties as the response:
 
-- **accountId**: `String`
+- **accountId**: `Id`
   The id of the account used for the call.
-- **blobId**: `String`,
+- **blobId**: `Id`,
   The id representing the binary data uploaded. The data for this id is immutable. The id *only* refers to the binary data, not any metadata.
 - **type**: `String`
   The media type of the file (as specified in [@!RFC6838], section 4.2) as set in the Content-Type header of the upload HTTP request.
@@ -64,22 +64,22 @@ Binary data may be copied **between** two different accounts using the *Blob/cop
 
 The *Blob/copy* method takes the following arguments:
 
-- **fromAccountId**: `String`
+- **fromAccountId**: `Id`
   The id of the account to copy blobs from.
-- **accountId**: `String`
+- **accountId**: `Id`
   The id of the account to copy blobs to.
-- **blobIds**: `String[]`
+- **blobIds**: `Id[]`
   A list of ids of blobs to copy to the other account.
 
 The response has the following arguments:
 
-- **fromAccountId**: `String`
+- **fromAccountId**: `Id`
   The id of the account emails were copied from.
-- **accountId**: `String`
+- **accountId**: `Id`
   The id of the account emails were copied to.
-- **copied**: `String[String]|null`
+- **copied**: `Id[Id]|null`
   A map of the blobId in the *fromAccount* to the id for the blob in the *toAccount*, or `null` if none were successfully copied.
-- **notCopied**: `String[SetError]|null`
+- **notCopied**: `Id[SetError]|null`
   A map of blobId to a SetError object for each blob that failed to be copied, `null` if none.
 
 The **SetError** may be any of the standard set errors that may be returned for a *create*. In addition, the `notFound` SetError error may be returned if the blobId to be copied cannot be found.

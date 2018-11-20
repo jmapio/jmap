@@ -4,7 +4,7 @@ When doing a search on a `String` property, the client may wish to show the rele
 
 A **SearchSnippet** object has the following properties:
 
-- **emailId**: `String`
+- **emailId**: `Id`
   The email id the snippet applies to.
 - **subject**: `String|null`
   If text from the filter matches the subject, this is the subject of the email HTML-escaped, with matching words/phrases wrapped in `<mark></mark>` tags. If it does not match, this is `null`.
@@ -21,20 +21,20 @@ The following JMAP method is supported:
 
 To fetch search snippets, make a call to `SearchSnippet/get`. It takes the following arguments:
 
-- **accountId**: `String`
+- **accountId**: `Id`
   The id of the account to use.
 - **filter**: `FilterOperator|FilterCondition|null`
   The same filter as passed to Email/query; see the description of this method in section 4.4 for details.
-- **emailIds**: `String[]`
+- **emailIds**: `Id[]`
   The ids of the emails to fetch snippets for.
 
 The response has the following arguments:
 
-- **accountId**: `String`
+- **accountId**: `Id`
   The id of the account used for the call.
 - **list**: `SearchSnippet[]`
   An array of SearchSnippet objects for the requested email ids. This may not be in the same order as the ids that were in the request.
-- **notFound**: `String[]|null`
+- **notFound**: `Id[]|null`
   An array of email ids requested which could not be found, or `null` if all
   ids were found.
 

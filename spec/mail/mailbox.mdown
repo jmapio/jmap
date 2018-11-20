@@ -6,11 +6,11 @@ For compatibility with IMAP, an email MUST belong to one or more mailboxes. The 
 
 A **Mailbox** object has the following properties:
 
-- **id**: `String` (immutable; server-set)
+- **id**: `Id` (immutable; server-set)
   The id of the mailbox.
 - **name**: `String`
   User-visible name for the mailbox, e.g. "Inbox". This may be any Net-Unicode string ([@!RFC5198]) of at least 1 character in length, subject to the maximum size given in the capability object. Servers MUST forbid sibling Mailboxes with the same name. Servers MAY reject names that violate server policy (e.g., names containing slash (/) or control characters).
-- **parentId**: `String|null` (default: null)
+- **parentId**: `Id|null` (default: null)
   The mailbox id for the parent of this mailbox, or `null` if this mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.
 - **role**: `String|null` (default: null)
   Identifies mailboxes that have a particular common purpose (e.g. the "inbox"), regardless of the *name* (which may be localised). This value is shared with IMAP (exposed in IMAP via the [@!RFC6154] SPECIAL-USE extension). However, unlike in IMAP, a mailbox may only have a single role, and no two mailboxes in the same account may have the same role.
@@ -112,7 +112,7 @@ Standard "/query" method, but with the following additional argument:
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
-- **parentId**: `String|null`
+- **parentId**: `Id|null`
   The Mailbox *parentId* property must match the given value exactly.
 - **name**: `String`
   The Mailbox *name* property contains the given string.

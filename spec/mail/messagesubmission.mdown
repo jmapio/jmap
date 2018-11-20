@@ -2,13 +2,13 @@
 
 An **EmailSubmission** object represents the submission of an email for delivery to one or more recipients. It has the following properties:
 
-- **id**: `String` (immutable; server-set)
+- **id**: `Id` (immutable; server-set)
   The id of the email submission.
-- **identityId**: `String` (immutable)
+- **identityId**: `Id` (immutable)
   The id of the identity to associate with this submission.
-- **emailId**: `String` (immutable)
+- **emailId**: `Id` (immutable)
   The id of the email to send. The email being sent does not have to be a draft, for example when "redirecting" an existing email to a different address.
-- **threadId**: `String` (immutable; server-set)
+- **threadId**: `Id` (immutable; server-set)
   The thread id of the email to send. This is set by the server to the *threadId* property of the email referenced by the *emailId*.
 - **envelope**: `Envelope|null` (immutable)
   Information for use when sending via SMTP.
@@ -128,9 +128,9 @@ An **EmailSubmission** object represents the submission of an email for delivery
 
         The server MAY also set this property based on other feedback channels.
 
-- **dsnBlobIds**: `String[]` (server-set)
+- **dsnBlobIds**: `Id[]` (server-set)
   A list of blob ids for DSNs received for this submission, in order of receipt, oldest first.
-- **mdnBlobIds**: `String[]` (server-set)
+- **mdnBlobIds**: `Id[]` (server-set)
   A list of blob ids for MDNs received for this submission, in order of receipt, oldest first.
 
 JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to a EmailSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
@@ -153,10 +153,10 @@ Standard "/query" method.
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
-- **emailIds**: `String[]`
+- **emailIds**: `Id[]`
   The EmailSubmission *emailId* property must be in this list to match the
   condition.
-- **threadIds**: `String[]`
+- **threadIds**: `Id[]`
   The EmailSubmission *threadId* property must be in this list to match the
   condition.
 - **undoStatus**: `String`
@@ -182,9 +182,9 @@ Standard "/queryChanges" method.
 
 Standard "/set" method, with the following two extra arguments:
 
-- **onSuccessUpdateEmail**: `String[Email]|null`
+- **onSuccessUpdateEmail**: `Id[Email]|null`
   A map of *EmailSubmission id* to an object containing properties to update on the Email object referenced by the EmailSubmission if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a back-reference so the id will be the creation id prefixed with a `#`.)
-- **onSuccessDestroyEmail**: `String[]|null`
+- **onSuccessDestroyEmail**: `Id[]|null`
   A list of *EmailSubmission ids* for which the email with the corresponding emailId should be destroyed if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a back-reference so the id will be the creation id prefixed with a `#`.)
 
 A single implicit *Email/set* call MUST be made after all EmailSubmission create/update/destroy requests have been processed to perform any changes requested in these two arguments. The response to this MUST be returned after the *EmailSubmission/set* response.

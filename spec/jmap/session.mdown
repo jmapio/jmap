@@ -13,7 +13,7 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 
 - **username**: `String`
   The username associated with the given credentials.
-- **accounts**: `String[Account]`
+- **accounts**: `Id[Account]`
   A map of **account id** to Account object for each account (see section 1.5.2) the user has access to. An **Account** object has the following properties:
 
     - **name**: `String`
@@ -43,7 +43,7 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
         accounts that does not contain those data types are rejected with an
         *accountNotSupportedByMethod* error (see section 3.5.2: method-level errors).
 
-- **primaryAccounts**: `String[String]`
+- **primaryAccounts**: `String[Id]`
   A map of specification URIs (as found in *hasDataFor*) to the account id to be considered the user's main or default account for data pertaining to that capability. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular URI, even though that specification is supported by the server (and in the capabilities object). `urn:ietf:params:jmap:core` SHOULD NOT be present.
 - **capabilities**: `String[Object]`
   An object specifying the capabilities of this server. Each key is a URI for a specification supported by the server. The value for each of these keys is an object with further information about the server's capabilities in relation to that specification.
@@ -73,7 +73,7 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 
     Future specifications will define their own properties on the capabilities object.
 
-    Servers MAY advertise vendor-specific JMAP extensions, as described in section 1.8. To avoid conflict, the identifiers for these MUST be a URL with a domain owned by the vendor. Clients MUST opt in to any specifications it wishes to use (see section 3.1).
+    Servers MAY advertise vendor-specific JMAP extensions, as described in section 1.7. To avoid conflict, the identifiers for these MUST be a URL with a domain owned by the vendor. Clients MUST opt in to any specifications it wishes to use (see section 3.1).
 
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
