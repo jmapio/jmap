@@ -729,7 +729,7 @@ A call to *Foo/query* takes the following arguments:
 - **anchorOffset**: `Int` (default: 0)
   The index of the first result to return relative to the index of the anchor, if an anchor is given. This MAY be negative. For example, `-1` means the Foo immediately preceding the anchor is the first result in the list returned (see below for more details).
 - **limit**: `PositiveInt|null`
-  The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit is clamped to the maximum; since the total number of results in the query is returned, the client can determine if it has received all the results. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
+  The maximum number of results to return. If `null`, no limit presumed. The server MAY choose to enforce a maximum `limit` argument. In this case, if a greater value is given (or if it is `null`), the limit is clamped to the maximum; the new limit is returned with the response so the client is aware. If a negative value is given, the call MUST be rejected with an `invalidArguments` error.
 - **calculateTotal**: `Boolean` (default: false)
   Does the client wish to know the total number of results in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.
 
@@ -755,10 +755,14 @@ The response has the following arguments:
   This is `true` if the server supports calling *Foo/queryChanges* with these `filter`/`sort` parameters. Note, this does not guarantee that the *Foo/queryChanges* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
 - **position**: `PositiveInt`
   The 0-based index of the first result in the `ids` array within the complete list of query results.
-- **total**: `PositiveInt` (only if requested)
-  The total number of foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
 - **ids**: `Id[]`
   The list of ids for each foo in the query results, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the results or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
+- **total**: `PositiveInt` (only if requested)
+  The total number of foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
+- **limit**: `PositiveInt` (if set by the server)
+  The limit enforced by the server on the maximum number of results to return.
+  This is only returned if the server set a limit, or used a different limit to
+  that given in the request.
 
 The following additional errors may be returned instead of the *Foo/query* response:
 
