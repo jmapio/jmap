@@ -612,10 +612,20 @@ The following additional errors may be returned instead of the *Foo/set* respons
 
 The only way to move Foo records **between** two different accounts is to copy them using the *Foo/copy* method, then once the copy has succeeded, delete the original. The *onSuccessDestroyOriginal* argument allows you to try to do this in one method call, however note that the two different actions are not atomic, and so it is possible for the copy to succeed but the original not to be destroyed for some reason.
 
+The copy is conceptually in three phases:
+
+1. Reading the current values from the "from" account.
+2. Writing the new copies to the other account.
+3. Destroying the originals in the "from" account, if requested.
+
+Data may change in between phases due to concurrent requests.
+
 The *Foo/copy* method takes the following arguments:
 
 - **fromAccountId**: `Id`
   The id of the account to copy records from.
+- **ifFromInState**: `String|null`
+  This is a state string as returned by the *Foo/get* method. If supplied, the string must match the current state of the account referenced by the fromAccountId when reading the data to be copied, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, the data will be read from the current state.
 - **accountId**: `Id`
   The id of the account to copy records to. This MUST be different to the `fromAccountId`.
 - **ifInState**: `String|null`
@@ -657,7 +667,7 @@ The following additional errors may be returned instead of the *Foo/copy* respon
 
 `fromAccountNotSupportedByMethod`: The *fromAccountId* given corresponds to a valid account, but the account does not support this data type.
 
-`stateMismatch`: An `ifInState` argument was supplied and it does not match the current state.
+`stateMismatch`: An `ifInState` argument was supplied and it does not match the current state, or an `ifFromInState` argument was supplied and it does not match the current state in the from account.
 
 
 ## /query
