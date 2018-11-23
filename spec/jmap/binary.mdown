@@ -41,6 +41,8 @@ If identical binary content to an existing blob in the account is uploaded, the 
 
 When an HTTP error response is returned to the client, the server SHOULD return a JSON "problem details" object as the response body, as per [@!RFC7807].
 
+As access controls are often determined by the object holding the reference to a blob, unreferenced blobs MUST only be accessible to the uploader, even in shared accounts.
+
 ## Downloading binary data
 
 The JMAP Session object has a *downloadUrl* property, which is in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `accountId`, `blobId`, `type` and `name`.
