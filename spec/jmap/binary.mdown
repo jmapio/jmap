@@ -8,8 +8,9 @@ When the client uses a blobId in a create/update, the server MAY assign a new bl
 
 A blob that is not referenced by a JMAP object (e.g. as a message attachment) MAY be deleted by the server to free up resources. Uploads (see below) are initially unreferenced blobs. To ensure interoperability:
 
-* The server SHOULD use a separate quota for unreferenced blobs to the user's
-  usual quota.
+* The server SHOULD use a separate quota for unreferenced blobs to the
+  accounts's usual quota. This quota SHOULD be separate per user in the case
+  of shared accounts.
 * This quota SHOULD be at least the maximum total size that a single
   object can reference on this server. For example, if supporting JMAP Mail, this should be at least the maximum total attachments size for a message.
 * When an upload would take the user over quota, the server MUST delete
