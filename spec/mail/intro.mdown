@@ -49,11 +49,11 @@ This represents support for the Identity and MessageSubmission data types and as
   (see the EmailSubmission object description). This is `0` if the server does
   not support delayed send.
 - **submissionExtensions**: `String[String[]]`
-  A JMAP implementation that talks to a Submission [@!RFC6409] server SHOULD have a configuration setting that allows an administrator to expose a new submission EHLO capability in this field. This allows a JMAP server to gain access to a new submission extension without code changes. By default, the JMAP server should show only known safe-to-expose EHLO capabilities in this field, and hide EHLO capabilities that are only relevant to the JMAP server.
+  A JMAP implementation that talks to a Submission [@!RFC6409] server SHOULD have a configuration setting that allows an administrator to expose a new submission EHLO capability in this field. This allows a JMAP server to gain access to a new submission extension without code changes. By default, the JMAP server should hide EHLO capabilities that are to do with the transport mechanism and thus are only relevant to the JMAP server (for example PIPELINING, CHUNKING, or STARTTLS).
 
     Each key in the object is the *ehlo-name*, and the value is a list of *ehlo-args*.
 
-    Examples of safe-to-expose Submission extensions include:
+    Examples of Submission extensions to include:
 
     - FUTURERELEASE ([@!RFC4865])
     - SIZE ([@!RFC1870])
