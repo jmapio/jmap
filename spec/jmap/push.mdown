@@ -62,9 +62,7 @@ A push subscription is a message delivery context established between the client
 
 Clients may create a push subscription on the JMAP server, which will then make a POST request to the associated push endpoint whenever an event occurs.
 
-The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON encoded *StateChange* object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030].
-
-If the response code is `503` (Service Unavailable), the JMAP server MAY try again later, but may also just drop the event. If the response code is `429` (Too Many Requests) the JMAP server SHOULD attempt to reduce the frequency of pushes to that URL. Any other `4xx` or `5xx` response code MUST be considered a **permanent failure** and the push subscription SHOULD be destroyed.
+The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON encoded *StateChange* object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030]. The server is expected to understand and handle HTTP status responses in a reasonable manner. See the security considerations in section 8.6 for a discussion of the risks in connecting to unknown servers.
 
 The use of this push endpoint conforms with the use of a push endpoint by an Application Server as defined in [@!RFC8030]. A client MAY use the rest of [@!RFC8030] in combination with its own Push Server to form a complete end-to-end solution, or MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
 

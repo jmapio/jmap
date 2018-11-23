@@ -28,6 +28,12 @@ work on the server if resource limits are not enforced. JMAP provides mechanisms
 
 JMAP servers MUST implement sensible limits to mitigate against resource exhaustion attacks.
 
+## Connection to unknown push server
+
+When a push subscription is registered, the application server will make POST requests to the given URL. There are a number of security considerations that MUST be considered when implementing this. The server MUST ensure the URL is externally resolvable to avoid server-side request forgery, where the server makes a request to a resource on its internal network.
+
+A malicious client may use the push subscription to attempt to flood a 3rd party server with requests, creating a denial of service attack and masking the attacker's true identity. There is no guarantee the URL that was given to the JMAP server is actually a valid push server. The JMAP server MUST therefore be defensive in its handling of error responses when it tries to make a request to the given URL. Any permanent HTTP error MUST destroy the push subscription and prevent further attempts to send requests to that server. A `429` (Too Many Requests) response MUST cause the JMAP server to reduce the frequency of pushes; the JMAP push structure allows multiple to be coalesced into a single minimal object that will still ensure the client comes fully up to date when it resyncs.
+
 ## Push encryption
 
 When data changes, a small object is pushed with the new state strings for the types that have changed. While the data here is minimal, a passive man-in-the-middle attacker may be able to gain useful information. To ensure confidentiality, if the push is sent via a third party outside of the control of the client and JMAP server the client MUST specify encryption keys when establishing the PushSubscription.
