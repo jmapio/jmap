@@ -72,7 +72,7 @@ The push subscription is tied to the credentials used to authenticate the API re
 
 When these credentials have their own expiry (i.e. it is a session with a timeout), the server SHOULD NOT set or bound the expiry time for the push subscription given by the client, but MUST expire it when the session expires.
 
-When these credentials are not time bounded (e.g. [@!RFC7617] Basic Authentication), the server SHOULD set an expiry time for the push subscription if none given, and limit the expiry time if set too far in the future. This maximum expiry time MUST be at least 48 hours in the future and SHOULD be at least 7 days in the future.
+When these credentials are not time bounded (e.g. [@!RFC7617] Basic Authentication), the server SHOULD set an expiry time for the push subscription if none given, and limit the expiry time if set too far in the future. This maximum expiry time MUST be at least 48 hours in the future and SHOULD be at least 7 days in the future. An app running on a mobile device may only be able to refresh the push subscription lifetime when it is in the foreground, and so this gives a reasonable timeframe to allow this to happen.
 
 In the case of separate access and refresh credentials, as in [@!RFC6749] Oauth 2.0, the server SHOULD tie the push subscription to the validity of the refresh token rather than the access token, and behave according to whether this is time-limited or not.
 
