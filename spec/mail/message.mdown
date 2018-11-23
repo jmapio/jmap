@@ -835,10 +835,10 @@ The response has the following arguments:
   The state string that would have been returned by *Email/get* on this account before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by *Email/get* on this account.
-- **created**: `Id[Email]`
-  A map of the creation id to an object containing the *id*, *blobId*, *threadId* and *size* properties for each successfully imported Email.
-- **notCreated**: `Id[SetError]`
-  A map of creation id to a SetError object for each Email that failed to be created. The possible errors are defined above.
+- **created**: `Id[Email]|null`
+  A map of the creation id to an object containing the *id*, *blobId*, *threadId* and *size* properties for each successfully imported Email, or `null` if none.
+- **notCreated**: `Id[SetError]|null`
+  A map of creation id to a SetError object for each Email that failed to be created, or `null` if all successful. The possible errors are defined above.
 
 The following additional errors may be returned instead of the *Foo/copy* response:
 
