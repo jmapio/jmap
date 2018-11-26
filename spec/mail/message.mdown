@@ -363,7 +363,9 @@ The following **Email** properties are specified for access to the body data of 
     The server MAY set hasAttachment based on implementation-defined or site configurable heuristics.
 
 - **preview**: `String` (immutable; server-set)
-  Up to 255 octets of plain text, summarising the message body. This is intended to be shown as a preview line on a mailbox listing, and may be truncated when shown. The server may choose which part of the message to include in the preview; skipping quoted sections and salutations and collapsing white-space can result in a more useful preview.
+  A plain text fragment of the message body. This is intended to be shown as a preview line on a mailbox listing, and may be truncated when shown. The server may choose which part of the message to include in the preview; skipping quoted sections and salutations and collapsing white-space can result in a more useful preview.
+
+    This MUST NOT be more than 256 characters in length.
 
     As this is derived from the message content by the server, and the algorithm for doing so could change over time, fetching this for an email a second time MAY return a different result. However, the previous value is not considered incorrect, and the change MUST NOT cause the Email object to be considered as changed by the server.
 
