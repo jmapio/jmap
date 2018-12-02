@@ -1,0 +1,115 @@
+(1) The type of RFC requests is Proposed Standard.  The title page
+currently says "Standards Track".
+
+(2) Document Announcement Writeup
+
+Technical Summary
+
+  JMAP-Mail specifies a data model for synchronising email data
+  with a server using the core protocol defined in
+  draft-ietf-jmap-core.
+
+  JMAP-Mail is the first user of the generic mechanism described
+  in the core protocol.
+
+Working Group Summary
+
+  The initial proposal for JMAP-Mail included a special "Outbox"
+  folder for sending mail.  This has been changed to use a new
+  object called "EmailSubmission" instead - which has been tested
+  and is in use at FastMail.
+
+  The working group also rewroked the data model considerably.
+  This data model includes a simplified set of views into the full
+  MIME data structure to allow easier client development, while
+  still giving the full power of the stucture where required.
+
+  This work has been done concurrently with the EXTRA working group
+  which is extending RFC3501 (IMAP4), with an eye to keeping both
+  email access protocols compatible with each other.
+
+Document Quality
+
+  The only known implementations of the full protocol have been
+  done by FastMail staff, but there exist multiple implementations
+  of earlier drafts, and their authors have read the current
+  drafts - they're just waiting until publication to update to the
+  latest version.  Both client and server implementations are
+  available as open-source.
+
+  The JMAP working group is small, but there have been multiple
+  people who have read the document carefully - Chris Newman who
+  is now listed as an author gave particularly detailed reviews.
+
+  The authors of the various parts of the FastMail stack that are
+  now implemented on this spec, and of the two test suites covering
+  the spec, have also found multiple issues in the last 6 months
+  which have fed back into the final document.
+
+  Multiple email server vendors have indicated their intention to
+  either add JMAP to their existing servers, or to build new
+  services on top of the JMAP data model.
+
+Personnel
+
+  The Document Shepherd is Bron Gondwana and the Responsible
+  Area Director is Alexey Melnikov.
+
+(3) The document has had a complete read through of version 10 by the
+Document Shepherd, which led to a handful of clarification questions
+that made it into verison 11.  I have also implemented most of it and
+reviewed code from others implementing other parts.
+
+(4) With a document of this size, there's always a possibility that we
+missed something important, but multiple reviewers with long-term experience
+in these kinds of protocols have been over the documents, including nit-picky
+test writers.  I'm confident that it's implementable as specified.
+
+(5) The main review has come from the EXTRA working group, which has
+many members in common.  There has also been review from security
+experts who suggested possible risks and mitigations.
+
+(6) The Area Director has been heavily involved in the working group,
+there are no specific concerns with the document that I'm aware of.
+
+(7) Yes, each author listed at any point on both the current and earlier
+drafts has been contacted and confirmed that they have no disclosures.
+
+(8) There have been no IPR disclosures filed.
+
+(9) The working group is small, but everyone has spoken.  There's have been
+no objections to any of the recent changes, and there's full consensus of
+the group.
+
+(10) Nobody has threatened any appeals or objections.
+
+(11) ID nits found long lines, non-example domains, and umarked code blocks.
+
+(12) There are no formal review areas required.
+
+(13) All references within this document been identified as
+either normative or informative.
+
+(14) There is a normative reference to draft-ietf-jmap-core which will
+require publication before this document.
+
+(15) There are no downward normative references references.
+
+(16) Publication of this document will update RFC5788 by renaming
+the IANA registry created in that document, and also adding an extra
+column to the registry detailing the use for each entry.
+
+(17) The IANA considerations sections requests that the registry
+from RFC5788 be altered, and also specifies some new entries and
+the changes to be made for all existing entries.
+This document also extends the registry defined in
+draft-ietf-jmap-core with additional entries.
+
+(18) There are no changes required to expert review in this document.
+
+(19) The formal sections are JSON.  One of the authors recently
+tested all the examples in the document to be parseable, and
+most have been copied directly from network dumps out of
+working systems using the protocol.
+
+
