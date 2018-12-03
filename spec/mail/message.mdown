@@ -121,7 +121,9 @@ MAY have an *email* property that does not conform to the *addr-spec* form (for 
 
 For example, the following `address-list` string:
 
-    "  James Smythe" <james@example.com>, Friends: jane@example.com, =?UTF-8?Q?John_Sm=C3=AEth?= <john@example.com>;
+    "  James Smythe" <james@example.com>, Friends:
+      jane@example.com, =?UTF-8?Q?John_Sm=C3=AEth?=
+      <john@example.com>;
 
 would be parsed as:
 
@@ -168,7 +170,9 @@ accommodate invalid messages and semi-complete drafts.
 
 For example, the following `address-list` string:
 
-    "  James Smythe" <james@example.com>, Friends: jane@example.com, =?UTF-8?Q?John_Sm=C3=AEth?= <john@example.com>;
+    "  James Smythe" <james@example.com>, Friends:
+      jane@example.com, =?UTF-8?Q?John_Sm=C3=AEth?=
+      <john@example.com>;
 
 would be parsed as:
 
@@ -394,8 +398,8 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody and at
                   part.type == "text/html" ||
                   isInlineMediaType( part.type ) ) &&
                 // If multipart/related, only the first part can be inline
-                // If a text part with a filename, and not the first item in the
-                // multipart, assume it is an attachment
+                // If a text part with a filename, and not the first item
+                // in the multipart, assume it is an attachment
                 ( i === 0 ||
                   ( multipartType != "related" &&
                     ( isInlineMediaType( part.type ) || !part.name ) ) );
@@ -556,7 +560,9 @@ Request:
 
     [[ "Email/get", {
       "ids": [ "f123u456", "f123u457" ],
-      "properties": [ "threadId", "mailboxIds", "from", "subject", "receivedAt", "header:List-POST:asURLs", "htmlBody", "bodyValues" ],
+      "properties": [ "threadId", "mailboxIds", "from", "subject",
+        "receivedAt", "header:List-POST:asURLs",
+        "htmlBody", "bodyValues" ],
       "bodyProperties": [ "partId", "blobId", "size", "type" ],
       "fetchHTMLBodyValues": true,
       "maxBodyValueBytes": 256
@@ -575,7 +581,9 @@ and response:
           "from": [{ "name": "Joe Bloggs", "email": "joe@example.com" }],
           "subject": "Dinner on Thursday?",
           "receivedAt": "2013-10-13T14:12:00Z",
-          "header:List-POST:asURLs": [ "mailto:partytime@lists.example.com" ],
+          "header:List-POST:asURLs": [
+            "mailto:partytime@lists.example.com"
+          ],
           "htmlBody": [{
             "partId": "1",
             "blobId": "841623871",
@@ -974,7 +982,8 @@ The response from the server may look something like this:
       "canCalculateChanges": true,
       "position": 0,
       "total": 115,
-      "ids": [ "Ma783e5cdf5f2deffbc97930a", "M9bd17497e2a99cb345fc1d0a", ... ]
+      "ids": [ "Ma783e5cdf5f2deffbc97930a",
+        "M9bd17497e2a99cb345fc1d0a", ... ]
     }, "0" ],
     [ "Email/get", {
       "accountId": "ue150411c",
@@ -996,7 +1005,8 @@ The response from the server may look something like this:
         "emailIds": [ "Ma783e5cdf5f2deffbc97930a" ]
       }, {
         "id": "T0a22ad76e9c097a1",
-        "emailIds": [ "M3b568670a63e5d100f518fa5", "M9bd17497e2a99cb345fc1d0a" ]
+        "emailIds": [ "M3b568670a63e5d100f518fa5",
+          "M9bd17497e2a99cb345fc1d0a" ]
       },  ... ],
       "notFound": []
     }, "2" ],
