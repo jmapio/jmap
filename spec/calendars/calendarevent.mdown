@@ -21,18 +21,18 @@ Standard "/changes" method
 
 ## CalendarEvent/set
 
-Standard "/set" method.
+Standard "/set" method, with the following extra argument:
 
-When an event is created, updated or destroyed, the server MUST also ensure the following:
+- **onSuccessScheduleCalendarEvent**:  Id[]|null
+  A list of *CalendarEvent ids* for which iTIP messages should be sent, if the create/update/destroy of the CalendarEvent object with the corresponding id succeeds.
 
-- Any alerts are scheduled/cancelled correctly.
-- If there is a *participantId*, and the corresponding participant has a *role*
-  of `owner`:
-  - If an event is created/updated: send a REQUEST iMIP email with the event as
-    an ICS attachment to all participants that are not "you".
-  - When an event is destroyed, if it is in the future, then email all
-    participants other than you the appropriate iMIP email to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
-- If there is a *participantId*, and the corresponding participant does not have a *role* of `owner`, and the *scheduleStatus* is updated for this participant, send the appropriate iMIP email to the *replyTo* address.
+  The recipients of the iTIP message are determined as follows:
+  - If there is a *participantId*, and the corresponding participant has a *role* of `owner`, send an iTIP message to all participants that are not "you".
+  - If there is a *participantId*, and the corresponding participant does not have a *role* of `owner`, send the iTIP message to the *replyTo* address.
+
+  If the CalendarEvent is created or updated, the iTIP method MUST be set in the *method* property of the CalendarEvent object. The iTIP method for destroyed calendar events is CANCEL for event owners, and REPLY otherwise.
+
+When an event is created, updated or destroyed, the server MUST also ensure that any alerts are scheduled/cancelled correctly.
 
 ## CalendarEvent/copy
 
