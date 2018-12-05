@@ -133,7 +133,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
 - **mdnBlobIds**: `Id[]` (server-set)
   A list of blob ids for MDNs received for this submission, in order of receipt, oldest first.
 
-JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to a EmailSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
+JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to an EmailSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
 
 For efficiency, a server MAY destroy EmailSubmission objects a certain amount of time after the email is successfully sent or it has finished retrying sending the email. For very basic SMTP proxies, this MAY be immediately after creation, as it has no way to assign a real id and return the information again if fetched later.
 
@@ -166,7 +166,7 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **after**: `UTCDate`
   The *sendAt* property of the EmailSubmission object must be the same as or after this date-time to match the condition.
 
-A EmailSubmission object matches the filter if and only if all of the given conditions given match. If zero properties are specified, it is automatically `true` for all objects.
+An EmailSubmission object matches the filter if and only if all of the given conditions given match. If zero properties are specified, it is automatically `true` for all objects.
 
 The following properties MUST be supported for sorting:
 
@@ -193,7 +193,7 @@ An email is sent by creating an EmailSubmission object. When processing each cre
 
 If the referenced email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the email submission (i.e. it does not cancel a future send).
 
-Similarly, destroying a EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the email submission. The server MAY automatically destroy EmailSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
+Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the email submission. The server MAY automatically destroy EmailSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
 
 If the email to be sent is larger than the server supports sending, a standard `tooLarge` SetError MUST be returned. A *maxSize* `PositiveInt` property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
 
