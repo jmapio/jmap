@@ -1,15 +1,15 @@
 # Push
 
-Push notifications allow clients to efficiently update (almost) instantly to stay in sync with data changes on the server. In JMAP, push notifications occur out-of-band (i.e. not over the same connection as API exchanges), so that they can make use of efficient native push mechanisms on different platforms.
+Push notifications allow clients to efficiently update (almost) instantly to stay in sync with data changes on the server. The general model for push is simple and sends minimal data over the push channel: just enough for the client to know whether it needs to resync. The format allows multiple changes to be coalesced into a single push update, and the frequency of pushes to be rate limited by the server. It doesn't matter if some push events are dropped before they reach the client; it will still get all changes next time it syncs.
 
-The general model for push is simple and sends minimal data over the push channel. The format allows multiple changes to be coalesced into a single push update, and the frequency of pushes to be rate limited by the server. It doesn't matter if some push events are dropped before they reach the client; it will still get all changes next time it syncs.
+There are two different mechanisms by which a client can receive push notifications, to allow for the different environments in which a client may exist. An event source resource (see section 7.3) allows clients that can hold open TCP connections to receive push notifications directly from the JMAP server. This is simple and avoids 3rd parties, but is often not feasible on constrained platforms such as mobile devices. Alternatively, clients can make use of any push service supported by their environment. A URL for the push service is registered with the JMAP server (see section 7.2), then the server then POSTs each notification to that URL. The push service is then responsible for routing these to the client.
 
 ## The StateChange object
 
 When something changes on the server, the server pushes a **StateChange** object to the client. A **StateChange** object has the following properties:
 
 - **changed**: `Id[TypeState]`
-  A map of *account id* to an object encoding the state of data types that have changed for that account since the last push event, for each of the accounts to which the user has access and for which something has changed.
+  A map of *account id* to an object encoding the state of data types that have changed for that account since the last StateChange object was pushed, for each of the accounts to which the user has access and for which something has changed.
 
     A **TypeState** object is a map. The keys are the type name `Foo` (e.g. "Mailbox" or "Email"), and the value is the *state* property that would currently be returned by a call to *Foo/get*.
 
@@ -37,7 +37,9 @@ The client can compare the state strings with its current state for the Email, C
 
 ## PushSubscription
 
-A push subscription is a message delivery context established between the client and a push service. A **PushSubscription** object has the following properties:
+Clients may create a *PushSubscription* to register a URL with the JMAP server. The JMAP server will then make an HTTP POST request to this URL for each push notification it wishes to send to the client.
+
+A **PushSubscription** object has the following properties:
 
 - **id**: `Id` (immutable; server-set)
   The id of the push subscription.
@@ -58,13 +60,11 @@ A push subscription is a message delivery context established between the client
     The server MAY choose to set an expiry if none is given by the client, or modify the expiry time given by the client to a shorter duration.
 
 - **types**: `String[]|null`
-  A list of types the client is interested in (using the same names as the keys in the *TypeState* object defined in the previous section). Push events will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If `null`, changes will be pushed for all types.
+  A list of types the client is interested in (using the same names as the keys in the *TypeState* object defined in the previous section). A StateChange notification will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If `null`, changes will be pushed for all types.
 
-Clients may create a push subscription on the JMAP server, which will then make a POST request to the associated push endpoint whenever an event occurs.
+The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON encoded *StateChange* object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030]. The JMAP server is expected to understand and handle HTTP status responses in a reasonable manner. See the security considerations in section 8.6 for a discussion of the risks in connecting to unknown servers.
 
-The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON encoded *StateChange* object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030]. The server is expected to understand and handle HTTP status responses in a reasonable manner. See the security considerations in section 8.6 for a discussion of the risks in connecting to unknown servers.
-
-The use of this push endpoint conforms with the use of a push endpoint by an Application Server as defined in [@!RFC8030]. A client MAY use the rest of [@!RFC8030] in combination with its own Push Server to form a complete end-to-end solution, or MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
+The JMAP server acts as an Application Server as defined in [@!RFC8030]. A client MAY use the rest of [@!RFC8030] in combination with its own Push Service to form a complete end-to-end solution, or MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
 
 The push subscription is tied to the credentials used to authenticate the API request that created it. Should these credentials expire or be revoked, the push subscription MUST be destroyed by the JMAP server.
 
