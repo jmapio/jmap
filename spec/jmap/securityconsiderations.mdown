@@ -43,5 +43,3 @@ The privacy and security considerations of [@!RFC8030] and [@!RFC8291] also all 
 ## Push traffic analysis
 
 While the data is encrypted, a passive observer with the ability to monitor network traffic may be able to glean information from the timing of push notifications. For example, suppose an email or calendar invitation is sent from User A (hosted on Server X) to User B (hosted on Server Y). If Server X hosts data for many users, a passive observer can see that the two servers connected but does not know who the data was for. However, if a push notification is immediately sent to User B and the attacker can observe this as well, they may reasonably conclude that someone on Server X is connecting to User B.
-
-This can be partially mitigated by the JMAP server applying some random jitter before sending out push notifications, however the jitter would have to be small so as not to affect quality of service. This is also mitigated innately on large services with high traffic flows hosting data for many users, as it becomes much harder for an attacker to correlate incoming data events with outgoing push notifications, allowing users to "hide in the crowd".
