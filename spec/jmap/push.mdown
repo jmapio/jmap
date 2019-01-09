@@ -8,6 +8,8 @@ There are two different mechanisms by which a client can receive push notificati
 
 When something changes on the server, the server pushes a **StateChange** object to the client. A **StateChange** object has the following properties:
 
+- **@type**: `String`
+  This MUST be the string "StateChange".
 - **changed**: `Id[TypeState]`
   A map of *account id* to an object encoding the state of data types that have changed for that account since the last StateChange object was pushed, for each of the accounts to which the user has access and for which something has changed.
 
@@ -20,6 +22,7 @@ When something changes on the server, the server pushes a **StateChange** object
 In this example, the server has amalgamated a few changes together across two different accounts the user has access to, before pushing the following StateChange object to the client:
 
     {
+      "@type": "StateChange",
       "changed": {
         "a3123": {
           "Email": "d35ecb040aab",
@@ -39,6 +42,8 @@ The client can compare the state strings with its current state for the Email, C
 
 Clients may create a *PushSubscription* to register a URL with the JMAP server. The JMAP server will then make an HTTP POST request to this URL for each push notification it wishes to send to the client.
 
+As a push subscription causes the JMAP server to make a number of requests to a previously unknown endpoint, it can be used as a vector for launching a denial of service attack. To prevent this, when a subscription is created the JMAP server immediately sends a PushVerification object to that URL (see section 7.2.2). The JMAP server MUST NOT make any further requests to the URL until the client receives the push and updates the subscription with the correct verification code.
+
 A **PushSubscription** object has the following properties:
 
 - **id**: `Id` (immutable; server-set)
@@ -53,7 +58,8 @@ A **PushSubscription** object has the following properties:
 
     - **p256dh**: the P-256 ECDH Diffie-Hellman public key as described in [@!RFC8291], encoded in URL-safe Base64 representation as defined in [@!RFC4648].
     - **auth**: the authentication secret as described in [@!RFC8291], encoded in URL-safe Base64 representation as defined in [@!RFC4648].
-
+- **verificationCode**: `String|null`
+  This MUST be `null` (or omitted) when the subscription is created. The JMAP server then generates a verification code and sends it in a push message, and the client updates the PushSubscription object with the code; see section 7.2.2 for details.
 - **expires**: `UTCDate|null`
   The time this push subscription expires. If specified, the JMAP server MUST NOT make further requests to this resource after this time. It MAY automatically destroy the push subscription at or after this time.
 
@@ -62,7 +68,7 @@ A **PushSubscription** object has the following properties:
 - **types**: `String[]|null`
   A list of types the client is interested in (using the same names as the keys in the *TypeState* object defined in the previous section). A StateChange notification will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If `null`, changes will be pushed for all types.
 
-The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON encoded *StateChange* object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030]. The JMAP server is expected to understand and handle HTTP status responses in a reasonable manner. See the security considerations in section 8.6 for a discussion of the risks in connecting to unknown servers.
+The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON encoded object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030]. The JMAP server is expected to understand and handle HTTP status responses in a reasonable manner. A `429` (Too Many Requests) response MUST cause the JMAP server to reduce the frequency of pushes; the JMAP push structure allows multiple changes to be coalesced into a single minimal StateChange object. See the security considerations in section 8.6 for a discussion of the risks in connecting to unknown servers.
 
 The JMAP server acts as an Application Server as defined in [@!RFC8030]. A client MAY use the rest of [@!RFC8030] in combination with its own Push Service to form a complete end-to-end solution, or MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
 
@@ -86,7 +92,19 @@ Standard */set* method except it does **not** take or return an *accountId* argu
 
 The *url* and *keys* properties are immutable; if the client wishes to change these, it must destroy the current push subscription and create a new one.
 
-The client may update the *expires* property to extend (or, less commonly, shorten) the lifetime of a push subscription. The server MAY modify the proposed new expiry time to enforce server-defined limits.
+When a PushSubscription is created, the server MUST immediately push a **PushVerification** object to the URL. It has the following properties:
+
+- **@type**: `String`
+  This MUST be the string "PushVerification".
+- **pushSubscriptionId**: `String`
+  The id of the push subscription that was created.
+- **verificationCode**: `String`
+  The verification code to add to the push subscription. This MUST contain sufficient entropy to avoid the client being able to brute force guess the code.
+
+The client MUST update the push subscription with the correct verification code
+before the server makes any further requests to the subscription's URL. Attempts to update the subscription with an invalid verification code MUST be rejected by the server with an `invalidProperties` SetError.
+
+The client may update the *expires* property to extend (or, less commonly, shorten) the lifetime of a push subscription. The server MAY modify the proposed new expiry time to enforce server-defined limits. Extending the lifetime does not require the subscription to be verified again.
 
 Clients SHOULD NOT update or destroy a push subscription that they did not create (i.e. has a *deviceClientId* that they do not recognise).
 
@@ -104,11 +122,13 @@ Which returns:
       "list": [{
           "id": "e50b2c1d-9553-41a3-b0a7-a7d26b599ee1",
           "deviceClientId": "b37ff8001ca0",
+          "verificationCode": "b210ef734fe5f439c1ca386421359f7b",
           "expires": "2018-01-31T00:13:21Z",
           "types": [ "Todo" ]
       }, {
           "id": "f2d0aab5-e976-4e8b-ad4b-b380a5b987e4",
           "deviceClientId": "8980fc",
+          "verificationCode": "f3d4618a9ae15c8b7f5582533786d531",
           "expires": "2018-02-12T05:55:00Z",
           "types": [ "Mailbox", "Email", "EmailDelivery" ]
       }],
@@ -138,6 +158,26 @@ The server creates the push subscription but limits the expiry time to 7 days in
         }
       }
     }, "0" ]]
+
+The server also immediately makes a POST request to https://example.com/push/?device=8980fc&client=12c6d086 with the data:
+
+    {
+      "@type": "PushVerification",
+      "pushSubscriptionId": "043dcfa4-1dd4-41ef-9156-2c89b3b19c60",
+      "verificationCode": "da1f097b11ca17f06424e30bf02bfa67"
+    }
+
+The client receives this and updates the subscription with the verification code (note there is a potential race condition here; the client MUST be able to handle receiving the push while the request creating the subscription is still in progress):
+
+    [[ "PushSubscription/set", {
+      "update": {
+        "043dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
+          "verificationCode": "da1f097b11ca17f06424e30bf02bfa67"
+        }
+      }
+    }, "0" ]]
+
+The server confirms the update was successful and will now make requests to the registered URL when the state changes.
 
 Two days later, the client updates the subscription to extend its lifetime, sending this request:
 
