@@ -1,6 +1,6 @@
 # Emails
 
-The **Email** object is a representation of an [@!RFC5322] message, which allows clients to avoid the complexities of MIME parsing, transport encoding and character encoding.
+The **Email** object is a representation of an [@!RFC5322] message, which allows clients to avoid the complexities of MIME parsing, transfer encoding and character encoding.
 
 ## Properties of the Email object
 
@@ -303,7 +303,7 @@ A **EmailBodyPart** object has the following properties:
 - **partId**: `String|null`
   Identifies this part uniquely within the Email. This is scoped to the *emailId* and has no meaning outside of the JMAP Email object representation. This is `null` if, and only if, the part is of type `multipart/*`.
 - **blobId**: `Id|null`
-  The id representing the raw octets of the contents of the part after decoding any *Content-Transfer-Encoding* (as defined in [@!RFC2045]), or `null` if, and only if, the part is of type `multipart/*`. Note, two parts may be transfer-encoded differently but have the same blob id if their decoded octets are identical and the server is using a secure hash of the data for the blob id.
+  The id representing the raw octets of the contents of the part, after decoding any known *Content-Transfer-Encoding* (as defined in [@!RFC2045]), or `null` if, and only if, the part is of type `multipart/*`. Note, two parts may be transfer-encoded differently but have the same blob id if their decoded octets are identical and the server is using a secure hash of the data for the blob id. If the transfer encoding is unknown, it is treated as though it had no transfer-encoding.
 - **size**: `PositiveInt`
   The size, in octets, of the raw data after content transfer decoding (as referenced by the *blobId*, i.e. the number of octets in the file the user would download).
 - **headers**: `EmailHeader[]`
@@ -337,13 +337,13 @@ The following **Email** properties are specified for access to the body data of 
     An **EmailBodyValue** object has the following properties:
 
     * **value**: `String`
-      The value of the body part after decoding *Content-Transport-Encoding* and
-      decoding the *Content-Type* charset, if known to the server, and with any CRLF replaced with a single LF. The server MAY use heuristics to determine the charset to use for decoding if the charset is unknown, or if no charset is given, or if it believes the charset given is incorrect. Decoding is best-effort and SHOULD insert the unicode replacement character (U+FFFD) and continue when a malformed section is encountered.
+      The value of the body part after decoding *Content-Transfer-Encoding* and
+      decoding the *Content-Type* charset, if both known to the server, and with any CRLF replaced with a single LF. The server MAY use heuristics to determine the charset to use for decoding if the charset is unknown, or if no charset is given, or if it believes the charset given is incorrect. Decoding is best-effort and SHOULD insert the unicode replacement character (U+FFFD) and continue when a malformed section is encountered.
 
         Note that due to the charset decoding and line ending normalisation, the length of this string will probably not be exactly the same as the *size* property on the corresponding EmailBodyPart.
 
     * **isEncodingProblem**: `Boolean` (default: false)
-      This is `true` if malformed sections were found while decoding the charset, or the charset was unknown.
+      This is `true` if malformed sections were found while decoding the charset, or the charset was unknown, or the content-trasfer-encoding was unknown.
     * **isTruncated**: `Boolean` (default: false)
       This is `true` if the *value* has been truncated.
 
