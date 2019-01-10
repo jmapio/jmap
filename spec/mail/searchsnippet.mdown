@@ -7,9 +7,15 @@ A **SearchSnippet** object has the following properties:
 - **emailId**: `Id`
   The email id the snippet applies to.
 - **subject**: `String|null`
-  If text from the filter matches the subject, this is the subject of the email HTML-escaped, with matching words/phrases wrapped in `<mark></mark>` tags. If it does not match, this is `null`.
+  If text from the filter matches the subject, this is the subject of the email with the following transformations:
+
+    1. Any instance of the following three characters MUST be replaced by an appropriate [@!HTML] entity: & (ampersand), < (less-than sign), and > (greater-than sign). Other characters MAY also be replaced with an HTML entity form.
+
+    2. The matching words/phrases from the filter are wrapped in HTML `<mark></mark>` tags.
+
+    If the subject does not match text from the filter, this property is `null`.
 - **preview**: `String|null`
-  If text from the filter matches the plain-text or HTML body, this is the relevant section of the body (converted to plain text if originally HTML), HTML-escaped, with matching words/phrases wrapped in `<mark></mark>` tags. It MUST NOT be bigger than 255 octets in size. If it does not match, this is `null`.
+  If text from the filter matches the plain-text or HTML body, this is the relevant section of the body (converted to plain text if originally HTML), with the same transformations as the *subject* property. It MUST NOT be bigger than 255 octets in size. If the body does not contain a match for the text from the filter, this property is `null`.
 
 It is server-defined what is a relevant section of the body for preview. If the server is unable to determine search snippets, it MUST return `null` for both the *subject* and *preview* properties.
 
