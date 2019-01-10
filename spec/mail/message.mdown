@@ -86,8 +86,7 @@ The header field value with:
 3. Any SP characters at the beginning of the value removed.
 4. Any syntactically correct [@!RFC2047] encoded sections with a known
    character set decoded. Any [@!RFC2047] encoded NUL octets or control characters are dropped from the decoded value. Any text that looks like [@!RFC2047] syntax but violates [@!RFC2047] placement or whitespace rules MUST NOT be decoded.
-5. Any [@!RFC6532] UTF-8 values decoded.
-6. The resulting unicode converted to NFC form.
+5. The resulting unicode converted to NFC form.
 
 If any decodings fail, the parser SHOULD insert a unicode replacement
 character (U+FFFD) and attempt to continue as much as possible.
@@ -116,7 +115,7 @@ The **EmailAddress** object has the following properties:
 - **email**: `String`
   The *addr-spec* of the [@!RFC5322] *mailbox*.
 
-Any syntactically correct [@!RFC2047] encoded sections with a known encoding MUST be decoded, following the same rules as for the *Text* form. Any [@!RFC6532] UTF-8 values MUST be decoded.
+Any syntactically correct [@!RFC2047] encoded sections with a known encoding MUST be decoded, following the same rules as for the *Text* form.
 
 Parsing SHOULD be best-effort in the face of invalid structure to
 accommodate invalid messages and semi-complete drafts. EmailAddress objects
@@ -166,7 +165,7 @@ The **EmailAddressGroup** object has the following properties:
   The *mailbox*es that belong to this group, represented as EmailAddress
   objects.
 
-Any syntactically correct [@!RFC2047] encoded sections with a known encoding MUST be decoded, following the same rules as for the *Text* form. Any [@!RFC6532] UTF-8 values MUST be decoded.
+Any syntactically correct [@!RFC2047] encoded sections with a known encoding MUST be decoded, following the same rules as for the *Text* form.
 
 Parsing SHOULD be best-effort in the face of invalid structure to
 accommodate invalid messages and semi-complete drafts.
