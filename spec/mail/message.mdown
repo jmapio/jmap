@@ -317,7 +317,7 @@ A **EmailBodyPart** object has the following properties:
 - **disposition**: `String|null`
   The value of the *Content-Disposition* header field of the part, if present, otherwise `null`. CFWS is removed and any parameters are stripped.
 - **cid**: `String|null`
-  The value of the *Content-Id* header field of the part, if present, otherwise `null`. CFWS and surrounding angle brackets (`<>`) are removed. This may be used to reference the content from within an html body part using the `cid:` protocol.
+  The value of the *Content-Id* header field of the part, if present, otherwise `null`. CFWS and surrounding angle brackets (`<>`) are removed. This may be used to reference the content from within an [@!HTML] body part using the `cid:` protocol, as defined in [@!RFC2392].
 - **language**: `String[]|null`
   The list of language tags, as defined in [@!RFC3282], in the *Content-Language* header field of the part, if present.
 - **location**: `String|null`
@@ -363,7 +363,7 @@ The following **Email** properties are specified for access to the body data of 
 
     None of these parts include subParts, including `message/*` types. Attached messages may be fetched using the Email/parse method and the blobId.
 
-    Note, an HTML body part may reference image parts in attachments using `cid:` links to reference the *Content-Id* or by referencing the *Content-Location*.
+    Note, an [@!HTML] body part may reference image parts in attachments using `cid:` links to reference the *Content-Id*, as defined in [@!RFC2392], or by referencing the *Content-Location*.
 - **hasAttachment**: `Boolean` (immutable; server-set)
   This is `true` if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment to `true` if the *attachments* list contains at least one item that does not have `Content-Disposition: inline`. The server MAY ignore parts in this list that are processed automatically in some way, or are referenced as embedded images in one of the `text/html` parts of the message.
 
@@ -475,7 +475,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody and at
     parseStructure( [ bodyStructure ], 'mixed', false,
         htmlBody, textBody, attachments );
 
-For instance, consider a message with both text and html versions that's then
+For instance, consider a message with both text and HTML versions that's then
 gone through a list software manager that attaches a header/footer. It might have a MIME structure something like:
 
     multipart/mixed
@@ -1227,3 +1227,13 @@ The server successfully copies the email and deletes the original. Due to the im
       "destroyed": [ "Md45b47b4877521042cec0938" ],
       ...
     }, "0" ]]
+
+<reference anchor='HTML' target='https://html.spec.whatwg.org/'>
+  <front>
+    <title>HTML Standard</title>
+    <author initials='T.' surname='Berners-Lee et al.' fullname='Tim Berners-Lee et al.'>
+        <organization>Web Hypertext Application Technology Working Group</organization>
+    </author>
+    <date year='2019'/>
+  </front>
+</reference>
