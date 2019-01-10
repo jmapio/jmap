@@ -129,9 +129,9 @@ An **EmailSubmission** object represents the submission of an email for delivery
         The server MAY also set this property based on other feedback channels.
 
 - **dsnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for DSNs received for this submission, in order of receipt, oldest first.
+  A list of blob ids for DSNs received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
 - **mdnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for MDNs received for this submission, in order of receipt, oldest first.
+  A list of blob ids for MDNs received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
 
 JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to an EmailSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
 
