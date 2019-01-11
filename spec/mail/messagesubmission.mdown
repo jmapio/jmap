@@ -70,7 +70,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
     A **DeliveryStatus** object has the following properties:
 
     - **smtpReply**: `String`
-      The SMTP reply string returned for this recipient when the server last tried to relay the email, or in a later DSN response for the email. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the email as a whole rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
+      The SMTP reply string returned for this recipient when the server last tried to relay the email, or in a later DSN (Delivery Status Notification, as defined in [@!RFC3464]) response for the email. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the email as a whole rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
 
         Multi-line SMTP responses should be concatenated to a single string as follows:
 
@@ -129,9 +129,9 @@ An **EmailSubmission** object represents the submission of an email for delivery
         The server MAY also set this property based on other feedback channels.
 
 - **dsnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for DSNs received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
+  A list of blob ids for Delivery Status Notifications ([@!RFC3464]) received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
 - **mdnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for MDNs received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
+  A list of blob ids for Message Disposition Notifications ([@!RFC8098]) received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
 
 JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to an EmailSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
 
