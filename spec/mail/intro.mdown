@@ -77,13 +77,13 @@ The server MUST include the appropriate capability strings in the *hasDataFor* p
 
 Servers MUST support the standard JMAP push mechanisms to receive notifications when the state changes for any of the types defined in this specification.
 
-In addition, servers MUST support a pseudo-type called "EmailDelivery" in the push mechanisms. The state string for this MUST change whenever a new Email is added to the store, but SHOULD NOT change upon any other change to the Email objects, for example if one is marked as read or deleted.
+In addition, servers MUST support pushing state changes for a type called "EmailDelivery". There are no methods to act on this type; it only exists as part of the push mechanism. The state string for this MUST change whenever a new Email is added to the store, but SHOULD NOT change upon any other change to the Email objects, for example if one is marked as read or deleted.
 
-Clients in battery constrained environments may wish to delay fetching changes initiated by the user, but fetch new messages immediately so they can notify the user.
+Clients in battery constrained environments may wish to delay fetching changes initiated by the user, but fetch new messages immediately so they can notify the user. To do this, they can register for pushes for the EmailDelivery type rather than the Email type (defined in section 4).
 
 ### Example
 
-The client has registered for push notifications just for the `EmailDelivery` type (see [@!I-D.ietf-jmap-core] for details of the push system). The user marks an email as read on another device, causing the state string for the `Email` type to change, however as nothing new was added to the store the `EmailDelivery` state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the `Email` state to change. This time the `EmailDelivery` state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new message immediately.
+The client has registered for push notifications (see [@!I-D.ietf-jmap-core]) just for the `EmailDelivery` type. The user marks an email as read on another device, causing the state string for the `Email` type to change, however as nothing new was added to the store the `EmailDelivery` state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the `Email` state to change. This time the `EmailDelivery` state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new message immediately.
 
 ## Ids
 
