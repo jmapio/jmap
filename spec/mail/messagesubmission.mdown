@@ -217,7 +217,7 @@ For **create**:
 - `forbiddenFrom` – The server does not permit the user to send an email
   with the [@!RFC5322] From header of the email to be sent.
 - `forbiddenToSend` – The user does not have permission to send at all right
-  now for some reason. A *description* `String` property MAY be present on the SetError object to display to the user why they are not permitted. The server MAY choose to localise this string into the user's preferred language, if known.
+  now for some reason. A *description* `String` property MAY be present on the SetError object to display to the user why they are not permitted.
 
 For **update**:
 
@@ -279,7 +279,11 @@ A successful response might look like this. Note there are two responses due to 
       }
     }, "0" ]]
 
-If the email submission was not accepted on the other hand, the response may look like this:
+Suppose instead an admin has removed sending rights for the user, and so the email submission is rejected with a "forbiddenToSend" error. The description argument of the error is intended for display to the user, so should be localised appropriately. Let's suppose the request was sent with an Accept-Language header like this:
+
+    Accept-Language: de;q=0.9,en;q=0.8
+
+The server should attempt to choose the best localisation from those it has available based on the Accept-Language header, as described in [@!I-D.ietf-jmap-core], section 3.7. If the server has English, French and German translations it would choose German as the preferred language and return a response like this:
 
     [[ "EmailSubmission/set", {
       "accountId": "ue411d190",
@@ -287,8 +291,8 @@ If the email submission was not accepted on the other hand, the response may loo
       "newState": "012421s6-8nrq-4ps4-n0p4-9330r951ns21",
       "notCreated": {
         "k1490": {
-          "type": "tooManyRecipients",
-          "maxRecipients": 10
+          "type": "forbiddenToSend",
+          "description": "Verzeihung, wegen verdächtiger Aktivitäten Ihres Benutzerkontos haben wir den Versand von Nachrichten gesperrt. Bitte wenden Sie sich für Hilfe an unser Support Team."
         }
       }
     }, "0" ]]

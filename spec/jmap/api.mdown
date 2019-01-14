@@ -348,6 +348,18 @@ The JMAP server now continues to process the Email/get call as though the argume
         "properties": [ "from", "receivedAt", "subject" ]
     }
 
+## Localisation of user-visible strings
+
+If returning a custom string to be displayed to the user, for example an error message, the server SHOULD use information from the Accept-Language header of the request (as defined in [@!RFC7231] section 5.3.5) to help determine the choice of localisation if multiple are available. The Content-Language header of the response (see section 3.1.3.2 of [@!RFC7231]) SHOULD indicate the language being used for user-visible strings.
+
+For example, suppose a request was made with the following header:
+
+    Accept-Language: fr-CH, fr;q=0.9, de;q=0.8, en;q=0.7, *;q=0.5
+
+and a method generated an error to display to the user. The server has translations of the error message in English and German. Looking at the Accept-Language header, the user's preferred language is French. Since we don't have a translation for this, we look at the next most preferred which is German. We have a German translation so the server returns this, and indicates the language chosen in a Content-Language header like so:
+
+    Content-Language: de
+
 ## Security
 
 As always, the server must be strict about data received from the client. Arguments need to be checked for validity; a malicious user could attempt to find an exploit through the API. In case of invalid arguments (unknown/insufficient/wrong type for data etc.) the method MUST return an `invalidArguments` error and terminate.
