@@ -159,7 +159,7 @@ The server creates the push subscription but limits the expiry time to 7 days in
       }
     }, "0" ]]
 
-The server also immediately makes a POST request to https://example.com/push/?device=8980fc&client=12c6d086 with the data:
+The server also immediately makes a POST request to `https://example.com/push/?device=8980fc&client=12c6d086` with the data:
 
     {
       "@type": "PushVerification",
@@ -201,11 +201,11 @@ The server extends the expiry time, but only again to its maximum limit of 7 day
 
 ## Event Source
 
-Clients that can hold open TCP connections can connect directly to the JMAP server to receive push notifications via a `text/event-stream` resource, as described in <http://www.w3.org/TR/eventsource/>. This is a long running HTTP request down which the server can push data.
+Clients that can hold open TCP connections can connect directly to the JMAP server to receive push notifications via a `text/event-stream` resource, as described in [@!HTML], section 9.2. This is a long running HTTP request down which the server can push data.
 
 When a change occurs in the data on the server, it pushes an event called **state** to any connected clients, with the *StateChange* object as the data.
 
-The server SHOULD also send a new event id that encodes the entire server state visible to the user immediately after sending a *state* event. When a new connection is made to the event-source endpoint, a client following the [server-sent events specification](https://html.spec.whatwg.org/multipage/server-sent-events.html) will send a Last-Event-ID HTTP header with the last id it saw, which the server can use to work out whether the client has missed some changes. If so, it SHOULD send these changes immediately on connection.
+The server SHOULD also send a new event id that encodes the entire server state visible to the user immediately after sending a *state* event. When a new connection is made to the event-source endpoint, a client following the server-sent events specification will send a Last-Event-ID HTTP header with the last id it saw, which the server can use to work out whether the client has missed some changes. If so, it SHOULD send these changes immediately on connection.
 
 The client may add a query parameter called `types`, with the value being a comma-separated list of type names. If present, the server MUST only push changes for the types in this list. If omitted, changes to all types are pushed.
 
@@ -222,3 +222,13 @@ Clients can monitor for the *ping* event to help determine when the closeafter m
 Refer to the JMAP Session resource in section 2 for details on how to get the URL for the event-source resource. Requests to the resource MUST be authenticated.
 
 A client MAY hold open multiple connections to the event-source resource, although it SHOULD try to use a single connection for efficiency.
+
+<reference anchor='HTML' target='https://html.spec.whatwg.org/'>
+  <front>
+    <title>HTML Standard</title>
+    <author initials='T.' surname='Berners-Lee et al.' fullname='Tim Berners-Lee et al.'>
+        <organization>Web Hypertext Application Technology Working Group</organization>
+    </author>
+    <date year='2019'/>
+  </front>
+</reference>
