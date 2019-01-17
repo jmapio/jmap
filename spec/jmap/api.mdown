@@ -725,14 +725,12 @@ A call to *Foo/query* takes the following arguments:
         If omitted, the default algorithm is server-dependent, but:
 
         1. It MUST be unicode-aware.
-        2. It SHOULD have reasonable default behavior for many languages when
-           the user's language is unknown.
-        3. It MAY be selected based on out-of-band information about the user's
-           language/locale.
-        4. It SHOULD be case-insensitive where such a concept makes sense for a
-           language/locale.
+        2. It MAY be selected based on an Accept-Language header in the
+           request (as defined in [@!RFC7231] section 5.3.5), or out-of-band information about the user's language/locale.
+        3. It SHOULD be case-insensitive where such a concept makes sense for a
+           language/locale. Where the user's language is unknown, it is RECOMMENDED to follow the advice in section 5.2.3 of [@!RFC8264].
 
-        The "i;unicode-casemap" collation ([@!RFC5051]) and the Unicode Collation Algorithm (http://www.unicode.org/reports/tr10/) are two examples that fulfil these criterion.
+        The "i;unicode-casemap" collation ([@!RFC5051]) and the Unicode Collation Algorithm (http://www.unicode.org/reports/tr10/) are two examples that fulfil these criterion and provide reasonable behaviour for a large number of languages.
 
         When the property being compared is not a string, the *collation* property is ignored and the following comparison rules apply based on the type. In ascending order:
 
