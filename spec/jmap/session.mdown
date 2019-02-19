@@ -78,7 +78,7 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
 - **downloadUrl**: `String`
-  The URL endpoint to use when downloading files, in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `accountId`, `blobId`, `type` and `name`. The use of these variables is described in section 6.2. Due to potential encoding issues with slashes in content types, it is recommended to put the `type` variable in the query section of the URL.
+  The URL endpoint to use when downloading files, in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `accountId`, `blobId`, `type` and `name`. The use of these variables is described in section 6.2. Due to potential encoding issues with slashes in content types, it is RECOMMENDED to put the `type` variable in the query section of the URL.
 - **uploadUrl**: `String`
   The URL endpoint to use when uploading files, in [@!RFC6570] URI Template (level 1) format. The URL MUST contain a variable called `accountId`. The use of this variable is described in section 6.1.
 - **eventSourceUrl**: `String`
@@ -88,7 +88,7 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 
 To ensure future compatibility, other properties MAY be included on the JMAP Session object. Clients MUST ignore any properties they are not expecting.
 
-Implementors must take care to avoid inappropriate caching of the session object at the HTTP layer. Since the client should only refetch when it detects there is a change (via the sessionState property of an API response), it is recommended to disable HTTP caching altogether, for example by setting `Cache-Control: no-cache, no-store, must-revalidate` on the response.
+Implementors must take care to avoid inappropriate caching of the session object at the HTTP layer. Since the client should only refetch when it detects there is a change (via the sessionState property of an API response), it is RECOMMENDED to disable HTTP caching altogether, for example by setting `Cache-Control: no-cache, no-store, must-revalidate` on the response.
 
 ## Example
 

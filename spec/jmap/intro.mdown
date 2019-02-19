@@ -50,7 +50,7 @@ All record ids are assigned by the server, and are immutable.
 Where `Id` is given as a datatype, it means a `String` of at least 1 and maximum 255 octets in size, and MUST only contain characters from the "URL and Filename safe" Base 64 Alphabet, as defined in section 5 of [@!RFC4648]. This is the ASCII alphanumeric characters (`A-Za-z0-9`), hyphen (`-`), and underscore (`_`).
 
 These characters are safe to use in almost any context (e.g., filesystems,
-URIs, IMAP atoms). For maximum safety, servers should also follow defensive
+URIs, IMAP atoms). For maximum safety, servers SHOULD also follow defensive
 allocation strategies to avoid creating risks where glob completion or data type
 detection may be present (e.g., on filesystems or in spreadsheets). In
 particular, it is wise to avoid:
@@ -109,9 +109,10 @@ The id of a record is immutable, and normally assigned by the server. The id MUS
 
 ## The JMAP API model
 
-JMAP uses HTTP [@!RFC7230] to expose API, Push, Upload and Download resources. Implementations MUST support HTTP/1.1, and MAY support later versions. All HTTP requests MUST use [@!RFC8446] TLS (HTTPS) transport. Support for common HTTP mechanisms such as redirection and caching are assumed.
+JMAP uses HTTP [@!RFC7230] to expose API, Push, Upload and Download resources. Implementations MUST support HTTP/1.1, SHOULD support HTTP/2,
+and MAY support later versions. All HTTP requests MUST use HTTPS ([@!RFC2818] HTTP over TLS) with TLS 1.2 ([RFC5246]) or later, following the recommendations in [@!RFC7525]. Servers SHOULD support TLS 1.3 ([@!RFC8446]) or later. Support for common HTTP mechanisms such as redirection and caching are assumed.
 
-All HTTP requests MUST be authenticated. Servers MUST conform with the [@!RFC7235] HTTP Authentication framework to reject requests that fail authentication and inform the client of available authentication schemes.
+All HTTP requests MUST be authenticated. Servers MAY conform with the [@!RFC7235] HTTP Authentication framework to reject requests that fail authentication and inform the client of available authentication schemes.
 
 Clients MUST understand and be able to handle standard HTTP status codes appropriately.
 
