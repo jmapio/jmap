@@ -9,11 +9,11 @@ A **Mailbox** object has the following properties:
 - **id**: `Id` (immutable; server-set)
   The id of the mailbox.
 - **name**: `String`
-  User-visible name for the mailbox, e.g. "Inbox". This may be any Net-Unicode string ([@!RFC5198]) of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing slash (/) or control characters).
+  User-visible name for the mailbox, e.g. "Inbox". This MUST be a Net-Unicode string ([@!RFC5198]) of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing slash (/) or control characters).
 - **parentId**: `Id|null` (default: null)
   The mailbox id for the parent of this mailbox, or `null` if this mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.
 - **role**: `String|null` (default: null)
-  Identifies mailboxes that have a particular common purpose (e.g. the "inbox"), regardless of the *name* (which may be localised). This value is shared with IMAP (exposed in IMAP via the [@!RFC6154] SPECIAL-USE extension). However, unlike in IMAP, a mailbox may only have a single role, and no two mailboxes in the same account may have the same role.
+  Identifies mailboxes that have a particular common purpose (e.g. the "inbox"), regardless of the *name* (which may be localised). This value is shared with IMAP (exposed in IMAP via the [@!RFC6154] SPECIAL-USE extension). However, unlike in IMAP, a mailbox MUST only have a single role, and no two mailboxes in the same account may have the same role.
 
     The value MUST be one of the mailbox attribute names listed in the [IANA IMAP Mailbox Name Attributes Registry](https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml), as established in [@!RFC8457], converted to lower-case. New roles may be established here in the future.
 
