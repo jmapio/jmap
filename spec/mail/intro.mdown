@@ -2,7 +2,28 @@
 
 JMAP ([@!I-D.ietf-jmap-core]) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
 
-This specification defines a data model for mail over JMAP.
+This specification defines a data model for accessing a mail store over JMAP,
+allowing you to query, read, organise and submit mail for sending.
+
+The data model is designed to allow a server to provide consistent access to
+the same data via IMAP ([@?RFC3501]) as well as JMAP. As in IMAP, a message
+must belong to a mailbox, however in JMAP its id does not change if you move it
+between mailboxes, and the server may allow it to belong to multiple mailboxes
+simultaneously (often exposed in a user agent as labels rather than folders).
+
+As in IMAP, emails may also be assigned zero or more keywords: short arbitrary
+strings. These are primarily intended to store metadata to inform client
+display, such as unread status or whether a message has been replied to. An
+IANA registry allows common semantics to be shared between clients and extended
+easily in the future.
+
+A message and its replies are linked on the server by a common thread id.
+Clients may fetch the list of messages with a particular thread id to more
+easily present a threaded or conversational interface.
+
+Permissions for message access happen on a per-mailbox basis. Servers may give
+the user restricted permissions for certain mailboxes, for example if another
+user's inbox has been shared read-only with them.
 
 ## Notational conventions
 
