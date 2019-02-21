@@ -38,6 +38,12 @@ The server MUST ensure the URL is externally resolvable to avoid server-side req
 
 A malicious client may use the push subscription to attempt to flood a 3rd party server with requests, creating a denial of service attack and masking the attacker's true identity. There is no guarantee the URL that was given to the JMAP server is actually a valid push server. Upon creation of a push subscription the JMAP server sends a PushVerification object to the URL and MUST NOT send any further requests until the client verifies it has received the initial push. The verification code MUST contain sufficient entropy to prevent the client from being able to verify the subscription via brute force.
 
+The verification code does not guarantee the URL is a valid push server, only
+that the client is able to access the data submitted to it. While the
+verification step significantly reduces the set of potential targets, there is
+still a risk that the server is unrelated to the client and being targeted for
+a denial of service attack.
+
 The server MUST limit the number of push subscriptions any one user may have to ensure the user cannot cause the server to send a large number of push notifications at once, which could again be used as part of a denial-of-service attack.
 
 ## Push encryption
