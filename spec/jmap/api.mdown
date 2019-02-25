@@ -210,11 +210,11 @@ To resolve:
 As a simple example, suppose we have the following API request *methodCalls*:
 
     [[ "Foo/changes", {
-        "accountId": "1",
+        "accountId": "A1",
         "sinceState": "abcdef"
     }, "t0" ],
     [ "Foo/get", {
-        "accountId": "1",
+        "accountId": "A1",
         "#ids": {
             "resultOf": "t0",
             "name": "Foo/changes",
@@ -225,7 +225,7 @@ As a simple example, suppose we have the following API request *methodCalls*:
 After executing the first method call the *methodResponses* array is:
 
     [[ "Foo/changes", {
-        "accountId": "1",
+        "accountId": "A1",
         "oldState": "abcdef",
         "newState": "123456",
         "hasMoreChanges": false,
@@ -247,14 +247,14 @@ To execute the Foo/get call, we look through the arguments and find there is one
 The JMAP server now continues to process the Foo/get call as though the arguments were:
 
     {
-        "accountId": "1",
+        "accountId": "A1",
         "ids": [ "f1", "f4" ]
     }
 
 Now a more complicated example using the JMAP Mail data model: fetch the "from"/"date"/"subject" for every email in the first 10 threads in the Inbox (sorted newest first):
 
     [[ "Email/query", {
-      "accountId": "1",
+      "accountId": "A1",
       "filter": { "inMailbox": "id_of_inbox" },
       "sort": [{ "property": "receivedAt", "isAscending": false }],
       "collapseThreads": true,
@@ -263,7 +263,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
       "calculateTotal": true
     }, "t0" ],
     [ "Email/get", {
-      "accountId": "1",
+      "accountId": "A1",
       "#ids": {
         "resultOf": "t0",
         "name": "Email/query",
@@ -272,7 +272,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
       "properties": [ "threadId" ]
     }, "t1" ],
     [ "Thread/get", {
-      "accountId": "1",
+      "accountId": "A1",
       "#ids": {
         "resultOf": "t1",
         "name": "Email/get",
@@ -280,7 +280,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
       }
     }, "t2" ],
     [ "Email/get", {
-      "accountId": "1",
+      "accountId": "A1",
       "#ids": {
         "resultOf": "t2",
         "name": "Thread/get",
@@ -292,7 +292,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
 After executing the first 3 method calls the *methodResponses* array might be:
 
     [[ "Email/query", {
-        "accountId": "1",
+        "accountId": "A1",
         "queryState": "abcdefg",
         "canCalculateChanges": true,
         "position": 0,
@@ -301,7 +301,7 @@ After executing the first 3 method calls the *methodResponses* array might be:
             "msg38", "msg36", "msg33", "msg11", "msg1" ]
     }, "t0" ],
     [ "Email/get", {
-        "accountId": "1",
+        "accountId": "A1",
         "state": "123456",
         "list": [{
             "id": "msg1023",
@@ -315,7 +315,7 @@ After executing the first 3 method calls the *methodResponses* array might be:
         "notFound": []
     }, "t1" ],
     [ "Thread/get", {
-        "accountId": "1",
+        "accountId": "A1",
         "state": "123456",
         "list": [{
             "id": "trd194",
@@ -343,7 +343,7 @@ So to execute the final Email/get call, we look through the arguments and find t
 The JMAP server now continues to process the Email/get call as though the arguments were:
 
     {
-        "accountId": "1",
+        "accountId": "A1",
         "ids": [ "msg1020", "msg1021", "msg1023", "msg201", "msg223", ... ],
         "properties": [ "from", "receivedAt", "subject" ]
     }
@@ -1073,7 +1073,7 @@ The server successfully copies the Todo to a new account (where it receives a ne
       "accountId": "y",
       "created": {
         "k5122": {
-          "id": "97"
+          "id": "DAf97"
         }
       },
       "oldState": "c1d64ecb038c",

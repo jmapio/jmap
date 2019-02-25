@@ -127,7 +127,7 @@ Which returns:
           "types": [ "Todo" ]
       }, {
           "id": "f2d0aab5-e976-4e8b-ad4b-b380a5b987e4",
-          "deviceClientId": "8980fc",
+          "deviceClientId": "X8980fc",
           "verificationCode": "f3d4618a9ae15c8b7f5582533786d531",
           "expires": "2018-02-12T05:55:00Z",
           "types": [ "Mailbox", "Email", "EmailDelivery" ]
@@ -141,7 +141,7 @@ Since neither of the returned push subscription objects have the client's device
       "create": {
         "4f29": {
           "deviceClientId": "a889-ffea-910",
-          "url": "https://example.com/push/?device=8980fc&client=12c6d086",
+          "url": "https://example.com/push/?device=X8980fc&client=12c6d086",
           "types": null
         }
       }
@@ -152,18 +152,18 @@ The server creates the push subscription but limits the expiry time to 7 days in
     [[ "PushSubscription/set", {
       "created": {
         "4f29": {
-          "id": "043dcfa4-1dd4-41ef-9156-2c89b3b19c60",
+          "id": "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60",
           "keys": null,
           "expires": "2018-07-13T02:14:29Z"
         }
       }
     }, "0" ]]
 
-The server also immediately makes a POST request to `https://example.com/push/?device=8980fc&client=12c6d086` with the data:
+The server also immediately makes a POST request to `https://example.com/push/?device=X8980fc&client=12c6d086` with the data:
 
     {
       "@type": "PushVerification",
-      "pushSubscriptionId": "043dcfa4-1dd4-41ef-9156-2c89b3b19c60",
+      "pushSubscriptionId": "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60",
       "verificationCode": "da1f097b11ca17f06424e30bf02bfa67"
     }
 
@@ -171,7 +171,7 @@ The client receives this and updates the subscription with the verification code
 
     [[ "PushSubscription/set", {
       "update": {
-        "043dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
+        "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
           "verificationCode": "da1f097b11ca17f06424e30bf02bfa67"
         }
       }
@@ -183,7 +183,7 @@ Two days later, the client updates the subscription to extend its lifetime, send
 
     [[ "PushSubscription/set", {
       "update": {
-        "043dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
+        "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
           "expires": "2018-08-13T00:00:00Z"
         }
       }
@@ -193,7 +193,7 @@ The server extends the expiry time, but only again to its maximum limit of 7 day
 
     [[ "PushSubscription/set", {
       "updated": {
-        "043dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
+        "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
           "expires": "2018-07-16T02:22:50Z"
         }
       }
