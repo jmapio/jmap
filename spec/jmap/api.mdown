@@ -24,7 +24,7 @@ A **Request** object has the following properties:
 
     1. A `String` **name** of the method to call.
     2. A `String[*]` object containing *named* **arguments** for that method.
-    3. A `String` **client id**: an arbitrary string from the client to be echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same client id in the response).
+    3. A `String` **method call id**: an arbitrary string from the client to be echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same method call id in the response).
 
 - **createdIds**: `Id[Id]` (optional)
   A map of (client-specified) creation id to the id the server assigned when a record was successfully created.
@@ -187,7 +187,7 @@ To do this, the client prefixes the argument name with `#`. The value is a *Resu
 A **ResultReference** object has the following properties:
 
 - **resultOf**: `String`
-  The client id of the method call to get the result from (the string given as the third item in the array for a method call).
+  The method call id of the method call to get the result from (the string given as the third item in the array for a method call).
 - **name**: `String`
   The expected name of the response.
 - **path**: `String`
@@ -195,7 +195,7 @@ A **ResultReference** object has the following properties:
 
 To resolve:
 
-1. Find the first response with a client id identical to the *resultOf*
+1. Find the first response with a method call id identical to the *resultOf*
    property of the *ResultReference* in the *methodResponses* array from previously processed method calls in the same request. If none, evaluation fails.
 
 2. If the response name is not identical to the *name* property of the
@@ -236,7 +236,7 @@ After executing the first method call the *methodResponses* array is:
 
 To execute the Foo/get call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm above:
 
-1. Find the first response with client id "t0". The Foo/changes response
+1. Find the first response with method call id "t0". The Foo/changes response
    fulfils this criterion.
 2. Check the response name is the same as in the result reference. It is, so
    this is fine.
@@ -331,7 +331,7 @@ After executing the first 3 method calls the *methodResponses* array might be:
 
 So to execute the final Email/get call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm:
 
-1. Find the first response with client id "t2". The "Thread/get" response
+1. Find the first response with method call id "t2". The "Thread/get" response
    fulfils this criterion.
 2. "Thread/get" is the name specified in the result reference, so this is fine.
 3. Apply the *path* as a JSON pointer to the arguments object. Token-by-token:
@@ -1066,7 +1066,7 @@ Suppose the user has access to another account `y`, for example a team account s
       "onSuccessDestroyOriginal": true
     }, "0" ]]
 
-The server successfully copies the Todo to a new account (where it receives a new id) and deletes the original. Due to the implicit call to "Todo/set", there are two responses to the single method call, both with the same client id:
+The server successfully copies the Todo to a new account (where it receives a new id) and deletes the original. Due to the implicit call to "Todo/set", there are two responses to the single method call, both with the same method call id:
 
     [[ "Todo/copy", {
       "fromAccountId": "x",
