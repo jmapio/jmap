@@ -13,6 +13,6 @@ rfc/build/%.html: rfc/build/%.xml
 
 .PHONY: build
 
-build: rfc/build/jmap.txt rfc/build/jmap.html rfc/build/mail.txt rfc/build/mail.html rfc/build/contacts.txt rfc/build/contacts.html rfc/build/calendars.txt rfc/build/calendars.html
+build: rfc/build/jmap.txt rfc/build/jmap.html rfc/build/mail.txt rfc/build/mail.html rfc/build/contacts.txt rfc/build/contacts.html rfc/build/calendars.txt rfc/build/calendars.html rfc/build/mdn.txt rfc/build/mdn.html
 
-xml: rfc/build/jmap.xml rfc/build/mail.xml rfc/build/contacts.xml rfc/build/calendars.xml
+xml: rfc/build/jmap.xml rfc/build/mail.xml rfc/build/contacts.xml rfc/build/calendars.xml rfc/build/mdn.xml
