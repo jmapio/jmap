@@ -51,7 +51,7 @@ A **PushSubscription** object has the following properties:
 - **id**: `Id` (immutable; server-set)
   The id of the push subscription.
 - **deviceClientId**: `String` (immutable)
-  An id that uniquely identifies the client + device it is running on. The purpose of this is to allow clients to identify which PushSubscription objects they created even if they lose their local state, so they can revoke or update them. This string MUST be different on different devices, and be different from other vendors. It SHOULD be easy to re-generate, not depend on persisted state. A secure hash that includes both a device id and vendor id is one way this could be achieved.
+  An id that uniquely identifies the client + device it is running on. The purpose of this is to allow clients to identify which PushSubscription objects they created even if they lose their local state, so they can revoke or update them. This string MUST be different on different devices, and be different from apps from other vendors. It SHOULD be easy to re-generate, not depend on persisted state. It is RECOMMENDED to use a secure hash of a device id concatenated with a custom vendor/app id. To protect the privacy of the user, id MUST NOT contain an unobfuscated device id.
 - **url**: `String` (immutable)
   An absolute URL where the JMAP server will POST the data for the push message.
   This MUST begin with `https://`.
