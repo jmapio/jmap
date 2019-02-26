@@ -36,7 +36,9 @@ In this example, the server has amalgamated a few changes together across two di
       }
     }
 
-The client can compare the state strings with its current state for the Email, CalendarEvent etc. object types in the appropriate accounts to see if it needs to fetch changes. If the client is itself making changes, it may receive a StateChange object while the /set API call is in flight. It can wait until the call completes and then compare if the new state string after the /set is the same as was pushed in the StateChange object; if so, it does not need to waste a request asking for changes it already knows.
+The client can compare the state strings with its current state for the Email, CalendarEvent etc. object types in the appropriate accounts to see if it needs to fetch changes.
+
+If the client is itself making changes, it may receive a StateChange object while the /set API call is in flight. It can wait until the call completes and then compare if the new state string after the /set is the same as was pushed in the StateChange object; if so, and the old state of the /set response matches the client's previous state, it does not need to waste a request asking for changes it already knows.
 
 ## PushSubscription
 
