@@ -83,7 +83,7 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 - **uploadUrl**: `String`
   The URL endpoint to use when uploading files, in [@!RFC6570] URI Template (level 1) format. The URL MUST contain a variable called `accountId`. The use of this variable is described in section 6.1.
 - **eventSourceUrl**: `String`
-  The URL to connect to for push events, as described in section 7.3.
+  The URL to connect to for push events, as described in section 7.3, in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `types`, `closeafter` and `ping`. The use of these variables is described in section 7.3.
 - **state**: `String`
   A string representing the state of this object on the server. If the value of any other property on the session object changes, this string will change. The current value is also returned on the API Response object (see section 3.3), allowing clients to quickly determine if the session information has changed (e.g. an account has been added or removed) and so they need to refetch the object.
 
@@ -142,7 +142,8 @@ In the following example JMAP Session object, the user has access to their own m
       "downloadUrl": "https://jmap.example.com
         /download/{accountId}/{blobId}/{name}?accept={type}",
       "uploadUrl": "https://jmap.example.com/upload/{accountId}/",
-      "eventSourceUrl": "https://jmap.example.com/eventsource/",
+      "eventSourceUrl": "https://jmap.example.com
+        /eventsource/?types={types}&closeafter={closeafter}&ping={ping}",
       "state": "75128aab4b1b"
     }
 
