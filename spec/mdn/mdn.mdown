@@ -1,15 +1,22 @@
 # Introduction
 
-JMAP <https://tools.ietf.org/html/draft-ietf-jmap-core-06> is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
+JMAP ([@!I-D.ietf-jmap-core] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
 
-This specification defines a method helping to send MDN (Message Disposition Nodification) messages. MDN are defined in [@!RFC8098] and are used as "read receipts", "acknowledgements", or "receipt notifications".
+MDN are defined in [@!RFC8098] and are used as "read receipts", "acknowledgements", or "receipt notifications".
+
+A client can have to deal with MDN in different ways:
+
+1. When receiving an email, an MDN can be sent to the sender. This specification defines an EmailSubmission/sendMDN method to cover this case.
+2. When sending an email, an MDN can be requested. This must be done with the help of a header, and is already specified by [@!RFC8098] and can already be handled by [@!I-D.ietf-jmap-mail] this way.
+3. When receiving an MDN, the MDN could be related to an existing sent mail. This is already covered by [@!I-D.ietf-jmap-mail] in the EmailSubmission object. Client could want to display detailed information about a received MDN. This specification defines a EmailSubmission/parseMDN method to cover this case.
 
 ## Notational conventions
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [@!RFC2119].
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@?RFC8174] when, and only when, they appear in all capitals, as shown here.
 
-Type signatures, examples and property descriptions in this document follow the conventions established in Section 1.1 of <https://tools.ietf.org/html/draft-ietf-jmap-core-06>.
-Email object and methods are defined in <https://tools.ietf.org/html/draft-ietf-jmap-mail-06>.
+Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1 of [@!I-D.ietf-jmap-core]. Data types defined in the core specification are also used in this document.
+
+Servers MUST support all properties specified for the new data types defined in this document.
 
 ## Terminology
 
@@ -19,30 +26,32 @@ The same terminology is used in this document as in the core JMAP specification.
 
 The capabilities object is returned as part of the standard JMAP Session object; see the JMAP spec. Servers supporting *this* specification MUST add a property called `urn:ietf:params:jmap:mdn` to the capabilities object.
 
-
-# Email/createMDN
-
-The Email/createMDN method create a [@!RFC5322] message from MDN properties.
-
-It takes the following arguments:
-
-- **accountId**: `String|null`
-  The id of the account to use for this call. If `null`, defaults to the `urn:ietf:params:jmap:mail` primary account.
-- **mdns**: `String[MDN]`
-  A map of creation id (client specified) to MDN objects
+# MDN
 
 An **MDN** object has the following properties:
 
-- **referencedMessageId**: `String`
-  Message Id of the received message the user wants to create an MDN for.
-- **subject**: `String`
-  Subject that will be used as `Subject` header for this MDN.
-- **textBody**: `String`
+- **forEmailId**: `String`
+  Email Id of the received email this MDN is relative to.
+- **subject**: `String|null`
+  Subject used as `Subject` header for this MDN.
+- **textBody**: `String|null`
   Human readable part of the MDN, as plain text.
-- **reportingUA**: `String`
+- **reportingUA**: `String|null`
   Name of the MUA creating this MDN. It is used to build the MDN Report part of the MDN.
 - **disposition**: `Disposition`
   Object containing the diverse MDN disposition options.
+- **mdnGateway**: `String|null` (server-set)
+  Name of the gateway or MTA that translated a foreign (non-Internet) message disposition notification into this MDN.
+- **originalRecipient**: `String|null` (server-set)
+  Original recipient address as specified by the sender of the message for which the MDN is being issued.
+- **finalRecipient**: `String` (server-set)
+  Recipient for which the MDN is being issued.
+- **originalMessageID**: `String|null` (server-set)
+  Message-ID (the [@!RFC5322] header field, not the JMAP Id) of the message for which the MDN is being issued.
+- **error**: `String[]|null` (server-set)
+  Additional information in the form of text messages when the "error" disposition modifier appears.
+- **extensionFields**: `String[String]|null` (server-set)
+  Object where keys are extension-field names and values are extension-field values.
 
   A **Disposition** object has the following properties:
 
@@ -55,18 +64,165 @@ An **MDN** object has the following properties:
 
   See [@!RFC8098] for the exact meaning of these different fields.
 
-If the *referencedMessageId*, *subject*, *textBody*, *reportingUA*, *disposition* properties are invalid (e.g. missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
+# Methods added to the EmailSubmission object
 
-If the email cannot be created because it would take the account over quota, the creation should be rejected with a `maxQuotaReached` SetError.
+## EmailSubmission/sendMDN
+
+The EmailSubmission/sendMDN method generates and sends an [@!RFC5322] message from an MDN object.
+
+It takes the following arguments:
+
+- **accountId**: `Id`
+  The id of the account to use.
+- **mdns**: `String[MDN]`
+  A map of creation id (client specified) to MDN objects
+
+If the *forEmailId*, *subject*, *textBody*, *reportingUA*, *disposition* properties are invalid (e.g. missing, wrong type, id not found), the submission creation is rejected with a standard `invalidProperties` SetError and no email is sent. Any other error usually sent by "EmailSubmission/set" for **create** can be returned by this method.
+
+The client SHOULD NOT issue a sendMDN request if the message has the `$MDNSent` keyword set. In this case, the server MUST reject the submission with a standard `forbiddenToSend` SetError.
+
+When sending the MDN, the server is in charge of generating the *originalRecipient*, *finalRecipient* and *originalMessageID* fields accordingly to the [@!RFC8098] specification.
 
 The response has the following arguments:
 
 - **accountId**: `String`
   The id of the account used for this call.
-- **created**: `String[Email]`
-  A map of the creation id to an object build from the referenced properties. The *blobId* field of the Email objects can then be used to effectively send the MDN.
+- **created**: `String[EmailSubmission]`
+  A map of creation id (client-specified) to an email sent from the referenced properties. The returned EmailSubmission is similar to a call to a standard "EmailSubmission/set" with a *create* parameter.
 - **notCreated**: `String[SetError]`
-  A map of creation id to a SetError object for each Email that failed to be created. The possible errors are defined above.
+  A map of creation id to a SetError object for each Email that failed to be sent. The possible errors are defined above.
+
+For each `forEmailId` whose EmailSubmission where created, the server MUST add a `$MDNSent` keyword to the email.
+
+## EmailSubmission/parseMDN
+
+This method allows you to parse blobs as [@!RFC5322] messages to get MDN objects. This can be used to parse and get detailed information about blobs referenced in the *mdnBlobIds* of the EmailSubmission object, or any email the client could expect to be an MDN.
+
+The *forEmailId* property can be null or missing if the *originalMessageID* property is missing or not referencing an existing email.
+
+The Email/parse method takes the following arguments:
+
+- **accountId**: `String`
+  The id of the account to use.
+- **blobIds**: `Id[]`
+  The ids of the blobs to parse.
+
+The response has the following arguments:
+
+- **accountId**: `Id`
+  The id of the account used for the call.
+- **parsed**: `Id[Email]|null`
+  A map of blob id to parsed Email representation for each successfully parsed blob, or null if none.
+- **notParsable**: `Id[]|null`
+  A list of ids given that corresponded to blobs that could not be parsed as MDNs, or null if none.
+- **notFound**: `Id[]|null`
+  A list of blob ids given that could not be found, or null if none.
+
+# Samples
+
+## Sending an MDN for a received email
+
+A client can use the following request to send an MDN back to the sender:
+
+    [[ "EmailSubmission/sendMDN", {
+      "accountId": "ue150411c",
+      "mdns": {
+        "k1546": {
+          "forEmailId": "Md45b47b4877521042cec0938",
+          "subject": "Read receipt for: World domination",
+          "textBody": "This receipt shows that the email has been 
+              displayed on your recipient's computer. There is no 
+              guaranty it has been read or understood.",
+          "reportingUA": "linagora.com; OpenPaaS",
+          "disposition": {
+            "actionMode": "manual-action",
+            "sendingMode": "MDN-sent-manually",
+            "type": "displayed"
+          }
+        }
+      }
+    }, "0" ]]
+
+If the email id matches an existing email without the `$MDNSent` keyword, the server can answer:
+
+    [[ "EmailSubmission/sendMDN", {
+      "accountId": "ue150411c",
+      "oldState": "012421s6-8nrq-4ps4-n0p4-9330r951ns21",
+      "newState": "355421f6-8aed-4cf4-a0c4-7377e951af36",
+      "created": {
+        "k1546": {
+          "id": "73191acf-ede7-4008-bde2-57cd9ed3c559"
+        }
+      }
+    }, "0" ],
+
+
+## Asking for MDN when sending an email
+
+This is done with the [@!I-D.ietf-jmap-mail] "Email/set" *create* method.
+
+    [[ "Email/set", {
+      "accountId": "ue150411c",
+      "create": {
+        "k1546": {
+          "mailboxIds": {
+            "2ea1ca41b38e": true
+          },
+          "keywords": {
+            "$seen": true,
+            "$draft": true
+          },
+          "from": [{
+            "name": "Joe Bloggs",
+            "email": "joe@example.com"
+          }],
+          "to": [{
+            "name": "John",
+            "email": "john@example.com"
+          }],
+          "headers:" [{
+            "name": "Disposition-Notification-To",
+            "value": "joe@example.com"
+          }],
+          "subject": "World domination",
+          ...
+        }
+      }
+    }, "0" ]]
+
+Note the specified `Disposition-Notification-To` header indicating where to send MDN back (usually the sender of the email).
+
+## Parsing a received MDN
+
+The client issues a parse request:
+
+    [[ "EmailSubmission/parseMDN", {
+      "accountId": "ue150411c",
+      "blobIds: "0f9f65ab-dc7b-4146-850f-6e4881093965"
+    }, "0" ]]
+
+The server responds:
+
+    [[ "EmailSubmission/parseMDN", {
+      "accountId": "ue150411c",
+      "parsed": {
+        "0f9f65ab-dc7b-4146-850f-6e4881093965": {
+          "forEmailId": "Md45b47b4877521042cec0938",
+          "subject": "Read receipt for: World domination",
+          "textBody": "This receipt shows that the email has been 
+              displayed on your recipient's computer. There is no 
+              guaranty it has been read or understood.",
+          "reportingUA": "linagora.com; OpenPaaS",
+          "disposition": {
+            "actionMode": "manual-action",
+            "sendingMode": "MDN-sent-manually",
+            "type": "displayed"
+          }
+          "finalRecipient": "rfc822; john@example.com",
+          "originalMessageID": "<1521557867.2614.0.camel@apache.org>"
+        }
+      }
+    }, "0" ]]
 
 # IANA Considerations
 
@@ -82,5 +238,41 @@ Intended use: common
 
 Change Controller: IETF
 
-Security and privacy considerations: this document, section 4.
+Security and privacy considerations: this document, section 6.
 
+## Registration of JMAP keyword '$MDNSent'
+
+This registers the JMAP keyword '$MDNSent' in the "IMAP and JMAP
+keywords Registry".
+
+Keyword name: `$MDNSent`
+
+Scope: IMAP and JMAP
+
+Purpose (description): Specifies that a Message Disposition Notification (MDN) must not be sent for any message annotated with the $MDNSent IMAP keyword.
+
+Private or Shared on a server: SHARED
+
+Is it an advisory keyword or may it cause an automatic action: This keyword can cause automatic action by the client.  See [@!RFC3503] for more details.
+
+When/by whom the keyword is set/cleared: This keyword is set by an IMAP client when it decides to act on an MDN request, or when
+uploading a sent or draft message.  It can also be set by a delivery agent.  Once set, the flag SHOULD NOT be cleared.
+
+Related keywords: None
+
+Related IMAP/JMAP Capabilities: None
+
+Security Considerations: See Section 6 of [@!RFC3503]
+
+Published specification (recommended): this document
+
+Person & email address to contact for further information:
+(editor-contact-goes-here)
+
+Intended usage: COMMON
+
+Owner/Change controller: IESG
+
+# Security considerations
+
+The same considerations regarding MDN (see [@!RFC8098]) apply to this document.
