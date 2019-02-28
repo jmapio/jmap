@@ -100,7 +100,7 @@ There are three different levels of granularity at which an error may be returne
 
 When an API request is made, the request as a whole may be rejected due to rate limiting, malformed JSON, request for an unknown capability etc. In this case the entire request is rejected with an appropriate HTTP error response code, and an additional JSON body with more detail for the client.
 
-Provided the request itself is syntactically valid, the methods within it are executed sequentially by the server. Each method may individually fail, for example if invalid arguments are given, or an unknown method name is called.
+Provided the request itself is syntactically valid (the JSON is valid, and when decoded matches the type signature of a Request object), the methods within it are executed sequentially by the server. Each method may individually fail, for example if invalid arguments are given, or an unknown method name is called.
 
 Finally, methods that make changes to the server state often act upon a number of different records within a single call. Each record change may be separately rejected with a SetError, as described in section 5.3.
 
