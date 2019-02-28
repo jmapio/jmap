@@ -14,8 +14,8 @@ Use of the Basic authentication scheme is NOT RECOMMENDED. Services that choose 
 
 ## Service autodiscovery
 
-Unless secured by something like DNSSEC, autodiscovery of server details is
-vulnerable to a DNS poisoning attack leading to the client talking to an attacker's server instead of the real JMAP server. The attacker may then man-in-the-middle requests and depending on the authentication scheme, steal credentials to generate its own requests.
+Unless secured by something like DNSSEC, DNS SRV-based autodiscovery of server
+details is vulnerable to a DNS poisoning attack leading to the client talking to an attacker's server instead of the real JMAP server. The attacker may then man-in-the-middle requests and depending on the authentication scheme, steal credentials to generate its own requests.
 
 Clients that do not support SRV lookups are likely to try just using the `/.well-known/jmap` path directly against the domain of the username over HTTPS. Servers SHOULD ensure this path resolves or redirects to the correct JMAP Session resource to allow this to work. If this is not feasible, servers MUST ensure this path cannot be controlled by an attacker, as again it may be used to steal credentials.
 
