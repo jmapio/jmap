@@ -847,7 +847,8 @@ The response has the following arguments:
 
     If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were removed but have a higher index than *upToId* SHOULD be omitted.
 
-    If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current results for which this property MAY have changed.
+    If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current results for which this property may have changed. The position of these may have moved in the results so must be
+    reinserted by the client to ensure its query cache is correct.
 
 - **added**: `AddedItem[]`
   The id and index in the query results (in the new state) for every foo that has been added to the results since the old state AND every foo in the current results that was included in the *removed* array (due to a filter or sort based upon a mutable property).
