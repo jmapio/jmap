@@ -193,7 +193,7 @@ To allow clients to make more efficient use of the network and avoid round
 trips, an argument to one method can be taken from the result of a previous
 method call in the same request.
 
-To do this, the client prefixes the argument name with `#`. The value is a *ResultReference* object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with `#`. If found, the back reference should be resolved and the value used as the "real" argument. The method is then processed as normal. If any back reference fails to resolve, the whole method MUST be rejected with an `invalidResultReference` error. If an argument object contains the same argument name in normal and referenced form (e.g. `foo` and `#foo`), the method MUST return an `invalidArguments` error.
+To do this, the client prefixes the argument name with `#` (an octothorpe). The value is a *ResultReference* object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with `#`. If found, the back reference should be resolved and the value used as the "real" argument. The method is then processed as normal. If any back reference fails to resolve, the whole method MUST be rejected with an `invalidResultReference` error. If an argument object contains the same argument name in normal and referenced form (e.g. `foo` and `#foo`), the method MUST return an `invalidArguments` error.
 
 A **ResultReference** object has the following properties:
 
