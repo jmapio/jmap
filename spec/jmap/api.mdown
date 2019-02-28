@@ -33,9 +33,9 @@ A **Request** object has the following properties:
 - **createdIds**: `Id[Id]` (optional)
   A map of (client-specified) creation id to the id the server assigned when a record was successfully created.
 
-    As described later in this specification, some records may have a property that contains the id of another record. To allow more efficient network usage, you can set this property to reference a record created earlier in the same API request. Since the real id is unknown when the request is created, the client can instead specify the creation id it assigned, prefixed with a `#` (see section (#set) for more details).
+    As described later in this specification, some records may have a property that contains the id of another record. To allow more efficient network usage, you can set this property to reference a record created earlier in the same API request. Since the real id is unknown when the request is created, the client can instead specify the creation id it assigned, prefixed with a `#` (see section 5.3 for more details).
 
-    As the server processes API requests, any time it successfully creates a new record it adds to this map the creation id (see the *create* argument to "/set" in section (#set)), with the server-assigned real id as the value. If it comes across a reference to a creation id in a create/update, it looks it up in the map and replaces the reference with the real id, if found.
+    As the server processes API requests, any time it successfully creates a new record it adds to this map the creation id (see the *create* argument to "/set" in section 5.3), with the server-assigned real id as the value. If it comes across a reference to a creation id in a create/update, it looks it up in the map and replaces the reference with the real id, if found.
 
     The client can pass an initial value for this map as the *createdIds* property of the Request. This may be an empty object. If given in the request, the response will also include a createdIds property, with any additionally created ids added. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve. See section 5.8 for further discussion of proxy considerations.
 
@@ -507,7 +507,7 @@ The following additional errors may be returned instead of the *Foo/changes* res
 
 Maintaining state to allow calculation of *Foo/changes* can be expensive for the server, but always returning *cannotCalculateChanges* severely increases network traffic and resource usage for the client. To allow efficient sync, servers SHOULD be able to calculate changes from any state string that was given to a client within the last 30 days (but of course may support calculating updates from states older than this).
 
-## /set {#set}
+## /set
 
 Modifying the state of Foo objects on the server is done via the *Foo/set* method. This encompasses creating, updating and destroying Foo records. This allows the server to sort out ordering and dependencies that may exist if doing multiple operations at once (for example to ensure there is always a minimum number of a certain record type).
 
