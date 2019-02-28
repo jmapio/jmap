@@ -6,7 +6,17 @@ The client may make an API request to the server to get or set structured data. 
 
 To make an API request, the client makes an authenticated POST request to the API resource, which is defined by the *apiUrl* property in the JMAP Session object.
 
-The request MUST be of type `application/json` and consist of a single JSON **Request** object. If successful, the response MUST also be of type `application/json` and consist of a single **Response** object.
+The request MUST be of type `application/json` and consist of a single JSON **Request** object, as defined in section 3.2. If successful, the response MUST also be of type `application/json` and consist of a single **Response** object, as defined in section 3.3.
+
+### The Invocation data type
+
+Method calls and responses are represented by the **Invocation** data type. This is a tuple, represented as a JSON array containing three elements:
+
+1. A `String` **name** of the method to call or of the response.
+2. A `String[*]` object containing *named* **arguments** for that method or
+   response.
+3. A `String` **method call id**: an arbitrary string from the client to be
+   echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same method call id in the response).
 
 ## The Request object
 
@@ -19,12 +29,6 @@ A **Request** object has the following properties:
 
 - **methodCalls**: `Invocation[]`
   An array of method calls to process on the server. The method calls MUST be processed sequentially, in order.
-
-    An **Invocation** is a tuple, represented as a JSON array containing three elements:
-
-    1. A `String` **name** of the method to call.
-    2. A `String[*]` object containing *named* **arguments** for that method.
-    3. A `String` **method call id**: an arbitrary string from the client to be echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same method call id in the response).
 
 - **createdIds**: `Id[Id]` (optional)
   A map of (client-specified) creation id to the id the server assigned when a record was successfully created.
