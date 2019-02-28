@@ -865,17 +865,19 @@ The result of this is that if the client has a cached sparse array of foo ids co
 
     fooIds = [ "id1", "id2", null, null, "id3", "id4", null, null, null ]
 
-then if it **splices out** all foos in the removed array:
+then if it **splices out** all ids in the removed array that it has in its cached results:
 
-    removed = [ "id2", ... ];
+    removed = [ "id2", "id31", ... ];
     fooIds => [ "id1", null, null, "id3", "id4", null, null, null ]
 
-and **splices in** (in order) all of the foos in the added array:
+and **splices in** (one-by-one in order, starting with the lowest index) all of the ids in the added array:
 
     added = [{ id: "id5", index: 0, ... }];
     fooIds => [ "id5", "id1", null, null, "id3", "id4", null, null, null ]
 
 and **truncates** or **extends** to the new total length, then the results will now be in the new state.
+
+Note: splicing in adds the item at the given index, incrementing the index of all items previously at that or a higher index. Splicing out is the inverse, removing the item and decrementing the index of every item after it in the array.
 
 The following additional errors may be returned instead of the *Foo/queryChanges* response:
 
