@@ -47,13 +47,13 @@ This document defines three additional capability URIs.
 
 This represents support for the Mailbox, Thread, Email, and SearchSnippet data types and associated API methods. The value of this property is an object which MUST contain the following information on server capabilities:
 
-- **maxMailboxesPerEmail**: `PositiveInt|null`
+- **maxMailboxesPerEmail**: `UnsignedInt|null`
   The maximum number of mailboxes that can be can assigned to a single email. This MUST be an integer >= 1, or `null` for no limit (or rather, the limit is always the number of mailboxes in the account).
-- **maxMailboxDepth**: `PositiveInt|null`
+- **maxMailboxDepth**: `UnsignedInt|null`
   The maximum depth of the mailbox hierarchy (i.e. one more than the maximum number of ancestors a mailbox may have), or `null` for no limit.
-- **maxSizeMailboxName**: `PositiveInt`
+- **maxSizeMailboxName**: `UnsignedInt`
   The maximum length, in (UTF-8) octets, allowed for the name of a mailbox. This MUST be at least 100, although it is recommended servers allow more.
-- **maxSizeAttachmentsPerEmail**: `PositiveInt`
+- **maxSizeAttachmentsPerEmail**: `UnsignedInt`
   The maximum total size of attachments, in octets, allowed for a single email. A server MAY still reject import or creation of emails with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
 
     Note, this limit is for the sum of unencoded attachment sizes. Users are generally not knowledgeable about encoding overhead etc., nor should they need to be, so marketing and help materials normally tell them the "max size attachments". This is the unencoded size they see on their hard drive, and so this capability matches that and allows the client to consistently enforce what the user understands as the limit.
@@ -67,7 +67,7 @@ This represents support for the Mailbox, Thread, Email, and SearchSnippet data t
 
 This represents support for the Identity and MessageSubmission data types and associated API methods. The value of this property is an object which MUST contain the following information on server capabilities:
 
-- **maxDelayedSend**: `PositiveInt`
+- **maxDelayedSend**: `UnsignedInt`
   The number in seconds of the maximum delay the server supports in sending
   (see the EmailSubmission object description). This is `0` if the server does
   not support delayed send.

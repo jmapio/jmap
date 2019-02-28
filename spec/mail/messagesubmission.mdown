@@ -195,7 +195,7 @@ If the referenced email is destroyed at any point after the EmailSubmission obje
 
 Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the email submission. The server MAY automatically destroy EmailSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
 
-If the email to be sent is larger than the server supports sending, a standard `tooLarge` SetError MUST be returned. A *maxSize* `PositiveInt` property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
+If the email to be sent is larger than the server supports sending, a standard `tooLarge` SetError MUST be returned. A *maxSize* `UnsignedInt` property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
 
 If the email or identity id given cannot be found, the submission creation is rejected with a standard `invalidProperties` SetError.
 
@@ -206,7 +206,7 @@ For **create**:
 - `invalidEmail` - The email to be sent is invalid in some way. The
   SetError SHOULD contain a property called *properties* of type `String[]` that lists **all** the properties of the email that were invalid.
 - `tooManyRecipients` - The envelope (supplied or generated) has more
-  recipients than the server allows. A *maxRecipients* `PositiveInt` property MUST also be present on the SetError specifying the maximum number of allowed recipients.
+  recipients than the server allows. A *maxRecipients* `UnsignedInt` property MUST also be present on the SetError specifying the maximum number of allowed recipients.
 - `noRecipients` – The envelope (supplied or generated) does not have any
   rcptTo emails.
 - `invalidRecipients` – The *rcptTo* property of the envelope (supplied or
