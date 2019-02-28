@@ -74,7 +74,7 @@ The POST request MUST have a content type of `application/json` and contain the 
 
 The JMAP server acts as an Application Server as defined in [@!RFC8030]. A client MAY use the rest of [@!RFC8030] in combination with its own Push Service to form a complete end-to-end solution, or MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
 
-The push subscription is tied to the credentials used to authenticate the API request that created it. Should these credentials expire or be revoked, the push subscription MUST be destroyed by the JMAP server.
+The push subscription is tied to the credentials used to authenticate the API request that created it. Should these credentials expire or be revoked, the push subscription MUST be destroyed by the JMAP server. Only subscriptions created by these credentials are returned when the client fetches existing subscriptions.
 
 When these credentials have their own expiry (i.e. it is a session with a timeout), the server SHOULD NOT set or bound the expiry time for the push subscription given by the client, but MUST expire it when the session expires.
 
@@ -85,6 +85,8 @@ In the case of separate access and refresh credentials, as in [@!RFC6749] Oauth 
 ### PushSubscription/get
 
 Standard */get* method, except it does **not** take or return an *accountId* argument, as push subscriptions are not tied to specific accounts. It also does **not** return a *state* argument. The *ids* argument may be `null` to fetch all at once.
+
+The server MUST only return push subscriptions that were created using the same authentication credentials as for this PushSubscription/get request.
 
 As the *url* and *keys* properties may contain data that is private to a particular device, the values for these properties MUST NOT be returned. If the *properties* argument is `null` or omitted, the server MUST default to all properties excluding these two. If one of them is explicitly requested, the method call MUST be rejected with a `forbidden` error.
 
