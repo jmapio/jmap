@@ -82,6 +82,8 @@ When these credentials are not time bounded (e.g. [@!RFC7617] Basic Authenticati
 
 In the case of separate access and refresh credentials, as in [@!RFC6749] Oauth 2.0, the server SHOULD tie the push subscription to the validity of the refresh token rather than the access token, and behave according to whether this is time-limited or not.
 
+When a push subscription is destroyed, the server MUST securely erase the URL and encryption keys from memory and storage as soon as possible.
+
 ### PushSubscription/get
 
 Standard */get* method as described in section 5.1, except it does **not** take or return an *accountId* argument, as push subscriptions are not tied to specific accounts. It also does **not** return a *state* argument. The *ids* argument may be `null` to fetch all at once.
