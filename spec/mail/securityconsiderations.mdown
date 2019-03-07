@@ -59,6 +59,41 @@ There are a number of ways clients can mitigate these issues, and a defence-in-d
 
 As highly complex software components, HTML rendering engines increase the attack surface of a client considerably, especially when being used to process untrusted, potentially malicious content. Serious bugs have been found in image decoders, JavaScript engines and HTML parsers in the past, which could lead to full system compromise. Clients using an engine should ensure they get the latest version and continue to incorporate any security patches released by the vendor.
 
+## Multiple part display
+
+Messages may consist of multiple parts to be displayed sequentially as a body. Clients MUST render each part in isolation and MUST NOT concatenate the raw text values to render. Doing so may change the overall semantics of the message. If the client or server is decrypting a PGP or S/MIME encrypted part, concatenating with other parts may leak the decrypted text to an attacker, as described in [@?EFAIL].
+
+<reference anchor='EFAIL' target='https://www.usenix.org/system/files/conference/usenixsecurity18/sec18-poddebniak.pdf'>
+    <front>
+    <title>Efail: Breaking S/MIME and OpenPGP Email Encryption using Exfiltration Channels</title>
+    <author initials='D.' surname='Poddebniak' fullname='Damian Poddebniak'>
+      <organization>Münster University of Applied Sciences</organization>
+    </author>
+    <author initials='C.' surname='Dresen' fullname='Christian Dresen'>
+      <organization>Münster University of Applied Sciences</organization>
+    </author>
+    <author initials='J.' surname='Müller' fullname='Jens Müller'>
+      <organization>Ruhr University Bochum</organization>
+    </author>
+    <author initials='F.' surname='Ising' fullname='Fabian Ising'>
+      <organization>Münster University of Applied Sciences</organization>
+    </author>
+    <author initials='S.' surname='Schinzel' fullname='Sebastian Schinzel'>
+      <organization>Münster University of Applied Sciences</organization>
+    </author>
+    <author initials='S.' surname='Friedberger' fullname='Simon Friedberger'>
+      <organization>NXP Semiconductors</organization>
+    </author>
+    <author initials='J.' surname='Somorovsky' fullname='Juraj Somorovsky'>
+      <organization>Ruhr University Bochum</organization>
+    </author>
+    <author initials='J.' surname='Schwenk' fullname='Jörg Schwenk'>
+      <organization>Ruhr University Bochum</organization>
+    </author>
+    <date year='2018'/>
+    </front>
+</reference>
+
 ## Email submission
 
 SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters (mail filters) and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP Submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de-facto [@?XCLIENT] extension to SMTP can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorized proxies.
