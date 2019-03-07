@@ -129,3 +129,17 @@ A user may only have permission to access a subset of the data that exists in an
 For example, suppose user A has an account with two mailboxes, Inbox and Sent, but only shares the Inbox with user B. In this case, when user B fetches mailboxes for this account, the server MUST behave as though the Sent mailbox did not exist. Similarly when querying or fetching Email objects, it MUST treat any messages that just belong to the Sent mailbox as though they did not exist. Fetching Thread objects MUST only return ids for Email objects the user has permission to access; if none, the Thread again MUST be treated the same as if it did not exist.
 
 If the server forbids a single account from having two identical messages, or two messages with the same `Message-Id` header field, a user with write access can use the error returned trying to create/import such a message to detect whether it already exists in an inaccessible portion of the account.
+
+## Permission to send from an address
+
+The email ecosystem has in recent years moved towards associating trust with the From address in the [@!RFC5322] message, particularly with schemes such as DMARC ([@?RFC7489]).
+
+The set of Identity objects (see section 6) in an account lets the client know which email addresses the user has permission to send from. Each email submission is associated with an identity, and servers SHOULD reject submissions where the `From` header field of the email does not correspond to the associated identity.
+
+The server MAY allow an exception to send an exact copy of an existing message received into the mail store to another address (otherwise known as "redirecting" or "bouncing"), although it is RECOMMENDED the server limit this to destinations the user has verified they also control.
+
+If the user attempts to create a new Identity, the server MUST reject it with the appropriate error if the user does not have permission to use that email address to send from.
+
+The [@!RFC5321] SMTP MAIL FROM address is often confused with the [@!RFC5322] message header. The user generally only ever sees the message header address, and this is the primary one to enforce. However the server MUST also enforce appropriate restrictions on the [@!RFC5321] MAIL FROM address to stop the user from flooding a 3rd party address with bounces and non-delivery notices.
+
+The JMAP submission model provides separate errors for impermissible addresses in either context.
