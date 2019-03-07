@@ -108,7 +108,7 @@ SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damag
     </front>
 </reference>
 
-JMAP servers that proxy to an SMTP Submission server SHOULD allow use of the *submissions* port [@!RFC8314] and SHOULD implement SASL PLAIN over TLS [@!RFC4616] and/or TLS client certificate authentication with SASL EXTERNAL [@!RFC4422] appendix A. Implementation of a mechanism similar to SMTP XCLIENT is strongly encouraged.
+JMAP servers that proxy to an SMTP Submission server SHOULD allow use of the *submissions* port [@!RFC8314]. Implementation of a mechanism similar to SMTP XCLIENT is strongly encouraged. While SASL PLAIN over TLS [@!RFC4616] is presently the mandatory-to-implement mechanism for interoperability with SMTP submission servers [@!RFC4954], a JMAP submission proxy SHOULD implement and prefer a stronger mechanism for this use case such as TLS client certificate authentication with SASL EXTERNAL ([@!RFC4422] appendix A) or SCRAM [@!RFC7677].
 
 In the event the JMAP server directly relays mail to SMTP servers in other administrative domains, then implementation of the de-facto [@?milter] protocol is strongly encouraged to integrate with third-party products that address security issues including anti-virus/anti-spam, reputation protection, compliance archiving, and data loss prevention. Proxying to a local SMTP Submission server may be a simpler way to provide such security services.
 
