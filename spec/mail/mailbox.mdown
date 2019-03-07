@@ -52,11 +52,11 @@ A **Mailbox** object has the following properties:
   The set of rights (ACLs) the user has in relation to this mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A *MailboxRights* object has the following properties:
 
     - **mayReadItems**: `Boolean`
-      If true, the user may use this mailbox as part of a filter in a *Email/query* call and the mailbox may be included in the *mailboxIds* set of *Email* objects. Email objects may be fetched if they are in **at least one** mailbox with this permission. If a sub-mailbox is shared but not the parent mailbox, this may be `false`. Corresponds to IMAP ACLs `lr`.
+      If true, the user may use this mailbox as part of a filter in a *Email/query* call and the mailbox may be included in the *mailboxIds* set of *Email* objects. Email objects may be fetched if they are in **at least one** mailbox with this permission. If a sub-mailbox is shared but not the parent mailbox, this may be `false`. Corresponds to IMAP ACLs `lr` (if mapping from IMAP, both are required for this to be `true`).
     - **mayAddItems**: `Boolean`
       The user may add mail to this mailbox (by either creating a new email or moving an existing one). Corresponds to IMAP ACL `i`.
     - **mayRemoveItems**: `Boolean`
-      The user may remove mail from this mailbox (by either changing the mailboxes of an email or deleting it). Corresponds to IMAP ACLs `te`.
+      The user may remove mail from this mailbox (by either changing the mailboxes of an email or deleting it). Corresponds to IMAP ACLs `te` (if mapping from IMAP, both are required for this to be `true`).
     - **maySetSeen**: `Boolean`
       The user may add or remove the `$seen` keyword to/from an email. If an email belongs to multiple mailboxes, the user may only modify `$seen` if **all** of the mailboxes have this permission. Corresponds to IMAP ACL `s`.
     - **maySetKeywords**: `Boolean`
@@ -64,9 +64,9 @@ A **Mailbox** object has the following properties:
     - **mayCreateChild**: `Boolean`
       The user may create a mailbox with this mailbox as its parent. Corresponds to IMAP ACL `k`.
     - **mayRename**: `Boolean`
-      The user may rename the mailbox or make it a child of another mailbox. Corresponds to IMAP ACL `x`.
+      The user may rename the mailbox or make it a child of another mailbox. Corresponds to IMAP ACL `x` (although this covers both rename and delete permissions).
     - **mayDelete**: `Boolean`
-      The user may delete the mailbox itself. Corresponds to IMAP ACL `x`.
+      The user may delete the mailbox itself. Corresponds to IMAP ACL `x` (although this covers both rename and delete permissions).
     - **maySubmit**: `Boolean`
       Messages may be submitted directly to this mailbox. Corresponds to IMAP ACL `p`.
 
