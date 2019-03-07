@@ -100,7 +100,7 @@ The server MUST include the appropriate capability strings in the *hasDataFor* p
 
 Servers MUST support the JMAP push mechanisms, as specified in [@!I-D.ietf-jmap-core] section 7, to receive notifications when the state changes for any of the types defined in this specification.
 
-In addition, servers MUST support pushing state changes for a type called "EmailDelivery". There are no methods to act on this type; it only exists as part of the push mechanism. The state string for this MUST change whenever a new Email is added to the store, but SHOULD NOT change upon any other change to the Email objects, for example if one is marked as read or deleted.
+In addition, servers that implement the "urn:ietf:params:jmap:mail" capability MUST support pushing state changes for a type called "EmailDelivery". There are no methods to act on this type; it only exists as part of the push mechanism. The state string for this MUST change whenever a new Email is added to the store, but SHOULD NOT change upon any other change to the Email objects, for example if one is marked as read or deleted.
 
 Clients in battery constrained environments may wish to delay fetching changes initiated by the user, but fetch new messages immediately so they can notify the user. To do this, they can register for pushes for the EmailDelivery type rather than the Email type (defined in section 4).
 
