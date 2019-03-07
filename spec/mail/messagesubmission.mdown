@@ -191,7 +191,7 @@ A single implicit *Email/set* call MUST be made after all EmailSubmission create
 
 An email is sent by creating an EmailSubmission object. When processing each create, the server must check that the email is valid, and the user has sufficient authorization to send it. If the creation succeeds, the email will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the email during delivery. The server MAY add or remove other headers from the submitted email, or make further alterations in accordance with the server's policy during delivery.
 
-If the referenced email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the email submission (i.e. it does not cancel a future send).
+If the referenced email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the email submission (i.e. it does not cancel a future send). The *emailId* and *threadId* properties of the submission object remain, but trying to fetch them (with a standard Email/get call) will return a `notFound` error if the corresponding objects have been destroyed.
 
 Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the email submission. The server MAY automatically destroy EmailSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
 
