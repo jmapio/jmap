@@ -507,7 +507,7 @@ In this case, the above algorithm would decompose this to:
 
 ## Email/get
 
-Standard "/get" method, with the following additional arguments:
+Standard "/get" method as described in [@!I-D.ietf-jmap-core] section 5.1, with the following additional arguments:
 
 - **bodyProperties**: `String[]`
   A list of properties to fetch for each EmailBodyPart returned. If omitted, this defaults to:
@@ -622,11 +622,11 @@ and response:
 
 ## Email/changes
 
-Standard "/changes" method. If generating intermediate states for a large set of changes, it is recommended that newer changes are returned first, as these are generally of more interest to users.
+Standard "/changes" method as described in [@!I-D.ietf-jmap-core] section 5.2. If generating intermediate states for a large set of changes, it is recommended that newer changes are returned first, as these are generally of more interest to users.
 
 ## Email/query
 
-Standard "/query" method, but with the following additional arguments:
+Standard "/query" method as described in [@!I-D.ietf-jmap-core] section 5.5, but with the following additional arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
   If `true`, emails in the same thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means only one email at most will be included in the list for any given thread.
@@ -730,14 +730,14 @@ When *collapseThreads* is `true`, then after filtering and sorting the email lis
 
 ## Email/queryChanges
 
-Standard "/queryChanges" method, with the following additional arguments:
+Standard "/queryChanges" method as described in [@!I-D.ietf-jmap-core] section 5.6, with the following additional arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
   The *collapseThreads* argument that was used with *Email/query*.
 
 ## Email/set
 
-Standard "/set" method. The *Email/set* method encompasses:
+Standard "/set" method as described in [@!I-D.ietf-jmap-core] section 5.3. The *Email/set* method encompasses:
 
 - Creating a draft
 - Changing the keywords of an email (e.g. unread/flagged status)
@@ -805,7 +805,7 @@ For **create** and **update**:
 
 ## Email/copy
 
-Standard "/copy" method, except only the *mailboxIds*, *keywords* and *receivedAt* properties may be set during the copy. This method cannot modify the RFC5322 representation of an email.
+Standard "/copy" method as described in [@!I-D.ietf-jmap-core] section 5.4, except only the *mailboxIds*, *keywords* and *receivedAt* properties may be set during the copy. This method cannot modify the RFC5322 representation of an email.
 
 The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account; if the target account already has the email the copy will be rejected with a standard `alreadyExists` error.
 
