@@ -185,12 +185,12 @@ Standard "/queryChanges" method as described in [@!I-D.ietf-jmap-core] section 5
 
 Standard "/set" method as described in [@!I-D.ietf-jmap-core] section 5.3, with the following two extra arguments:
 
-- **onSuccessUpdateEmail**: `Id[Email]|null`
-  A map of *EmailSubmission id* to an object containing properties to update on the Email object referenced by the EmailSubmission if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a back-reference so the id will be the creation id prefixed with a `#`.)
+- **onSuccessUpdateEmail**: `Id[PatchObject]|null`
+  A map of *EmailSubmission id* to an object containing properties to update on the Email object referenced by the EmailSubmission if the create/update/destroy succeeds. (For references to EmailSubmissions created in the same "/set" invocation, this is equivalent to a creation-reference so the id will be the creation id prefixed with a `#`.)
 - **onSuccessDestroyEmail**: `Id[]|null`
-  A list of *EmailSubmission ids* for which the email with the corresponding emailId should be destroyed if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a back-reference so the id will be the creation id prefixed with a `#`.)
+  A list of *EmailSubmission ids* for which the email with the corresponding emailId should be destroyed if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a creation-reference so the id will be the creation id prefixed with a `#`.)
 
-A single implicit *Email/set* call MUST be made after all EmailSubmission create/update/destroy requests have been processed to perform any changes requested in these two arguments. The response to this MUST be returned after the *EmailSubmission/set* response.
+A single implicit *Email/set* call MUST be made after all EmailSubmissions cred in the same "/set" invocation/update/destroy requests have been processed to perform any changes requested in these two arguments. The response to this MUST be returned after the *EmailSubmission/set* response.
 
 An email is sent by creating an EmailSubmission object. When processing each create, the server must check that the email is valid, and the user has sufficient authorization to send it. If the creation succeeds, the email will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the email during delivery. The server MAY add or remove other headers from the submitted email, or make further alterations in accordance with the server's policy during delivery.
 
