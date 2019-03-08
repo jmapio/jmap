@@ -50,30 +50,32 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
       This is `true` if the account belongs to the authenticated user, rather than a group account or a personal account of another user that has been shared with them.
     - **isReadOnly**: `Boolean`
       This is `true` if the entire account is read-only.
-    - **hasDataFor**: `String[]`
-      A list of capability URIs for the object types supported in this account.
+    - **accountCapabilities**: `String[Object]`
+      The set of capability URIs for the methods supported in this account. Each key is a URI for a capability that has methods you can use with this account. The value for each of these keys is an object with further information about the account's permissions and restrictions with respect to this capability, as defined in the capability's specification.
 
-        The server advertises the list of capabilities it supports in the
-        capabilities object, as defined above. If the capability includes new
-        object type definitions, the server MUST include it in the
-        *hasDataFor* array if the user may use those data types with this
-        account. It MUST NOT include it in the *hasDataFor* array if the user
-        cannot use those data types with this account.
+        The client MUST ignore any properties it does not understand.
+
+        The server advertises the full list of capabilities it supports in the
+        capabilities object, as defined above. If the capability defines new
+        methods, the server MUST include it in the *accountCapabilities* object
+        if the user may use those methods with this account. It MUST NOT
+        it in the *accountCapabilities* array if the user cannot use those
+        methods with this account.
 
         For example, you may have access to your own account with mail,
         calendars and contacts data, and also a shared account that only has
         contacts data (a  business address book for example). In this case the
-        *hasDataFor* property on the first account would include something like
-        `urn:ietf:params:jmap:mail`, `urn:ietf:params:jmap:calendars`,
-        `urn:ietf:params:jmap:contacts`, while the second account would just
-        have the last of these.
+        *accountCapabilities* property on the first account would include
+        something like `urn:ietf:params:jmap:mail`, `
+        urn:ietf:params:jmap:calendars`, `urn:ietf:params:jmap:contacts`, while
+        the second account would just have the last of these.
 
         Attempts to use the methods defined in a capability with one of the
-        accounts that does not contain those data types are rejected with an
+        accounts that does not support that capability are rejected with an
         *accountNotSupportedByMethod* error (see section 3.5.2: method-level errors).
 
 - **primaryAccounts**: `String[Id]`
-  A map of capability URIs (as found in *hasDataFor*) to the account id to be considered the user's main or default account for data pertaining to that capability. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular URI, even though that capability is supported by the server (and in the capabilities object). `urn:ietf:params:jmap:core` SHOULD NOT be present.
+  A map of capability URIs (as found in *accountCapabilities*) to the account id to be considered the user's main or default account for data pertaining to that capability. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular URI, even though that capability is supported by the server (and in the capabilities object). `urn:ietf:params:jmap:core` SHOULD NOT be present.
 - **username**: `String`
   The username associated with the given credentials, or the empty string if none.
 - **apiUrl**: `String`
@@ -111,26 +113,39 @@ In the following example JMAP Session object, the user has access to their own m
             "i;unicode-casemap"
           ]
         },
+        "urn:ietf:params:jmap:mail": {}
+        "urn:ietf:params:jmap:contacts": {},
         "https://example.com/apis/foobar": {
           "maxFoosFinangled": 42
-        },
-        ...
+        }
       },
       "accounts": {
         "A13824": {
           "name": "john@example.com",
           "isPersonal": true,
           "isReadOnly": false,
-          "hasDataFor": [
-            "urn:ietf:params:jmap:mail",
-            "urn:ietf:params:jmap:contacts"
-          ]
+          "accountCapabilities": {
+            "urn:ietf:params:jmap:mail": {
+              "maxMailboxesPerEmail": null,
+              "maxMailboxDepth": 10,
+              ...
+            },
+            "urn:ietf:params:jmap:contacts": {
+              ...
+            }
+          }
         },
         "A97813": {
           "name": "jane@example.com",
           "isPersonal": false,
           "isReadOnly": true,
-          "hasDataFor": [ "urn:ietf:params:jmap:mail" ]
+          "accountCapabilities": {
+            "urn:ietf:params:jmap:mail": {
+              "maxMailboxesPerEmail": 1,
+              "maxMailboxDepth": 10,
+              ...
+            }
+          }
         }
       },
       "primaryAccounts": {
