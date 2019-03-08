@@ -4,19 +4,19 @@
 
 ## What is JMAP?
 
-JMAP is a modern standard for email clients to connect to mail stores. It therefore primarily replaces IMAP + SMTP submission. It does not replace MTA-to-MTA SMTP transmission. JMAP was built by the community, and continues to improve via the [IETF standardization process](https://datatracker.ietf.org/wg/jmap/about/). Upcoming work includes adding contacts and calendars (replacing CardDAV/CalDAV).
+JMAP (JSON Meta Application Protocol) is a modern standard for email clients to connect to mail stores. It therefore primarily replaces IMAP + SMTP submission. It does not replace MTA-to-MTA SMTP transmission. JMAP was built by the community, and continues to improve via the [IETF standardization process](https://datatracker.ietf.org/wg/jmap/about/). Upcoming work includes adding contacts and calendars (replacing CardDAV/CalDAV).
 
 ## Why is this needed?
 
-It's too hard to write a good MUA with current standards, which has led to a stagnation in good email clients and a proliferation of proprietary protocols.
+It's difficult to write a good mail user agent (MUA) with current standards, which has led to a stagnation in good email clients and a proliferation of proprietary protocols.
 
-In addition, IMAP is really not suited to a constrained network environment, as often found on mobile networks even in developed countries. The chatty nature of the IMAP protocol is ill-suited to high latency connections. Things like a folder rename on the server can mean that all the downloaded and cached email for that folder is invalidated (because you can't tell for sure over the protocol that they're the exact same messages), wasting huge amounts of bandwidth. Stateful connections make it harder to deal with intermittent network outages.
+In addition, IMAP is really not suited to a constrained network environment, as is often found on mobile networks even in developed countries. The chatty nature of the IMAP protocol is ill-suited to high-latency connections. Actions like a folder rename on the server can mean that all the downloaded and cached email for that folder is invalidated (because it can't be determined over the protocol that the messages are exactly the same as they were), wasting huge amounts of bandwidth. Stateful connections make it harder to deal with intermittent network outages.
 
-We're standardising a new protocol because lots of people are writing proprietary alternatives to deal with the same deficiencies with the current standards. Some of these deficiencies could be fixed by adding things to IMAP (for example persistent IDs on folders and messages for better caching when another client copies, moves or renames), but others are structural like the need to calculate a MSGNO <=> UID mapping even if the client doesn't want it, or the need to find endpoints and authenticate separately to multiple different protocols to do related tasks.
+We're standardising a new protocol because lots of people are writing proprietary alternatives to deal with the same deficiencies with the current standards. Some of these deficiencies could be fixed by additions to IMAP (for example persistent IDs on folders and messages for better caching when another client copies, moves or renames them), but others are structural like the need to calculate a MSGNO <=> UID mapping even if the client doesn't require it, or the need to find endpoints and authenticate separately to multiple different protocols to do related tasks.
 
-Because it's so hard to write a good email client that works with any IMAP provider, these days many new clients are just for Gmail (with possibly support for a few other big mailbox providers). It's easy to see why: IMAP is either the woefully inadequate original [RFC3501](https://tools.ietf.org/html/rfc3501), or it's a messy set of incomplete implementations of some of the extensions. Even CONDSTORE (without QRESYNC) is pushing it; you can't rely on it to be there in most cases.
+Because it's so hard to write a good email client that works with any IMAP provider, these days many new clients are written just for Gmail (with possibly support for a few other big mailbox providers). It's easy to see why: IMAP is either the woefully inadequate original [RFC3501](https://tools.ietf.org/html/rfc3501), or it's a messy set of incomplete implementations of some of the extensions. Even CONDSTORE (without QRESYNC) is pushing it; it can't be relied on to be there in most cases.
 
-As a result of this, proprietary protocols have been popping up as alternatives to IMAP. Here are a few examples, the latter two being from whole companies that formed just to try to help people not have to deal with IMAP:
+As a result of this difficulty, proprietary protocols have been popping up as alternatives to IMAP. Here are a few examples, the latter two being from whole companies that formed just to try to help people not have to deal with IMAP:
 
 * [Gmail](https://developers.google.com/gmail/api/v1/reference/)
 * [Outlook](https://msdn.microsoft.com/office/office365/APi/mail-rest-operations)
@@ -27,66 +27,67 @@ In addition, we're seeing most new mobile email clients proxy everything via the
 
 Despite not only being proprietary but patented (and expensive!), ActiveSync has seen a big increase in adoption, and not just with Microsoft servers, due to its better support for mobile environments and ease of setup (one login for mail receive/send, contacts and calendars).
 
+
 ## Why is JMAP better than IMAP?
 
-JMAP is not a conversion of IMAP to JSON; it is a new protocol. It was designed to make much more efficient use of network resources, be easier for developers to work with and hopefully make the best protocol for email an open standard once more. It's based on years of experience and real-world experimentation at FastMail, and talking to other major MUA/MTA developers to make sure we understand the common needs of the industry.
+JMAP is not a conversion of IMAP to JSON; it is a new protocol. It was designed to make much more efficient use of network resources, to be easier for developers to work with, and hopefully to make the best protocol for email an open standard once more. It's based on years of experience and real-world experimentation at FastMail, and on talking to other major MUA/MTA developers to make sure we understand the common needs of the industry.
 
 Some important attributes that help achieve these goals:
 
-* The protocol is stateless. It doesn't need a persistent connection, which is better for mobile use, which may have intermittent network access and wants to conserve battery life by turning the radio off whenever possible.
+* The protocol is stateless. It doesn't need a persistent connection, which is better for mobile use, which may have intermittent network access and where battery life must be conserved by turning the radio off whenever possible.
 
 * Ids are immutable and not intended to be user visible. So folder naming becomes less messy - more like NFS or filesystems with inodes rather than a name-based hierarchy, and renaming is easy to detect and cheap to sync.
 
-* It has a flexible set of commands, which can be batched in arbitrary ways.  You could batch or pipeline single JMAP operations over a stream protocol easily enough if you wanted to, but we're mostly envisaging it being used for stateless batch operations to make disconnection less painful.
+* It has a flexible set of commands, which can be batched in arbitrary ways. Single JMAP operations could be batched or pipelined over a stream protocol easily enough if desired, but we're mostly envisaging JMAP being used for stateless batch operations to make disconnection less painful.
 
-  With IMAP you can set two messages to both have the same flag `(. STORE 1,2 +FLAGS (aflag))` but you can't store two different flags to two different messages in the same action. JMAP allows multiple create, update and destroy actions on different messages in a single `Email/set` command. Pipelining also has the problem that if the connection drops at just the wrong moment you can wind up applying the first change but not the second.
+  With IMAP you can set two messages to both have the same flag `(. STORE 1,2 +FLAGS (aflag))` but you can't store two different flags to two different messages in the same action. JMAP allows multiple create, update and destroy actions on different messages in a single `Email/set` command. Pipelining also has the problem that if the connection drops at just the wrong moment, the first change could be applied but not the second.
 
-  You can use backreferences to other objects created in the same batch - allowing you to, for example, create a folder tree by referencing previous parents created in the same request.
+  	You can use backreferences to other objects created in the same batch - allowing you to, for example, create a folder tree by referencing previous parents created in the same request.
 
-* Clients can efficiently fetch updates from their current state a-la QRESYNC. This can be implemented effectively using the MODSEQ data already in modern IMAP servers, or by using a transaction log data structure. The server can always indicate to the client if it cannot calculate updates from a particular client state (e.g. because it is too old).
+* Clients can efficiently fetch updates from their current state a-la QRESYNC. This can be implemented effectively using the MODSEQ data already in modern IMAP servers, or by using a transaction log data structure. The server can always indicate to the client if it cannot calculate updates from a particular client state (for example, because it is too old).
 
-* Flood control. The client can always restrict how much data the server should send. For example, a command might return a `tooManyChanges` error if it exceeds the client's limit, rather than returning a million `* 1 EXPUNGED` lines as can happen in IMAP. Sometimes it's just more efficient to throw away cached data and refetch, especially if you're a mobile/webmail interface with only a partial cache of the server's data.
+* It provides flood control. The client can always restrict how much data the server should send. For example, a command might return a `tooManyChanges` error if it exceeds the client's limit, rather than returning a million `* 1 EXPUNGED` lines as can happen in IMAP. Sometimes it's just more efficient to throw away cached data and refetch, especially in the case of a mobile/webmail interface with only a partial cache of the server's data.
 
 * It doesn't require a custom parser. There's a longer explanation to the HTTPS/JSON question lower down, but having an encoding format that is well understood and has widespread support among all programming languages makes it far easier for developers to get started, especially if they don't want to build a whole MUA but just integrate something with email.
 
-* The data model is backwards compatible with both IMAP folders and gmail-style labels. Servers that implement JMAP are likely to want to support IMAP as well for the foreseeable future, so it's important to be able to have data structures that support both. Messages are similarly immutable other than keywords/mailboxes.
+* The data model is backward compatible with both IMAP folders and Gmail-style labels. Servers that implement JMAP are likely to want to support IMAP as well for the foreseeable future, so it's important to be able to have data structures that support both. Messages are similarly immutable other than keywords/mailboxes.
 
-* Email can be sent using the same protocol, reducing confusing failure modes for users (again there is more about this below). There are also pretty-much complete specs for calendaring and contacts via JMAP, but we're not pushing for them to be standard yet because the object format is still undergoing a lot of work in the CalConnect group. We think a single consistent protocol for all of these has a lot of advantages though, and we hope to get there in the future.
+* Email can be sent using the same protocol, reducing confusing failure modes for users (again, there is more about this below). There are also essentially complete specifications for calendaring and contacts via JMAP, but we're not pushing for them to be standard yet because the object format is still undergoing a lot of work in the CalConnect group. We think a single consistent protocol for all of these has a lot of advantages though, and we hope to get there in the future.
 
 ## Why use HTTPS/JSON?
 
-The short answer is it's good enough, widely understood and it's by far the easiest thing for developers to adopt. There's support in basically all OSes and programming languages. It's easy to read and debug.
+The short answer is it's good enough, it's widely understood, and it's by far the easiest thing for developers to adopt. There's support in basically all OSes and programming languages. And it's easy to read and debug.
 
-HTTP doesn't tend to run into firewall issues, and is so commonly used it has integrations which can help with optimisation (for example, iOS has built-in support for optimising radio usage by batching HTTP calls from different apps where possible, which their mail team have told us they would like to be able to use). This isn't an innate advantage of HTTP, but rather an advantage of its ubiquity.
+HTTP doesn't tend to run into firewall issues, and is so commonly used that it has integrations which can help with optimisation (for example, iOS has built-in support for optimising radio usage by batching HTTP calls from different apps where possible, which their mail team have told us they would like to be able to use). This isn't an innate advantage of HTTP, but rather an advantage of its ubiquity.
 
 With GZIP, JSON data is reasonably compact and fast enough to serialise/parse. However, the encoding/transport part of JMAP is not core to its operation, so future specifications could easily add alternatives (e.g. [WebSocket](https://tools.ietf.org/html/rfc6455) instead of HTTPS, [CBOR](http://tools.ietf.org/html/rfc7049) instead of JSON). For the initial version though, HTTPS+JSON makes the most sense.
 
 ## Binary data
 
-Binary data is not transported in the JSON (and indeed can't be without base64 encoding or similar, which is inefficient). Instead, attachments are referenced by a blobId, and uploaded/downloaded separately via HTTPS. Clients can reference the blobId elsewhere to, for example, attach the same file to a new message without having to download and reupload it again, a big win on slower internet connections.
+Binary data is not transported in the JSON, and indeed it can't be without base64 encoding or similar, which is inefficient. Instead, attachments are referenced by a blobId, and uploaded/downloaded separately via HTTPS. Clients can reference the blobId elsewhere to, for example, attach the same file to a new message without having to download and upload it again, a big win on slower internet connections.
 
 This also means that regularly saving drafts (a common client behaviour) does not mean sending the same full multi-megabyte attachments over the network every 60s or so.
 
-As it's out-of-band with the API calls, uploading/downloading files can easily be parallelised and doesn't block other API operations.
+As it's out-of-band with the API calls, uploading/downloading files can easily be parallelised, and other API operations aren't blocked.
 
 ## Representation of email
 
-JMAP defines a JSON structure that represents in a consistent and structured way all the information that the vast majority of clients need from an [RFC5322](https://tools.ietf.org/html/rfc5322) message. The server deals with the complexities of MIME, encoding issues, parsing headers etc. The intention is that the server will still operate with RFC5322 messages for storage and certainly transmission; the JSON representation is not intended to replace RFC5322, just relieve client authors from having to deal with it.
+JMAP defines a JSON structure that represents in a consistent and structured way all the information that the vast majority of clients need from an [RFC5322](https://tools.ietf.org/html/rfc5322) message. The server deals with the complexities of MIME, encoding issues, parsing headers, etc. The intention is that the server will still operate with RFC5322 messages for storage and certainly transmission; the JSON representation is not intended to replace RFC5322, just relieve client authors from having to deal with it.
 
-Clients that want to or need to (for example those doing PGP in the client) can still fetch the RFC5322 if needed. The message is represented by a blobId, and the raw bytes can be fetched using the same binary download mechanism as mentioned above.
+Clients that want to or need to (for example those doing PGP in the client) can still fetch the RFC5322 if needed. The message is represented by a blobId, and the raw bytes can be fetched using the binary download mechanism mentioned above.
 
 ## Message submission
 
 Having the same protocol for message sync and submission is a huge win for usability; we see a lot of support tickets where users can receive but not send, or vice versa, because one of these is misconfigured. This is always very confusing for regular users.
 
-Clients can use the same JSON structure for sending messages as they get from the server for received messages, allowing the server to deal with MIME encoding. This allows clients to be much simpler and easier to write. (They can also upload a raw RFC5322 message if they want instead of course.)
+Clients can use the same JSON structure for sending messages as they get from the server for received messages, allowing the server to deal with MIME encoding. This allows clients to be much simpler and easier to write. (Or course, they can also upload a raw RFC5322 message instead, if they want.)
 
 The submission API adds capabilities for servers to expose to the client information on the status of the email in the submission queue, and whether a successful response was received from the receiving server.
 
 
 ## Push mechanism
 
-Immediate updates is an important feature to many users. IMAP IDLE has two big problems: firstly it only notifies of changes in one folder, so doesn't inform you of all changes unless you open a connection for every folder, and secondly it requires a persistent network connection which is bad for mobile (and not even allowed on iOS).
+Immediate updates is an important feature to many users. IMAP IDLE has two big problems: firstly, it only notifies of changes in one folder, so doesn't inform you of all changes unless you open a connection for every folder and, secondly, it requires a persistent network connection, which is bad for mobile (and not even allowed on iOS).
 
 JMAP defines two push mechanisms to support the two common use cases. In both cases the data transferred is simply an edge trigger: a new state string letting the client know something has changed within a particular datatype. The client then fetches the new data using the standard synchronisation methods.
 
@@ -98,7 +99,7 @@ For mobile, and web integrations, you can set a callback handler, which conforms
 
 A lot of the optimisations for efficient client-server sync require the server to be able to read the message. If everything were encrypted, the server would basically be a dumb blob store. This is particularly bad for mobile, where you only want to sync partial information. Users expect to be able to search their whole archive, so either you need all the data in the client, or the server needs to have access to the data.
 
-JMAP is therefore not making any new measures to address end-to-end encryption. The best advice is probably to run your own "JMAP server" on trusted hardware; otherwise you need to sync the entire multi-gigabyte mail spool to all your devices. JMAP is also simple enough that you could run the server on multiple machines with an underlying replication protocol over encrypted links and have that do your smarts.
+JMAP is therefore not introducing any new measures to address end-to-end encryption. The best advice is probably to run your own "JMAP server" on trusted hardware; otherwise you need to sync the entire multi-gigabyte mail spool to all your devices. JMAP is also simple enough that you could run the server on multiple machines with an underlying replication protocol over encrypted links and have that do your smarts.
 
 ## Why is it not REST based?
 
@@ -110,13 +111,13 @@ The JMAP protocol is transport agnostic and can be easily transported over a Web
 
 ## Why do keywords/mailboxes apply to messages, not threads?
 
-Mutable state has to be stored per-message, for example the `$seen` keyword (unread status) must apply on a per message basis, and it's very useful to be able to flag a particular useful message rather than just the whole thread. To be able to delete a particular message to the Trash out of a thread, you need to be able to change the mailbox of that message. Sent messages should belong to the sent mailbox, but not messages you receive.
+Mutable state has to be stored per-message; for example, the `$seen` keyword (unread status) must apply on a per message basis, and it's very useful to be able to flag a particular useful message rather than just the whole thread. To be able to delete a particular message to the Trash out of a thread, you need to be able to change the mailbox of that message. Sent messages should belong to the sent mailbox, but not messages you receive.
 
-Meanwhile, it is simple to aggregate the information of the messages in the thread. So, for example, if any message in the thread is unread, then the thread can be considered unread. There is no need to store mutable state as a property of a thread therefore, and the less mutable state, the easier it is to manage. Finally, all known existing IMAP implementations, plus Gmail, store this state per-message, not per-thread, so it makes it easier for implementors to migrate to JMAP.
+Meanwhile, it is simple to aggregate the information of the messages in the thread. So, for example, if any message in the thread is unread, then the thread can be considered unread. There is no need to store mutable state as a property of a thread, therefore, and the less mutable the state, the easier it is to manage. Finally, all known existing IMAP implementations, plus Gmail, store this state per-message, not per-thread, so it makes it easier for implementers to migrate to JMAP.
 
-## Why are there keywords (e.g. $seen) separate to mailboxes?
+## Why are there keywords (for example, $seen) separate from mailboxes?
 
-In IMAP, you can only have one mailbox but you can have multiple keywords/flags on a single message. In other systems (where you have labels), these are really the same thing and you can have a single message in multiple mailboxes. JMAP aims to support both, so it has to be able to specify whether a mailbox can be used in combination with other mailboxes on a message, or must be the only one with the message (but does allow different keywords). The clearest way of specifying what is allowed by the server is to keep the mailboxes separate to keywords in JMAP as well.
+In IMAP, you can only have one mailbox but you can have multiple keywords/flags on a single message. In other systems (where you have labels), these are really the same thing and you can have a single message in multiple mailboxes. JMAP aims to support both, so it has to be able to specify whether a mailbox can be used in combination with other mailboxes on a message, or must be the only mailbox with the message (but does allow different keywords). The clearest way of specifying what is allowed by the server is to keep the mailboxes separate from keywords in JMAP as well.
 
 ## I want to get involved with JMAP. What do I need to know?
 
@@ -133,3 +134,5 @@ If you're implementing the spec and suddenly find there's an externally visible 
 ## I want to use it to build a client. What do I need to know?
 
 Have a read through the [client guide](client.html) to get an idea of how it works. Then you'll want to find a JMAP server to test against.
+
+
