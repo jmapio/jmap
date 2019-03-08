@@ -11,41 +11,6 @@ An authenticated GET request to the JMAP Session resource MUST return the detail
 
 The response to a successful request is a JSON-encoded **JMAP Session** object. It has the following properties:
 
-- **username**: `String`
-  The username associated with the given credentials, or the empty string if none.
-- **accounts**: `Id[Account]`
-  A map of **account id** to Account object for each account (see section 1.5.2) the user has access to. An **Account** object has the following properties:
-
-    - **name**: `String`
-      A user-friendly string to show when presenting content from this account, e.g. the email address representing the owner of the account.
-    - **isPersonal**: `Boolean`
-      This is `true` if the account belongs to the authenticated user, rather than a group account or a personal account of another user that has been shared with them.
-    - **isReadOnly**: `Boolean`
-      This is `true` if the entire account is read-only.
-    - **hasDataFor**: `String[]`
-      A list of capability URIs for the object types supported in this account.
-
-        The server advertises the list of capabilities it supports in the
-        capabilities object, as defined below. If the capability includes new
-        object type definitions, the server MUST include it in the
-        *hasDataFor* array if the user may use those data types with this
-        account. It MUST NOT include it in the *hasDataFor* array if the user
-        cannot use those data types with this account.
-
-        For example, you may have access to your own account with mail,
-        calendars and contacts data, and also a shared account that only has
-        contacts data (a  business address book for example). In this case the
-        *hasDataFor* property on the first account would include something like
-        `urn:ietf:params:jmap:mail`, `urn:ietf:params:jmap:calendars`,
-        `urn:ietf:params:jmap:contacts`, while the second account would just
-        have the last of these.
-
-        Attempts to use the methods defined in a capability with one of the
-        accounts that does not contain those data types are rejected with an
-        *accountNotSupportedByMethod* error (see section 3.5.2: method-level errors).
-
-- **primaryAccounts**: `String[Id]`
-  A map of capability URIs (as found in *hasDataFor*) to the account id to be considered the user's main or default account for data pertaining to that capability. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular URI, even though that capability is supported by the server (and in the capabilities object). `urn:ietf:params:jmap:core` SHOULD NOT be present.
 - **capabilities**: `String[Object]`
   An object specifying the capabilities of this server. Each key is a URI for a capability supported by the server. The value for each of these keys is an object with further information about the server's capabilities in relation to that capability.
 
@@ -76,6 +41,41 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 
     Servers MAY advertise vendor-specific JMAP extensions, as described in section 1.8. To avoid conflict, an identifier for a vendor-specific extension MUST be a URL with a domain owned by the vendor. Clients MUST opt in to any capability it wishes to use (see section 3.2).
 
+- **accounts**: `Id[Account]`
+  A map of **account id** to Account object for each account (see section 1.5.2) the user has access to. An **Account** object has the following properties:
+
+    - **name**: `String`
+      A user-friendly string to show when presenting content from this account, e.g. the email address representing the owner of the account.
+    - **isPersonal**: `Boolean`
+      This is `true` if the account belongs to the authenticated user, rather than a group account or a personal account of another user that has been shared with them.
+    - **isReadOnly**: `Boolean`
+      This is `true` if the entire account is read-only.
+    - **hasDataFor**: `String[]`
+      A list of capability URIs for the object types supported in this account.
+
+        The server advertises the list of capabilities it supports in the
+        capabilities object, as defined above. If the capability includes new
+        object type definitions, the server MUST include it in the
+        *hasDataFor* array if the user may use those data types with this
+        account. It MUST NOT include it in the *hasDataFor* array if the user
+        cannot use those data types with this account.
+
+        For example, you may have access to your own account with mail,
+        calendars and contacts data, and also a shared account that only has
+        contacts data (a  business address book for example). In this case the
+        *hasDataFor* property on the first account would include something like
+        `urn:ietf:params:jmap:mail`, `urn:ietf:params:jmap:calendars`,
+        `urn:ietf:params:jmap:contacts`, while the second account would just
+        have the last of these.
+
+        Attempts to use the methods defined in a capability with one of the
+        accounts that does not contain those data types are rejected with an
+        *accountNotSupportedByMethod* error (see section 3.5.2: method-level errors).
+
+- **primaryAccounts**: `String[Id]`
+  A map of capability URIs (as found in *hasDataFor*) to the account id to be considered the user's main or default account for data pertaining to that capability. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular URI, even though that capability is supported by the server (and in the capabilities object). `urn:ietf:params:jmap:core` SHOULD NOT be present.
+- **username**: `String`
+  The username associated with the given credentials, or the empty string if none.
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
 - **downloadUrl**: `String`
@@ -96,7 +96,26 @@ Implementors must take care to avoid inappropriate caching of the session object
 In the following example JMAP Session object, the user has access to their own mail and contacts via JMAP, as well as read-only access to shared mail from another user. The server is advertising a custom `https://example.com/apis/foobar` capability.
 
     {
-      "username": "john@example.com",
+      "capabilities": {
+        "urn:ietf:params:jmap:core": {
+          "maxSizeUpload": 50000000,
+          "maxConcurrentUpload": 8,
+          "maxSizeRequest": 10000000,
+          "maxConcurrentRequest": 8,
+          "maxCallsInRequest": 32,
+          "maxObjectsInGet": 256,
+          "maxObjectsInSet": 128,
+          "collationAlgorithms": [
+            "i;ascii-numeric",
+            "i;ascii-casemap",
+            "i;unicode-casemap"
+          ]
+        },
+        "https://example.com/apis/foobar": {
+          "maxFoosFinangled": 42
+        },
+        ...
+      },
       "accounts": {
         "A13824": {
           "name": "john@example.com",
@@ -118,26 +137,7 @@ In the following example JMAP Session object, the user has access to their own m
         "urn:ietf:params:jmap:mail": "A13824",
         "urn:ietf:params:jmap:contacts": "A13824"
       },
-      "capabilities": {
-        "urn:ietf:params:jmap:core": {
-          "maxSizeUpload": 50000000,
-          "maxConcurrentUpload": 8,
-          "maxSizeRequest": 10000000,
-          "maxConcurrentRequest": 8,
-          "maxCallsInRequest": 32,
-          "maxObjectsInGet": 256,
-          "maxObjectsInSet": 128,
-          "collationAlgorithms": [
-            "i;ascii-numeric",
-            "i;ascii-casemap",
-            "i;unicode-casemap"
-          ]
-        },
-        "https://example.com/apis/foobar": {
-          "maxFoosFinangled": 42
-        },
-        ...
-      },
+      "username": "john@example.com",
       "apiUrl": "https://jmap.example.com/api/",
       "downloadUrl": "https://jmap.example.com
         /download/{accountId}/{blobId}/{name}?accept={type}",
