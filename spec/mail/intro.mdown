@@ -45,7 +45,9 @@ This document defines three additional capability URIs.
 
 ### urn:ietf:params:jmap:mail
 
-This represents support for the Mailbox, Thread, Email, and SearchSnippet data types and associated API methods. The value of this property is an object which MUST contain the following information on server capabilities:
+This represents support for the Mailbox, Thread, Email, and SearchSnippet data types and associated API methods. The value of this property in the JMAP session *capabilities* property is the empty object.
+
+The value of this property in an account's *accountCapabilities* property is an object which MUST contain the following information on server capabilities and permissions for that account:
 
 - **maxMailboxesPerEmail**: `UnsignedInt|null`
   The maximum number of mailboxes that can be can assigned to a single Email object (see section 4). This MUST be an integer >= 1, or `null` for no limit (or rather, the limit is always the number of mailboxes in the account).
@@ -62,10 +64,15 @@ This represents support for the Mailbox, Thread, Email, and SearchSnippet data t
 
 - **emailQuerySortOptions**: `String[]`
   A list of all the values the server supports for the "property" field of the Comparator object in an Email/query sort (see section 5.5). This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
+- **mayCreateTopLevelMailbox**: `Boolean`
+  If `true`, the user may create a mailbox (see section 2) in this account with
+  a `null` parentId. (Permission for creating a child of an existing mailbox is given by the myRights property on that mailbox.)
 
 ### urn:ietf:params:jmap:submission
 
-This represents support for the Identity and MessageSubmission data types and associated API methods. The value of this property is an object which MUST contain the following information on server capabilities:
+This represents support for the Identity and MessageSubmission data types and associated API methods. The value of this property in the JMAP session *capabilities* property is the empty object.
+
+The value of this property in an account's *accountCapabilities* property is an object which MUST contain the following information on server capabilities and permissions for that account:
 
 - **maxDelayedSend**: `UnsignedInt`
   The number in seconds of the maximum delay the server supports in sending
@@ -90,11 +97,11 @@ This represents support for the Identity and MessageSubmission data types and as
 
 ### urn:ietf:params:jmap:vacationresponse
 
-This represents support for the VacationResponse data type and associated API methods. The value of this property is an empty object.
+This represents support for the VacationResponse data type and associated API methods. The value of this property is an empty object in both the JMAP session *capabilities* property and an account's *accountCapabilities* property.
 
 ## Data type support in different accounts
 
-The server MUST include the appropriate capability strings in the *hasDataFor* property of any account with which the user may use the data types represented by that URI. Supported data types may differ between accounts the user has access to. For example, in the user's personal account they may have access to all three sets of data, but in a shared account they may only have data for `urn:ietf:params:jmap:mail`. This means they can access Mailbox/Thread/Email data in the shared account but are not allowed to send as that account (and so do not have access to Identity/MessageSubmission objects) or view/set its vacation response.
+The server MUST include the appropriate capability strings as keys in the *accountCapabilities* property of any account with which the user may use the data types represented by that URI. Supported data types may differ between accounts the user has access to. For example, in the user's personal account they may have access to all three sets of data, but in a shared account they may only have data for `urn:ietf:params:jmap:mail`. This means they can access Mailbox/Thread/Email data in the shared account but are not allowed to send as that account (and so do not have access to Identity/MessageSubmission objects) or view/set its vacation response.
 
 ## Push
 
