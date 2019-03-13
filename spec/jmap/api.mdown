@@ -665,7 +665,7 @@ The *Foo/copy* method takes the following arguments:
 - **onSuccessDestroyOriginal**: `Boolean` (default: false)
   If `true`, an attempt will be made to destroy the original records that were successfully copied: after emitting the *Foo/copy* response, but before processing the next method, the server MUST make a single call to *Foo/set* to destroy the original of each successfully copied record; the output of this is added to the responses as normal to be returned to the client.
 - **destroyFromIfInState**: `String|null`
-  This argument is passed on as the `ifInState` argument to the implicit *Foo/set* call, if made at the end of this request.
+  This argument is passed on as the `ifInState` argument to the implicit *Foo/set* call, if made at the end of this request to destroy the originals that were successfully copied.
 
 Each record copy is considered an atomic unit which may succeed or fail individually.
 
