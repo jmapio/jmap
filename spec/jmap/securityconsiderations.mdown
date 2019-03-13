@@ -23,6 +23,27 @@ Clients that do not support SRV lookups are likely to try just using the `/.well
 
 The security considerations of [@!RFC8259] apply to the use of JSON as the data interchange format.
 
+As for any serialization format, parsers need to thoroughly check the
+syntax of the supplied data. JSON uses opening and closing tags for
+several types and structures, and it is possible that the end of supplied
+data will be reached when scanning for a matching closing tag; this is an
+error condition and implementations need to stop scanning at the end of the
+supplied data.
+
+JSON also uses a string encoding with some escape sequences to encode
+special characters within a string. Care is needed when processing these
+escape sequences to ensure that an escape sequence is fully formed before
+the special processing is triggered, with special care taken when the
+escape sequences appear adjacent to other (non-escaped) special characters
+or the end of data (as in the previous paragraph).
+
+If parsing JSON into a non-textual structured data format, implementations
+may need to allocate storage to hold JSON string elements.  Since JSON
+does not use explicit string lengths, the risk of denial of service due to
+resource exhaustion is small, but implementations may still wish to place
+limits on the size of allocations they are willing to make in any given
+context, to avoid untrusted data causing excessive memory allocation.
+
 ## Denial of service
 
 A small request may result in a very large response, and require considerable
