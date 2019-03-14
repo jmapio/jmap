@@ -37,7 +37,7 @@ A **Request** object has the following properties:
 
     As the server processes API requests, any time it successfully creates a new record it adds to this map the creation id (see the *create* argument to "/set" in section 5.3), with the server-assigned real id as the value. If it comes across a reference to a creation id in a create/update, it looks it up in the map and replaces the reference with the real id, if found.
 
-    The client can pass an initial value for this map as the *createdIds* property of the Request. This may be an empty object. If given in the request, the response will also include a createdIds property, with any additionally created ids added. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve. See section 5.8 for further discussion of proxy considerations.
+    The client can pass an initial value for this map as the *createdIds* property of the Request. This may be an empty object. If given in the request, the response will also include a createdIds property. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve. See section 5.8 for further discussion of proxy considerations.
 
 Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatibility, a server MUST ignore any other properties it does not understand on the JMAP request object.
 
@@ -64,7 +64,10 @@ A **Response** object has the following properties:
 - **methodResponses**: `Invocation[]`
   An array of responses, in the same format as the *methodCalls* on the request object. The output of the methods MUST be added to the *methodResponses* array in the same order as the methods are processed.
 - **createdIds**: `Id[Id]` (optional; only returned if given in request)
-  A map of (client-specified) creation id to the id the server assigned when a record was successfully created. This includes all values passed in the request, as well as any additional ones added for newly created records.
+  A map of (client-specified) creation id to the id the server assigned when a
+  record was successfully created. This MUST include all creation ids passed in
+  the original createdIds parameter of the Request object, as well as any
+  additional ones added for newly created records.
 - **sessionState**: `String` The current value of the "state" string on the
   JMAP Session object, as described in section 2. Clients may use this to detect if this object has changed and needs to be refetched.
 
