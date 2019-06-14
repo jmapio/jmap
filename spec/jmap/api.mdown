@@ -1,14 +1,14 @@
-# Structured data exchange
+# Structured Data Exchange
 
 The client may make an API request to the server to get or set structured data. This request consists of an ordered series of method calls. These are processed by the server, which then returns an ordered series of responses.
 
-## Making an API request
+## Making an API Request
 
 To make an API request, the client makes an authenticated POST request to the API resource, which is defined by the *apiUrl* property in the JMAP Session object.
 
-The request MUST be of type `application/json` and consist of a single JSON **Request** object, as defined in section 3.2. If successful, the response MUST also be of type `application/json` and consist of a single **Response** object, as defined in section 3.3.
+The request MUST be of type `application/json` and consist of a single JSON **Request** object, as defined in Section 3.2. If successful, the response MUST also be of type `application/json` and consist of a single **Response** object, as defined in Section 3.3.
 
-### The Invocation data type
+### The Invocation Data Type
 
 Method calls and responses are represented by the **Invocation** data type. This is a tuple, represented as a JSON array containing three elements:
 
@@ -18,7 +18,7 @@ Method calls and responses are represented by the **Invocation** data type. This
 3. A `String` **method call id**: an arbitrary string from the client to be
    echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same method call id in the response).
 
-## The Request object
+## The Request Object
 
 A **Request** object has the following properties:
 
@@ -31,17 +31,17 @@ A **Request** object has the following properties:
   An array of method calls to process on the server. The method calls MUST be processed sequentially, in order.
 
 - **createdIds**: `Id[Id]` (optional)
-  A map of (client-specified) creation id to the id the server assigned when a record was successfully created.
+  A map of a (client-specified) creation id to the id the server assigned when a record was successfully created.
 
-    As described later in this specification, some records may have a property that contains the id of another record. To allow more efficient network usage, you can set this property to reference a record created earlier in the same API request. Since the real id is unknown when the request is created, the client can instead specify the creation id it assigned, prefixed with a `#` (see section 5.3 for more details).
+    As described later in this specification, some records may have a property that contains the id of another record. To allow more efficient network usage, you can set this property to reference a record created earlier in the same API request. Since the real id is unknown when the request is created, the client can instead specify the creation id it assigned, prefixed with a `#` (see Section 5.3 for more details).
 
-    As the server processes API requests, any time it successfully creates a new record it adds to this map the creation id (see the *create* argument to "/set" in section 5.3), with the server-assigned real id as the value. If it comes across a reference to a creation id in a create/update, it looks it up in the map and replaces the reference with the real id, if found.
+    As the server processes API requests, any time it successfully creates a new record, it adds the creation id to this map (see the *create* argument to "/set" in Section 5.3), with the server-assigned real id as the value. If it comes across a reference to a creation id in a create/update, it looks it up in the map and replaces the reference with the real id, if found.
 
-    The client can pass an initial value for this map as the *createdIds* property of the Request. This may be an empty object. If given in the request, the response will also include a createdIds property. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve. See section 5.8 for further discussion of proxy considerations.
+    The client can pass an initial value for this map as the *createdIds* property of the Request. This may be an empty object. If given in the request, the response will also include a createdIds property. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example, it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve. See Section 5.8 for further discussion of proxy considerations.
 
-Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatibility, a server MUST ignore any other properties it does not understand on the JMAP request object.
+Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatibility, a server MUST ignore any other properties it does not understand on the JMAP Request object.
 
-### Example request
+### Example Request
 
     {
       "using": [ "urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail" ],
@@ -57,23 +57,23 @@ Future specifications MAY add further properties to the Request object to extend
       ]
     }
 
-## The Response object
+## The Response Object
 
 A **Response** object has the following properties:
 
 - **methodResponses**: `Invocation[]`
-  An array of responses, in the same format as the *methodCalls* on the request object. The output of the methods MUST be added to the *methodResponses* array in the same order as the methods are processed.
-- **createdIds**: `Id[Id]` (optional; only returned if given in request)
-  A map of (client-specified) creation id to the id the server assigned when a
+  An array of responses, in the same format as the *methodCalls* on the Request object. The output of the methods MUST be added to the *methodResponses* array in the same order that the methods are processed.
+- **createdIds**: `Id[Id]` (optional; only returned if given in the request)
+  A map of a (client-specified) creation id to the id the server assigned when a
   record was successfully created. This MUST include all creation ids passed in
   the original createdIds parameter of the Request object, as well as any
   additional ones added for newly created records.
 - **sessionState**: `String` The current value of the "state" string on the
-  JMAP Session object, as described in section 2. Clients may use this to detect if this object has changed and needs to be refetched.
+  JMAP Session object, as described in Section 2. Clients may use this to detect if this object has changed and needs to be refetched.
 
-Unless otherwise specified, if the method call completed successfully its response name is the same as the method name in the request.
+Unless otherwise specified, if the method call completed successfully, its response name is the same as the method name in the request.
 
-### Example response:
+### Example Response:
 
     {
       "methodResponses": [
@@ -95,9 +95,9 @@ Unless otherwise specified, if the method call completed successfully its respon
       "sessionState": "75128aab4b1b"
     }
 
-## Omitting arguments
+## Omitting Arguments
 
-An argument to a method may be specified to have a default value. If omitted by the client, the server MUST treat the method call the same as if the default value had been specified. Similarly, the server MAY omit any argument in a response which has the default value.
+An argument to a method may be specified to have a default value. If omitted by the client, the server MUST treat the method call the same as if the default value had been specified. Similarly, the server MAY omit any argument in a response that has the default value.
 
 Unless otherwise specified in a method description, `null` is the default value for any argument in a request or response where this is allowed by the type signature. Other arguments may only be omitted if an explicit default value is defined in the method description.
 
@@ -105,13 +105,13 @@ Unless otherwise specified in a method description, `null` is the default value 
 
 There are three different levels of granularity at which an error may be returned in JMAP.
 
-When an API request is made, the request as a whole may be rejected due to rate limiting, malformed JSON, request for an unknown capability etc. In this case the entire request is rejected with an appropriate HTTP error response code, and an additional JSON body with more detail for the client.
+When an API request is made, the request as a whole may be rejected due to rate limiting, malformed JSON, request for an unknown capability, etc. In this case, the entire request is rejected with an appropriate HTTP error response code and an additional JSON body with more detail for the client.
 
-Provided the request itself is syntactically valid (the JSON is valid, and when decoded matches the type signature of a Request object), the methods within it are executed sequentially by the server. Each method may individually fail, for example if invalid arguments are given, or an unknown method name is called.
+Provided the request itself is syntactically valid (the JSON is valid and when decoded, it matches the type signature of a Request object), the methods within it are executed sequentially by the server. Each method may individually fail, for example, if invalid arguments are given or an unknown method name is called.
 
-Finally, methods that make changes to the server state often act upon a number of different records within a single call. Each record change may be separately rejected with a SetError, as described in section 5.3.
+Finally, methods that make changes to the server state often act upon a number of different records within a single call. Each record change may be separately rejected with a SetError, as described in Section 5.3.
 
-### Request-level errors
+### Request-Level Errors
 
 When an HTTP error response is returned to the client, the server
 SHOULD return a JSON "problem details" object as the response body,
@@ -128,7 +128,7 @@ The following problem types are defined:
 - `urn:ietf:params:jmap:error:limit`
   The request was not processed as it would have exceeded one of the **request**
   limits defined on the capability object, such as maxSizeRequest,
-  maxCallsInRequest or maxConcurrentRequests. A "limit" property MUST also be
+  maxCallsInRequest, or maxConcurrentRequests. A "limit" property MUST also be
   present on the "problem details" object, containing the name of the limit
   being applied.
 
@@ -137,7 +137,7 @@ The following problem types are defined:
     {
       "type": "urn:ietf:params:jmap:error:unknownCapability",
       "status": 400,
-      "detail": "The request object used capability
+      "detail": "The Request object used capability
         'https://example.com/apis/foobar', which is not supported
         by this server."
     }
@@ -152,7 +152,7 @@ Another example:
     }
 
 
-### Method-level errors
+### Method-Level Errors
 
 If a method encounters an error, the appropriate `error` response MUST be inserted at the current point in the *methodResponses* array and, unless otherwise specified, further processing MUST NOT happen within that method call.
 
@@ -166,23 +166,23 @@ An `error` response looks like this:
 
 The response name is `error`, and it MUST have a type property. Other properties may be present with further information; these are detailed in the error type descriptions where appropriate.
 
-With the exception of when the `serverPartialFail` error is returned, the externally-visible state of the server MUST NOT have changed if an error is returned at the method level.
+With the exception of when the `serverPartialFail` error is returned, the externally visible state of the server MUST NOT have changed if an error is returned at the method level.
 
-The following error types are defined which may be returned for any method call where appropriate:
+The following error types are defined, which may be returned for any method call where appropriate:
 
 `serverUnavailable`: Some internal server resource was temporarily unavailable. Attempting the same operation later (perhaps after a backoff with a random factor) may succeed.
 
 `serverFail`: An unexpected or unknown error occurred during the processing of the call. A *description* property should provide more details about the error. The method call made no changes to the server's state. Attempting the same operation again is expected to fail again. Contacting the service administrator is likely necessary to resolve this problem if it is persistent.
 
-`serverPartialFail`: Some, but not all expected changes described by the method occurred. The client MUST re-synchronise impacted data to determine server state. Use of this error is strongly discouraged.
+`serverPartialFail`: Some, but not all, expected changes described by the method occurred. The client MUST resynchronise impacted data to determine server state. Use of this error is strongly discouraged.
 
 `unknownMethod`: The server does not recognise this method name.
 
-`invalidArguments`: One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing. A `description` property MAY be present to help debug with an explanation of what the problem was. This is a non-localised string, and is not intended to be shown directly to end users.
+`invalidArguments`: One of the arguments is of the wrong type or is otherwise invalid, or a required argument is missing. A `description` property MAY be present to help debug with an explanation of what the problem was. This is a non-localised string, and it is not intended to be shown directly to end users.
 
-`invalidResultReference`: The method used a result reference for one of its arguments (see section 3.6), but this failed to resolve.
+`invalidResultReference`: The method used a result reference for one of its arguments (see Section 3.6), but this failed to resolve.
 
-`forbidden`: The method and arguments are valid, but executing the method would violate an ACL or other permissions policy.
+`forbidden`: The method and arguments are valid, but executing the method would violate an Access Control List (ACL) or other permissions policy.
 
 `accountNotFound`: The *accountId* does not correspond to a valid account.
 
@@ -194,13 +194,13 @@ Further possible errors for a particular method are specified in the method desc
 
 Further general errors MAY be defined in future RFCs. Should a client receive an error type it does not understand, it MUST treat it the same as the `serverFail` type.
 
-## References to previous method results
+## References to Previous Method Results
 
 To allow clients to make more efficient use of the network and avoid round
 trips, an argument to one method can be taken from the result of a previous
 method call in the same request.
 
-To do this, the client prefixes the argument name with `#` (an octothorpe). The value is a *ResultReference* object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with `#`. If found, the result reference should be resolved and the value used as the "real" argument. The method is then processed as normal. If any result reference fails to resolve, the whole method MUST be rejected with an `invalidResultReference` error. If an argument object contains the same argument name in normal and referenced form (e.g. `foo` and `#foo`), the method MUST return an `invalidArguments` error.
+To do this, the client prefixes the argument name with `#` (an octothorpe). The value is a *ResultReference* object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with `#`. If found, the result reference should be resolved and the value used as the "real" argument. The method is then processed as normal. If any result reference fails to resolve, the whole method MUST be rejected with an `invalidResultReference` error. If an argument object contains the same argument name in normal and referenced form (e.g., `foo` and `#foo`), the method MUST return an `invalidArguments` error.
 
 A **ResultReference** object has the following properties:
 
@@ -209,7 +209,7 @@ A **ResultReference** object has the following properties:
 - **name**: `String`
   The expected name of the response.
 - **path**: `String`
-  A pointer into the arguments. This is an [@!RFC6901] JSON Pointer, except it also allows the use of `*` to map through an array (see description below).
+  A pointer into the arguments. This is a JSON Pointer [@!RFC6901], except it also allows the use of `*` to map through an array (see the description below).
 
 To resolve:
 
@@ -220,10 +220,10 @@ To resolve:
    *ResultReference*, evaluation fails.
 
 3. Apply the *path* to the arguments object of the response (the second item in
-   the response array) following the [@!RFC6901] JSON Pointer algorithm, except with the following addition in section 4 (Evaluation):
+   the response array) following the JSON Pointer algorithm [@!RFC6901], except with the following addition in "Evaluation" (see Section 4):
 
      If the currently referenced value is a JSON array, the reference token may
-     be exactly the single character `*`, making the new referenced value the result of applying the rest of the JSON pointer tokens to every item in the array and returning the results in the same order in a new array. If the result of applying the rest of the pointer tokens to a value was itself an array, its items should be included individually in the output rather than including the array itself (i.e. the result is flattened from an array of arrays to a single array).
+     be exactly the single character `*`, making the new referenced value the result of applying the rest of the JSON Pointer tokens to every item in the array and returning the results in the same order in a new array. If the result of applying the rest of the pointer tokens to a value was itself an array, its items should be included individually in the output rather than including the array itself (i.e., the result is flattened from an array of arrays to a single array).
 
 As a simple example, suppose we have the following API request *methodCalls*:
 
@@ -240,7 +240,7 @@ As a simple example, suppose we have the following API request *methodCalls*:
         }
     }, "t1" ]]
 
-After executing the first method call the *methodResponses* array is:
+After executing the first method call, the *methodResponses* array is:
 
     [[ "Foo/changes", {
         "accountId": "A1",
@@ -256,11 +256,11 @@ To execute the Foo/get call, we look through the arguments and find there is one
 
 1. Find the first response with method call id "t0". The Foo/changes response
    fulfils this criterion.
-2. Check the response name is the same as in the result reference. It is, so
-   this is fine.
-3. Apply the *path* as a JSON pointer to the arguments object. This simply
+2. Check that the response name is the same as in the result reference. It is,
+   so this is fine.
+3. Apply the *path* as a JSON Pointer to the arguments object. This simply
    selects the "created" property, so the result of evaluating is:
-   `[ "f1", "f4" ]`
+   `[ "f1", "f4" ]`.
 
 The JMAP server now continues to process the Foo/get call as though the arguments were:
 
@@ -269,7 +269,7 @@ The JMAP server now continues to process the Foo/get call as though the argument
         "ids": [ "f1", "f4" ]
     }
 
-Now a more complicated example using the JMAP Mail data model: fetch the "from"/"date"/"subject" for every email in the first 10 threads in the Inbox (sorted newest first):
+Now, a more complicated example using the JMAP Mail data model: fetch the "from"/"date"/"subject" for every email in the first 10 threads in the Inbox (sorted newest first):
 
     [[ "Email/query", {
       "accountId": "A1",
@@ -307,7 +307,7 @@ Now a more complicated example using the JMAP Mail data model: fetch the "from"/
       "properties": [ "from", "receivedAt", "subject" ]
     }, "t3" ]]
 
-After executing the first 3 method calls the *methodResponses* array might be:
+After executing the first 3 method calls, the *methodResponses* array might be:
 
     [[ "Email/query", {
         "accountId": "A1",
@@ -347,16 +347,16 @@ After executing the first 3 method calls the *methodResponses* array might be:
         "notFound": []
     }, "t2" ]]
 
-So to execute the final Email/get call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm:
+To execute the final Email/get call, we look through the arguments and find there is one with a `#` prefix. To resolve this, we apply the algorithm:
 
 1. Find the first response with method call id "t2". The "Thread/get" response
    fulfils this criterion.
 2. "Thread/get" is the name specified in the result reference, so this is fine.
-3. Apply the *path* as a JSON pointer to the arguments object. Token-by-token:
+3. Apply the *path* as a JSON Pointer to the arguments object. Token by token:
    1) `list`: get the array of thread objects
    2) `*`: for each of the items in the array:
-      1) `emailIds`: get the array of email ids
-      2) Concatenate these into a single array of all the ids in the result.
+      a) `emailIds`: get the array of email ids
+      b) Concatenate these into a single array of all the ids in the result.
 
 The JMAP server now continues to process the Email/get call as though the arguments were:
 
@@ -369,33 +369,33 @@ The JMAP server now continues to process the Email/get call as though the argume
 The ResultReference performs a similar role to that of the creation id, in
 that it allows a chained method call to refer to information not available when
 the request is generated.  However, they are different things and not
-interchangable; the only commonality is the octothorpe used to indicate
+interchangeable; the only commonality is the octothorpe used to indicate
 them.
 
-## Localisation of user-visible strings
+## Localisation of User-Visible Strings
 
-If returning a custom string to be displayed to the user, for example an error message, the server SHOULD use information from the Accept-Language header of the request (as defined in [@!RFC7231] section 5.3.5) to help determine the choice of localisation if multiple are available. The Content-Language header of the response (see section 3.1.3.2 of [@!RFC7231]) SHOULD indicate the language being used for user-visible strings.
+If returning a custom string to be displayed to the user, for example, an error message, the server SHOULD use information from the Accept-Language header of the request (as defined in Section 5.3.5 of [@!RFC7231]) to help determine the choice of localisation if multiple are available. The Content-Language header of the response (see section 3.1.3.2 of [@!RFC7231]) SHOULD indicate the language being used for user-visible strings.
 
 For example, suppose a request was made with the following header:
 
     Accept-Language: fr-CH, fr;q=0.9, de;q=0.8, en;q=0.7, *;q=0.5
 
-and a method generated an error to display to the user. The server has translations of the error message in English and German. Looking at the Accept-Language header, the user's preferred language is French. Since we don't have a translation for this, we look at the next most preferred which is German. We have a German translation so the server returns this, and indicates the language chosen in a Content-Language header like so:
+and a method generated an error to display to the user. The server has translations of the error message in English and German. Looking at the Accept-Language header, the user's preferred language is French. Since we don't have a translation for this, we look at the next most preferred, which is German. We have a German translation, so the server returns this and indicates the language chosen in a Content-Language header like so:
 
     Content-Language: de
 
 ## Security
 
-As always, the server must be strict about data received from the client. Arguments need to be checked for validity; a malicious user could attempt to find an exploit through the API. In case of invalid arguments (unknown/insufficient/wrong type for data etc.) the method MUST return an `invalidArguments` error and terminate.
+As always, the server must be strict about data received from the client. Arguments need to be checked for validity; a malicious user could attempt to find an exploit through the API. In case of invalid arguments (unknown/insufficient/wrong type for data, etc.), the method MUST return an `invalidArguments` error and terminate.
 
 ## Concurrency
 
 Method calls within a single request MUST be executed in order. However, method calls from different concurrent API requests may be interleaved. This means that the data on the server may change between two method calls within a single API request.
 
 
-# The Core/echo method
+# The Core/echo Method
 
-The *Core/echo* method returns exactly the same arguments as it is given. It is useful for testing you have a valid authenticated connection to a JMAP API endpoint.
+The *Core/echo* method returns exactly the same arguments as it is given. It is useful for testing if you have a valid authenticated connection to a JMAP API endpoint.
 
 ## Example
 
@@ -414,9 +414,9 @@ Response:
     }, "b3ff" ]]
 
 
-# Standard methods and naming convention
+# Standard Methods and Naming Convention
 
-JMAP provides a uniform interface for creating, retrieving, updating and deleting objects of a particular type. For a `Foo` data type, records of that type would be fetched via a `Foo/get` call and modified via a `Foo/set` call. Delta updates may be fetched via a `Foo/changes` call. These methods all follow a standard format as described below.
+JMAP provides a uniform interface for creating, retrieving, updating, and deleting objects of a particular type. For a `Foo` data type, records of that type would be fetched via a `Foo/get` call and modified via a `Foo/set` call. Delta updates may be fetched via a `Foo/changes` call. These methods all follow a standard format as described below.
 
 Some types may not have all these methods. Specifications defining types MUST specify which methods are available for the type.
 
@@ -429,7 +429,7 @@ It takes the following arguments:
 - **accountId**: `Id`
   The id of the account to use.
 - **ids**: `Id[]|null`
-  The ids of the Foo objects to return. If `null` then **all** records of the data type are returned, if this is supported for that data type and the number of records does not exceed the *maxObjectsInGet* limit.
+  The ids of the Foo objects to return. If `null`, then **all** records of the data type are returned, if this is supported for that data type and the number of records does not exceed the *maxObjectsInGet* limit.
 - **properties**: `String[]|null`
   If supplied, only the properties listed in the array are returned for each Foo object. If `null`, all properties of the object are returned. The id property of the object is **always** returned, even if not explicitly requested. If an invalid property is requested, the call MUST be rejected with an `invalidArguments` error.
 
@@ -440,12 +440,12 @@ The response has the following arguments:
 - **state**: `String`
   A (preferably short) string representing the state on the server for **all** the data of this type in the account (not just the objects returned in this call). If the data changes, this string MUST change. If the Foo data is unchanged, servers SHOULD return the same state string on subsequent requests for this data type.
 
-    When a client receives a response with a different state string to a previous call, it MUST either throw away all currently cached objects for the type, or call *Foo/changes* to get the exact changes.
+    When a client receives a response with a different state string to a previous call, it MUST either throw away all currently cached objects for the type or call *Foo/changes* to get the exact changes.
 
 - **list**: `Foo[]`
-  An array of the Foo objects requested. This is the **empty array** if no objects were found, or if the *ids* argument passed in was also the empty array. The results MAY be in a different order to the *ids* in the request arguments. If an identical id is included more than once in the request, the server MUST only include it once in either the *list* or *notFound* argument of the response.
+  An array of the Foo objects requested. This is the **empty array** if no objects were found or if the *ids* argument passed in was also the empty array. The results MAY be in a different order to the *ids* in the request arguments. If an identical id is included more than once in the request, the server MUST only include it once in either the *list* or the *notFound* argument of the response.
 - **notFound**: `Id[]`
-  This array contains the ids passed to the method for records that do not exist. The array is empty if all requested ids were found, or if the *ids* argument passed in was either `null` or the empty array.
+  This array contains the ids passed to the method for records that do not exist. The array is empty if all requested ids were found or if the *ids* argument passed in was either `null` or the empty array.
 
 The following additional error may be returned instead of the *Foo/get* response:
 
@@ -453,45 +453,45 @@ The following additional error may be returned instead of the *Foo/get* response
 
 ## /changes
 
-When the state of the set of Foo records in an account changes on the server (whether due to creation, updates or deletion), the *state* property of the *Foo/get* response will change. The *Foo/changes* method allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
+When the state of the set of Foo records in an account changes on the server (whether due to creation, updates, or deletion), the *state* property of the *Foo/get* response will change. The *Foo/changes* method allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
 
 - **accountId**: `Id`
   The id of the account to use.
 - **sinceState**: `String`
   The current state of the client. This is the string that was returned as the *state* argument in the *Foo/get* response. The server will return the changes that have occurred since this state.
 - **maxChanges**: `UnsignedInt|null`
-  The maximum number of ids to return in the response. The server MAY choose to return fewer than this value, but MUST NOT return more. If not given by the client, the server may choose how many to return. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
+  The maximum number of ids to return in the response. The server MAY choose to return fewer than this value but MUST NOT return more. If not given by the client, the server may choose how many to return. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an `invalidArguments` error.
 
 The response has the following arguments:
 
 - **accountId**: `Id`
   The id of the account used for the call.
 - **oldState**: `String`
-  This is the *sinceState* argument echoed back; the state from which the server is returning changes.
+  This is the *sinceState* argument echoed back; it's the state from which the server is returning changes.
 - **newState**: `String`
   This is the state the client will be in after applying the set of changes to the old state.
 - **hasMoreChanges**: `Boolean`
   If `true`, the client may call *Foo/changes* again with the *newState* returned to get further updates. If `false`, *newState* is the current server state.
 - **created**: `Id[]`
-  An array of ids for records which have been created since the old state.
+  An array of ids for records that have been created since the old state.
 - **updated**: `Id[]`
-  An array of ids for records which have been updated since the old state.
+  An array of ids for records that have been updated since the old state.
 - **destroyed**: `Id[]`
-  An array of ids for records which have been destroyed since the old state.
+  An array of ids for records that have been destroyed since the old state.
 
-If a record has been created AND updated since the old state, the server SHOULD just return the id in the *created* list, but MAY return it in the *updated* list as well.
+If a record has been created AND updated since the old state, the server SHOULD just return the id in the *created* list but MAY return it in the *updated* list as well.
 
-If a record has been updated AND destroyed since the old state, the server SHOULD just return the id in the *destroyed* list, but MAY return it in the *updated* list as well.
+If a record has been updated AND destroyed since the old state, the server SHOULD just return the id in the *destroyed* list but MAY return it in the *updated* list as well.
 
-If a record has been created AND destroyed since the old state, the server SHOULD remove the id from the response entirely, but MAY include it in the *destroyed* list, and if so MAY also include it in the *created* list.
+If a record has been created AND destroyed since the old state, the server SHOULD remove the id from the response entirely but MAY include it in the *destroyed* list, and if so MAY also include it in the *created* list.
 
-If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *created*, *updated* and *destroyed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the server SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *Foo/changes* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
+If a *maxChanges* is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across *created*, *updated*, and *destroyed* does not exceed this limit. If there are more changes than this between the client's state and the current server state, the server SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call *Foo/changes* until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a `cannotCalculateChanges` error response instead.
 
-When generating intermediate states, the server may choose how to divide up the changes. For many types it will provide a better user experience to return the more recent changes first, as this is more likely to be what the user is most interested in. The client can then continue to page in the older changes while the user is viewing the newer data. For example, suppose a server went through the following states:
+When generating intermediate states, the server may choose how to divide up the changes. For many types, it will provide a better user experience to return the more recent changes first, as this is more likely to be what the user is most interested in. The client can then continue to page in the older changes while the user is viewing the newer data. For example, suppose a server went through the following states:
 
     A -> B -> C -> D -> E
 
-And a client asks for changes from state `B`. The server might first get the ids of records created, updated or destroyed between states D and E, returning them with:
+And a client asks for changes from state `B`. The server might first get the ids of records created, updated, or destroyed between states D and E, returning them with:
 
     state: "B-D-E"
     hasMoreChanges: true
@@ -501,75 +501,75 @@ The client will then ask for the change from state `B-D-E`, and the server can r
     state: "B-C-E"
     hasMoreChanges: true
 
-Finally the client will request the changes from `B-C-E` and the server can return the changes between states B and C, returning:
+Finally, the client will request the changes from `B-C-E` and the server can return the changes between states B and C, returning:
 
     state: "E"
     hasMoreChanges: false
 
-Should the state on the server be modified in the middle of all this (to `F`), the server still does the same but now when the update to state `E` is returned, it would indicate that it still has more changes for the client to fetch.
+Should the state on the server be modified in the middle of all this (to `F`), the server still does the same, but now when the update to state `E` is returned, it would indicate that it still has more changes for the client to fetch.
 
-Where multiple changes to a record are split across different intermediate states, the server MUST NOT return a record as created in a later response than one which gives it as updated or destroyed, and MUST NOT return a record as destroyed before a response that gives it as created or updated. The server may have to coalesce multiple changes to a record to satisfy this requirement.
+Where multiple changes to a record are split across different intermediate states, the server MUST NOT return a record as created in a later response than one that gives it as updated or destroyed, and it MUST NOT return a record as destroyed before a response that gives it as created or updated. The server may have to coalesce multiple changes to a record to satisfy this requirement.
 
 The following additional errors may be returned instead of the *Foo/changes* response:
 
-`cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually due to the client's state being too old, or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Foo cache.
+`cannotCalculateChanges`: The server cannot calculate the changes from the state string given by the client. Usually, this is due to the client's state being too old or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Foo cache.
 
 Maintaining state to allow calculation of *Foo/changes* can be expensive for the server, but always returning *cannotCalculateChanges* severely increases network traffic and resource usage for the client. To allow efficient sync, servers SHOULD be able to calculate changes from any state string that was given to a client within the last 30 days (but of course may support calculating updates from states older than this).
 
 ## /set
 
-Modifying the state of Foo objects on the server is done via the *Foo/set* method. This encompasses creating, updating and destroying Foo records. This allows the server to sort out ordering and dependencies that may exist if doing multiple operations at once (for example to ensure there is always a minimum number of a certain record type).
+Modifying the state of Foo objects on the server is done via the *Foo/set* method. This encompasses creating, updating, and destroying Foo records. This allows the server to sort out ordering and dependencies that may exist if doing multiple operations at once (for example, to ensure there is always a minimum number of a certain record type).
 
 The *Foo/set* method takes the following arguments:
 
 - **accountId**: `Id`
   The id of the account to use.
 - **ifInState**: `String|null`
-  This is a state string as returned by the *Foo/get* method (representing the state of all objects of this type in the account). If supplied, the string must match the current state, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
+  This is a state string as returned by the *Foo/get* method (representing the state of all objects of this type in the account). If supplied, the string must match the current state; otherwise, the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **create**: `Id[Foo]|null`
-  A map of *creation id* (a temporary id set by the client) to Foo objects, or `
-  null` if no objects are to be created.
+  A map of a *creation id* (a temporary id set by the client) to Foo objects,
+  or `null` if no objects are to be created.
 
     The Foo object type definition may define default values for properties. Any such property may be omitted by the client.
 
     The client MUST omit any properties that may only be set by the server (for example, the *id* property on most object types).
 
 - **update**: `Id[PatchObject]|null`
-  A map of id to a Patch object to apply to the current Foo object with that id, or `null` if no objects are to be updated.
+  A map of an id to a Patch object to apply to the current Foo object with that id, or `null` if no objects are to be updated.
 
-    A *PatchObject* is of type `String[*]`, and represents an unordered set of patches.  The keys are a path in [@!RFC6901] JSON pointer format, with an implicit leading "/" (i.e. prefix each key with "/" before applying the JSON pointer evaluation algorithm).
+    A *PatchObject* is of type `String[*]` and represents an unordered set of patches.  The keys are a path in JSON Pointer Format [@!RFC6901], with an implicit leading "/" (i.e., prefix each key with "/" before applying the JSON Pointer evaluation algorithm).
 
     All paths MUST also conform to the following restrictions; if there is any violation, the update MUST be rejected with an `invalidPatch` error:
 
-    * The pointer MUST NOT reference inside an array (i.e. you MUST NOT insert/delete from an array; the array MUST be replaced in its entirety instead).
-    * All parts prior to the last (i.e. the value after the final slash) MUST already exist on the object being patched.
-    * There MUST NOT be two patches in the PatchObject where the pointer of one is the prefix of the pointer of the other, e.g. "alerts/1/offset" and "alerts".
+    * The pointer MUST NOT reference inside an array (i.e., you MUST NOT insert/delete from an array; the array MUST be replaced in its entirety instead).
+    * All parts prior to the last (i.e., the value after the final slash) MUST already exist on the object being patched.
+    * There MUST NOT be two patches in the PatchObject where the pointer of one is the prefix of the pointer of the other, e.g., "alerts/1/offset" and "alerts".
 
     The value associated with each pointer determines how to apply that patch:
 
-    * If `null`, set to the default value if specified for this property, otherwise remove the property from the patched object. If the key is not present in the parent, this a no-op.
+    * If `null`, set to the default value if specified for this property; otherwise, remove the property from the patched object. If the key is not present in the parent, this a no-op.
     * Anything else: The value to set for this property (this may be a replacement or addition to the object being patched).
 
     Any server-set properties MAY be included in the patch if their value is identical to the current server value (before applying the patches to the object). Otherwise, the update MUST be rejected with an *invalidProperties* SetError.
 
-    This patch definition is designed such that an entire Foo object is also a valid PatchObject. The client MAY choose to optimise network usage by just sending the diff, or MAY just send the whole object; the server processes it the same either way.
+    This patch definition is designed such that an entire Foo object is also a valid PatchObject. The client MAY choose to optimise network usage by just sending the diff or the whole object; the server processes it the same either way.
 
 - **destroy**: `Id[]|null`
   A list of ids for Foo objects to permanently delete, or `null` if no objects are to be destroyed.
 
-Each creation, modification or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it MUST NOT only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
+Each creation, modification, or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it MUST NOT only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
 
-The final state MUST be valid after the Foo/set is finished, however the server may have to transition through invalid intermediate states (not exposed to the client) while processing the individual create/update/destroy requests. For example, suppose there is a "name" property that must be unique. A single method call could rename an object A => B, and simultaneously rename another object B => A. If the final state is valid, this is allowed. Otherwise, each creation, modification or destruction of an object should be processed sequentially and accepted/rejected based on the current server state.
+The final state MUST be valid after the Foo/set is finished; however, the server may have to transition through invalid intermediate states (not exposed to the client) while processing the individual create/update/destroy requests. For example, suppose there is a "name" property that must be unique. A single method call could rename an object A => B and simultaneously rename another object B => A. If the final state is valid, this is allowed. Otherwise, each creation, modification, or destruction of an object should be processed sequentially and accepted/rejected based on the current server state.
 
-If a create, update or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+If a create, update, or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response, and the server MUST continue to the next create/update/destroy. It does not terminate the method.
 
 If an id given cannot be found, the update or destroy MUST be rejected with a `notFound` set error.
 
 The server MAY skip an update (rejecting it with a `willDestroy` SetError) if that object is destroyed in the same /set request.
 
-Some records may hold references to other records (foreign keys). That reference may be set (via create or update) in the same request as the referenced record is created. To do this, the client refers to the new record using its creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the record being referenced is created in the same or an earlier call. The server thus never has to look ahead. Instead, while processing a request the server MUST keep a simple map for the duration of the request of creation id to record id for each newly created record, so it can substitute in the correct value if necessary in later method calls. In the case of records with references to the same type, the server MUST order the creates and updates within a single method call so that creates happen before their creation ids are referenced by another create/update/destroy in the same call.
+Some records may hold references to other records (foreign keys). That reference may be set (via create or update) in the same request as the referenced record is created. To do this, the client refers to the new record using its creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the record being referenced is created in the same or an earlier call. Thus, the server never has to look ahead. Instead, while processing a request, the server MUST keep a simple map for the duration of the request of creation id to record id for each newly created record, so it can substitute in the correct value if necessary in later method calls. In the case of records with references to the same type, the server MUST order the creates and updates within a single method call so that creates happen before their creation ids are referenced by another create/update/destroy in the same call.
 
-Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see The Request object in section 3.2) and the final state of the map passed out with the response (see section 3.3).
+Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see "The Request Object", Section 3.2) and the final state of the map passed out with the response (see "The Response Object", Section 3.3).
 
 The response has the following arguments:
 
@@ -580,7 +580,7 @@ The response has the following arguments:
 - **newState**: `String`
   The state string that will now be returned by *Foo/get*.
 - **created**: `Id[Foo]|null`
-  A map of the creation id to an object containing any properties of the created Foo object that were not sent by the client. This includes all server-set properties (such as the *id* in most object types) and any properties that were omitted by the client and so set to a default by the server.
+  A map of the creation id to an object containing any properties of the created Foo object that were not sent by the client. This includes all server-set properties (such as the *id* in most object types) and any properties that were omitted by the client and thus set to a default by the server.
 
     This argument is `null` if no Foo objects were successfully created.
 
@@ -595,61 +595,61 @@ The response has the following arguments:
 - **destroyed**: `Id[]|null`
   A list of Foo ids for records that were successfully destroyed, or `null` if none.
 - **notCreated**: `Id[SetError]|null`
-  A map of creation id to a SetError object for each record that failed to be created, or `null` if all successful.
+  A map of the creation id to a SetError object for each record that failed to be created, or `null` if all successful.
 - **notUpdated**: `Id[SetError]|null`
-  A map of Foo id to a SetError object for each record that failed to be updated, or `null` if all successful.
+  A map of the Foo id to a SetError object for each record that failed to be updated, or `null` if all successful.
 - **notDestroyed**: `Id[SetError]|null`
-  A map of Foo id to a SetError object for each record that failed to be destroyed, or `null` if all successful.
+  A map of the Foo id to a SetError object for each record that failed to be destroyed, or `null` if all successful.
 
 A **SetError** object has the following properties:
 
 - **type**: `String`
   The type of error.
 - **description**: `String|null`
-  A description of the error to help debug with an explanation of what the problem was. This is a non-localised string, and is not intended to be shown directly to end users.
+  A description of the error to help with debugging that includes an explanation of what the problem was. This is a non-localised string and is not intended to be shown directly to end users.
 
 The following SetError types are defined and may be returned for set operations on any record type where appropriate:
 
-- `forbidden`: (create; update; destroy) The create/update/destroy would
+- `forbidden`: (create; update; destroy). The create/update/destroy would
    violate an ACL or other permissions policy.
-- `overQuota`: (create; update) The create would exceed a server-defined limit
+- `overQuota`: (create; update). The create would exceed a server-defined limit
   on the number or total size of objects of this type.
-- `tooLarge`: (create; update) The create/update would result in an object
+- `tooLarge`: (create; update). The create/update would result in an object
   that exceeds a server-defined limit for the maximum size of a single object of this type.
-- `rateLimit`: (create) Too many objects of this type have been created
+- `rateLimit`: (create). Too many objects of this type have been created
   recently, and a server-defined rate limit has been reached. It may work if
   tried again later.
-- `notFound`: (update; destroy) The id given to update/destroy cannot be found.
+- `notFound`: (update; destroy). The id given to update/destroy cannot be found.
 - `invalidPatch`: (update) The PatchObject given to update the record was
   not a valid patch (see the patch description).
-- `willDestroy` (update)
-  The client requested an object be both updated and destroyed in the same
+- `willDestroy` (update).
+  The client requested that an object be both updated and destroyed in the same
   /set request, and the server has decided to therefore ignore the update.
-- `invalidProperties`: (create; update) The record given is invalid in
+- `invalidProperties`: (create; update). The record given is invalid in
   some way. For example:
 
-    - It contains properties which are invalid according to the type specification of this record type.
-    - It contains a property that may only be set by the server (e.g. "id") and is different to the current value. Note, to allow clients to pass whole objects back, it is not an error to include a server-set property in an update so long as the value is identical to the current value on the server.
-    - There is a reference to another record (foreign key) and the given id does not correspond to a valid record.
+    - It contains properties that are invalid according to the type specification of this record type.
+    - It contains a property that may only be set by the server (e.g., "id") and is different to the current value. Note, to allow clients to pass whole objects back, it is not an error to include a server-set property in an update as long as the value is identical to the current value on the server.
+    - There is a reference to another record (foreign key), and the given id does not correspond to a valid record.
 
     The SetError object SHOULD also have a property called *properties* of type `String[]` that lists **all** the properties that were invalid.
 
     Individual methods MAY specify more specific errors for certain conditions that would otherwise result in an invalidProperties error. If the condition of one of these is met, it MUST be returned instead of the invalidProperties error.
 
-- `singleton`: (create; destroy) This is a singleton type, so you cannot create
+- `singleton`: (create; destroy). This is a singleton type, so you cannot create
   another one or destroy the existing one.
 
 Other possible SetError types MAY be given in specific method descriptions. Other properties MAY also be present on the *SetError* object, as described in the relevant methods.
 
 The following additional errors may be returned instead of the *Foo/set* response:
 
-`requestTooLarge`: The total number of objects to create, update or destroy exceeds the maximum number the server is willing to process in a single method call.
+`requestTooLarge`: The total number of objects to create, update, or destroy exceeds the maximum number the server is willing to process in a single method call.
 
-`stateMismatch`: An `ifInState` argument was supplied and it does not match the current state.
+`stateMismatch`: An `ifInState` argument was supplied, and it does not match the current state.
 
 ## /copy
 
-The only way to move Foo records **between** two different accounts is to copy them using the *Foo/copy* method, then once the copy has succeeded, delete the original. The *onSuccessDestroyOriginal* argument allows you to try to do this in one method call, however note that the two different actions are not atomic, and so it is possible for the copy to succeed but the original not to be destroyed for some reason.
+The only way to move Foo records **between** two different accounts is to copy them using the *Foo/copy* method; once the copy has succeeded, delete the original. The *onSuccessDestroyOriginal* argument allows you to try to do this in one method call; however, note that the two different actions are not atomic, so it is possible for the copy to succeed but the original not to be destroyed for some reason.
 
 The copy is conceptually in three phases:
 
@@ -664,19 +664,19 @@ The *Foo/copy* method takes the following arguments:
 - **fromAccountId**: `Id`
   The id of the account to copy records from.
 - **ifFromInState**: `String|null`
-  This is a state string as returned by the *Foo/get* method. If supplied, the string must match the current state of the account referenced by the fromAccountId when reading the data to be copied, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, the data will be read from the current state.
+  This is a state string as returned by the *Foo/get* method. If supplied, the string must match the current state of the account referenced by the fromAccountId when reading the data to be copied; otherwise, the method will be aborted and a `stateMismatch` error returned. If `null`, the data will be read from the current state.
 - **accountId**: `Id`
   The id of the account to copy records to. This MUST be different to the `fromAccountId`.
 - **ifInState**: `String|null`
-  This is a state string as returned by the *Foo/get* method. If supplied, the string must match the current state of the account referenced by the accountId, otherwise the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
+  This is a state string as returned by the *Foo/get* method. If supplied, the string must match the current state of the account referenced by the accountId; otherwise, the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **create**: `Id[Foo]`
-  A map of *creation id* to a Foo object. The object MUST contain an id property: the id (in the fromAccount) of the record to be copied. Any other properties included are used instead of the current value for that property on the original when creating the copy.
+  A map of the *creation id* to a Foo object. The object MUST contain an id property, which is the id (in the fromAccount) of the record to be copied. When creating the copy, any other properties included are used instead of the current value for that property on the original.
 - **onSuccessDestroyOriginal**: `Boolean` (default: false)
-  If `true`, an attempt will be made to destroy the original records that were successfully copied: after emitting the *Foo/copy* response, but before processing the next method, the server MUST make a single call to *Foo/set* to destroy the original of each successfully copied record; the output of this is added to the responses as normal to be returned to the client.
+  If `true`, an attempt will be made to destroy the original records that were successfully copied: after emitting the *Foo/copy* response, but before processing the next method, the server MUST make a single call to *Foo/set* to destroy the original of each successfully copied record; the output of this is added to the responses as normal, to be returned to the client.
 - **destroyFromIfInState**: `String|null`
   This argument is passed on as the `ifInState` argument to the implicit *Foo/set* call, if made at the end of this request to destroy the originals that were successfully copied.
 
-Each record copy is considered an atomic unit which may succeed or fail individually.
+Each record copy is considered an atomic unit that may succeed or fail individually.
 
 The response has the following arguments:
 
@@ -685,7 +685,7 @@ The response has the following arguments:
 - **accountId**: `Id`
   The id of the account records were copied to.
 - **oldState**: `String|null`
-  The state string that would have been returned by *Foo/get* on the account records were copied to before making the requested changes, or `null` if the server doesn't know what the previous state string was.
+  The state string that would have been returned by *Foo/get* on the account records that were copied to before making the requested changes, or `null` if the server doesn't know what the previous state string was.
 - **newState**: `String`
   The state string that will now be returned by *Foo/get* on the account records were copied to.
 - **created**: `Id[Foo]|null`
@@ -697,11 +697,11 @@ The response has the following arguments:
     This argument is `null` if no Foo objects were successfully copied.
 
 - **notCreated**: `Id[SetError]|null`
-  A map of creation id to a SetError object for each record that failed to be copied, `null` if none.
+  A map of the creation id to a SetError object for each record that failed to be copied, or `null` if none.
 
-The **SetError** may be any of the standard set errors that may be returned for a *create* or *update*. In addition, the following SetError is defined:
+The **SetError** may be any of the standard set errors returned for a *create* or *update*. In addition, the following SetError is defined:
 
-`alreadyExists`: The server forbids duplicates and the record already exists in the target account. An *existingId* property of type `Id` MUST be included on the error object with the id of the existing record.
+`alreadyExists`: The server forbids duplicates, and the record already exists in the target account. An *existingId* property of type `Id` MUST be included on the error object with the id of the existing record.
 
 The following additional errors may be returned instead of the *Foo/copy* response:
 
@@ -714,7 +714,7 @@ The following additional errors may be returned instead of the *Foo/copy* respon
 
 ## /query
 
-For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g. multi-gigabyte mailboxes), the client needs to be able to search/sort/window the data type on the server.
+For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g., multi-gigabyte mailboxes), the client needs to be able to search/sort/window the data type on the server.
 
 A query on the set of Foos in an account is made by calling *Foo/query*. This takes a number of arguments to determine which records to include, how they should be sorted, and which part of the result should be returned (the full list may be *very* long). The result is returned as a list of Foo ids.
 
@@ -729,16 +729,16 @@ A call to *Foo/query* takes the following arguments:
 
     - **operator**: `String`
       This MUST be one of the following strings: "AND" / "OR" / "NOT":
-      - **AND**: all of the conditions must match for the filter to match.
-      - **OR**: at least one of the conditions must match for the filter to match.
-      - **NOT**: none of the conditions must match for the filter to match.
+      - **AND**: All of the conditions must match for the filter to match.
+      - **OR**: At least one of the conditions must match for the filter to match.
+      - **NOT**: None of the conditions must match for the filter to match.
     - **conditions**: `(FilterOperator|FilterCondition)[]`
       The conditions to evaluate against each record.
 
     A **FilterCondition** is an `object` whose allowed properties and semantics depend on the data type and is defined in the */query* method specification for that type. It MUST NOT have an *operator* property.
 
 - **sort**: `Comparator[]|null`
-  Lists the names of properties to compare between two Foo records, and how to compare them, to determine which comes first in the sort. If two Foo records have an identical value for the first comparator, the next comparator will be considered and so on. If all comparators are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server-dependent, but MUST be stable between calls to Foo/query.
+  Lists the names of properties to compare between two Foo records, and how to compare them, to determine which comes first in the sort. If two Foo records have an identical value for the first comparator, the next comparator will be considered, and so on. If all comparators are the same (this includes the case where an empty array or `null` is given as the *sort* argument), the sort order is server dependent, but it MUST be stable between calls to Foo/query.
 
     A **Comparator** has the following properties:
 
@@ -746,20 +746,20 @@ A call to *Foo/query* takes the following arguments:
       The name of the property on the Foo objects to compare.
     - **isAscending**: `Boolean` (optional; default: true)
       If `true`, sort in ascending order. If `false`, reverse the comparator's results to sort in descending order.
-    - **collation**: `String` (optional; default is server-dependent)
+    - **collation**: `String` (optional; default is server dependent)
       The identifier, as registered in the collation registry defined in [@!RFC4790], for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the JMAP Session object.
 
         If omitted, the default algorithm is server-dependent, but:
 
         1. It MUST be unicode-aware.
         2. It MAY be selected based on an Accept-Language header in the
-           request (as defined in [@!RFC7231] section 5.3.5), or out-of-band information about the user's language/locale.
-        3. It SHOULD be case-insensitive where such a concept makes sense for a
-           language/locale. Where the user's language is unknown, it is RECOMMENDED to follow the advice in section 5.2.3 of [@!RFC8264].
+           request (as defined in [@!RFC7231], Section 5.3.5), or out-of-band information about the user's language/locale.
+        3. It SHOULD be case insensitive where such a concept makes sense for a
+           language/locale. Where the user's language is unknown, it is RECOMMENDED to follow the advice in Section 5.2.3 of [@!RFC8264].
 
-        The "i;unicode-casemap" collation ([@!RFC5051]) and the Unicode Collation Algorithm (http://www.unicode.org/reports/tr10/) are two examples that fulfil these criterion and provide reasonable behaviour for a large number of languages.
+        The "i;unicode-casemap" collation [@!RFC5051] and the Unicode Collation Algorithm (http://www.unicode.org/reports/tr10/) are two examples that fulfil these criterion and provide reasonable behaviour for a large number of languages.
 
-        When the property being compared is not a string, the *collation* property is ignored and the following comparison rules apply based on the type. In ascending order:
+        When the property being compared is not a string, the *collation* property is ignored, and the following comparison rules apply based on the type. In ascending order:
 
         - `Boolean`: `false` comes before `true`.
         - `Number`: A lower number comes before a higher number.
@@ -771,11 +771,11 @@ A call to *Foo/query* takes the following arguments:
 - **position**: `Int` (default: 0)
   The 0-based index of the first id in the full list of results to return.
 
-    If a negative value is given, it is an offset from the end of the list. Specifically, the negative value MUST be added to the total number of results given the filter, and if still negative clamped to `0`. This is now the 0-based index of the first id to return.
+    If a negative value is given, it is an offset from the end of the list. Specifically, the negative value MUST be added to the total number of results given the filter, and if still negative, it's clamped to `0`. This is now the 0-based index of the first id to return.
 
-    If the index is greater than or equal to the total number of objects in the results list then the *ids* array in the response will be empty, but this is not an error.
+    If the index is greater than or equal to the total number of objects in the results list, then the *ids* array in the response will be empty, but this is not an error.
 - **anchor**: `Id|null`
-  A Foo id. If supplied the *position* argument is ignored. The index of this id in the results will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see below for more details).
+  A Foo id. If supplied, the *position* argument is ignored. The index of this id in the results will be used in combination with the `anchorOffset` argument to determine the index of the first result to return (see below for more details).
 - **anchorOffset**: `Int` (default: 0)
   The index of the first result to return relative to the index of the anchor, if an anchor is given. This MAY be negative. For example, `-1` means the Foo immediately preceding the anchor is the first result in the list returned (see below for more details).
 - **limit**: `UnsignedInt|null`
@@ -783,7 +783,7 @@ A call to *Foo/query* takes the following arguments:
 - **calculateTotal**: `Boolean` (default: false)
   Does the client wish to know the total number of results in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.
 
-If an **anchor** argument is given, then after filtering and sorting the anchor is looked for in the results. If found, the **anchor offset** is then added to its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
+If an **anchor** argument is given, the anchor is looked for in the results after filtering and sorting. If found, the **anchor offset** is then added to its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
 
 If an *anchor* is specified, any position argument supplied by the client MUST be ignored. If no *anchor* is supplied, any anchor offset argument MUST be ignored.
 
@@ -795,34 +795,34 @@ The response has the following arguments:
 - **accountId**: `Id`
   The id of the account used for the call.
 - **queryState**: `String`
-  A string encoding the current state of the query on the server. This string MUST change if the results of the query (i.e. the matching ids and their sort order) have changed. The queryState string MAY change if something has changed on the server which means the results may have changed but the server doesn't know for sure.
+  A string encoding the current state of the query on the server. This string MUST change if the results of the query (i.e., the matching ids and their sort order) have changed. The queryState string MAY change if something has changed on the server, which means the results may have changed but the server doesn't know for sure.
 
-    The queryState string only represents the ordered list of ids that match the particular query (including its sort/filter). There is no requirement for it to change if a property on an object matching the query changes but the query results are unaffected (indeed, it is more efficient if the queryState string does not change in this case). The queryState string only has meaning when compared to future responses to a query with the same type/sort/filter, or when used with /queryChanges to fetch changes.
+    The queryState string only represents the ordered list of ids that match the particular query (including its sort/filter). There is no requirement for it to change if a property on an object matching the query changes but the query results are unaffected (indeed, it is more efficient if the queryState string does not change in this case). The queryState string only has meaning when compared to future responses to a query with the same type/sort/filter or when used with /queryChanges to fetch changes.
 
-    Should a client receive back a response with a different queryState string to a previous call it MUST either throw away the currently cached query and fetch it again (note, this does not require fetching the records again, just the list of ids) or call *Foo/queryChanges* to get the difference.
+    Should a client receive back a response with a different queryState string to a previous call, it MUST either throw away the currently cached query and fetch it again (note, this does not require fetching the records again, just the list of ids) or call *Foo/queryChanges* to get the difference.
 
 - **canCalculateChanges**: `Boolean`
   This is `true` if the server supports calling *Foo/queryChanges* with these `filter`/`sort` parameters. Note, this does not guarantee that the *Foo/queryChanges* call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.
 - **position**: `UnsignedInt`
   The 0-based index of the first result in the `ids` array within the complete list of query results.
 - **ids**: `Id[]`
-  The list of ids for each foo in the query results, starting at the index given by the *position* argument of this response, and continuing until it hits the end of the results or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
+  The list of ids for each foo in the query results, starting at the index given by the *position* argument of this response and continuing until it hits the end of the results or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
 - **total**: `UnsignedInt` (only if requested)
   The total number of foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
 - **limit**: `UnsignedInt` (if set by the server)
   The limit enforced by the server on the maximum number of results to return.
-  This is only returned if the server set a limit, or used a different limit to
+  This is only returned if the server set a limit or used a different limit than
   that given in the request.
 
 The following additional errors may be returned instead of the *Foo/query* response:
 
 `anchorNotFound`: An anchor argument was supplied, but it cannot be found in the results of the query.
 
-`unsupportedSort`: The *sort* is syntactically valid, but includes a property the server does not support sorting on, or a collation method it does not recognise.
+`unsupportedSort`: The *sort* is syntactically valid, but it includes a property the server does not support sorting on or a collation method it does not recognise.
 
 `unsupportedFilter`: The *filter* is syntactically valid, but the server cannot
 process it. If the filter was the result of a user's search input, the client
-SHOULD suggest the user simplify their search.
+SHOULD suggest that the user simplify their search.
 
 ## /queryChanges
 
@@ -839,7 +839,7 @@ The `Foo/queryChanges` method allows a client to efficiently update the state of
 - **maxChanges**: `UnsignedInt|null`
   The maximum number of changes to return in the response. See error descriptions below for more details.
 - **upToId**: `Id|null`
-  The last (highest-index) id the client currently has cached from the query results. When there are a large number of results, in a common case the client may have only downloaded and cached a small subset from the beginning of the results. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the results, which can significantly increase efficiency. If they are not immutable, this argument is ignored.
+  The last (highest-index) id the client currently has cached from the query results. When there are a large number of results, in a common case, the client may have only downloaded and cached a small subset from the beginning of the results. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the results, which can significantly increase efficiency. If they are not immutable, this argument is ignored.
 - **calculateTotal**: `Boolean` (default: false)
   Does the client wish to know the total number of results now in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.
 
@@ -848,19 +848,19 @@ The response has the following arguments:
 - **accountId**: `Id`
   The id of the account used for the call.
 - **oldQueryState**: `String`
-  This is the `sinceQueryState` argument echoed back; the state from which the server is returning changes.
+  This is the `sinceQueryState` argument echoed back; that is, the state from which the server is returning changes.
 - **newQueryState**: `String`
   This is the state the query will be in after applying the set of changes to the old state.
 - **total**: `UnsignedInt` (only if requested)
   The total number of foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
 - **removed**: `Id[]`
-  The *id* for every foo that was in the query results in the old state and is not in the results in the new state.
+  The *id* for every foo that was in the query results in the old state and that is not in the results in the new state.
 
     If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old results but are not in the new results.
 
     If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were removed but have a higher index than *upToId* SHOULD be omitted.
 
-    If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current results for which this property may have changed. The position of these may have moved in the results so must be
+    If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current results for which this property may have changed. The position of these may have moved in the results, so must be
     reinserted by the client to ensure its query cache is correct.
 
 - **added**: `AddedItem[]`
@@ -868,23 +868,23 @@ The response has the following arguments:
 
     If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were added but have a higher index than *upToId* SHOULD be omitted.
 
-    The array MUST be sorted in order of index, lowest index first.
+    The array MUST be sorted in order of index, with the lowest index first.
 
     An **AddedItem** object has the following properties:
 
     - **id**: `Id`
     - **index**: `UnsignedInt`
 
-The result of this is that if the client has a cached sparse array of foo ids corresponding to the results in the old state:
+The result of this is that if the client has a cached sparse array of foo ids corresponding to the results in the old state, then:
 
     fooIds = [ "id1", "id2", null, null, "id3", "id4", null, null, null ]
 
-then if it **splices out** all ids in the removed array that it has in its cached results:
+If it **splices out** all ids in the removed array that it has in its cached results, then:
 
     removed = [ "id2", "id31", ... ];
     fooIds => [ "id1", null, null, "id3", "id4", null, null, null ]
 
-and **splices in** (one-by-one in order, starting with the lowest index) all of the ids in the added array:
+and **splices in** (one by one in order, starting with the lowest index) all of the ids in the added array:
 
     added = [{ id: "id5", index: 0, ... }];
     fooIds => [ "id5", "id1", null, null, "id3", "id4", null, null, null ]
@@ -895,9 +895,9 @@ Note: splicing in adds the item at the given index, incrementing the index of al
 
 The following additional errors may be returned instead of the *Foo/queryChanges* response:
 
-`tooManyChanges`: There are more changes than the client's *maxChanges* argument. Each item in the removed or added array is considered as one change. The client may retry with a higher max changes or invalidate its cache of the query results.
+`tooManyChanges`: There are more changes than the client's *maxChanges* argument. Each item in the removed or added array is considered to be one change. The client may retry with higher max changes or invalidate its cache of the query results.
 
-`cannotCalculateChanges`: The server cannot calculate the changes from the queryState string given by the client. Usually due to the client's state being too old. The client MUST invalidate its cache of the query results.
+`cannotCalculateChanges`: The server cannot calculate the changes from the queryState string given by the client, usually due to the client's state being too old. The client MUST invalidate its cache of the query results.
 
 ## Examples
 
@@ -908,14 +908,14 @@ Suppose we have a type *Todo* with the following properties:
 - **title**: `String`
   A brief summary of what is to be done.
 - **keywords**: `String[Boolean]` (default: \{\})
-  A set of keywords that apply to the todo. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`. (This format allows you to update an individual key using patch syntax rather than having to update the whole set of keywords as one, which an `String[]` representation would require.)
+  A set of keywords that apply to the todo. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`. (This format allows you to update an individual key using patch syntax rather than having to update the whole set of keywords as one, which a `String[]` representation would require.)
 - **neuralNetworkTimeEstimation**: `Number` (server-set)
   The title and keywords are fed into the server's state-of-the-art neural
   network to get an estimation of how long this todo will take, in seconds.
 - **subTodoIds**: `Id[]|null`
   The ids of a list of subtodos to complete as part of this todo.
 
-Suppose also that all the standard methods are defined for this type, and the FilterCondition object supports a `hasKeyword` property to match todos with the given keyword.
+Suppose also that all the standard methods are defined for this type and the FilterCondition object supports a `hasKeyword` property to match todos with the given keyword.
 
 A client might want to display the list of todos with either a "music" keyword or a "video" keyword, so it makes the following method call:
 
@@ -978,7 +978,7 @@ This would query the server for the set of todos with a keyword of either "music
       ]
     }, "1" ]]
 
-Now suppose the user adds a keyword "chopin" and removes the keyword "mozart" from the "Practise Piano" task. The client may send the whole object to the server, as this is a valid PatchObject:
+Now, suppose the user adds a keyword "chopin" and removes the keyword "mozart" from the "Practise Piano" task. The client may send the whole object to the server, as this is a valid PatchObject:
 
     [[ "Todo/set", {
       "accountId": "x",
@@ -1012,7 +1012,7 @@ or it may send a minimal patch:
       }
     }, "0" ]]
 
-The effect is exactly the same on the server in either case, and presuming the server is still in state "10324" it will probably return success:
+The effect is exactly the same on the server in either case, and presuming the server is still in state "10324", it will probably return success:
 
     [[ "Todo/set", {
       "accountId": "x",
@@ -1027,7 +1027,7 @@ The effect is exactly the same on the server in either case, and presuming the s
 
 The server changed the "neuralNetworkTimeEstimation" property on the object as part of this change; as this changed in a way *not* explicitly requested by the PatchObject sent to the server, it is returned with the "updated" confirmation.
 
-Let us now add a subtodo to our new "Practice Piano" todo. In this example we can see the use of a reference to a creation id to allow us to set a foreign key reference to a record created in the same request:
+Let us now add a subtodo to our new "Practise Piano" todo. In this example, we can see the use of a reference to a creation id to allow us to set a foreign key reference to a record created in the same request:
 
     [[ "Todo/set", {
       "accountId": "x",
@@ -1043,7 +1043,7 @@ Let us now add a subtodo to our new "Practice Piano" todo. In this example we ca
       }
     }, "0" ]]
 
-Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user will receive a push notification (see section 7) with the changed state string for the "Todo" type. Since the new string does not match its current state, it knows it needs to check for updates. It may make a request like:
+Now, suppose another user deleted the "Listen to Daft Punk" todo. The first user will receive a push notification (see Section 7) with the changed state string for the "Todo" type. Since the new string does not match its current state, it knows it needs to check for updates. It may make a request like:
 
     [[ "Todo/changes", {
       "accountId": "x",
@@ -1083,7 +1083,7 @@ and receive in response:
       "added": null
     }, "1" ]]
 
-Suppose the user has access to another account `y`, for example a team account shared between multiple users. To move an existing Todo from account `x`, the client would call:
+Suppose the user has access to another account `y`, for example, a team account shared between multiple users. To move an existing Todo from account `x`, the client would call:
 
     [[ "Todo/copy", {
       "fromAccountId": "x",
@@ -1117,17 +1117,17 @@ The server successfully copies the Todo to a new account (where it receives a ne
       ...
     }, "0" ]]
 
-## Proxy considerations
+## Proxy Considerations
 
 JMAP has been designed to allow an API endpoint to easily proxy through to one
-or more JMAP servers. This may be useful for load balancing, augmenting capabilities, or presenting a single endpoint to accounts hosted on different JMAP servers (splitting the request based on each method's "accountId" argument). The proxy need only understand the general structure of a JMAP Request object, it does not need to know anything specifically about the methods and arguments it will pass through to other servers.
+or more JMAP servers. This may be useful for load balancing, augmenting capabilities, or presenting a single endpoint to accounts hosted on different JMAP servers (splitting the request based on each method's "accountId" argument). The proxy need only understand the general structure of a JMAP Request object; it does not need to know anything specifically about the methods and arguments it will pass through to other servers.
 
-If splitting up the methods in a request to call them on different backend servers, the proxy must do two things to ensure back-references and creation id references resolve the same as if the entire request were processed on a single server:
+If splitting up the methods in a request to call them on different backend servers, the proxy must do two things to ensure back-references and creation-id references resolve the same as if the entire request were processed on a single server:
 
 1. It must pass a `createdIds` property with each subrequest. If this is not
    given by the client, an empty object should be used for the first subrequest. The `createdIds` property of each subresponse should be passed on in the next subrequest.
 
 2. It must resolve back-references to previous method results that were
-   processed on a different server. This is a relatively simple syntactic substitution, described in section 3.6.
+   processed on a different server. This is a relatively simple syntactic substitution, described in Section 3.6.
 
-When splitting a request based on accountId, proxy implementors do need to be aware of `/copy` methods, that copy between accounts. If the accounts are on different servers, the proxy will have to implement this functionality directly.
+When splitting a request based on accountId, proxy implementors do need to be aware of `/copy` methods that copy between accounts. If the accounts are on different servers, the proxy will have to implement this functionality directly.

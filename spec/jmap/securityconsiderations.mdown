@@ -1,38 +1,38 @@
-# Security considerations
+# Security Considerations
 
-## Transport confidentiality
+## Transport Confidentiality
 
-To ensure the confidentiality and integrity of data sent and received via JMAP, all requests MUST use TLS 1.2 ([RFC5246]) or later, following the recommendations in [@!RFC7525]. Servers SHOULD support TLS 1.3 ([@!RFC8446]) or later.
+To ensure the confidentiality and integrity of data sent and received via JMAP, all requests MUST use TLS 1.2 [RFC5246] or later, following the recommendations in [@!RFC7525]. Servers SHOULD support TLS 1.3 [@!RFC8446] or later.
 
 Clients MUST validate TLS certificate chains to protect against man-in-the-middle attacks.
 
-## Authentication scheme
+## Authentication Scheme
 
-A number of HTTP authentication schemes have been standardised (https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml). Servers should take care to assess the security characteristics of different schemes in relation to their needs when deciding what to implement.
+A number of HTTP authentication schemes have been standardised (see https://www.iana.org/assignments/http-authschemes/). Servers should take care to assess the security characteristics of different schemes in relation to their needs when deciding what to implement.
 
-Use of the Basic authentication scheme is NOT RECOMMENDED. Services that choose to use it are strongly recommended to require generation of a unique "app password" via some external mechanism for each client they wish to connect. This allows connections from different devices to be differentiated by the server, and access to be individually revoked.
+Use of the Basic authentication scheme is NOT RECOMMENDED. Services that choose to use it are strongly recommended to require generation of a unique "app password" via some external mechanism for each client they wish to connect. This allows connections from different devices to be differentiated by the server and access to be individually revoked.
 
-## Service autodiscovery
+## Service Autodiscovery
 
-Unless secured by something like DNSSEC, DNS SRV-based autodiscovery of server
-details is vulnerable to a DNS poisoning attack leading to the client talking to an attacker's server instead of the real JMAP server. The attacker may then man-in-the-middle requests and depending on the authentication scheme, steal credentials to generate its own requests.
+Unless secured by something like DNSSEC, autodiscovery of server
+details that are DNS SRV based is vulnerable to a DNS poisoning attack, which can lead to the client talking to an attacker's server instead of the real JMAP server. The attacker may then man-in-the-middle requests and, depending on the authentication scheme, steal credentials to generate its own requests.
 
 Clients that do not support SRV lookups are likely to try just using the `/.well-known/jmap` path directly against the domain of the username over HTTPS. Servers SHOULD ensure this path resolves or redirects to the correct JMAP Session resource to allow this to work. If this is not feasible, servers MUST ensure this path cannot be controlled by an attacker, as again it may be used to steal credentials.
 
-## JSON parsing
+## JSON Parsing
 
-The security considerations of [@!RFC8259] apply to the use of JSON as the data interchange format.
+The Security Considerations of [@!RFC8259] apply to the use of JSON as the data interchange format.
 
 As for any serialization format, parsers need to thoroughly check the
 syntax of the supplied data. JSON uses opening and closing tags for
 several types and structures, and it is possible that the end of supplied
 data will be reached when scanning for a matching closing tag; this is an
-error condition and implementations need to stop scanning at the end of the
+error condition, and implementations need to stop scanning at the end of the
 supplied data.
 
 JSON also uses a string encoding with some escape sequences to encode
 special characters within a string. Care is needed when processing these
-escape sequences to ensure that an escape sequence is fully formed before
+escape sequences to ensure that they are fully formed before
 the special processing is triggered, with special care taken when the
 escape sequences appear adjacent to other (non-escaped) special characters
 or the end of data (as in the previous paragraph).
@@ -44,37 +44,37 @@ resource exhaustion is small, but implementations may still wish to place
 limits on the size of allocations they are willing to make in any given
 context, to avoid untrusted data causing excessive memory allocation.
 
-## Denial of service
+## Denial of Service
 
-A small request may result in a very large response, and require considerable
-work on the server if resource limits are not enforced. JMAP provides mechanisms for advertising and enforcing a wide variety of limits for mitigating this threat, including limits on number of objects fetched in a single method call, number of methods in a single request, number of concurrent requests, etc.
+A small request may result in a very large response and require considerable
+work on the server if resource limits are not enforced. JMAP provides mechanisms for advertising and enforcing a wide variety of limits for mitigating this threat, including limits on the number of objects fetched in a single method call, number of methods in a single request, number of concurrent requests, etc.
 
 JMAP servers MUST implement sensible limits to mitigate against resource exhaustion attacks.
 
-## Connection to unknown push server
+## Connection to Unknown Push Server
 
 When a push subscription is registered, the application server will make POST requests to the given URL. There are a number of security considerations that MUST be considered when implementing this.
 
 The server MUST ensure the URL is externally resolvable to avoid server-side request forgery, where the server makes a request to a resource on its internal network.
 
-A malicious client may use the push subscription to attempt to flood a 3rd party server with requests, creating a denial of service attack and masking the attacker's true identity. There is no guarantee the URL that was given to the JMAP server is actually a valid push server. Upon creation of a push subscription the JMAP server sends a PushVerification object to the URL and MUST NOT send any further requests until the client verifies it has received the initial push. The verification code MUST contain sufficient entropy to prevent the client from being able to verify the subscription via brute force.
+A malicious client may use the push subscription to attempt to flood a third party server with requests, creating a denial-of-service attack and masking the attacker's true identity. There is no guarantee that the URL given to the JMAP server is actually a valid push server. Upon creation of a push subscription, the JMAP server sends a PushVerification object to the URL and MUST NOT send any further requests until the client verifies it has received the initial push. The verification code MUST contain sufficient entropy to prevent the client from being able to verify the subscription via brute force.
 
 The verification code does not guarantee the URL is a valid push server, only
 that the client is able to access the data submitted to it. While the
 verification step significantly reduces the set of potential targets, there is
 still a risk that the server is unrelated to the client and being targeted for
-a denial of service attack.
+a denial-of-service attack.
 
 The server MUST limit the number of push subscriptions any one user may have to ensure the user cannot cause the server to send a large number of push notifications at once, which could again be used as part of a denial-of-service attack. The rate of creation MUST also be limited to minimise the ability to abuse the verification request as an attack vector.
 
-## Push encryption
+## Push Encryption
 
-When data changes, a small object is pushed with the new state strings for the types that have changed. While the data here is minimal, a passive man-in-the-middle attacker may be able to gain useful information. To ensure confidentiality and integrity, if the push is sent via a third party outside of the control of the client and JMAP server the client MUST specify encryption keys when establishing the PushSubscription and ignore any push notification received that is not encrypted with those keys.
+When data changes, a small object is pushed with the new state strings for the types that have changed. While the data here is minimal, a passive man-in-the-middle attacker may be able to gain useful information. To ensure confidentiality and integrity, if the push is sent via a third party outside of the control of the client and JMAP server, the client MUST specify encryption keys when establishing the PushSubscription and ignore any push notification received that is not encrypted with those keys.
 
-The privacy and security considerations of [@!RFC8030] and [@!RFC8291] also all apply to the use of the PushSubscription mechanism.
+The privacy and security considerations of [@!RFC8030] and [@!RFC8291] also apply to the use of the PushSubscription mechanism.
 
-As there is no crypto algorithm agility in [@!RFC8291] Web Push Encryption, if new algorithms are required in the future a new specification will be needed to provide this.
+As there is no crypto algorithm agility in Web Push Encryption [@!RFC8291], a new specification will be needed to provide this if new algorithms are required in the future.
 
-## Traffic analysis
+## Traffic Analysis
 
 While the data is encrypted, a passive observer with the ability to monitor network traffic may be able to glean information from the timing of API requests and push notifications. For example, suppose an email or calendar invitation is sent from User A (hosted on Server X) to User B (hosted on Server Y). If Server X hosts data for many users, a passive observer can see that the two servers connected but does not know who the data was for. However, if a push notification is immediately sent to User B and the attacker can observe this as well, they may reasonably conclude that someone on Server X is connecting to User B.

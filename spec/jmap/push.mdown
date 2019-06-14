@@ -1,19 +1,19 @@
 # Push
 
-Push notifications allow clients to efficiently update (almost) instantly to stay in sync with data changes on the server. The general model for push is simple and sends minimal data over the push channel: just enough for the client to know whether it needs to resync. The format allows multiple changes to be coalesced into a single push update, and the frequency of pushes to be rate limited by the server. It doesn't matter if some push events are dropped before they reach the client; the next time it gets/sets any records of a changed type it will discover the data has changed and still sync all changes.
+Push notifications allow clients to efficiently update (almost) instantly to stay in sync with data changes on the server. The general model for push is simple and sends minimal data over the push channel: just enough for the client to know whether it needs to resync. The format allows multiple changes to be coalesced into a single push update and the frequency of pushes to be rate limited by the server. It doesn't matter if some push events are dropped before they reach the client; the next time it gets/sets any records of a changed type, it will discover the data has changed and still sync all changes.
 
-There are two different mechanisms by which a client can receive push notifications, to allow for the different environments in which a client may exist. An event source resource (see section 7.3) allows clients that can hold transport connections open to receive push notifications directly from the JMAP server. This is simple and avoids 3rd parties, but is often not feasible on constrained platforms such as mobile devices. Alternatively, clients can make use of any push service supported by their environment. A URL for the push service is registered with the JMAP server (see section 7.2), then the server then POSTs each notification to that URL. The push service is then responsible for routing these to the client.
+There are two different mechanisms by which a client can receive push notifications, to allow for the different environments in which a client may exist. An event source resource (see Section 7.3) allows clients that can hold transport connections open to receive push notifications directly from the JMAP server. This is simple and avoids third parties, but it is often not feasible on constrained platforms such as mobile devices. Alternatively, clients can make use of any push service supported by their environment. A URL for the push service is registered with the JMAP server (see Section 7.2), then the server then POSTs each notification to that URL. The push service is then responsible for routing these to the client.
 
-## The StateChange object
+## The StateChange Object
 
 When something changes on the server, the server pushes a **StateChange** object to the client. A **StateChange** object has the following properties:
 
 - **@type**: `String`
   This MUST be the string "StateChange".
 - **changed**: `Id[TypeState]`
-  A map of *account id* to an object encoding the state of data types that have changed for that account since the last StateChange object was pushed, for each of the accounts to which the user has access and for which something has changed.
+  A map of an *account id* to an object encoding the state of data types that have changed for that account since the last StateChange object was pushed, for each of the accounts to which the user has access and for which something has changed.
 
-    A **TypeState** object is a map. The keys are the type name `Foo` (e.g. "Mailbox" or "Email"), and the value is the *state* property that would currently be returned by a call to *Foo/get*.
+    A **TypeState** object is a map. The keys are the type name `Foo` (e.g., "Mailbox" or "Email"), and the value is the *state* property that would currently be returned by a call to *Foo/get*.
 
     The client can compare the new state strings with its current values to see whether it has the current data for these types. If not, the changes can then be efficiently fetched in a single standard API request (using the */changes* type methods).
 
@@ -36,7 +36,7 @@ In this example, the server has amalgamated a few changes together across two di
       }
     }
 
-The client can compare the state strings with its current state for the Email, CalendarEvent etc. object types in the appropriate accounts to see if it needs to fetch changes.
+The client can compare the state strings with its current state for the Email, CalendarEvent, etc., object types in the appropriate accounts to see if it needs to fetch changes.
 
 If the client is itself making changes, it may receive a StateChange object while the /set API call is in flight. It can wait until the call completes and then compare if the new state string after the /set is the same as was pushed in the StateChange object; if so, and the old state of the /set response matches the client's previous state, it does not need to waste a request asking for changes it already knows.
 
@@ -44,14 +44,14 @@ If the client is itself making changes, it may receive a StateChange object whil
 
 Clients may create a *PushSubscription* to register a URL with the JMAP server. The JMAP server will then make an HTTP POST request to this URL for each push notification it wishes to send to the client.
 
-As a push subscription causes the JMAP server to make a number of requests to a previously unknown endpoint, it can be used as a vector for launching a denial of service attack. To prevent this, when a subscription is created the JMAP server immediately sends a PushVerification object to that URL (see section 7.2.2). The JMAP server MUST NOT make any further requests to the URL until the client receives the push and updates the subscription with the correct verification code.
+As a push subscription causes the JMAP server to make a number of requests to a previously unknown endpoint, it can be used as a vector for launching a denial-of-service attack. To prevent this, when a subscription is created, the JMAP server immediately sends a PushVerification object to that URL (see Section 7.2.2). The JMAP server MUST NOT make any further requests to the URL until the client receives the push and updates the subscription with the correct verification code.
 
 A **PushSubscription** object has the following properties:
 
 - **id**: `Id` (immutable; server-set)
   The id of the push subscription.
 - **deviceClientId**: `String` (immutable)
-  An id that uniquely identifies the client + device it is running on. The purpose of this is to allow clients to identify which PushSubscription objects they created even if they lose their local state, so they can revoke or update them. This string MUST be different on different devices, and be different from apps from other vendors. It SHOULD be easy to re-generate, not depend on persisted state. It is RECOMMENDED to use a secure hash of a string that contains:
+  An id that uniquely identifies the client + device it is running on. The purpose of this is to allow clients to identify which PushSubscription objects they created even if they lose their local state, so they can revoke or update them. This string MUST be different on different devices and be different from apps from other vendors. It SHOULD be easy to regenerate and not depend on persisted state. It is RECOMMENDED to use a secure hash of a string that contains:
 
     1. A unique identifier associated with the device where the JMAP client is
        running, normally supplied by the device's operating system.
@@ -65,37 +65,37 @@ A **PushSubscription** object has the following properties:
   An absolute URL where the JMAP server will POST the data for the push message.
   This MUST begin with `https://`.
 - **keys**: `Object|null` (immutable)
-  Client-generated encryption keys. If supplied the server MUST use them as specified in [@!RFC8291] to encrypt all data sent to the push subscription. The object MUST have the following properties:
+  Client-generated encryption keys. If supplied, the server MUST use them as specified in [@!RFC8291] to encrypt all data sent to the push subscription. The object MUST have the following properties:
 
-    - **p256dh**: the P-256 ECDH Diffie-Hellman public key as described in [@!RFC8291], encoded in URL-safe Base64 representation as defined in [@!RFC4648].
-    - **auth**: the authentication secret as described in [@!RFC8291], encoded in URL-safe Base64 representation as defined in [@!RFC4648].
+    - **p256dh**: the P-256 Elliptic Curve Diffie-Hellman (ECDH) public key as described in [@!RFC8291], encoded in URL-safe base64 representation as defined in [@!RFC4648].
+    - **auth**: the authentication secret as described in [@!RFC8291], encoded in URL-safe base64 representation as defined in [@!RFC4648].
 - **verificationCode**: `String|null`
-  This MUST be `null` (or omitted) when the subscription is created. The JMAP server then generates a verification code and sends it in a push message, and the client updates the PushSubscription object with the code; see section 7.2.2 for details.
+  This MUST be `null` (or omitted) when the subscription is created. The JMAP server then generates a verification code and sends it in a push message, and the client updates the PushSubscription object with the code; see Section 7.2.2 for details.
 - **expires**: `UTCDate|null`
   The time this push subscription expires. If specified, the JMAP server MUST NOT make further requests to this resource after this time. It MAY automatically destroy the push subscription at or after this time.
 
-    The server MAY choose to set an expiry if none is given by the client, or modify the expiry time given by the client to a shorter duration.
+    The server MAY choose to set an expiry if none is given by the client or modify the expiry time given by the client to a shorter duration.
 
 - **types**: `String[]|null`
   A list of types the client is interested in (using the same names as the keys in the *TypeState* object defined in the previous section). A StateChange notification will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If `null`, changes will be pushed for all types.
 
-The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON encoded object as the body. The request MUST have a `TTL` header, and MAY have `Urgency` and/or `Topic` headers, as specified in section 5 of [@!RFC8030]. The JMAP server is expected to understand and handle HTTP status responses in a reasonable manner. A `429` (Too Many Requests) response MUST cause the JMAP server to reduce the frequency of pushes; the JMAP push structure allows multiple changes to be coalesced into a single minimal StateChange object. See the security considerations in section 8.6 for a discussion of the risks in connecting to unknown servers.
+The POST request MUST have a content type of `application/json` and contain the UTF-8 JSON-encoded object as the body. The request MUST have a `TTL` header and MAY have `Urgency` and/or `Topic` headers, as specified in Section 5 of [@!RFC8030]. The JMAP server is expected to understand and handle HTTP status responses in a reasonable manner. A `429` (Too Many Requests) response MUST cause the JMAP server to reduce the frequency of pushes; the JMAP push structure allows multiple changes to be coalesced into a single minimal StateChange object. See the security considerations in Section 8.6 for a discussion of the risks in connecting to unknown servers.
 
-The JMAP server acts as an Application Server as defined in [@!RFC8030]. A client MAY use the rest of [@!RFC8030] in combination with its own Push Service to form a complete end-to-end solution, or MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
+The JMAP server acts as an application server as defined in [@!RFC8030]. A client MAY use the rest of [@!RFC8030] in combination with its own push service to form a complete end-to-end solution, or MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
 
 The push subscription is tied to the credentials used to authenticate the API request that created it. Should these credentials expire or be revoked, the push subscription MUST be destroyed by the JMAP server. Only subscriptions created by these credentials are returned when the client fetches existing subscriptions.
 
-When these credentials have their own expiry (i.e. it is a session with a timeout), the server SHOULD NOT set or bound the expiry time for the push subscription given by the client, but MUST expire it when the session expires.
+When these credentials have their own expiry (i.e., it is a session with a timeout), the server SHOULD NOT set or bound the expiry time for the push subscription given by the client but MUST expire it when the session expires.
 
-When these credentials are not time bounded (e.g. [@!RFC7617] Basic Authentication), the server SHOULD set an expiry time for the push subscription if none given, and limit the expiry time if set too far in the future. This maximum expiry time MUST be at least 48 hours in the future and SHOULD be at least 7 days in the future. An app running on a mobile device may only be able to refresh the push subscription lifetime when it is in the foreground, and so this gives a reasonable timeframe to allow this to happen.
+When these credentials are not time bounded (e.g., Basic Authentication [@!RFC7617]), the server SHOULD set an expiry time for the push subscription if none is given and limit the expiry time if set too far in the future. This maximum expiry time MUST be at least 48 hours in the future and SHOULD be at least 7 days in the future. An app running on a mobile device may only be able to refresh the push subscription lifetime when it is in the foreground, so this gives a reasonable time frame to allow this to happen.
 
-In the case of separate access and refresh credentials, as in [@!RFC6749] Oauth 2.0, the server SHOULD tie the push subscription to the validity of the refresh token rather than the access token, and behave according to whether this is time-limited or not.
+In the case of separate access and refresh credentials, as in Oauth 2.0 [@!RFC6749], the server SHOULD tie the push subscription to the validity of the refresh token rather than the access token and behave according to whether this is time-limited or not.
 
 When a push subscription is destroyed, the server MUST securely erase the URL and encryption keys from memory and storage as soon as possible.
 
 ### PushSubscription/get
 
-Standard */get* method as described in section 5.1, except it does **not** take or return an *accountId* argument, as push subscriptions are not tied to specific accounts. It also does **not** return a *state* argument. The *ids* argument may be `null` to fetch all at once.
+Standard */get* method as described in Section 5.1, except it does **not** take or return an *accountId* argument, as push subscriptions are not tied to specific accounts. It also does **not** return a *state* argument. The *ids* argument may be `null` to fetch all at once.
 
 The server MUST only return push subscriptions that were created using the same authentication credentials as for this PushSubscription/get request.
 
@@ -103,7 +103,7 @@ As the *url* and *keys* properties may contain data that is private to a particu
 
 ### PushSubscription/set
 
-Standard */set* method  as described in section 5.3, except it does **not** take or return an *accountId* argument, as push subscriptions are not tied to specific accounts. It also does **not** take an *ifInState* argument or return *oldState* or *newState* arguments.
+Standard */set* method  as described in Section 5.3, except it does **not** take or return an *accountId* argument, as push subscriptions are not tied to specific accounts. It also does **not** take an *ifInState* argument or return *oldState* or *newState* arguments.
 
 The *url* and *keys* properties are immutable; if the client wishes to change these, it must destroy the current push subscription and create a new one.
 
@@ -114,14 +114,14 @@ When a PushSubscription is created, the server MUST immediately push a **PushVer
 - **pushSubscriptionId**: `String`
   The id of the push subscription that was created.
 - **verificationCode**: `String`
-  The verification code to add to the push subscription. This MUST contain sufficient entropy to avoid the client being able to brute force guess the code.
+  The verification code to add to the push subscription. This MUST contain sufficient entropy to avoid the client being able to guess the code via brute force.
 
 The client MUST update the push subscription with the correct verification code
 before the server makes any further requests to the subscription's URL. Attempts to update the subscription with an invalid verification code MUST be rejected by the server with an `invalidProperties` SetError.
 
 The client may update the *expires* property to extend (or, less commonly, shorten) the lifetime of a push subscription. The server MAY modify the proposed new expiry time to enforce server-defined limits. Extending the lifetime does not require the subscription to be verified again.
 
-Clients SHOULD NOT update or destroy a push subscription that they did not create (i.e. has a *deviceClientId* that they do not recognise).
+Clients SHOULD NOT update or destroy a push subscription that they did not create (i.e., has a *deviceClientId* that they do not recognise).
 
 ### Example
 
@@ -222,12 +222,12 @@ When a change occurs in the data on the server, it pushes an event called `state
 
 The server SHOULD also send a new event id that encodes the entire server state visible to the user immediately after sending a *state* event. When a new connection is made to the event-source endpoint, a client following the server-sent events specification will send a Last-Event-ID HTTP header field with the last id it saw, which the server can use to work out whether the client has missed some changes. If so, it SHOULD send these changes immediately on connection.
 
-The JMAP Session object has an *eventSourceUrl* property, which is in [@!RFC6570] URI Template (level 1) format. The URL MUST contain variables called `types`, `closeafter` and `ping`.
+The JMAP Session object has an *eventSourceUrl* property, which is in URI Template (level 1) format [@!RFC6570]. The URL MUST contain variables called `types`, `closeafter`, and `ping`.
 
 To connect to the resource, the client makes an authenticated GET request to the event-source URL with the appropriate variables substituted in:
 
 - `types`: This MUST be either:
-  - A comma-separated list of type names, e.g. `Email,CalendarEvent`. The
+  - A comma-separated list of type names, e.g., `Email,CalendarEvent`. The
     server MUST only push changes for the types in this list.
   - The single character: `*`. Changes to all types are pushed.
 - `closeafter`: This MUST be one of the following values:
@@ -236,7 +236,7 @@ To connect to the resource, the client makes an authenticated GET request to the
   - `no`: The connection is persisted by the server as a standard event-source
     resource.
 - `ping`: A positive integer value representing a length of time in seconds,
-   e.g. `300`. If non-zero, the server MUST send an event called `ping` whenever this time elapses since the previous event was sent. This MUST NOT set a new event id. If the value is `0` the server MUST NOT send ping events.
+   e.g., `300`. If non-zero, the server MUST send an event called `ping` whenever this time elapses since the previous event was sent. This MUST NOT set a new event id. If the value is `0`, the server MUST NOT send ping events.
 
      The server MAY modify a requested ping interval to be subject to a minimum and/or maximum value. For interoperability, servers MUST NOT have a minimum allowed value higher than 30 or a maximum allowed value less than 300.
 
@@ -252,6 +252,7 @@ A client MAY hold open multiple connections to the event-source resource, althou
     <author initials='I.' surname='Hickson' fullname='Ian Hickson'>
         <organization>Google, Inc.</organization>
     </author>
-    <date year='2015'/>
+    <date month="February" year='2015'/>
   </front>
+ <seriesInfo name='World Wide Web Consortium' value='Recommendation REC-eventsource-20150203' />
 </reference>
