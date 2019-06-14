@@ -7,9 +7,7 @@ You need two things to connect to a JMAP server:
 2. Credentials to authenticate with. How to obtain credentials is out of scope
    for this document.
 
-An authenticated GET request to the JMAP Session resource MUST return the details about the data and capabilities the server can provide to the client given those credentials.
-
-The response to a successful request is a JSON-encoded **JMAP Session** object. It has the following properties:
+A successful authenticated GET request to the JMAP Session resource MUST return a JSON-encoded **Session** object, giving details about the data and capabilities the server can provide to the client given those credentials. It has the following properties:
 
 - **capabilities**: `String[Object]`
   An object specifying the capabilities of this server. Each key is a URI for a capability supported by the server. The value for each of these keys is an object with further information about the server's capabilities in relation to that capability.
@@ -88,15 +86,15 @@ The response to a successful request is a JSON-encoded **JMAP Session** object. 
 - **eventSourceUrl**: `String`
   The URL to connect to for push events, as described in Section 7.3, in URI Template (level 1) format [@!RFC6570]. The URL MUST contain variables called `types`, `closeafter`, and `ping`. The use of these variables is described in Section 7.3.
 - **state**: `String`
-  A (preferably short) string representing the state of this object on the server. If the value of any other property on the session object changes, this string will change. The current value is also returned on the API Response object (see Section 3.3), allowing clients to quickly determine if the session information has changed (e.g., an account has been added or removed), so they need to refetch the object.
+  A (preferably short) string representing the state of this object on the server. If the value of any other property on the Session object changes, this string will change. The current value is also returned on the API Response object (see Section 3.3), allowing clients to quickly determine if the session information has changed (e.g., an account has been added or removed), so they need to refetch the object.
 
-To ensure future compatibility, other properties MAY be included on the JMAP Session object. Clients MUST ignore any properties they are not expecting.
+To ensure future compatibility, other properties MAY be included on the Session object. Clients MUST ignore any properties they are not expecting.
 
-Implementors must take care to avoid inappropriate caching of the session object at the HTTP layer. Since the client should only refetch when it detects there is a change (via the sessionState property of an API response), it is RECOMMENDED to disable HTTP caching altogether, for example, by setting `Cache-Control: no-cache, no-store, must-revalidate` on the response.
+Implementors must take care to avoid inappropriate caching of the Session object at the HTTP layer. Since the client should only refetch when it detects there is a change (via the sessionState property of an API response), it is RECOMMENDED to disable HTTP caching altogether, for example, by setting `Cache-Control: no-cache, no-store, must-revalidate` on the response.
 
 ## Example
 
-In the following example JMAP Session object, the user has access to their own mail and contacts via JMAP, as well as read-only access to shared mail from another user. The server is advertising a custom `https://example.com/apis/foobar` capability.
+In the following example Session object, the user has access to their own mail and contacts via JMAP, as well as read-only access to shared mail from another user. The server is advertising a custom `https://example.com/apis/foobar` capability.
 
     {
       "capabilities": {

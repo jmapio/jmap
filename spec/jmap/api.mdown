@@ -4,7 +4,7 @@ The client may make an API request to the server to get or set structured data. 
 
 ## Making an API Request
 
-To make an API request, the client makes an authenticated POST request to the API resource, which is defined by the *apiUrl* property in the JMAP Session object.
+To make an API request, the client makes an authenticated POST request to the API resource, which is defined by the *apiUrl* property in the Session object (see Section 2).
 
 The request MUST be of type `application/json` and consist of a single JSON **Request** object, as defined in Section 3.2. If successful, the response MUST also be of type `application/json` and consist of a single **Response** object, as defined in Section 3.3.
 
@@ -25,7 +25,7 @@ A **Request** object has the following properties:
 - **using**: `String[]`
   The set of capabilities the client wishes to use. The client MAY include capability identifiers even if the method calls it makes do not utilise those capabilities.
 
-    The server advertises the set of specifications it supports in the JMAP Session object, as keys on the *capabilities* property.
+    The server advertises the set of specifications it supports in the Session object (see Section 2), as keys on the *capabilities* property.
 
 - **methodCalls**: `Invocation[]`
   An array of method calls to process on the server. The method calls MUST be processed sequentially, in order.
@@ -69,7 +69,7 @@ A **Response** object has the following properties:
   the original createdIds parameter of the Request object, as well as any
   additional ones added for newly created records.
 - **sessionState**: `String` The current value of the "state" string on the
-  JMAP Session object, as described in Section 2. Clients may use this to detect if this object has changed and needs to be refetched.
+  Session object, as described in Section 2. Clients may use this to detect if this object has changed and needs to be refetched.
 
 Unless otherwise specified, if the method call completed successfully, its response name is the same as the method name in the request.
 
@@ -188,7 +188,7 @@ The following error types are defined, which may be returned for any method call
 
 `accountNotSupportedByMethod`: The *accountId* given corresponds to a valid account, but the account does not support this method or data type.
 
-`accountReadOnly`: This method call would modify state in an account that is read-only (as returned on the corresponding Account object in the JMAP Session resource).
+`accountReadOnly`: This method modifies state, but the account is read-only (as returned on the corresponding Account object in the JMAP Session resource).
 
 Further possible errors for a particular method are specified in the method descriptions.
 
@@ -749,7 +749,7 @@ A call to *Foo/query* takes the following arguments:
     - **isAscending**: `Boolean` (optional; default: true)
       If `true`, sort in ascending order. If `false`, reverse the comparator's results to sort in descending order.
     - **collation**: `String` (optional; default is server dependent)
-      The identifier, as registered in the collation registry defined in [@!RFC4790], for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the JMAP Session object.
+      The identifier, as registered in the collation registry defined in [@!RFC4790], for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the Session object (see Section 2).
 
         If omitted, the default algorithm is server-dependent, but:
 
