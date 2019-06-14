@@ -2,7 +2,7 @@
 
 Binary data is referenced by a *blobId* in JMAP and uploaded/downloaded separately to the core API. The blobId solely represents the raw bytes of data, not any associated metadata such as a file name or content type. Such metadata is stored alongside the blobId in the object referencing it. The data represented by a blobId is immutable.
 
-Any blobId that exists within an account may be used when creating/updating another object in that account. For example, an Email type may have a blobId that represents the message as described in [@!RFC5322]. A client could create a new Email object with an attachment and use this blobId, in effect attaching the old message to the new one. Similarly, it could attach any existing attachment of an old message without having to download and upload it again.
+Any blobId that exists within an account may be used when creating/updating another object in that account. For example, an Email type may have a blobId that represents the object in Internet Message Format [@!RFC5322]. A client could create a new Email object with an attachment and use this blobId, in effect attaching the old message to the new one. Similarly, it could attach any existing attachment of an old message without having to download and upload it again.
 
 When the client uses a blobId in a create/update, the server MAY assign a new blobId to refer to the same binary data within the new/updated object. If it does so, it MUST return any properties that contain a changed blobId in the created/updated response, so the client gets the new ids.
 

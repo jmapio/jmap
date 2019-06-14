@@ -2,7 +2,7 @@
 
 ## Transport Confidentiality
 
-To ensure the confidentiality and integrity of data sent and received via JMAP, all requests MUST use TLS 1.2 [RFC5246] or later, following the recommendations in [@!RFC7525]. Servers SHOULD support TLS 1.3 [@!RFC8446] or later.
+To ensure the confidentiality and integrity of data sent and received via JMAP, all requests MUST use TLS 1.2 [@!RFC5246] [@!RFC8446] or later, following the recommendations in [@!RFC7525]. Servers SHOULD support TLS 1.3 [@!RFC8446] or later.
 
 Clients MUST validate TLS certificate chains to protect against man-in-the-middle attacks.
 
@@ -15,7 +15,7 @@ Use of the Basic authentication scheme is NOT RECOMMENDED. Services that choose 
 ## Service Autodiscovery
 
 Unless secured by something like DNSSEC, autodiscovery of server
-details that are DNS SRV based is vulnerable to a DNS poisoning attack, which can lead to the client talking to an attacker's server instead of the real JMAP server. The attacker may then man-in-the-middle requests and, depending on the authentication scheme, steal credentials to generate its own requests.
+details using SRV DNS records is vulnerable to a DNS poisoning attack, which can lead to the client talking to an attacker's server instead of the real JMAP server. The attacker may then intercept requests to execute man-in-the-middle attacks and, depending on the authentication scheme, steal credentials to generate its own requests.
 
 Clients that do not support SRV lookups are likely to try just using the `/.well-known/jmap` path directly against the domain of the username over HTTPS. Servers SHOULD ensure this path resolves or redirects to the correct JMAP Session resource to allow this to work. If this is not feasible, servers MUST ensure this path cannot be controlled by an attacker, as again it may be used to steal credentials.
 
@@ -35,7 +35,7 @@ special characters within a string. Care is needed when processing these
 escape sequences to ensure that they are fully formed before
 the special processing is triggered, with special care taken when the
 escape sequences appear adjacent to other (non-escaped) special characters
-or the end of data (as in the previous paragraph).
+or adjacent to the end of data (as in the previous paragraph).
 
 If parsing JSON into a non-textual structured data format, implementations
 may need to allocate storage to hold JSON string elements.  Since JSON
