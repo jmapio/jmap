@@ -118,7 +118,7 @@ Security and privacy considerations: [@!RFC8620], Section 8.
 
 ## Creation of "JMAP Error Codes" registry
 
-IANA has created the "JMAP Error Codes" registry. JMAP error codes appear in the "type" member of a JSON problem details object (as described in Section 3.5.1), the "type" member in a JMAP error object (as described in Section 3.5.2), or the "type" member of a JMAP method-specific error object (such as SetError in Section 5.3). When used in a problem details object, the prefix "urn:ietf:params:jmap:error:" is always included; when used in JMAP objects, the prefix is always omitted.
+IANA has created the "JMAP Error Codes" registry. JMAP error codes appear in the "type" member of a JSON problem details object (as described in Section 3.6.1), the "type" member in a JMAP error object (as described in Section 3.6.2), or the "type" member of a JMAP method-specific error object (such as SetError in Section 5.3). When used in a problem details object, the prefix "urn:ietf:params:jmap:error:" is always included; when used in JMAP objects, the prefix is always omitted.
 
 This registry follows the expert review process. Preliminary community review for this registry follows the same procedures as the "JMAP Capabilities" registry but it is optional. The change procedures for this registry are the same as the change procedures for the "JMAP Capabilities" registry.
 
@@ -156,34 +156,34 @@ Description:
 
 | JMAP Error Code | Intended Use | Change Controller | Reference | Description |
 | --- | --- | --- | --- | --- |
-| accountNotFound | common | IETF | [@!RFC8620] Section 3.5.2 | The accountId does not correspond to a valid account. |
-| accountNotSupportedByMethod | common | IETF | [@!RFC8620] Section 3.5.2 | The accountId given corresponds to a valid account, but the account does not support this method or data type. |
-| accountReadOnly | common | IETF | [@!RFC8620] Section 3.5.2 | This method modifies state, but the account is read-only (as returned on the corresponding Account in the Session object). |
+| accountNotFound | common | IETF | [@!RFC8620] Section 3.6.2 | The accountId does not correspond to a valid account. |
+| accountNotSupportedByMethod | common | IETF | [@!RFC8620] Section 3.6.2 | The accountId given corresponds to a valid account, but the account does not support this method or data type. |
+| accountReadOnly | common | IETF | [@!RFC8620] Section 3.6.2 | This method modifies state, but the account is read-only (as returned on the corresponding Account in the Session object). |
 | anchorNotFound | common | IETF | [@!RFC8620] Section 5.5 | An anchor argument was supplied, but it cannot be found in the results of the query. |
 | alreadyExists | common | IETF | [@!RFC8620] Section 5.4 | The server forbids duplicates, and the record already exists in the target account. An existingId property of type Id MUST be included on the error object with the id of the existing record. |
 | cannotCalculateChanges | common | IETF | [@!RFC8620] sections 5.2 and 5.6 |  The server cannot calculate the changes from the state string given by the client. |
 | forbidden | common | IETF | [@!RFC8620] sections 3.5.2, 5.3, and 7.2.1 | The action would violate an ACL or other permissions policy. |
 | fromAccountNotFound | common | IETF | [@!RFC8620] sections 5.4 and 6.3 | The fromAccountId does not correspond to a valid account. |
 | fromAccountNotSupportedByMethod | common | IETF | [@!RFC8620] Section 5.4 | The fromAccountId given corresponds to a valid account, but the account does not support this data type. |
-| invalidArguments | common | IETF | [@!RFC8620] Section 3.5.2 | One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing. |
+| invalidArguments | common | IETF | [@!RFC8620] Section 3.6.2 | One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing. |
 | invalidPatch | common | IETF | [@!RFC8620] Section 5.3 |  The PatchObject given to update the record was not a valid patch. |
 | invalidProperties | common | IETF | [@!RFC8620] Section 5.3 | The record given is invalid. |
 | notFound | common | IETF | [@!RFC8620] Section 5.3 | The id given cannot be found. |
-| notJSON | common | IETF | [@!RFC8620] Section 3.5.1 | The content type of the request was not application/json or the request did not parse as I-JSON. |
-| notRequest | common | IETF | [@!RFC8620] Section 3.5.1 | The request parsed as JSON but did not match the type signature of the Request object. |
+| notJSON | common | IETF | [@!RFC8620] Section 3.6.1 | The content type of the request was not application/json or the request did not parse as I-JSON. |
+| notRequest | common | IETF | [@!RFC8620] Section 3.6.1 | The request parsed as JSON but did not match the type signature of the Request object. |
 | overQuota | common | IETF | [@!RFC8620] Section 5.3 | The create would exceed a server-defined limit on the number or total size of objects of this type. |
 | rateLimit | common | IETF | [@!RFC8620] Section 5.3 | Too many objects of this type have been created recently, and a server-defined rate limit has been reached. It may work if tried again later. |
 | requestTooLarge | common | IETF | [@!RFC8620] sections 5.1 and 5.3 | The total number of actions exceeds the maximum number the server is willing to process in a single method call. |
-| invalidResultReference | common | IETF | [@!RFC8620] Section 3.5.2 | The method used a result reference for one of its arguments, but this failed to resolve. |
-| serverFail | common | IETF | [@!RFC8620] Section 3.5.2 | An unexpected or unknown error occurred during the processing of the call. The method call made no changes to the server’s state. |
-| serverPartialFail | limited | IETF | [@!RFC8620] Section 3.5.2 | Some, but not all, expected changes described by the method occurred. The client MUST re-synchronise impacted data to determine server state. Use of this error is strongly discouraged. |
-| serverUnavailable | common | IETF | [@!RFC8620] Section 3.5.2 | Some internal server resource was temporarily unavailable. Attempting the same operation later (perhaps after a backoff with a random factor) may succeed. |
+| invalidResultReference | common | IETF | [@!RFC8620] Section 3.6.2 | The method used a result reference for one of its arguments, but this failed to resolve. |
+| serverFail | common | IETF | [@!RFC8620] Section 3.6.2 | An unexpected or unknown error occurred during the processing of the call. The method call made no changes to the server’s state. |
+| serverPartialFail | limited | IETF | [@!RFC8620] Section 3.6.2 | Some, but not all, expected changes described by the method occurred. The client MUST re-synchronise impacted data to determine server state. Use of this error is strongly discouraged. |
+| serverUnavailable | common | IETF | [@!RFC8620] Section 3.6.2 | Some internal server resource was temporarily unavailable. Attempting the same operation later (perhaps after a backoff with a random factor) may succeed. |
 | singleton | common | IETF | [@!RFC8620] Section 5.3 | This is a singleton type, so you cannot create another one or destroy the existing one. |
 | stateMismatch | common | IETF | [@!RFC8620] Section 5.3 | An ifInState argument was supplied, and it does not match the current state. |
 | tooLarge | common | IETF | [@!RFC8620] Section 5.3 | The action would result in an object that exceeds a server-defined limit for the maximum size of a single object of this type. |
 | tooManyChanges | common | IETF | [@!RFC8620] Section 5.6 | There are more changes than the client’s maxChanges argument. |
-| unknownCapability | common | IETF | [@!RFC8620] Section 3.5.1 | The client included a capability in the “using” property of the request that the server does not support. |
-| unknownMethod | common | IETF | [@!RFC8620] Section 3.5.2 | The server does not recognise this method name. |
+| unknownCapability | common | IETF | [@!RFC8620] Section 3.6.1 | The client included a capability in the “using” property of the request that the server does not support. |
+| unknownMethod | common | IETF | [@!RFC8620] Section 3.6.2 | The server does not recognise this method name. |
 | unsupportedFilter | common | IETF | [@!RFC8620] Section 5.5 | The filter is syntactically valid, but the server cannot process it. |
 | unsupportedSort | common | IETF | [@!RFC8620] Section 5.5 |The sort is syntactically valid, but includes a property the server does not support sorting on, or a collation method it does not recognise. |
 | willDestroy | common | IETF | [@!RFC8620] Section 5.3 | The client requested an object be both updated and destroyed in the same /set request, and the server has decided to therefore ignore the update. |

@@ -6,9 +6,9 @@ The client may make an API request to the server to get or set structured data. 
 
 To make an API request, the client makes an authenticated POST request to the API resource, which is defined by the *apiUrl* property in the Session object (see Section 2).
 
-The request MUST be of type `application/json` and consist of a single JSON **Request** object, as defined in Section 3.2. If successful, the response MUST also be of type `application/json` and consist of a single **Response** object, as defined in Section 3.3.
+The request MUST be of type `application/json` and consist of a single JSON **Request** object, as defined in Section 3.3. If successful, the response MUST also be of type `application/json` and consist of a single **Response** object, as defined in Section 3.4.
 
-### The Invocation Data Type
+## The Invocation Data Type
 
 Method calls and responses are represented by the **Invocation** data type. This is a tuple, represented as a JSON array containing three elements:
 
@@ -180,7 +180,7 @@ The following error types are defined, which may be returned for any method call
 
 `invalidArguments`: One of the arguments is of the wrong type or is otherwise invalid, or a required argument is missing. A `description` property MAY be present to help debug with an explanation of what the problem was. This is a non-localised string, and it is not intended to be shown directly to end users.
 
-`invalidResultReference`: The method used a result reference for one of its arguments (see Section 3.6), but this failed to resolve.
+`invalidResultReference`: The method used a result reference for one of its arguments (see Section 3.7), but this failed to resolve.
 
 `forbidden`: The method and arguments are valid, but executing the method would violate an Access Control List (ACL) or other permissions policy.
 
@@ -571,7 +571,7 @@ The server MAY skip an update (rejecting it with a `willDestroy` SetError) if th
 
 Some records may hold references to other records (foreign keys). That reference may be set (via create or update) in the same request as the referenced record is created. To do this, the client refers to the new record using its creation id prefixed with a `#`. The order of the method calls in the request by the client MUST be such that the record being referenced is created in the same or an earlier call. Thus, the server never has to look ahead. Instead, while processing a request, the server MUST keep a simple map for the duration of the request of creation id to record id for each newly created record, so it can substitute in the correct value if necessary in later method calls. In the case of records with references to the same type, the server MUST order the creates and updates within a single method call so that creates happen before their creation ids are referenced by another create/update/destroy in the same call.
 
-Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see "The Request Object", Section 3.2) and the final state of the map passed out with the response (see "The Response Object", Section 3.3).
+Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see "The Request Object", Section 3.3) and the final state of the map passed out with the response (see "The Response Object", Section 3.4).
 
 The response has the following arguments:
 
@@ -1130,6 +1130,6 @@ If splitting up the methods in a request to call them on different backend serve
    given by the client, an empty object should be used for the first subrequest. The `createdIds` property of each subresponse should be passed on in the next subrequest.
 
 2. It must resolve back-references to previous method results that were
-   processed on a different server. This is a relatively simple syntactic substitution, described in Section 3.6.
+   processed on a different server. This is a relatively simple syntactic substitution, described in Section 3.7.
 
 When splitting a request based on accountId, proxy implementors do need to be aware of `/copy` methods that copy between accounts. If the accounts are on different servers, the proxy will have to implement this functionality directly.

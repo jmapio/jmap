@@ -37,7 +37,7 @@ A successful authenticated GET request to the JMAP Session resource MUST return 
 
     Specifications for future capabilities will define their own properties on the capabilities object.
 
-    Servers MAY advertise vendor-specific JMAP extensions, as described in Section 1.8. To avoid conflict, an identifier for a vendor-specific extension MUST be a URL with a domain owned by the vendor. Clients MUST opt in to any capability it wishes to use (see Section 3.2).
+    Servers MAY advertise vendor-specific JMAP extensions, as described in Section 1.8. To avoid conflict, an identifier for a vendor-specific extension MUST be a URL with a domain owned by the vendor. Clients MUST opt in to any capability it wishes to use (see Section 3.3).
 
 - **accounts**: `Id[Account]`
   A map of an **account id** to an Account object for each account (see Section 1.6.2) the user has access to. An **Account** object has the following properties:
@@ -71,7 +71,7 @@ A successful authenticated GET request to the JMAP Session resource MUST return 
         Attempts to use the methods defined in a capability with one of the
         accounts that does not support that capability are rejected with an
         *accountNotSupportedByMethod* error (see "Method-Level
-         Errors", Section 3.5.2).
+         Errors", Section 3.6.2).
 
 - **primaryAccounts**: `String[Id]`
   A map of capability URIs (as found in *accountCapabilities*) to the account id that is considered to be the user's main or default account for data pertaining to that capability. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular URI, even though that capability is supported by the server (and in the capabilities object). `urn:ietf:params:jmap:core` SHOULD NOT be present.
@@ -86,7 +86,7 @@ A successful authenticated GET request to the JMAP Session resource MUST return 
 - **eventSourceUrl**: `String`
   The URL to connect to for push events, as described in Section 7.3, in URI Template (level 1) format [@!RFC6570]. The URL MUST contain variables called `types`, `closeafter`, and `ping`. The use of these variables is described in Section 7.3.
 - **state**: `String`
-  A (preferably short) string representing the state of this object on the server. If the value of any other property on the Session object changes, this string will change. The current value is also returned on the API Response object (see Section 3.3), allowing clients to quickly determine if the session information has changed (e.g., an account has been added or removed), so they need to refetch the object.
+  A (preferably short) string representing the state of this object on the server. If the value of any other property on the Session object changes, this string will change. The current value is also returned on the API Response object (see Section 3.4), allowing clients to quickly determine if the session information has changed (e.g., an account has been added or removed), so they need to refetch the object.
 
 To ensure future compatibility, other properties MAY be included on the Session object. Clients MUST ignore any properties they are not expecting.
 
