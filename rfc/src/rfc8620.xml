@@ -1,0 +1,3182 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM 'rfc2629.dtd' []>
+<rfc ipr="trust200902" category="std" number="8620">
+<?rfc toc="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<?rfc topblock="yes"?>
+<?rfc comments="no"?>
+<front>
+<title abbrev="JMAP">The JSON Meta Application Protocol</title>
+
+<author initials="N.M." surname="Jenkins" fullname="Neil Jenkins">
+<organization>FastMail</organization>
+<address>
+<postal>
+<street>PO Box 234, Collins St. West</street>
+<city>Melbourne</city>
+<code>8007</code>
+<country>Australia</country>
+<region>VIC</region>
+</postal>
+<phone></phone>
+<email>neilj@fastmailteam.com</email>
+<uri>https://www.fastmail.com</uri>
+</address>
+</author>
+<author initials="C." surname="Newman" fullname="Chris Newman">
+<organization>Oracle</organization>
+<address>
+<postal>
+<street>440 E. Huntington Dr., Suite 400</street>
+<city>Arcadia</city>
+<code>91006</code>
+<country>United States of America</country>
+<region>CA</region>
+</postal>
+<phone></phone>
+<email>chris.newman@oracle.com</email>
+<uri></uri>
+</address>
+</author>
+<date year="2019" month="June"/>
+
+<area>Applications</area>
+<workgroup>JMAP</workgroup>
+<keyword>JMAP</keyword>
+<keyword>JSON</keyword>
+
+
+<abstract>
+<t>This document specifies a protocol for clients to efficiently query, fetch,
+and modify JSON-based data objects, with support for push notification of
+changes and fast resynchronisation and for out-of-band binary data
+upload/download.
+</t>
+</abstract>
+
+
+</front>
+
+<middle>
+
+<section anchor="introduction" title="Introduction">
+<t>The JSON Meta Application Protocol (JMAP) is used for synchronising data,
+such as mail, calendars, or contacts, between a client and a server. It is
+optimised for mobile and web environments and aims to provide a consistent
+interface to different data types.
+</t>
+<t>This specification is for the generic mechanism of data
+synchronisation. Further specifications define the data models for different
+data types that may be synchronised via JMAP.
+</t>
+<t>JMAP is designed to make efficient use of limited network
+resources. Multiple API calls may be batched in a single request to the
+server, reducing round trips and improving battery life on mobile
+devices. Push connections remove the need for polling, and an efficient delta
+update mechanism ensures a minimum amount of data is transferred.
+</t>
+<t>JMAP is designed to be horizontally scalable to a very large number of
+users. This is facilitated by separate endpoints for users after login, the
+separation of binary and structured data, and a data model for sharing that
+does not allow data dependencies between accounts.
+</t>
+
+<section anchor="notational-conventions" title="Notational Conventions">
+<t>    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+    NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
+    "MAY", and "OPTIONAL" in this document are to be interpreted as
+    described in BCP&nbsp;14 <xref target="RFC2119"/> <xref target="RFC8174"/>
+    when, and only when, they appear in all capitals, as shown here.
+</t>
+<t>The underlying format used for this specification is JSON. Consequently,
+the terms &quot;object&quot; and &quot;array&quot; as well as the four
+primitive types (strings, numbers, booleans, and null) are to be interpreted
+as described in Section 1 of <xref target="RFC8259"/>. Unless otherwise noted,
+all the property names and values are case sensitive.
+</t>
+<t>Some examples in this document contain &quot;partial&quot; JSON documents
+used for illustrative purposes.  In these examples, three periods
+&quot;...&quot; are used to indicate a portion of the document that has been
+removed for compactness.
+</t>
+<t>For compatibility with publishing requirements, line breaks have been
+inserted inside long JSON strings, with the following continuation lines
+indented. To form the valid JSON example, any line breaks inside a string must
+be replaced with a space and any other white space after the line break
+removed.
+</t>
+<t>Unless otherwise specified, examples of API exchanges only show the methodCalls array of the Request object or the methodResponses array of the Response object. For
+compactness, the rest of the Request/Response object is omitted.
+</t>
+<t>Type signatures are given for all JSON values in this document. The
+following conventions are used:
+</t>
+<t>
+<list style="symbols">
+<t><spanx style="verb">*</spanx> - The type is undefined (the value could be
+any type, although permitted
+values may be constrained by the context of this value).</t>
+<t><spanx style="verb">String</spanx> - The JSON string type.</t>
+<t><spanx style="verb">Number</spanx> - The JSON number type.</t>
+<t><spanx style="verb">Boolean</spanx> - The JSON boolean type.</t>
+<t><spanx style="verb">A[B]</spanx> - A JSON object where the keys are all of
+type <spanx style="verb">A</spanx>, and the values
+are all of type <spanx style="verb">B</spanx>.</t>
+<t><spanx style="verb">A[]</spanx> - An array of values of type <spanx style="verb">A</spanx>.</t>
+<t><spanx style="verb">A|B</spanx> - The value is either of type <spanx style="verb">A</spanx> or of type <spanx style="verb">B</spanx>.</t>
+</list>
+</t>
+<t>Other types may also be given, with their representation defined elsewhere in this document.
+</t>
+<t>Object properties may also have a set of attributes defined along with the type
+signature. These have the following meanings:
+</t>
+<t>
+<list style="symbols">
+<t><spanx style="verb">server-set</spanx> - Only the server can set the value
+for this property. The
+client MUST NOT send this property when creating a new object of this type.</t>
+
+<t><spanx style="verb">immutable</spanx> - The value MUST NOT change after
+the object is created.</t>
+
+<t><spanx style="verb">default</spanx> - (This is followed by a JSON
+value). The value that will be used for this property if it is omitted in an
+argument or when creating a new object of this type.</t>
+</list>
+</t>
+</section>
+
+<section anchor="the-id-data-type" title="The Id Data Type">
+<t>All record ids are assigned by the server and are immutable.
+</t>
+<t>Where <spanx style="verb">Id</spanx> is given as a data type, it means a
+<spanx style="verb">String</spanx> of at least 1 and a maximum of 255 octets
+in size, and it MUST only contain characters from the &quot;URL and Filename
+Safe&quot; base64 alphabet, as defined in Section 5 of <xref
+target="RFC4648"/>, excluding the pad character (<spanx
+style="verb">=</spanx>). This means the allowed characters are the ASCII
+alphanumeric characters (<spanx style="verb">A-Za-z0-9</spanx>), hyphen
+(<spanx style="verb">-</spanx>), and underscore (<spanx
+style="verb">_</spanx>).
+</t>
+<t>These characters are safe to use in almost any context (e.g., filesystems,
+URIs, and IMAP atoms). For maximum safety, servers SHOULD also follow defensive
+allocation strategies to avoid creating risks where glob completion or data type
+detection may be present (e.g., on filesystems or in spreadsheets). In
+particular, it is wise to avoid:
+</t>
+<t>
+<list style="symbols">
+<t>Ids starting with a dash</t>
+<t>Ids starting with digits</t>
+<t>Ids that contain only digits</t>
+<t>Ids that differ only by ASCII case (for example, A vs. a)</t>
+<t>the specific sequence of three characters &quot;NIL&quot; (because this sequence can be
+confused with the IMAP protocol expression of the null value)</t>
+</list>
+</t>
+<t>A good solution to these issues is to prefix every id with a single
+alphabetical character.
+</t>
+</section>
+
+<section anchor="the-int-and-unsignedint-data-types" title="The Int and UnsignedInt Data Types">
+<t>Where <spanx style="verb">Int</spanx> is given as a data type, it means an
+integer in the range -2^53+1 &lt;= value &lt;= 2^53-1, the safe range for
+integers stored in a floating-point double, represented as a JSON <spanx
+style="verb">Number</spanx>.
+</t>
+<t>Where <spanx style="verb">UnsignedInt</spanx> is given as a data type, it
+means an <spanx style="verb">Int</spanx> where the value MUST be in the range
+0 &lt;= value &lt;= 2^53-1.
+</t>
+</section>
+
+<section anchor="the-date-and-utcdate-data-types" title="The Date and UTCDate Data Types">
+<t>Where <spanx style="verb">Date</spanx> is given as a type, it means a string in <spanx style="verb">date-time</spanx> format <xref target="RFC3339"/>. To ensure a normalised form, the <spanx style="verb">time-secfrac</spanx> MUST always be omitted if zero, and any letters in the string (e.g., &quot;T&quot; and &quot;Z&quot;) MUST be uppercase. For example, <spanx style="verb">2014-10-30T14:12:00+08:00</spanx>.
+</t>
+<t>Where <spanx style="verb">UTCDate</spanx> is given as a type, it means a <spanx style="verb">Date</spanx> where the <spanx style="verb">time-offset</spanx> component MUST be <spanx style="verb">Z</spanx> (i.e., it must be in UTC time). For example, <spanx style="verb">2014-10-30T06:12:00Z</spanx>.
+</t>
+</section>
+
+<section anchor="json-as-the-data-encoding-format" title="JSON as the Data Encoding Format">
+<t>JSON is a text-based data interchange format as specified in <xref target="RFC8259"/>. The Internet JSON (I-JSON) format defined in <xref target="RFC7493"/> is a strict subset of this, adding restrictions to avoid potentially confusing scenarios (for example, it mandates that an object MUST NOT have two members with the same name).
+</t>
+<t>All data sent from the client to the server or from the server to the client (except binary file upload/download) MUST be valid I-JSON according to the RFC and is therefore case sensitive and encoded in UTF-8 <xref target="RFC3629"/>.
+</t>
+</section>
+
+<section anchor="terminology" title="Terminology">
+
+<section anchor="user" title="User">
+<t>A user is a person accessing data via JMAP. A user has a set of permissions determining the data that they can see.
+</t>
+</section>
+
+<section anchor="accounts" title="Accounts">
+<t>An account is a collection of data. A single account may contain an arbitrary set of data types, for example, a collection of mail, contacts, and calendars. Most JMAP methods take a mandatory <spanx style="verb">accountId</spanx> argument that specifies on which account the operations are to take place.
+</t>
+<t>An account is not the same as a user, although it is common for a primary account to directly belong to the user. For example, you may have an account that contains data for a group or business, to which multiple users have access.
+</t>
+<t>A single set of credentials may provide access to multiple accounts, for example, if another user is sharing their work calendar with the authenticated user or if there is a group mailbox for a support-desk inbox.
+</t>
+<t>In the event of a severe internal error, a server may have to reallocate ids or do something else that violates standard JMAP data constraints for an account. In this situation, the data on the server is no longer compatible with cached data the client may have from before. The server MUST treat this as though the account has been deleted and then recreated with a new account id. Clients will then be forced to throw away any data with the old account id and refetch all data from scratch.
+</t>
+</section>
+
+<section anchor="data-types-and-records" title="Data Types and Records">
+<t>JMAP provides a uniform interface for creating, retrieving, updating, and deleting various types of objects. A <spanx style="verb">data type</spanx> is a collection of named, typed properties, just like the schema for a database table. Each instance of a data type is called a <spanx style="verb">record</spanx>.
+</t>
+<t>The id of a record is immutable and assigned by the server. The id MUST be unique among all records of the <spanx style="strong">same type</spanx> within the <spanx style="strong">same account</spanx>.  Ids may clash across accounts or for two records of different types within the same account.
+</t>
+</section>
+</section>
+
+<section anchor="the-jmap-api-model" title="The JMAP API Model">
+<t>JMAP uses HTTP <xref target="RFC7230"/> to expose API, push, upload, and download resources. All HTTP requests MUST use the <spanx style="verb">https://</spanx> scheme (HTTP over TLS <xref target="RFC2818"/>).
+All HTTP requests MUST be authenticated.
+</t>
+<t>An authenticated client can fetch the user's Session object with details about the data and capabilities the server can provide as shown in <xref target="the-jmap-session-resource"/>. The client may then exchange data with the server in the following ways:
+</t>
+<t>
+<list style="numbers">
+<t>The client may make an API request to the server to get or set structured data. This request consists of an ordered series of method calls. These are processed by the server, which then returns an ordered series of responses. This is described in Sections <xref target="structured-data-exchange" format="counter"/>, <xref target="the-coreecho-method" format="counter"/>, and <xref target="standard-methods-and-naming-convention" format="counter" />.</t>
+
+<t>The client may download or upload binary files from/to the server. This is detailed in <xref target="binary-data"/>.</t>
+
+<t>The client may connect to a push channel on the server, to be notified when data has changed. This is explained in <xref target="push"/>.</t>
+</list>
+</t>
+</section>
+
+<section anchor="vendorspecific-extensions" title="Vendor-Specific Extensions">
+<t>Individual services will have custom features they wish to expose over JMAP. This may take the form of extra data types and/or methods not in the spec, extra arguments to JMAP methods, or extra properties on existing data types (which may also appear in arguments to methods that take property names).
+</t>
+<t>The server can advertise custom extensions it supports by including the identifiers in the capabilities object. Identifiers for vendor extensions MUST be a URL belonging to a domain owned by the vendor, to avoid conflict. The URL SHOULD resolve to documentation for the changes the extension makes.
+</t>
+<t>The client MUST opt in to use an extension by passing the appropriate capability identifier in the <spanx style="verb">using</spanx> array of the Request object, as described in <xref target="the-request-object"/>. The server MUST only follow the specifications that are opted into and behave as though it does not implement anything else when processing a request. This is to ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP.
+</t>
+</section>
+</section>
+
+<section anchor="the-jmap-session-resource" title="The JMAP Session Resource">
+<t>You need two things to connect to a JMAP server:
+</t>
+<t>
+<list style="numbers">
+<t>The URL for the JMAP Session resource. This may be requested directly from
+the user or discovered automatically based on a username domain (see <xref target="service-autodiscovery"/> below).</t>
+<t>Credentials to authenticate with. How to obtain credentials is out of scope
+for this document.</t>
+</list>
+</t>
+<t>A successful authenticated GET request to the JMAP Session resource MUST return a JSON-encoded <spanx style="strong">Session</spanx> object, giving details about the data and capabilities the server can provide to the client given those credentials. It has the following properties:
+</t>
+<t>
+<list style="symbols">
+<t>capabilities: <spanx style="verb">String[Object]</spanx><vspace blankLines="1" />
+An object specifying the capabilities of this server. Each key is a URI for a capability supported by the server. The value for each of these keys is an object with further information about the server's capabilities in relation to that capability.
+
+<vspace blankLines="1" />
+The client MUST ignore any properties it does not understand.
+<vspace blankLines="1" />
+
+The capabilities object MUST include a property called <spanx style="verb">urn:ietf:params:jmap:core</spanx>. The value of this property is an object that MUST contain the following information on server capabilities (suggested minimum values for limits are supplied that allow clients to make efficient use of the network):
+<list style="symbols">
+<t>maxSizeUpload: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
+The maximum file size, in octets, that the server will accept for a single file upload (for any purpose). Suggested minimum: 50,000,000.</t>
+
+<t>maxConcurrentUpload: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
+The maximum number of concurrent requests the server will accept to the upload endpoint.  Suggested minimum: 4.</t>
+
+<t>maxSizeRequest: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
+The maximum size, in octets, that the server will accept for a single
+request to the API endpoint. Suggested minimum: 10,000,000.</t>
+
+<t>maxConcurrentRequests: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
+The maximum number of concurrent requests the server will accept to
+the API endpoint. Suggested minimum: 4.</t>
+
+<t>maxCallsInRequest: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
+The maximum number of method calls the server will accept in a single request to the API endpoint.  Suggested minimum: 16.</t>
+
+<t>maxObjectsInGet: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
+The maximum number of objects that the client may request in a single /get type method call. Suggested minimum: 500.</t>
+
+<t>maxObjectsInSet: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
+The maximum number of objects the client may send to create, update, or destroy in a single /set type method call. This is the combined total, e.g., if the maximum is 10, you could not create 7 objects and destroy 6, as this would be 13 actions, which exceeds the limit. Suggested minimum: 500.</t>
+
+<t>collationAlgorithms: <spanx style="verb">String[]</spanx><vspace blankLines="1" />
+A list of identifiers for algorithms registered in the collation registry, as defined in <xref target="RFC4790"/>, that the server supports for sorting when querying records.</t>
+</list>
+
+Specifications for future capabilities will define their own properties on the capabilities object.
+<vspace blankLines="1" />
+Servers MAY advertise vendor-specific JMAP extensions, as described in <xref target="vendorspecific-extensions"/>. To avoid conflict, an identifier for a vendor-specific extension MUST be a URL with a domain owned by the vendor. Clients MUST opt in to any capability it wishes to use (see <xref target="the-request-object"/>).</t>
+
+<t>accounts: <spanx style="verb">Id[Account]</spanx><vspace blankLines="1" />
+<!--[rfced] This document does not contain Section 1.5.2.  Please
+clarify which section should be referenced in the following
+sentence (perhaps the intention was to reference Section 1.6.2).
+
+Original:
+   *accounts*: "Id[Account]" A map of *account id* to Account object
+   for each account (see section 1.5.2) the user has access to.
+
+Neil: Yes, 1.6.2 is correct.
+-->
+A map of an account id to an Account object for each account (see <xref target="accounts"/>) the user has access to. An <spanx style="strong">Account</spanx> object has the following properties:
+<list style="symbols">
+<t>name: <spanx style="verb">String</spanx><vspace blankLines="1" />
+A user-friendly string to show when presenting content from this account, e.g., the email address representing the owner of the account.</t>
+
+<t>isPersonal: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
+This is <spanx style="verb">true</spanx> if the account belongs to the authenticated user rather than a group account or a personal account of another user that has been shared with them.</t>
+<t>isReadOnly: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
+This is <spanx style="verb">true</spanx> if the entire account is read-only.</t>
+
+<t>accountCapabilities: <spanx style="verb">String[Object]</spanx><vspace blankLines="1" />
+The set of capability URIs for the methods supported in this account. Each key is a URI for a capability that has methods you can use with this account. The value for each of these keys is an object with further information about the account's permissions and restrictions with respect to this capability, as defined in the capability's specification.
+
+<vspace blankLines="1" />
+The client MUST ignore any properties it does not understand.
+<vspace blankLines="1" />
+
+The server advertises the full list of capabilities it supports in the
+capabilities object, as defined above. If the capability defines new
+methods, the server MUST include it in the accountCapabilities object
+if the user may use those methods with this account. It MUST NOT
+include it in the accountCapabilities object if the user cannot use
+those methods with this account.
+<vspace blankLines="1" />
+
+For example, you may have access to your own account with mail,
+calendars, and contacts data and also a shared account that only has
+contacts data (a business address book, for example). In this case, the
+accountCapabilities property on the first account would include
+something like <spanx style="verb">urn:ietf:params:jmap:mail</spanx>, <spanx style="verb">urn:ietf:params:jmap:calendars</spanx>, and <spanx style="verb">urn:ietf:params:jmap:contacts</spanx>, while
+the second account would just have the last of these.
+<vspace blankLines="1" />
+
+Attempts to use the methods defined in a capability with one of the
+accounts that does not support that capability are rejected with an
+<spanx style="verb">accountNotSupportedByMethod</spanx> error (see "Method-Level Errors", <xref target="methodlevel-errors"/>).</t>
+</list></t>
+<t>primaryAccounts: <spanx style="verb">String[Id]</spanx><vspace blankLines="1" />
+A map of capability URIs (as found in accountCapabilities) to the account id that is considered to be the user's main or default account for data pertaining to that capability. If no account being returned belongs to the user, or in any other way there is no appropriate way to determine a default account, there MAY be no entry for a particular URI, even though that capability is supported by the server (and in the capabilities object). <spanx style="verb">urn:ietf:params:jmap:core</spanx> SHOULD NOT be present.</t>
+
+<t>username: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The username associated with the given credentials, or the empty string if none.</t>
+
+<t>apiUrl: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The URL to use for JMAP API requests.</t>
+
+<t>downloadUrl: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The URL endpoint to use when downloading files, in URI Template (level 1) format <xref target="RFC6570"/>. The URL MUST contain variables called <spanx style="verb">accountId</spanx>, <spanx style="verb">blobId</spanx>, <spanx style="verb">type</spanx>, and <spanx style="verb">name</spanx>. The use of these variables is described in <xref target="downloading-binary-data"/>. Due to potential encoding issues with slashes in content types, it is RECOMMENDED to put the <spanx style="verb">type</spanx> variable in the query section of the URL.</t>
+
+<t>uploadUrl: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The URL endpoint to use when uploading files, in URI Template (level 1) format <xref target="RFC6570"/>. The URL MUST contain a variable called <spanx style="verb">accountId</spanx>. The use of this variable is described in <xref target="uploading-binary-data"/>.</t>
+
+<t>eventSourceUrl: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The URL to connect to for push events, as described in <xref target="event-source"/>, in URI Template (level 1) format <xref target="RFC6570"/>. The URL MUST contain variables called <spanx style="verb">types</spanx>, <spanx style="verb">closeafter</spanx>, and <spanx style="verb">ping</spanx>. The use of these variables is described in <xref target="event-source"/>.</t>
+
+<t>state: <spanx style="verb">String</spanx><vspace blankLines="1" />
+A (preferably short) string representing the state of this object on the server. If the value of any other property on the Session object changes, this string will change. The current value is also returned on the API Response object (see <xref target="the-response-object"/>), allowing clients to quickly determine if the session information has changed (e.g., an account has been added or removed), so they need to refetch the object.</t>
+</list>
+</t>
+<t>To ensure future compatibility, other properties MAY be included on the Session object. Clients MUST ignore any properties they are not expecting.
+</t>
+<t>Implementors must take care to avoid inappropriate caching of the Session object at the HTTP layer. Since the client should only refetch when it detects there is a change (via the sessionState property of an API response), it is RECOMMENDED to disable HTTP caching altogether, for example, by setting <spanx style="verb">Cache-Control: no-cache, no-store, must-revalidate</spanx> on the response.
+</t>
+
+<section anchor="example" title="Example">
+<t>In the following example Session object, the user has access to their own mail and contacts via JMAP, as well as read-only access to shared mail from another user. The server is advertising a custom <spanx style="verb">https://example.com/apis/foobar</spanx> capability.
+</t>
+
+<figure align="center"><artwork align="center">
+{
+  "capabilities": {
+    "urn:ietf:params:jmap:core": {
+      "maxSizeUpload": 50000000,
+      "maxConcurrentUpload": 8,
+      "maxSizeRequest": 10000000,
+      "maxConcurrentRequest": 8,
+      "maxCallsInRequest": 32,
+      "maxObjectsInGet": 256,
+      "maxObjectsInSet": 128,
+      "collationAlgorithms": [
+        "i;ascii-numeric",
+        "i;ascii-casemap",
+        "i;unicode-casemap"
+      ]
+    },
+    "urn:ietf:params:jmap:mail": {}
+    "urn:ietf:params:jmap:contacts": {},
+    "https://example.com/apis/foobar": {
+      "maxFoosFinangled": 42
+    }
+  },
+  "accounts": {
+    "A13824": {
+      "name": "john@example.com",
+      "isPersonal": true,
+      "isReadOnly": false,
+      "accountCapabilities": {
+        "urn:ietf:params:jmap:mail": {
+          "maxMailboxesPerEmail": null,
+          "maxMailboxDepth": 10,
+          ...
+        },
+        "urn:ietf:params:jmap:contacts": {
+          ...
+        }
+      }
+    },
+    "A97813": {
+      "name": "jane@example.com",
+      "isPersonal": false,
+      "isReadOnly": true,
+      "accountCapabilities": {
+        "urn:ietf:params:jmap:mail": {
+          "maxMailboxesPerEmail": 1,
+          "maxMailboxDepth": 10,
+          ...
+        }
+      }
+    }
+  },
+  "primaryAccounts": {
+    "urn:ietf:params:jmap:mail": "A13824",
+    "urn:ietf:params:jmap:contacts": "A13824"
+  },
+  "username": "john@example.com",
+  "apiUrl": "https://jmap.example.com/api/",
+  "downloadUrl": "https://jmap.example.com
+    /download/{accountId}/{blobId}/{name}?accept={type}",
+  "uploadUrl": "https://jmap.example.com/upload/{accountId}/",
+  "eventSourceUrl": "https://jmap.example.com
+    /eventsource/?types={types}&amp;closeafter={closeafter}&amp;ping={ping}",
+  "state": "75128aab4b1b"
+}
+</artwork></figure>
+</section>
+
+<section anchor="service-autodiscovery" title="Service Autodiscovery">
+<t>There are two standardised autodiscovery methods in use for Internet protocols:
+</t>
+<t>
+<list style="symbols">
+<t>DNS SRV (see <xref target="RFC2782"/>, <xref target="RFC6186"/>, and <xref target="RFC6764"/>)</t>
+<t>.well-known/servicename (see <xref target="RFC8615"/>)</t>
+</list>
+</t>
+<t>A JMAP-supporting host for the domain <spanx style="verb">example.com</spanx> SHOULD publish a SRV record <spanx style="verb">_jmap._tcp.example.com</spanx> that gives a hostname and port (usually port <spanx style="verb">443</spanx>). The JMAP Session resource is then <spanx style="verb">https://${hostname}[:${port}]/.well-known/jmap</spanx> (following any redirects).
+</t>
+<t>If the client has a username in the form of an email address, it MAY use the domain portion of this to attempt autodiscovery of the JMAP server.
+</t>
+</section>
+</section>
+
+<section anchor="structured-data-exchange" title="Structured Data Exchange">
+<t>The client may make an API request to the server to get or set structured data. This request consists of an ordered series of method calls. These are processed by the server, which then returns an ordered series of responses.
+</t>
+
+<section anchor="making-an-api-request" title="Making an API Request">
+<t>To make an API request, the client makes an authenticated POST request to the API resource, which is defined by the <spanx style="verb">apiUrl</spanx> property in the Session object (see <xref target="the-jmap-session-resource"/>).
+</t>
+<t>The request MUST be of type <spanx style="verb">application/json</spanx> and consist of a single JSON-encoded <spanx style="verb">Request</spanx> object, as defined in <xref target="the-request-object"/>. If successful, the response MUST also be of type <spanx style="verb">application/json</spanx> and consist of a single <spanx style="verb">Response</spanx> object, as defined in <xref target="the-response-object"/>.
+</t>
+</section>
+
+<section anchor="the-invocation-data-type" title="The Invocation Data Type">
+<t>Method calls and responses are represented by the <spanx style="strong">Invocation</spanx> data type. This is a tuple, represented as a JSON array containing three elements:
+</t>
+<t>
+<list style="numbers">
+<t>A <spanx style="verb">String</spanx> <spanx style="strong">name</spanx> of the method to call or of the response.</t>
+<t>A <spanx style="verb">String[*]</spanx> object containing named <spanx style="strong">arguments</spanx> for that method or
+response.</t>
+<t>A <spanx style="verb">String</spanx> <spanx style="strong">method call id</spanx>: an arbitrary string from the client to be echoed back with the responses emitted by that method call (a method may return 1 or more responses, as it may make implicit calls to other methods; all responses initiated by this method call get the same method call id in the response).</t>
+</list>
+</t>
+</section>
+
+<section anchor="the-request-object" title="The Request Object">
+<t>A <spanx style="strong">Request</spanx> object has the following properties:
+</t>
+<t>
+<list style="symbols">
+<t>using: <spanx style="verb">String[]</spanx><vspace blankLines="1" />
+The set of capabilities the client wishes to use. The client MAY include capability identifiers even if the method calls it makes do not utilise those capabilities.
+The server advertises the set of specifications it supports in the Session object (see <xref target="the-jmap-session-resource"/>), as keys on the <spanx style="verb">capabilities</spanx> property.</t>
+
+<t>methodCalls: <spanx style="verb">Invocation[]</spanx><vspace blankLines="1" />
+An array of method calls to process on the server. The method calls MUST be processed sequentially, in order.</t>
+
+<t>createdIds: <spanx style="verb">Id[Id]</spanx> (optional)<vspace blankLines="1" />
+A map of a (client-specified) creation id to the id the server assigned when a record was successfully created.
+
+<vspace blankLines="1" />
+As described later in this specification, some records may have a property that contains the id of another record. To allow more efficient network usage, you can set this property to reference a record created earlier in the same API request. Since the real id is unknown when the request is created, the client can instead specify the creation id it assigned, prefixed with a <spanx style="verb">#</spanx> (see <xref target="set"/> for more details).
+<vspace blankLines="1" />
+
+As the server processes API requests, any time it successfully creates a new record, it adds the creation id to this map (see the <spanx style="verb">create</spanx> argument to /set in <xref target="set"/>), with the server-assigned real id as the value. If it comes across a reference to a creation id in a create/update, it looks it up in the map and replaces the reference with the real id, if found.
+
+<vspace blankLines="1" />
+
+<!--[rfced] Is 'Request' capitalized in the following because it's
+referring to the 'Request objet'? If so, may we add 'object' for
+clarity?
+
+Original:
+    The client can pass an initial value for this map as the
+    _createdIds_ property of the Request.
+
+Perhaps:
+    The client can pass an initial value for this map as the
+    _createdIds_ property of the Request object.
+
+Neil: Yes.
+-->
+The client can pass an initial value for this map as the <spanx style="verb">createdIds</spanx> property of the Request object. This may be an empty object. If given in the request, the response will also include a createdIds property. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example, it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve. See <xref target="proxy-considerations"/> for further discussion of proxy considerations.</t>
+</list>
+</t>
+<t>Future specifications MAY add further properties to the Request object to extend the semantics. To ensure forwards compatibility, a server MUST ignore any other properties it does not understand on the JMAP Request object.
+</t>
+
+<section anchor="example-request" title="Example Request">
+
+<figure align="center"><artwork align="center">
+{
+  "using": [ "urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail" ],
+  "methodCalls": [
+    [ "method1", {
+      "arg1": "arg1data",
+      "arg2": "arg2data"
+    }, "c1" ],
+    [ "method2", {
+      "arg1": "arg1data"
+    }, "c2" ],
+    [ "method3", {}, "c3" ]
+  ]
+}
+</artwork></figure>
+</section>
+</section>
+
+<section anchor="the-response-object" title="The Response Object">
+<t>A <spanx style="strong">Response</spanx> object has the following properties:
+</t>
+<t>
+<list style="symbols">
+<t>methodResponses: <spanx style="verb">Invocation[]</spanx><vspace blankLines="1" />
+An array of responses, in the same format as the <spanx style="verb">methodCalls</spanx> on the Request object. The output of the
+methods MUST be added to the <spanx style="verb">methodResponses</spanx> array
+in the same order that the methods are processed.</t>
+
+<t>createdIds: <spanx style="verb">Id[Id]</spanx> (optional; only returned if given in the request)<vspace blankLines="1" />
+A map of a (client-specified) creation id to the id the server assigned when a
+record was successfully created. This MUST include all creation ids passed in
+the original createdIds parameter of the Request object, as well as any
+additional ones added for newly created records.</t>
+
+<t>sessionState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The current value of the &quot;state&quot; string on the
+Session object, as described in <xref target="the-jmap-session-resource"/>. Clients may use this to detect if this object has changed and needs to be refetched.</t>
+</list>
+</t>
+<t>Unless otherwise specified, if the method call completed successfully, its response name is the same as the method name in the request.
+</t>
+
+<section anchor="example-response" title="Example Response">
+
+<figure align="center"><artwork align="center">
+{
+  "methodResponses": [
+    [ "method1", {
+      "arg1": 3,
+      "arg2": "foo"
+    }, "c1" ],
+    [ "method2", {
+      "isBlah": true
+    }, "c2" ],
+    [ "anotherResponseFromMethod2", {
+      "data": 10,
+      "yetmoredata": "Hello"
+    }, "c2"],
+    [ "error", {
+      "type":"unknownMethod"
+    }, "c3" ]
+  ],
+  "sessionState": "75128aab4b1b"
+}
+</artwork></figure>
+</section>
+</section>
+
+<section anchor="omitting-arguments" title="Omitting Arguments">
+<t>An argument to a method may be specified to have a default value. If omitted by the client, the server MUST treat the method call the same as if the default value had been specified. Similarly, the server MAY omit any argument in a response that has the default value.
+</t>
+<t>Unless otherwise specified in a method description, <spanx style="verb">null</spanx> is the default value for any argument in a request or response where this is allowed by the type signature. Other arguments may only be omitted if an explicit default value is defined in the method description.
+</t>
+</section>
+
+<section anchor="errors" title="Errors">
+<t>There are three different levels of granularity at which an error may be returned in JMAP.
+</t>
+<t>When an API request is made, the request as a whole may be rejected due to
+rate limiting, malformed JSON, request for an unknown capability, etc. In this
+case, the entire request is rejected with an appropriate HTTP error response
+code and an additional JSON body with more detail for the client.
+</t>
+<t>Provided the request itself is syntactically valid (the JSON is valid and
+when decoded, it matches the type signature of a Request object), the methods
+within it are executed sequentially by the server. Each method may
+individually fail, for example, if invalid arguments are given or an unknown
+method name is called.
+</t>
+<t>Finally, methods that make changes to the server state often act upon a
+number of different records within a single call. Each record change may be
+separately rejected with a SetError, as described in <xref target="set"/>.
+</t>
+
+<section anchor="requestlevel-errors" title="Request-Level Errors">
+<t>When an HTTP error response is returned to the client, the server
+SHOULD return a JSON &quot;problem details&quot; object as the response body,
+as per <xref target="RFC7807"/>.
+</t>
+<t>The following problem types are defined:
+</t>
+<t>
+<list style="symbols">
+<t><spanx style="verb">urn:ietf:params:jmap:error:unknownCapability</spanx><vspace blankLines="0" />
+The client included a capability in the &quot;using&quot; property of the request that the server does not support.</t>
+
+<t><spanx style="verb">urn:ietf:params:jmap:error:notJSON</spanx><vspace blankLines="0" />
+The content type of the request was not <spanx style="verb">application/json</spanx> or the request did not parse as I-JSON.</t>
+
+<t><spanx style="verb">urn:ietf:params:jmap:error:notRequest</spanx><vspace blankLines="0" />
+The request parsed as JSON but did not match the type signature of the Request object.</t>
+
+<t><spanx style="verb">urn:ietf:params:jmap:error:limit</spanx><vspace blankLines="0" />
+The request was not processed as it would have exceeded one of the request
+limits defined on the capability object, such as maxSizeRequest,
+maxCallsInRequest, or maxConcurrentRequests. A &quot;limit&quot; property MUST also be
+present on the &quot;problem details&quot; object, containing the name of the limit
+being applied.</t>
+</list>
+</t>
+
+<section anchor="example-1" title="Example">
+
+<figure align="center"><artwork align="center">
+{
+  "type": "urn:ietf:params:jmap:error:unknownCapability",
+  "status": 400,
+  "detail": "The Request object used capability
+    'https://example.com/apis/foobar', which is not supported
+    by this server."
+}
+</artwork></figure>
+<t>Another example:
+</t>
+
+<figure align="center"><artwork align="center">
+{
+  "type": "urn:ietf:params:jmap:error:limit",
+  "limit": "maxSizeRequest",
+  "status": 400,
+  "detail": "The request is larger than the server is willing to
+             process."
+}
+</artwork></figure>
+</section>
+</section>
+
+<section anchor="methodlevel-errors" title="Method-Level Errors">
+<t>If a method encounters an error, the appropriate <spanx style="verb">error</spanx> response MUST be inserted at the current point in the <spanx style="verb">methodResponses</spanx> array and, unless otherwise specified, further processing MUST NOT happen within that method call.
+</t>
+<t>Any further method calls in the request MUST then be processed as normal. Errors at the method level MUST NOT generate an HTTP-level error.
+</t>
+<t>An <spanx style="verb">error</spanx> response looks like this:
+</t>
+
+<figure align="center"><artwork align="center">
+[ "error", {
+  "type": "unknownMethod"
+}, "call-id" ]
+</artwork></figure>
+<t>The response name is <spanx style="verb">error</spanx>, and it MUST have a type property. Other properties may be present with further information; these are detailed in the error type descriptions where appropriate.
+</t>
+<t>With the exception of when the <spanx style="verb">serverPartialFail</spanx> error is returned, the externally visible state of the server MUST NOT have changed if an error is returned at the method level.
+</t>
+<t>The following error types are defined, which may be returned for any method call where appropriate:
+</t>
+<t><spanx style="verb">serverUnavailable</spanx>: Some internal server resource was temporarily unavailable. Attempting the same operation later (perhaps after a backoff with a random factor) may succeed.
+</t>
+<t><spanx style="verb">serverFail</spanx>: An unexpected or unknown error occurred during the processing of the call. A <spanx style="verb">description</spanx> property should provide more details about the error. The method call made no changes to the server's state. Attempting the same operation again is expected to fail again. Contacting the service administrator is likely necessary to resolve this problem if it is persistent.
+</t>
+<t><spanx style="verb">serverPartialFail</spanx>: Some, but not all, expected changes described by the method occurred. The client MUST resynchronise impacted data to determine server state. Use of this error is strongly discouraged.
+</t>
+<t><spanx style="verb">unknownMethod</spanx>: The server does not recognise this method name.
+</t>
+<t><spanx style="verb">invalidArguments</spanx>: One of the arguments is of the wrong type or is otherwise invalid, or a required argument is missing. A <spanx style="verb">description</spanx> property MAY be present to help debug with an explanation of what the problem was. This is a non-localised string, and it is not intended to be shown directly to end users.
+</t>
+<t><spanx style="verb">invalidResultReference</spanx>: The method used a result reference for one of its arguments (see <xref target="references-to-previous-method-results"/>), but this failed to resolve.
+</t>
+<t><spanx style="verb">forbidden</spanx>: The method and arguments are valid, but executing the method would violate an Access Control List (ACL) or other permissions policy.
+</t>
+<t><spanx style="verb">accountNotFound</spanx>: The accountId does not correspond to a valid account.
+</t>
+<t><spanx style="verb">accountNotSupportedByMethod</spanx>: The accountId given corresponds to a valid account, but the account does not support this method or data type.
+</t>
+<t><spanx style="verb">accountReadOnly</spanx>: This method modifies state, but the account is read-only (as returned on the corresponding Account object in the JMAP Session resource).
+</t>
+<t>Further possible errors for a particular method are specified in the method descriptions.
+</t>
+<t>Further general errors MAY be defined in future RFCs. Should a client receive an error type it does not understand, it MUST treat it the same as the <spanx style="verb">serverFail</spanx> type.
+</t>
+</section>
+</section>
+
+<section anchor="references-to-previous-method-results" title="References to Previous Method Results">
+<t>To allow clients to make more efficient use of the network and avoid round
+trips, an argument to one method can be taken from the result of a previous
+method call in the same request.
+</t>
+<t>To do this, the client prefixes the argument name with <spanx style="verb">#</spanx> (an octothorpe). The value is a ResultReference object as described below. When processing a method call, the server MUST first check the arguments object for any names beginning with <spanx style="verb">#</spanx>. If found, the result reference should be resolved and the value used as the &quot;real&quot; argument. The method is then processed as normal. If any result reference fails to resolve, the whole method MUST be rejected with an <spanx style="verb">invalidResultReference</spanx> error. If an arguments object contains the same argument name in normal and referenced form (e.g., <spanx style="verb">foo</spanx> and <spanx style="verb">#foo</spanx>), the method MUST return an <spanx style="verb">invalidArguments</spanx> error.
+</t>
+<t>A <spanx style="strong">ResultReference</spanx> object has the following properties:
+</t>
+<t>
+<list style="symbols">
+
+<!--[rfced] May we reword this for easier readability?
+
+Original:
+   The method call id of the method call to get
+   the result from (the string given as the third item in the array
+   for a method call).
+
+Perhaps:
+   The method call gets the result from the method call id
+   (the string is given as the third item in the array
+   for a method call).
+
+Neil: I have reworded this.
+-->
+<t>resultOf: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The method call id (see <xref target="the-invocation-data-type"/>) of a previous method call in the current request.</t>
+
+<t>name: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The required name of a response to that method call.</t>
+
+<t>path: <spanx style="verb">String</spanx><vspace blankLines="1" />
+A pointer into the arguments of the response selected via the name and resultOf properties. This is a JSON Pointer <xref target="RFC6901"/>, except it also allows the use of <spanx style="verb">*</spanx> to map through an array (see the description below).</t>
+</list>
+</t>
+<t>To resolve:
+</t>
+<t>
+<list style="numbers">
+<t>Find the first response with a method call id identical to the <spanx style="verb">resultOf</spanx>
+property of the ResultReference in the <spanx style="verb">methodResponses</spanx> array from previously processed method calls in the same request. If none, evaluation fails.</t>
+<t>If the response name is not identical to the <spanx style="verb">name</spanx> property of the ResultReference, evaluation fails.</t>
+
+
+<t>Apply the <spanx style="verb">path</spanx> to the arguments object of the response (the second item in the response array) following the JSON Pointer algorithm <xref target="RFC6901"/>, except with the following addition in "Evaluation" (see Section 4):
+<vspace blankLines="1" />
+If the currently referenced value is a JSON array, the reference token may be exactly the single character <spanx style="verb">*</spanx>, making the new referenced value the result of applying the rest of the JSON Pointer tokens to every item in the array and returning the results in the same order in a new array.
+<!--[rfced] In the following sentence, are the items included in
+the output rather than in the array itself? Please clarify the
+intended meaning.
+
+Original:
+    If the result of
+    applying the rest of the pointer tokens to a value was itself an
+    array, its items should be included individually in the output
+    rather than including the array itself (i.e. the result is
+    flattened from an array of arrays to a single array).
+
+Perhaps:
+    If the result of
+    applying the rest of the pointer tokens to a value was itself an
+    array, its items should be included individually in the output
+    rather than in the array itself (i.e., the result is flattened
+    from an array of arrays to a single array).
+
+Neil: I have reworded to try to clarify.
+-->
+
+If the result of applying the rest of the pointer tokens to each item was itself an array, the contents of this array are added to the output rather than the array itself (i.e., the result is flattened from an array of arrays to a single array).
+
+If the result of applying the rest of the pointer tokens to a value was itself an array, its items should be included individually in the output rather than including the array itself (i.e., the result is flattened from an array of arrays to a single array).</t>
+</list>
+</t>
+<t>As a simple example, suppose we have the following API request <spanx style="verb">methodCalls</spanx>:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Foo/changes", {
+    "accountId": "A1",
+    "sinceState": "abcdef"
+}, "t0" ],
+[ "Foo/get", {
+    "accountId": "A1",
+    "#ids": {
+        "resultOf": "t0",
+        "name": "Foo/changes",
+        "path": "/created"
+    }
+}, "t1" ]]
+</artwork></figure>
+<t>After executing the first method call, the <spanx style="verb">methodResponses</spanx> array is:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Foo/changes", {
+    "accountId": "A1",
+    "oldState": "abcdef",
+    "newState": "123456",
+    "hasMoreChanges": false,
+    "created": [ "f1", "f4" ],
+    "updated": [],
+    "destroyed": []
+}, "t0" ]]
+</artwork></figure>
+<t>To execute the Foo/get call, we look through the arguments and find there is one with a <spanx style="verb">#</spanx> prefix. To resolve this, we apply the algorithm above:
+</t>
+<t>
+<list style="numbers">
+<t>Find the first response with method call id &quot;t0&quot;. The Foo/changes response
+fulfils this criterion.</t>
+
+<t>Check that the response name is the same as in the result reference. It is, so
+this is fine.</t>
+<t>Apply the <spanx style="verb">path</spanx> as a JSON Pointer to the arguments object. This simply
+selects the &quot;created&quot; property, so the result of evaluating is:
+<spanx style="verb">[ "f1", "f4" ]</spanx>.</t>
+</list>
+</t>
+<t>The JMAP server now continues to process the Foo/get call as though the arguments were:
+</t>
+
+<figure align="center"><artwork align="center">
+{
+    "accountId": "A1",
+    "ids": [ "f1", "f4" ]
+}
+</artwork></figure>
+<t>Now, a more complicated example using the JMAP Mail data model: fetch the &quot;from&quot;/&quot;date&quot;/&quot;subject&quot; for every email in the first 10 threads in the Inbox (sorted newest first):
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Email/query", {
+  "accountId": "A1",
+  "filter": { "inMailbox": "id_of_inbox" },
+  "sort": [{ "property": "receivedAt", "isAscending": false }],
+  "collapseThreads": true,
+  "position": 0,
+  "limit": 10,
+  "calculateTotal": true
+}, "t0" ],
+[ "Email/get", {
+  "accountId": "A1",
+  "#ids": {
+    "resultOf": "t0",
+    "name": "Email/query",
+    "path": "/ids"
+  },
+  "properties": [ "threadId" ]
+}, "t1" ],
+[ "Thread/get", {
+  "accountId": "A1",
+  "#ids": {
+    "resultOf": "t1",
+    "name": "Email/get",
+    "path": "/list/*/threadId"
+  }
+}, "t2" ],
+[ "Email/get", {
+  "accountId": "A1",
+  "#ids": {
+    "resultOf": "t2",
+    "name": "Thread/get",
+    "path": "/list/*/emailIds"
+  },
+  "properties": [ "from", "receivedAt", "subject" ]
+}, "t3" ]]
+</artwork></figure>
+<t>After executing the first 3 method calls, the <spanx style="verb">methodResponses</spanx> array might be:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Email/query", {
+    "accountId": "A1",
+    "queryState": "abcdefg",
+    "canCalculateChanges": true,
+    "position": 0,
+    "total": 101,
+    "ids": [ "msg1023", "msg223", "msg110", "msg93", "msg91",
+        "msg38", "msg36", "msg33", "msg11", "msg1" ]
+}, "t0" ],
+[ "Email/get", {
+    "accountId": "A1",
+    "state": "123456",
+    "list": [{
+        "id": "msg1023",
+        "threadId": "trd194"
+    }, {
+        "id": "msg223",
+        "threadId": "trd114"
+    },
+    ...
+    ],
+    "notFound": []
+}, "t1" ],
+[ "Thread/get", {
+    "accountId": "A1",
+    "state": "123456",
+    "list": [{
+        "id": "trd194",
+        "emailIds": [ "msg1020", "msg1021", "msg1023" ]
+    }, {
+        "id": "trd114",
+        "emailIds": [ "msg201", "msg223" ]
+    },
+    ...
+    ],
+    "notFound": []
+}, "t2" ]]
+</artwork></figure>
+<t>To execute the final Email/get call, we look through the arguments and find there is one with a <spanx style="verb">#</spanx> prefix. To resolve this, we apply the algorithm:
+</t>
+<t>
+<list style="numbers">
+<t>Find the first response with method call id &quot;t2&quot;. The &quot;Thread/get&quot; response
+fulfils this criterion.</t>
+<t>&quot;Thread/get&quot; is the name specified in the result reference, so this is fine.</t>
+<t>Apply the <spanx style="verb">path</spanx> as a JSON Pointer to the arguments object. Token by token:
+<list style="numbers">
+<t><spanx style="verb">list</spanx>: get the array of thread objects</t>
+<t><spanx style="verb">*</spanx>: for each of the items in the array:
+<list style="letters">
+<t><spanx style="verb">emailIds</spanx>: get the array of email ids</t>
+<t>Concatenate these into a single array of all the ids in the result.</t>
+</list></t>
+</list></t>
+</list>
+</t>
+<t>The JMAP server now continues to process the Email/get call as though the arguments were:
+</t>
+
+<figure align="center"><artwork align="center">
+{
+    "accountId": "A1",
+    "ids": [ "msg1020", "msg1021", "msg1023", "msg201", "msg223", ... ],
+    "properties": [ "from", "receivedAt", "subject" ]
+}
+</artwork></figure>
+<t>The ResultReference performs a similar role to that of the creation id, in
+that it allows a chained method call to refer to information not available when
+the request is generated. However, they are different things and not
+interchangeable; the only commonality is the octothorpe used to indicate
+them.
+</t>
+</section>
+
+<section anchor="localisation-of-uservisible-strings" title="Localisation of User-Visible Strings">
+<!--[rfced] Please clarify what 'multiple' is referring to in the
+following sentence.
+
+Original:
+   If returning a custom string to be displayed to the user, for example
+   an error message, the server SHOULD use information from the Accept-
+   Language header of the request (as defined in [RFC7231] section
+   5.3.5) to help determine the choice of localisation if multiple are
+   available.
+
+Neil: I have simplified this.
+-->
+
+<t>If returning a custom string to be displayed to the user, for example, an error message, the server SHOULD use information from the Accept-Language header of the request (as defined in Section 5.3.5 of <xref target="RFC7231"/>) to choose the best available localisation. The Content-Language header of the response (see Section 3.1.3.2 of <xref target="RFC7231"/>) SHOULD indicate the language being used for user-visible strings.
+</t>
+<t>For example, suppose a request was made with the following header:
+</t>
+
+<figure align="center"><artwork align="center">
+Accept-Language: fr-CH, fr;q=0.9, de;q=0.8, en;q=0.7, *;q=0.5
+</artwork></figure>
+<t>and a method generated an error to display to the user. The server has translations of the error message in English and German. Looking at the Accept-Language header, the user's preferred language is French. Since we don't have a translation for this, we look at the next most preferred, which is German. We have a German translation, so the server returns this and indicates the language chosen in a Content-Language header like so:
+</t>
+
+<figure align="center"><artwork align="center">
+Content-Language: de
+</artwork></figure>
+</section>
+
+<section anchor="security" title="Security">
+<t>As always, the server must be strict about data received from the client. Arguments need to be checked for validity; a malicious user could attempt to find an exploit through the API. In case of invalid arguments (unknown/insufficient/wrong type for data, etc.), the method MUST return an <spanx style="verb">invalidArguments</spanx> error and terminate.
+</t>
+</section>
+
+<section anchor="concurrency" title="Concurrency">
+<t>Method calls within a single request MUST be executed in order. However, method calls from different concurrent API requests may be interleaved. This means that the data on the server may change between two method calls within a single API request.
+</t>
+</section>
+</section>
+
+<section anchor="the-coreecho-method" title="The Core/echo Method">
+<t>The Core/echo method returns exactly the same arguments as it is given. It is useful for testing if you have a valid authenticated connection to a JMAP API endpoint.
+</t>
+
+<section anchor="example-2" title="Example">
+<t>Request:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Core/echo", {
+  "hello": true,
+  "high": 5
+}, "b3ff" ]]
+</artwork></figure>
+<t>Response:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Core/echo", {
+  "hello": true,
+  "high": 5
+}, "b3ff" ]]
+</artwork></figure>
+</section>
+</section>
+
+<section anchor="standard-methods-and-naming-convention" title="Standard Methods and Naming Convention">
+<t>JMAP provides a uniform interface for creating, retrieving, updating, and deleting objects of a particular type. For a <spanx style="verb">Foo</spanx> data type, records of that type would be fetched via a <spanx style="verb">Foo/get</spanx> call and modified via a <spanx style="verb">Foo/set</spanx> call. Delta updates may be fetched via a <spanx style="verb">Foo/changes</spanx> call. These methods all follow a standard format as described below.
+</t>
+<t>Some types may not have all these methods. Specifications defining types MUST specify which methods are available for the type.
+</t>
+
+<section anchor="get" title="/get">
+<t>Objects of type Foo are fetched via a call to <spanx style="verb">Foo/get</spanx>.
+</t>
+<t>It takes the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account to use.</t>
+
+<t>ids: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
+The ids of the Foo objects to return. If <spanx style="verb">null</spanx>, then <spanx style="strong">all</spanx> records of the data type are returned, if this is supported for that data type and the number of records does not exceed the <spanx style="verb">maxObjectsInGet</spanx> limit.</t>
+
+<t>properties: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
+If supplied, only the properties listed in the array are returned for each Foo object. If <spanx style="verb">null</spanx>, all properties of the object are returned. The id property of the object is <spanx style="strong">always</spanx> returned, even if not explicitly requested. If an invalid property is requested, the call MUST be rejected with an <spanx style="verb">invalidArguments</spanx> error.</t>
+</list>
+</t>
+<t>The response has the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account used for the call.</t>
+
+<t>state: <spanx style="verb">String</spanx><vspace blankLines="1" />
+A (preferably short) string representing the state on the server for <spanx style="strong">all</spanx> the data of this type in the account (not just the objects returned in this call). If the data changes, this string MUST change. If the Foo data is unchanged, servers SHOULD return the same state string on subsequent requests for this data type.
+When a client receives a response with a different state string to a previous call, it MUST either throw away all currently cached objects for the type or call <spanx style="verb">Foo/changes</spanx> to get the exact changes.</t>
+
+<t>list: <spanx style="verb">Foo[]</spanx><vspace blankLines="1" />
+
+An array of the Foo objects requested. This is the <spanx style="strong">empty array</spanx> if no objects were found or if the <spanx style="verb">ids</spanx> argument passed in was also the empty array. The results MAY be in a different order to the <spanx style="verb">ids</spanx> in the request arguments. If an identical id is included more than once in the request, the server MUST only include it once in either the <spanx style="verb">list</spanx> or the <spanx style="verb">notFound</spanx> argument of the response.</t>
+
+<t>notFound: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
+This array contains the ids passed to the method for records that do not exist. The array is empty if all requested ids were found or if the <spanx style="verb">ids</spanx> argument passed in was either <spanx style="verb">null</spanx> or the empty array.</t>
+</list>
+</t>
+<t>The following additional error may be returned instead of the <spanx style="verb">Foo/get</spanx> response:
+</t>
+<t><spanx style="verb">requestTooLarge</spanx>: The number of ids requested by the client exceeds the maximum number
+the server is willing to process in a single method call.
+</t>
+</section>
+
+<section anchor="changes" title="/changes">
+<t>When the state of the set of Foo records in an account changes on the server (whether due to creation, updates, or deletion), the <spanx style="verb">state</spanx> property of the <spanx style="verb">Foo/get</spanx> response will change. The <spanx style="verb">Foo/changes</spanx> method allows a client to efficiently update the state of its Foo cache to match the new state on the server. It takes the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account to use.</t>
+
+<t>sinceState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The current state of the client. This is the string that was returned as the <spanx style="verb">state</spanx> argument in the <spanx style="verb">Foo/get</spanx> response. The server will return the changes that have occurred since this state.</t>
+
+<t>maxChanges: <spanx style="verb">UnsignedInt|null</spanx><vspace blankLines="1" />
+The maximum number of ids to return in the response. The server MAY choose to return fewer than this value but MUST NOT return more. If not given by the client, the server may choose how many to return. If supplied by the client, the value MUST be a positive integer greater than 0. If a value outside of this range is given, the server MUST reject the call with an <spanx style="verb">invalidArguments</spanx> error.</t>
+</list>
+</t>
+<t>The response has the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account used for the call.</t>
+
+<t>oldState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+This is the <spanx style="verb">sinceState</spanx> argument echoed back; it's the state from which the server is returning changes.</t>
+
+<t>newState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+This is the state the client will be in after applying the set of changes to the old state.</t>
+
+<t>hasMoreChanges: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
+If <spanx style="verb">true</spanx>, the client may call <spanx style="verb">Foo/changes</spanx> again with the <spanx style="verb">newState</spanx> returned to get further updates. If <spanx style="verb">false</spanx>, <spanx style="verb">newState</spanx> is the current server state.</t>
+
+<t>created: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
+An array of ids for records that have been created since the old state.</t>
+
+<t>updated: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
+An array of ids for records that have been updated since the old state.</t>
+
+<t>destroyed: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
+An array of ids for records that have been destroyed since the old state.</t>
+</list>
+</t>
+<t>If a record has been created AND updated since the old state, the server SHOULD just return the id in the <spanx style="verb">created</spanx> list but MAY return it in the <spanx style="verb">updated</spanx> list as well.
+</t>
+<t>If a record has been updated AND destroyed since the old state, the server SHOULD just return the id in the <spanx style="verb">destroyed</spanx> list but MAY return it in the <spanx style="verb">updated</spanx> list as well.
+</t>
+
+<!--[rfced] Please clarify the last part of the sentence.  Is the
+intended meaning that the server MAY include the id in the
+_destroyed_ list and also in the _created_ list?
+
+Original:
+   If a record has been created AND destroyed since the old state, the
+   server SHOULD remove the id from the response entirely, but MAY
+   include it in the _destroyed_ list, and if so MAY also include it in
+   the _created_ list.
+
+Perhaps:
+   If a record has been created AND destroyed since the old state, the
+   server SHOULD remove the id from the response entirely, but it MAY
+   include it in the _destroyed_ list and also in the _created_ list.
+
+Neil: In this situation the id may only be in the created list if it is in the destroyed list. That is what this sentence was trying to convey. I have tried to clarify.
+-->
+
+<t>If a record has been created AND destroyed since the old state, the server SHOULD remove the id from the response entirely. However, it MAY include it in just the <spanx style="verb">destroyed</spanx> list or in both the <spanx style="verb">destroyed</spanx> and <spanx style="verb">created</spanx> lists.
+</t>
+<t>If a <spanx style="verb">maxChanges</spanx> is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across <spanx style="verb">created</spanx>, <spanx style="verb">updated</spanx>, and <spanx style="verb">destroyed</spanx> does not exceed this limit. If there are more changes than this between the client's state and the current server state, the server SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call <spanx style="verb">Foo/changes</spanx> until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a <spanx style="verb">cannotCalculateChanges</spanx> error response instead.
+</t>
+<t>When generating intermediate states, the server may choose how to divide up the changes. For many types, it will provide a better user experience to return the more recent changes first, as this is more likely to be what the user is most interested in. The client can then continue to page in the older changes while the user is viewing the newer data. For example, suppose a server went through the following states:
+</t>
+
+<figure align="center"><artwork align="center">
+A -&gt; B -&gt; C -&gt; D -&gt; E
+</artwork></figure>
+<t>And a client asks for changes from state <spanx style="verb">B</spanx>. The server might first get the ids of records created, updated, or destroyed between states D and E, returning them with:
+</t>
+
+<figure align="center"><artwork align="center">
+state: "B-D-E"
+hasMoreChanges: true
+</artwork></figure>
+<t>The client will then ask for the change from state <spanx style="verb">B-D-E</spanx>, and the server can return the changes between states C and D, returning:
+</t>
+
+<figure align="center"><artwork align="center">
+state: "B-C-E"
+hasMoreChanges: true
+</artwork></figure>
+<t>Finally, the client will request the changes from <spanx style="verb">B-C-E</spanx>, and the server can return the changes between states B and C, returning:
+</t>
+
+<figure align="center"><artwork align="center">
+state: "E"
+hasMoreChanges: false
+</artwork></figure>
+<t>Should the state on the server be modified in the middle of all this (to <spanx style="verb">F</spanx>), the server still does the same, but now when the update to state <spanx style="verb">E</spanx> is returned, it would indicate that it still has more changes for the client to fetch.
+</t>
+
+<!--[rfced] My we reword this sentence for easier readability
+(specifially, we would like to update 'the server MUST NOT return
+a record as created in a later response than one which gives it
+as updated or destroyed'). Also, is there a better word choice
+for 'gives it'; does 'deems it' convey the intended meaning?
+
+Original:
+   Where multiple changes to a record are split across different
+   intermediate states, the server MUST NOT return a record as created
+   in a later response than one which gives it as updated or destroyed,
+   and MUST NOT return a record as destroyed before a response that
+   gives it as created or updated.
+
+Perhaps:
+   Where multiple changes to a record are split across different
+   intermediate states, the server MUST NOT return a record as created
+   after a response that deems it as updated or destroyed, and it
+   MUST NOT return a record as destroyed before a response that deems
+   it as created or updated.
+
+Neil: Proposed wording seems fine to me, thanks.
+-->
+
+<t>Where multiple changes to a record are split across different intermediate states, the server MUST NOT return a record as created after a response that deems it as updated or destroyed, and it MUST NOT return a record as destroyed before a response that deems it as created or updated. The server may have to coalesce multiple changes to a record to satisfy this requirement.
+</t>
+<t>The following additional errors may be returned instead of the <spanx style="verb">Foo/changes</spanx> response:
+</t>
+<t><spanx style="verb">cannotCalculateChanges</spanx>: The server cannot calculate the changes from the state string given by the client. Usually, this is due to the client's state being too old or the server being unable to produce an update to an intermediate state when there are too many updates. The client MUST invalidate its Foo cache.
+</t>
+<t>Maintaining state to allow calculation of <spanx style="verb">Foo/changes</spanx> can be expensive for the server, but always returning <spanx style="verb">cannotCalculateChanges</spanx> severely increases network traffic and resource usage for the client. To allow efficient sync, servers SHOULD be able to calculate changes from any state string that was given to a client within the last 30 days (but of course may support calculating updates from states older than this).
+</t>
+</section>
+
+<section anchor="set" title="/set">
+<t>Modifying the state of Foo objects on the server is done via the <spanx style="verb">Foo/set</spanx> method. This encompasses creating, updating, and destroying Foo records. This allows the server to sort out ordering and dependencies that may exist if doing multiple operations at once (for example, to ensure there is always a minimum number of a certain record type).
+</t>
+<t>The <spanx style="verb">Foo/set</spanx> method takes the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account to use.</t>
+
+<t>ifInState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
+This is a state string as returned by the <spanx style="verb">Foo/get</spanx> method (representing the state of all objects of this type in the account). If supplied, the string must match the current state; otherwise, the method will be aborted and a <spanx style="verb">stateMismatch</spanx> error returned. If <spanx style="verb">null</spanx>, any changes will be applied to the current state.</t>
+
+<t>create: <spanx style="verb">Id[Foo]|null</spanx><vspace blankLines="1" />
+A map of a <spanx style="strong">creation id</spanx> (a temporary id set by the client) to Foo objects, or <spanx style="verb">null</spanx> if no objects are to be created.
+
+<vspace blankLines="1" />
+The Foo object type definition may define default values for properties. Any such property may be omitted by the client.
+<vspace blankLines="1" />
+
+The client MUST omit any properties that may only be set by the server (for example, the <spanx style="verb">id</spanx> property on most object types).</t>
+
+<t>update: <spanx style="verb">Id[PatchObject]|null</spanx><vspace blankLines="1" />
+A map of an id to a Patch object to apply to the current Foo object with that id, or <spanx style="verb">null</spanx> if no objects are to be updated.
+<vspace blankLines="1" />
+
+A <spanx style="strong">PatchObject</spanx> is of type <spanx style="verb">String[*]</spanx> and represents an unordered set of patches.  The keys are a path in JSON Pointer format <xref target="RFC6901"/>, with an implicit leading &quot;/&quot; (i.e., prefix each key with &quot;/&quot; before applying the JSON Pointer evaluation algorithm).
+
+<vspace blankLines="1" />
+All paths MUST also conform to the following restrictions; if there is any violation, the update MUST be rejected with an <spanx style="verb">invalidPatch</spanx> error:
+<list style="symbols">
+<t>The pointer MUST NOT reference inside an array (i.e., you MUST NOT insert/delete from an array; the array MUST be replaced in its entirety instead).</t>
+<t>All parts prior to the last (i.e., the value after the final slash) MUST already exist on the object being patched.</t>
+
+<t>There MUST NOT be two patches in the PatchObject where the pointer of one is the prefix of the pointer of the other, e.g., &quot;alerts/1/offset&quot; and &quot;alerts&quot;.</t>
+</list>
+The value associated with each pointer determines how to apply that patch:
+<list style="symbols">
+<t>If <spanx style="verb">null</spanx>, set to the default value if specified for this property; otherwise, remove the property from the patched object. If the key is not present in the parent, this a no-op.</t>
+
+<t>Anything else: The value to set for this property (this may be a replacement or addition to the object being patched).</t>
+</list>
+Any server-set properties MAY be included in the patch if their value is identical to the current server value (before applying the patches to the object). Otherwise, the update MUST be rejected with an <spanx style="verb">invalidProperties</spanx> SetError.
+<vspace blankLines="1" />
+
+This patch definition is designed such that an entire Foo object is also a valid PatchObject. The client may choose to optimise network usage by just sending the diff or may send the whole object; the server processes it the same either way.</t>
+
+<t>destroy: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
+A list of ids for Foo objects to permanently delete, or <spanx style="verb">null</spanx> if no objects are to be destroyed.</t>
+</list>
+</t>
+<t>Each creation, modification, or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others; however, it MUST NOT only commit part of an update to a single record (e.g., update a <spanx style="verb">name</spanx> property but not a <spanx style="verb">count</spanx> property, if both are supplied in the update object).
+</t>
+<t>The final state MUST be valid after the <spanx style="verb">Foo/set</spanx> is finished; however, the
+server may have to transition through invalid intermediate states (not exposed
+to the client) while processing the individual create/update/destroy
+requests. For example, suppose there is a <spanx style="verb">name</spanx> property that must
+be unique. A single method call could rename an object A =&gt; B and simultaneously rename another object B =&gt; A. If the final state is valid, this is allowed. Otherwise, each creation, modification, or destruction of an object should be processed sequentially and accepted/rejected based on the current server state.
+</t>
+<t>If a create, update, or destroy is rejected, the appropriate error MUST be added to the notCreated/notUpdated/notDestroyed property of the response, and the server MUST continue to the next create/update/destroy. It does not terminate the method.
+</t>
+<t>If an id given cannot be found, the update or destroy MUST be rejected with a <spanx style="verb">notFound</spanx> set error.
+</t>
+<t>The server MAY skip an update (rejecting it with a <spanx style="verb">willDestroy</spanx> SetError) if that object is destroyed in the same /set request.
+</t>
+<t>Some records may hold references to other records (foreign keys). That
+reference may be set (via create or update) in the same request as the
+referenced record is created. To do this, the client refers to the new record
+using its creation id prefixed with a <spanx style="verb">#</spanx>. The order
+of the method calls in the request by the client MUST be such that the record
+being referenced is created in the same or an earlier call. Thus, the server
+never has to look ahead. Instead, while processing a request, the server MUST
+keep a simple map for the duration of the request of creation id to record id
+for each newly created record, so it can substitute in the correct value if
+necessary in later method calls. In the case of records with references to the
+same type, the server MUST order the creates and updates within a single method call so that creates happen before their creation ids are referenced by another create/update/destroy in the same call.
+</t>
+<t>Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see "The Request Object", <xref target="the-request-object"/>) and the final state of the map passed out with the response (see "The Response Object", <xref target="the-response-object"/>).
+</t>
+<t>The response has the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account used for the call.</t>
+
+<t>oldState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
+The state string that would have been returned by <spanx style="verb">Foo/get</spanx> before making the requested changes, or <spanx style="verb">null</spanx> if the server doesn't know what the previous state string was.</t>
+
+<t>newState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The state string that will now be returned by <spanx style="verb">Foo/get</spanx>.</t>
+
+<t>created: <spanx style="verb">Id[Foo]|null</spanx><vspace blankLines="1" />
+A map of the creation id to an object containing any properties of the created Foo object that were not sent by the client. This includes all server-set properties (such as the <spanx style="verb">id</spanx> in most object types) and any properties that were omitted by the client and thus set to a default by the server.
+
+<vspace blankLines="1" />
+This argument is <spanx style="verb">null</spanx> if no Foo objects were successfully created.</t>
+
+<t>updated: <spanx style="verb">Id[Foo|null]|null</spanx><vspace blankLines="1" />
+The keys in this map are the ids of all Foos that were successfully updated.
+<vspace blankLines="1" />
+The value for each id is a Foo object containing any property that
+changed in a way <spanx style="strong">not</spanx> explicitly requested by the PatchObject sent to the server, or <spanx style="verb">null</spanx> if none. This lets the client know of any changes to server-set or computed properties.
+<vspace blankLines="1" />
+
+This argument is <spanx style="verb">null</spanx> if no Foo objects were successfully updated.</t>
+
+<t>destroyed: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
+A list of Foo ids for records that were successfully destroyed, or <spanx style="verb">null</spanx> if none.</t>
+
+<t>notCreated: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
+A map of the creation id to a SetError object for each record that failed to be created, or <spanx style="verb">null</spanx> if all successful.</t>
+
+<t>notUpdated: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
+A map of the Foo id to a SetError object for each record that failed to be updated, or <spanx style="verb">null</spanx> if all successful.</t>
+
+<t>notDestroyed: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
+A map of the Foo id to a SetError object for each record that failed to be destroyed, or <spanx style="verb">null</spanx> if all successful.</t>
+</list>
+</t>
+<t>A <spanx style="strong">SetError</spanx> object has the following properties:
+</t>
+<t>
+<list style="symbols">
+<t>type: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The type of error.</t>
+
+<t>description: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
+A description of the error to help with debugging that includes an explanation of what the problem was. This is a non-localised string and is not intended to be shown directly to end users.</t>
+</list>
+</t>
+<t>The following SetError types are defined and may be returned for set operations on any record type where appropriate:
+</t>
+<t>
+<list style="symbols">
+<t><spanx style="verb">forbidden</spanx>: (create; update; destroy). The create/update/destroy would
+violate an ACL or other permissions policy.</t>
+
+<t><spanx style="verb">overQuota</spanx>: (create; update). The create would exceed a server-defined limit
+on the number or total size of objects of this type.</t>
+
+<t><spanx style="verb">tooLarge</spanx>: (create; update). The create/update would result in an object
+that exceeds a server-defined limit for the maximum size of a single object of this type.</t>
+
+<t><spanx style="verb">rateLimit</spanx>: (create). Too many objects of this type have been created
+recently, and a server-defined rate limit has been reached. It may work if
+tried again later.</t>
+
+<t><spanx style="verb">notFound</spanx>: (update; destroy). The id given to update/destroy cannot be found.</t>
+
+<t><spanx style="verb">invalidPatch</spanx>: (update). The PatchObject given to update the record was
+not a valid patch (see the patch description).</t>
+
+<t><spanx style="verb">willDestroy</spanx>: (update). The client requested that an object be both updated and destroyed in the same
+/set request, and the server has decided to therefore ignore the update.</t>
+
+<t><spanx style="verb">invalidProperties</spanx>: (create; update). The record given is invalid in some way. For example:
+<list style="symbols">
+<t>It contains properties that are invalid according to the type specification of this record type.</t>
+
+<!--[rfced] Is 'different to' the intended wording in the following,
+or should it be 'different from' or 'different than'?  Please
+note that there are 3 instances in question.
+
+A)
+Original:
+   It contains a property that may only be set by the server (e.g.
+   "id") and is different to the current value.
+
+Perhaps:
+   It contains a property that may only be set by the server (e.g.,
+   "id") and is different than the current value.
+
+
+B)
+Original:
+   *accountId*: "Id" The id of the account to copy records to.  This
+   MUST be different to the "fromAccountId".
+
+Perhaps:
+   *accountId*: "Id"
+   The id of the account to copy records to.  This
+   MUST be different than the "fromAccountId".
+
+
+C)
+Original:
+   A map of the creation id to an object containing any properties of
+   the copied Foo object that are set by the server (such as the _id_
+   in most object types; note, the id is likely to be different to
+   the id of the object in the account it was copied from).
+
+Perhaps:
+   A map of the creation id to an object containing any properties of
+   the copied Foo object that are set by the server (such as the _id_
+   in most object types; note, the id is likely to be different than
+   the id of the object in the account it was copied from).
+
+Neil: I believe this is a US English vs British English difference. As this document is in British English, I would prefer to keep "different to".
+-->
+
+<t>It contains a property that may only be set by the server (e.g., &quot;id&quot;) and is different to the current value. Note, to allow clients to pass whole objects back, it is not an error to include a server-set property in an update as long as the value is identical to the current value on the server.</t>
+<t>There is a reference to another record (foreign key), and the given id does not correspond to a valid record.</t>
+</list>
+The SetError object SHOULD also have a property called <spanx style="verb">properties</spanx> of type <spanx style="verb">String[]</spanx> that lists <spanx style="strong">all</spanx> the properties that were invalid.
+
+<vspace blankLines="1" />
+Individual methods MAY specify more specific errors for certain conditions that would otherwise result in an invalidProperties error. If the condition of one of these is met, it MUST be returned instead of the invalidProperties error.</t>
+
+<t><spanx style="verb">singleton</spanx>: (create; destroy). This is a singleton type, so you cannot create
+another one or destroy the existing one.</t>
+</list>
+</t>
+<t>Other possible SetError types MAY be given in specific method descriptions. Other properties MAY also be present on the SetError object, as described in the relevant methods.
+</t>
+<t>The following additional errors may be returned instead of the <spanx style="verb">Foo/set</spanx> response:
+</t>
+<t><spanx style="verb">requestTooLarge</spanx>: The total number of objects to
+create, update, or destroy exceeds the maximum number the server is willing to
+process in a single method call.
+</t>
+<t><spanx style="verb">stateMismatch</spanx>: An <spanx style="verb">ifInState</spanx> argument was supplied, and it does not match the current state.
+</t>
+</section>
+
+<section anchor="copy" title="/copy">
+<t>The only way to move Foo records <spanx style="strong">between</spanx> two different accounts is to copy them using the <spanx style="verb">Foo/copy</spanx> method; once the copy has succeeded, delete the original. The <spanx style="verb">onSuccessDestroyOriginal</spanx> argument allows you to try to do this in one method call; however, note that the two different actions are not atomic, so it is possible for the copy to succeed but the original not to be destroyed for some reason.
+</t>
+<t>The copy is conceptually in three phases:
+</t>
+<t>
+<list style="numbers">
+<t>Reading the current values from the &quot;from&quot; account.</t>
+<t>Writing the new copies to the other account.</t>
+<t>Destroying the originals in the &quot;from&quot; account, if requested.</t>
+</list>
+</t>
+<t>Data may change in between phases due to concurrent requests.
+</t>
+<t>The <spanx style="verb">Foo/copy</spanx> method takes the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>fromAccountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account to copy records from.</t>
+
+<t>ifFromInState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
+This is a state string as returned by the <spanx style="verb">Foo/get</spanx> method. If supplied, the string must match the current state of the account referenced by the fromAccountId when reading the data to be copied; otherwise, the method will be aborted and a <spanx style="verb">stateMismatch</spanx> error returned. If <spanx style="verb">null</spanx>, the data will be read from the current state.</t>
+
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account to copy records to. This MUST be different to the <spanx style="verb">fromAccountId</spanx>.</t>
+<t>ifInState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
+This is a state string as returned by the <spanx style="verb">Foo/get</spanx> method. If supplied, the string must match the current state of the account referenced by the accountId; otherwise, the method will be aborted and a <spanx style="verb">stateMismatch</spanx> error returned. If <spanx style="verb">null</spanx>, any changes will be applied to the current state.</t>
+
+<t>create: <spanx style="verb">Id[Foo]</spanx><vspace blankLines="1" />
+A map of the <spanx style="strong">creation id</spanx> to a Foo object. The Foo object MUST contain an <spanx style="verb">id</spanx> property, which is the id (in the fromAccount) of the record to be copied. When creating the copy, any other properties included are used instead of the current value for that property on the original.</t>
+
+<t>onSuccessDestroyOriginal: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
+If <spanx style="verb">true</spanx>, an attempt will be made to destroy the original records that were successfully copied: after emitting the <spanx style="verb">Foo/copy</spanx> response, but before processing the next method, the server MUST make a single call to <spanx style="verb">Foo/set</spanx> to destroy the original of each successfully copied record; the output of this is added to the responses as normal, to be returned to the client.</t>
+
+<t>destroyFromIfInState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
+This argument is passed on as the <spanx style="verb">ifInState</spanx> argument to the implicit <spanx style="verb">Foo/set</spanx> call, if made at the end of this request to destroy the originals that were successfully copied.</t>
+</list>
+</t>
+<t>Each record copy is considered an atomic unit that may succeed or fail individually.
+</t>
+<t>The response has the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>fromAccountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account records were copied from.</t>
+
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account records were copied to.</t>
+
+<t>oldState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
+The state string that would have been returned by <spanx style="verb">Foo/get</spanx> on the account records that were copied to before making the requested changes, or <spanx style="verb">null</spanx> if the server doesn't know what the previous state string was.</t>
+
+<t>newState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The state string that will now be returned by <spanx style="verb">Foo/get</spanx> on the account records were copied to.</t>
+
+<t>created: <spanx style="verb">Id[Foo]|null</spanx><vspace blankLines="1" />
+A map of the creation id to an object containing any properties of the copied
+Foo object that are set by the server (such as the <spanx style="verb">id</spanx> in most object types;
+note, the id is likely to be different to the id of the object in the account
+it was copied from).
+
+<vspace blankLines="1" />
+This argument is <spanx style="verb">null</spanx> if no Foo objects were successfully copied.</t>
+
+<t>notCreated: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
+A map of the creation id to a SetError object for each record that failed to be copied, or <spanx style="verb">null</spanx> if none.</t>
+</list>
+</t>
+<t>The SetError may be any of the standard set errors returned for a create or update.  In addition, the following SetError is defined:
+</t>
+<t><spanx style="verb">alreadyExists</spanx>: The server forbids duplicates, and the record already exists in the target account. An <spanx style="verb">existingId</spanx> property of type <spanx style="verb">Id</spanx> MUST be included on the error object with the id of the existing record.
+</t>
+
+<t>The following additional errors may be returned instead of the <spanx style="verb">Foo/copy</spanx> response:
+</t>
+
+<t><spanx style="verb">fromAccountNotFound</spanx>: The <spanx style="verb">fromAccountId</spanx> does not correspond to a valid account.
+</t>
+
+<t><spanx style="verb">fromAccountNotSupportedByMethod</spanx>: The <spanx style="verb">fromAccountId</spanx> given corresponds to a valid account, but the account does not support this data type.
+</t>
+
+<t><spanx style="verb">stateMismatch</spanx>: An <spanx style="verb">ifInState</spanx> argument was supplied and it does not match the current state, or an <spanx style="verb">ifFromInState</spanx> argument was supplied and it does not match the current state in the from account.
+</t>
+</section>
+
+<section anchor="query" title="/query">
+<t>For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g., multi-gigabyte mailboxes), the client needs to be able to search/sort/window the data type on the server.
+</t>
+<t>A query on the set of Foos in an account is made by calling <spanx style="verb">Foo/query</spanx>.  This takes a number of arguments to determine which records to include, how they should be sorted, and which part of the result should be returned (the full list may be <spanx style="strong">very</spanx> long). The result is returned as a list of Foo ids.
+</t>
+<t>A call to <spanx style="verb">Foo/query</spanx> takes the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account to use.</t>
+
+<t>filter: <spanx style="verb">FilterOperator|FilterCondition|null</spanx><vspace blankLines="1" />
+Determines the set of Foos returned in the results. If <spanx style="verb">null</spanx>, all objects in the account of this type are included in the results.
+A <spanx style="strong">FilterOperator</spanx> object has the following properties:
+
+<list style="symbols">
+<t>operator: <spanx style="verb">String</spanx><vspace blankLines="1" />
+This MUST be one of the following strings:
+<list style="symbols">
+<t><spanx style="verb">AND</spanx>: All of the conditions must match for the filter to match.</t>
+<t><spanx style="verb">OR</spanx>: At least one of the conditions must match for the filter to match.</t>
+<t><spanx style="verb">NOT</spanx>: None of the conditions must match for the filter to match.</t>
+</list></t>
+<t>conditions: <spanx style="verb">(FilterOperator|FilterCondition)[]</spanx><vspace blankLines="1" />
+The conditions to evaluate against each record.</t>
+</list>
+
+A <spanx style="strong">FilterCondition</spanx> is an <spanx style="verb">object</spanx> whose allowed properties and semantics depend on the data type and is defined in the /query method specification for that type. It MUST NOT have an <spanx style="verb">operator</spanx> property.</t>
+
+<t>sort: <spanx style="verb">Comparator[]|null</spanx><vspace blankLines="1" />
+Lists the names of properties to compare between two Foo records, and how to compare them, to determine which comes first in the sort. If two Foo records have an identical value for the first comparator, the next comparator will be considered, and so on. If all comparators are the same (this includes the case where an empty array or <spanx style="verb">null</spanx> is given as the <spanx style="verb">sort</spanx> argument), the sort order is server dependent, but it MUST be stable between calls to Foo/query.
+A <spanx style="strong">Comparator</spanx> has the following properties:
+
+<list style="symbols">
+<t>property: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The name of the property on the Foo objects to compare.</t>
+
+<t>isAscending: <spanx style="verb">Boolean</spanx> (optional; default: true)<vspace blankLines="1" />
+If <spanx style="verb">true</spanx>, sort in ascending order. If <spanx style="verb">false</spanx>, reverse the comparator's results to sort in descending order.</t>
+
+<t>collation: <spanx style="verb">String</spanx> (optional; default is server-dependent)<vspace blankLines="1" />
+The identifier, as registered in the collation registry defined in <xref target="RFC4790"/>, for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the Session object (see <xref target="the-jmap-session-resource"/>).
+
+<vspace blankLines="1" />
+If omitted, the default algorithm is server dependent, but:
+<list style="numbers">
+<t>It MUST be unicode-aware.</t>
+
+<t>It MAY be selected based on an Accept-Language header in the
+request (as defined in <xref target="RFC7231"/>, Section 5.3.5) or out-of-band information about the user's language/locale.</t>
+
+<t>It SHOULD be case insensitive where such a concept makes sense for a
+language/locale. Where the user's language is unknown, it is RECOMMENDED to follow the advice in Section 5.2.3 of <xref target="RFC8264"/>.</t>
+</list>
+The &quot;i;unicode-casemap&quot; collation <xref target="RFC5051"/> and the Unicode Collation Algorithm (<eref target="http://www.unicode.org/reports/tr10/"/>) are two examples that fulfil these criterion and provide reasonable behaviour for a large number of languages.
+
+<vspace blankLines="1" />
+When the property being compared is not a string, the <spanx style="verb">collation</spanx> property is ignored, and the following comparison rules apply based on the type. In ascending order:
+<list style="symbols">
+<t><spanx style="verb">Boolean</spanx>: <spanx style="verb">false</spanx> comes before <spanx style="verb">true</spanx>.</t>
+<t><spanx style="verb">Number</spanx>: A lower number comes before a higher number.</t>
+<t><spanx style="verb">Date</spanx>/<spanx style="verb">UTCDate</spanx>: The earlier date comes first.</t>
+</list></t>
+</list>
+The Comparator object may also have additional properties as required for
+specific sort operations defined in a type's /query method.</t>
+
+<!--[rfced] We notice the use of 'non-zero' and '0-based'.  Would you
+like to update '0-based' to be 'zero-based' for consistency?
+There are 3 instances in the text.
+
+One example
+
+Original:
+   The 0-based index of the first id in the full list of results to
+   return.
+
+Perhaps:
+   The zero-based index of the first id in the full list of results
+   to return.
+
+Neil: Agreed.
+-->
+<t>position: <spanx style="verb">Int</spanx> (default: 0)<vspace blankLines="1" />
+The zero-based index of the first id in the full list of results to return.
+
+<vspace blankLines="1" />
+If a negative value is given, it is an offset from the end of the list. Specifically, the negative value MUST be added to the total number of results given the filter, and if still negative, it's clamped to <spanx style="verb">0</spanx>. This is now the zero-based index of the first id to return.
+
+<vspace blankLines="1" />
+If the index is greater than or equal to the total number of objects in the results list, then the <spanx style="verb">ids</spanx> array in the response will be empty, but this is not an error.</t>
+
+<t>anchor: <spanx style="verb">Id|null</spanx><vspace blankLines="1" />
+A Foo id. If supplied, the <spanx style="verb">position</spanx> argument is ignored. The index of this id in the results will be used in combination with the <spanx style="verb">anchorOffset</spanx> argument to determine the index of the first result to return (see below for more details).</t>
+
+<t>anchorOffset: <spanx style="verb">Int</spanx> (default: 0)<vspace blankLines="1" />
+The index of the first result to return relative to the index of the anchor, if an anchor is given. This MAY be negative. For example, <spanx style="verb">-1</spanx> means the Foo immediately preceding the anchor is the first result in the list returned (see below for more details).</t>
+
+<t>limit: <spanx style="verb">UnsignedInt|null</spanx><vspace blankLines="1" />
+The maximum number of results to return. If <spanx style="verb">null</spanx>, no limit presumed. The server MAY choose to enforce a maximum <spanx style="verb">limit</spanx> argument. In this case, if a greater value is given (or if it is <spanx style="verb">null</spanx>), the limit is clamped to the maximum; the new limit is returned with the response so the client is aware. If a negative value is given, the call MUST be rejected with an <spanx style="verb">invalidArguments</spanx> error.</t>
+
+<t>calculateTotal: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
+Does the client wish to know the total number of results in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.</t>
+</list>
+</t>
+<t>If an <spanx style="verb">anchor</spanx> argument is given, the anchor is looked for in the results after filtering and sorting. If found, the <spanx style="verb">anchorOffset</spanx> is then added to its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the <spanx style="verb">position</spanx> argument. If the anchor is not found, the call is rejected with an <spanx style="verb">anchorNotFound</spanx> error.
+</t>
+<t>If an <spanx style="verb">anchor</spanx> is specified, any position argument supplied by the client MUST be ignored. If no <spanx style="verb">anchor</spanx> is supplied, any <spanx style="verb">anchorOffset</spanx> argument MUST be ignored.
+</t>
+<t>A client can use <spanx style="verb">anchor</spanx> instead of <spanx style="verb">position</spanx> to find the index of an id
+within a large set of results.
+</t>
+<t>The response has the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account used for the call.</t>
+
+<t>queryState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+A string encoding the current state of the query on the server. This string MUST change if the results of the query (i.e., the matching ids and their sort order) have changed. The queryState string MAY change if something has changed on the server, which means the results may have changed but the server doesn't know for sure.
+
+<vspace blankLines="1" />
+The queryState string only represents the ordered list of ids that match the particular query (including its sort/filter). There is no requirement for it to change if a property on an object matching the query changes but the query results are unaffected (indeed, it is more efficient if the queryState string does not change in this case). The queryState string only has meaning when compared to future responses to a query with the same type/sort/filter or when used with /queryChanges to fetch changes.
+
+<vspace blankLines="1" />
+Should a client receive back a response with a different queryState string to a previous call, it MUST either throw away the currently cached query and fetch it again (note, this does not require fetching the records again, just the list of ids) or call <spanx style="verb">Foo/queryChanges</spanx> to get the difference.</t>
+
+<t>canCalculateChanges: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
+This is <spanx style="verb">true</spanx> if the server supports calling <spanx style="verb">Foo/queryChanges</spanx> with these <spanx style="verb">filter</spanx>/<spanx style="verb">sort</spanx> parameters. Note, this does not guarantee that the <spanx style="verb">Foo/queryChanges</spanx> call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.</t>
+
+<t>position: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
+The zero-based index of the first result in the <spanx style="verb">ids</spanx> array within the complete list of query results.</t>
+
+<t>ids: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
+The list of ids for each foo in the query results, starting at the index given by the <spanx style="verb">position</spanx> argument of this response and continuing until it hits the end of the results or reaches the <spanx style="verb">limit</spanx> number of ids. If <spanx style="verb">position</spanx> is &gt;= <spanx style="verb">total</spanx>, this MUST be the empty list.</t>
+
+<t>total: <spanx style="verb">UnsignedInt</spanx> (only if requested)<vspace blankLines="1" />
+The total number of foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not <spanx style="verb">true</spanx>.</t>
+
+<t>limit: <spanx style="verb">UnsignedInt</spanx> (if set by the server)<vspace blankLines="1" />
+The limit enforced by the server on the maximum number of results to return.
+This is only returned if the server set a limit or used a different limit than
+that given in the request.</t>
+</list>
+</t>
+<t>The following additional errors may be returned instead of the <spanx style="verb">Foo/query</spanx> response:
+</t>
+<t><spanx style="verb">anchorNotFound</spanx>: An anchor argument was supplied, but it cannot be found in the results of the query.
+</t>
+<t><spanx style="verb">unsupportedSort</spanx>: The <spanx style="verb">sort</spanx> is syntactically valid, but it includes a property the server does not support sorting on or a collation method it does not recognise.
+</t>
+<t><spanx style="verb">unsupportedFilter</spanx>: The <spanx style="verb">filter</spanx> is syntactically valid, but the server cannot
+process it. If the filter was the result of a user's search input, the client
+SHOULD suggest that the user simplify their search.
+</t>
+</section>
+
+<section anchor="querychanges" title="/queryChanges">
+<t>The <spanx style="verb">Foo/queryChanges</spanx> method allows a client to efficiently update the state of a cached query to match the new state on the server. It takes the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account to use.</t>
+
+<t>filter: <spanx style="verb">FilterOperator|FilterCondition|null</spanx><vspace blankLines="1" />
+The filter argument that was used with <spanx style="verb">Foo/query</spanx>.</t>
+
+<t>sort: <spanx style="verb">Comparator[]|null</spanx><vspace blankLines="1" />
+The sort argument that was used with <spanx style="verb">Foo/query</spanx>.</t>
+
+<t>sinceQueryState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The current state of the query in the client. This is the string that was returned as the <spanx style="verb">queryState</spanx> argument in the <spanx style="verb">Foo/query</spanx> response with the same sort/filter. The server will return the changes made to the query since this state.</t>
+
+<t>maxChanges: <spanx style="verb">UnsignedInt|null</spanx><vspace blankLines="1" />
+The maximum number of changes to return in the response. See error descriptions below for more details.</t>
+
+<t>upToId: <spanx style="verb">Id|null</spanx><vspace blankLines="1" />
+The last (highest-index) id the client currently has cached from the query results. When there are a large number of results, in a common case, the client may have only downloaded and cached a small subset from the beginning of the results. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the results, which can significantly increase efficiency. If they are not immutable, this argument is ignored.</t>
+
+<t>calculateTotal: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
+Does the client wish to know the total number of results now in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.</t>
+</list>
+</t>
+<t>The response has the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account used for the call.</t>
+
+<t>oldQueryState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+This is the <spanx style="verb">sinceQueryState</spanx> argument echoed back; that is, the state from which the server is returning changes.</t>
+
+<t>newQueryState: <spanx style="verb">String</spanx><vspace blankLines="1" />
+This is the state the query will be in after applying the set of changes to the old state.</t>
+
+<t>total: <spanx style="verb">UnsignedInt</spanx> (only if requested)<vspace blankLines="1" />
+The total number of foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not <spanx style="verb">true</spanx>.</t>
+
+<t>removed: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
+The <spanx style="verb">id</spanx> for every foo that was in the query results in the old state and that is not in the results in the new state.
+
+<vspace blankLines="1" />
+If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old results but are not in the new results.
+<vspace blankLines="1" />
+
+If the sort and filter are both only on immutable properties and an <spanx style="verb">upToId</spanx> is supplied and exists in the results, any ids that were removed but have a higher index than <spanx style="verb">upToId</spanx> SHOULD be omitted.
+<vspace blankLines="1" />
+
+If the <spanx style="verb">filter</spanx> or <spanx style="verb">sort</spanx> includes a mutable property, the server MUST include all foos in the current results for which this property may have changed. The position of these may have moved in the results, so they must be
+reinserted by the client to ensure its query cache is correct.</t>
+
+<t>added: <spanx style="verb">AddedItem[]</spanx><vspace blankLines="1" />
+The id and index in the query results (in the new state) for every foo that has been added to the results since the old state AND every foo in the current results that was included in the <spanx style="verb">removed</spanx> array (due to a filter or sort based upon a mutable property).
+
+<vspace blankLines="1" />
+If the sort and filter are both only on immutable properties and an <spanx style="verb">upToId</spanx> is supplied and exists in the results, any ids that were added but have a higher index than <spanx style="verb">upToId</spanx> SHOULD be omitted.
+
+<vspace blankLines="1" />
+The array MUST be sorted in order of index, with the lowest index first.
+<vspace blankLines="1" />
+
+An <spanx style="strong">AddedItem</spanx> object has the following properties:
+<list style="symbols">
+<t>id: <spanx style="verb">Id</spanx></t>
+<t>index: <spanx style="verb">UnsignedInt</spanx></t>
+</list></t>
+</list>
+</t>
+<t>The result of this is that if the client has a cached sparse array of Foo ids corresponding to the results in the old state, then:
+</t>
+
+<figure align="center"><artwork align="center">
+fooIds = [ "id1", "id2", null, null, "id3", "id4", null, null, null ]
+</artwork></figure>
+<t>If it <spanx style="strong">splices out</spanx> all ids in the removed array that it has in its cached results, then:
+</t>
+
+<figure align="center"><artwork align="center">
+removed = [ "id2", "id31", ... ];
+fooIds =&gt; [ "id1", null, null, "id3", "id4", null, null, null ]
+</artwork></figure>
+<t>and <spanx style="strong">splices in</spanx> (one by one in order, starting with the lowest index) all of the ids in the added array:
+</t>
+
+<figure align="center"><artwork align="center">
+added = [{ id: "id5", index: 0, ... }];
+fooIds =&gt; [ "id5", "id1", null, null, "id3", "id4", null, null, null ]
+</artwork></figure>
+<t>and <spanx style="strong">truncates</spanx> or <spanx style="strong">extends</spanx> to the new total length, then the results will now be in the new state.
+</t>
+<t>Note: splicing in adds the item at the given index, incrementing the index of all items previously at that or a higher index. Splicing out is the inverse, removing the item and decrementing the index of every item after it in the array.
+</t>
+<t>The following additional errors may be returned instead of the <spanx style="verb">Foo/queryChanges</spanx> response:
+</t>
+<t><spanx style="verb">tooManyChanges</spanx>: There are more changes than the client's <spanx style="verb">maxChanges</spanx> argument. Each item in the removed or added array is considered to be one change. The client may retry with higher max changes or invalidate its cache of the query results.
+</t>
+<t><spanx style="verb">cannotCalculateChanges</spanx>: The server cannot calculate the changes from the queryState string given by the client, usually due to the client's state being too old. The client MUST invalidate its cache of the query results.
+</t>
+</section>
+
+<section anchor="examples" title="Examples">
+<t>Suppose we have a type <spanx style="strong">Todo</spanx> with the following properties:
+</t>
+<t>
+<list style="symbols">
+<t>id: <spanx style="verb">Id</spanx> (immutable; server-set)<vspace blankLines="1" />
+The id of the object.</t>
+
+<t>title: <spanx style="verb">String</spanx><vspace blankLines="1" />
+A brief summary of what is to be done.</t>
+
+<t>keywords: <spanx style="verb">String[Boolean]</spanx> (default: {})<vspace blankLines="1" />
+A set of keywords that apply to the Todo. The set is represented as an object, with the keys being the <spanx style="verb">keywords</spanx>.  The value for each key in the object MUST be <spanx style="verb">true</spanx>. (This format allows you to update an individual key using patch syntax rather than having to update the whole set of keywords as one, which a <spanx style="verb">String[]</spanx> representation would require.)</t>
+
+<t>neuralNetworkTimeEstimation: <spanx style="verb">Number</spanx> (server-set)<vspace blankLines="1" />
+The title and keywords are fed into the server's state-of-the-art neural
+network to get an estimation of how long this Todo will take, in seconds.</t>
+
+<t>subTodoIds: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
+The ids of a list of other Todos to complete as part of this Todo.</t>
+</list>
+</t>
+<t>Suppose also that all the standard methods are defined for this type and the FilterCondition object supports a <spanx style="verb">hasKeyword</spanx> property to match Todos with the given keyword.
+</t>
+<t>A client might want to display the list of Todos with either a &quot;music&quot; keyword or a &quot;video&quot; keyword, so it makes the following method call:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/query", {
+  "accountId": "x",
+  "filter": {
+    "operator": "OR",
+    "conditions": [
+      { "hasKeyword": "music" },
+      { "hasKeyword": "video" }
+    ]
+  },
+  "sort": [{ "property": "title" }],
+  "position": 0,
+  "limit": 10
+}, "0" ],
+[ "Todo/get", {
+  "accountId": "x",
+  "#ids": {
+    "resultOf": "0",
+    "name": "Todo/query",
+    "path": "/ids"
+  }
+}, "1" ]]
+</artwork></figure>
+<t>This would query the server for the set of Todos with a keyword of either &quot;music&quot; or &quot;video&quot;, sorted by title, and limited to the first 10 results. It fetches the full object for each of these Todos using back-references to reference the result of the query. The response might look something like:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/query", {
+  "accountId": "x",
+  "queryState": "y13213",
+  "canCalculateChanges": true,
+  "position": 0,
+  "ids": [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" ]
+}, "0" ],
+[ "Todo/get", {
+  "accountId": "x",
+  "state": "10324",
+  "list": [{
+    "id": "a",
+    "title": "Practise Piano",
+    "keywords": {
+      "music": true,
+      "beethoven": true,
+      "mozart": true,
+      "liszt": true,
+      "rachmaninov": true
+    },
+    "neuralNetworkTimeEstimation": 3600
+  }, {
+    "id": "b",
+    "title": "Watch Daft Punk music video",
+    "keywords": {
+      "music": true,
+      "video": true,
+      "trance": true
+    },
+    "neuralNetworkTimeEstimation": 18000
+  },
+  ...
+  ]
+}, "1" ]]
+</artwork></figure>
+<t>Now, suppose the user adds a keyword &quot;chopin&quot; and removes the keyword &quot;mozart&quot; from the &quot;Practise Piano&quot; task. The client may send the whole object to the server, as this is a valid PatchObject:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/set", {
+  "accountId": "x",
+  "ifInState": "10324",
+  "update": {
+    "a": {
+      "id": "a",
+      "title": "Practise Piano",
+      "keywords": {
+        "music": true,
+        "beethoven": true,
+        "chopin": true,
+        "liszt": true,
+        "rachmaninov": true
+      },
+      "neuralNetworkTimeEstimation": 360
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+<t>or it may send a minimal patch:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/set", {
+  "accountId": "x",
+  "ifInState": "10324",
+  "update": {
+    "a": {
+      "keywords/chopin": true,
+      "keywords/mozart": null
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+<t>The effect is exactly the same on the server in either case, and presuming the server is still in state &quot;10324&quot;, it will probably return success:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/set", {
+  "accountId": "x",
+  "oldState": "10324",
+  "newState": "10329",
+  "updated": {
+    "a": {
+      "neuralNetworkTimeEstimation": 5400
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+<t>The server changed the &quot;neuralNetworkTimeEstimation&quot; property on the object as part of this change; as this changed in a way <spanx style="strong">not</spanx> explicitly requested by the PatchObject sent to the server, it is returned with the &quot;updated&quot; confirmation.
+</t>
+<t>Let us now add a sub-Todo to our new &quot;Practise Piano&quot; Todo. In this example, we can see the use of a reference to a creation id to allow us to set a foreign key reference to a record created in the same request:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/set", {
+  "accountId": "x",
+  "create": {
+    "k15": {
+      "title": "Warm up with scales"
+    }
+  },
+  "update": {
+    "a": {
+      "subTodoIds": [ "#k15" ]
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+<t>Now, suppose another user deleted the &quot;Listen to Daft Punk&quot; Todo. The first user will receive a push notification (see <xref target="push"/>) with the changed state string for the &quot;Todo&quot; type. Since the new string does not match its current state, it knows it needs to check for updates. It may make a request like:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/changes", {
+  "accountId": "x",
+  "sinceState": "10324",
+  "maxChanges": 50
+}, "0" ],
+[ "Todo/queryChanges", {
+  "accountId": "x",
+  "filter": {
+    "operator": "OR",
+    "conditions": [
+      { "hasKeyword": "music" },
+      { "hasKeyword": "video" }
+    ]
+  },
+  "sort": [{ "property": "title" }],
+  "sinceQueryState": "y13213",
+  "maxChanges": 50
+}, "1" ]]
+</artwork></figure>
+<t>and receive in response:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/changes", {
+  "accountId": "x",
+  "oldState": "10324",
+  "newState": "871903",
+  "hasMoreChanges": false,
+  "created": [],
+  "updated": [],
+  "destroyed": ["b"]
+}, "0" ],
+[ "Todo/queryChanges", {
+  "accountId": "x",
+  "oldQueryState": "y13213",
+  "newQueryState": "y13218",
+  "removed": ["b"],
+  "added": null
+}, "1" ]]
+</artwork></figure>
+<t>Suppose the user has access to another account <spanx style="verb">y</spanx>, for example, a team account shared between multiple users. To move an existing Todo from account <spanx style="verb">x</spanx>, the client would call:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/copy", {
+  "fromAccountId": "x",
+  "accountId": "y",
+  "create": {
+    "k5122": {
+      "id": "a"
+    }
+  },
+  "onSuccessDestroyOriginal": true
+}, "0" ]]
+</artwork></figure>
+<t>The server successfully copies the Todo to a new account (where it receives
+a new id) and deletes the original. Due to the implicit call to
+&quot;Todo/set&quot;, there are two responses to the single method call, both with the same method call id:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "Todo/copy", {
+  "fromAccountId": "x",
+  "accountId": "y",
+  "created": {
+    "k5122": {
+      "id": "DAf97"
+    }
+  },
+  "oldState": "c1d64ecb038c",
+  "newState": "33844835152b"
+}, "0" ],
+[ "Todo/set", {
+  "accountId": "x",
+  "oldState": "871903",
+  "newState": "871909",
+  "destroyed": [ "a" ],
+  ...
+}, "0" ]]
+</artwork></figure>
+</section>
+
+<section anchor="proxy-considerations" title="Proxy Considerations">
+<t>JMAP has been designed to allow an API endpoint to easily proxy through to one
+or more JMAP servers. This may be useful for load balancing, augmenting capabilities, or presenting a single endpoint to accounts hosted on different JMAP servers (splitting the request based on each method's &quot;accountId&quot; argument). The proxy need only understand the general structure of a JMAP Request object; it does not need to know anything specifically about the methods and arguments it will pass through to other servers.
+</t>
+<t>If splitting up the methods in a request to call them on different backend servers, the proxy must do two things to ensure back-references and creation-id references resolve the same as if the entire request were processed on a single server:
+</t>
+<t>
+<list style="numbers">
+<t>It must pass a <spanx style="verb">createdIds</spanx> property with each subrequest. If this is not
+given by the client, an empty object should be used for the first subrequest. The <spanx style="verb">createdIds</spanx> property of each subresponse should be passed on in the next subrequest.</t>
+<t>It must resolve back-references to previous method results that were
+processed on a different server. This is a relatively simple syntactic substitution, described in <xref target="references-to-previous-method-results"/>.</t>
+</list>
+</t>
+<t>When splitting a request based on accountId, proxy implementors do need to be aware of <spanx style="verb">/copy</spanx> methods that copy between accounts. If the accounts are on different servers, the proxy will have to implement this functionality directly.
+</t>
+</section>
+</section>
+
+<section anchor="binary-data" title="Binary Data">
+<t>Binary data is referenced by a <spanx style="strong">blobId</spanx> in JMAP and uploaded/downloaded separately to the core API. The blobId solely represents the raw bytes of data, not any associated metadata such as a file name or content type. Such metadata is stored alongside the blobId in the object referencing it. The data represented by a blobId is immutable.
+</t>
+<t>Any blobId that exists within an account may be used when creating/updating
+another object in that account. For example, an Email type may have a blobId that represents the object in Internet Message Format <xref target="RFC5322"/>. A client could create a new Email object with an attachment and use this blobId, in effect attaching the old message to the new one. Similarly, it could attach any existing attachment of an old message without having to download and upload it again.
+</t>
+<t>When the client uses a blobId in a create/update, the server MAY assign a new blobId to refer to the same binary data within the new/updated object. If it does so, it MUST return any properties that contain a changed blobId in the created/updated response, so the client gets the new ids.
+</t>
+<t>A blob that is not referenced by a JMAP object (e.g., as a message attachment) MAY be deleted by the server to free up resources. Uploads (see below) are initially unreferenced blobs. To ensure interoperability:
+</t>
+<t>
+<list style="symbols">
+<t>The server SHOULD use a separate quota for unreferenced blobs to the
+account's usual quota. In the case
+of shared accounts, this quota SHOULD be separate per user.</t>
+
+<t>This quota SHOULD be at least the maximum total size that a single
+object can reference on this server. For example, if supporting JMAP Mail, this should be at least the maximum total attachments size for a message.</t>
+
+<t>When an upload would take the user over quota, the server MUST delete
+unreferenced blobs in date order, oldest first, until there is room for the new blob.</t>
+
+<t>Except where quota restrictions force early deletion, an unreferenced blob
+MUST NOT be deleted for at least 1 hour from the time of upload; if reuploaded, the same blobId MAY be returned, but this SHOULD reset the expiry time.</t>
+
+<t>A blob MUST NOT be deleted during the method call that removed the last
+reference, so that a client can issue a create and a destroy that both reference the blob within the same method call.</t>
+</list>
+</t>
+
+<section anchor="uploading-binary-data" title="Uploading Binary Data">
+<t>There is a single endpoint that handles all file uploads for an account, regardless of what they are to be used for. The Session object (see <xref target="the-jmap-session-resource"/>) has an <spanx style="verb">uploadUrl</spanx> property in URI Template (level 1) format <xref target="RFC6570"/>, which MUST contain a variable called <spanx style="verb">accountId</spanx>. The client may use this template in combination with an <spanx style="verb">accountId</spanx> to get the URL of the file upload resource.
+</t>
+<t>To upload a file, the client submits an authenticated POST request to the file upload resource.
+</t>
+<t>A successful request MUST return a single JSON object with the following properties as the response:
+</t>
+<t>
+<list style="symbols">
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account used for the call.</t>
+
+<t>blobId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id representing the binary data uploaded. The data for this id is immutable. The id <spanx style="strong">only</spanx> refers to the binary data, not any metadata.</t>
+
+<t>type: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The media type of the file (as specified in <xref target="RFC6838"/>, Section 4.2) as set in the Content-Type header of the upload HTTP request.</t>
+
+<t>size: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
+The size of the file in octets.</t>
+</list>
+</t>
+<t>If identical binary content to an existing blob in the account is uploaded, the existing blobId MAY be returned.
+</t>
+<t>Clients should use the blobId returned in a timely manner. Under rare circumstances, the server may have deleted the blob before the client uses it; the client should keep a reference to the local file so it can upload it again in such a situation.
+</t>
+<t>When an HTTP error response is returned to the client, the server SHOULD return a JSON &quot;problem details&quot; object as the response body, as per <xref target="RFC7807"/>.
+</t>
+<t>As access controls are often determined by the object holding the reference to a blob, unreferenced blobs MUST only be accessible to the uploader, even in shared accounts.
+</t>
+</section>
+
+<section anchor="downloading-binary-data" title="Downloading Binary Data">
+<t>The Session object (see <xref target="the-jmap-session-resource"/>) has a <spanx style="verb">downloadUrl</spanx> property, which is in URI Template (level 1) format <xref target="RFC6570"/>. The URL MUST contain variables called <spanx style="verb">accountId</spanx>, <spanx style="verb">blobId</spanx>, <spanx style="verb">type</spanx>, and <spanx style="verb">name</spanx>.
+</t>
+<t>To download a file, the client makes an authenticated GET request to the download URL with the appropriate variables substituted in:
+</t>
+<t>
+<list style="symbols">
+<t><spanx style="verb">accountId</spanx>: The id of the account to which the record with the blobId
+belongs.</t>
+<t><spanx style="verb">blobId</spanx>: The blobId representing the data of the file to download.</t>
+<t><spanx style="verb">type</spanx>: The type for the server to set in the <spanx style="verb">Content-Type</spanx> header of the
+response; the blobId only represents the binary data and does not have a content-type innately associated with it.</t>
+<t><spanx style="verb">name</spanx>: The name for the file; the server MUST return this as the filename if
+it sets a <spanx style="verb">Content-Disposition</spanx> header.</t>
+</list>
+</t>
+<t>As the data for a particular blobId is immutable, and thus the response in the generated download URL is too, implementors are recommended to set long cache times and use the &quot;immutable&quot; Cache-Control extension <xref target="RFC8246"/> for successful responses, for example, <spanx style="verb">Cache-Control: private, immutable, max-age=31536000</spanx>.
+</t>
+<t>When an HTTP error response is returned to the client, the server SHOULD return a JSON &quot;problem details&quot; object as the response body, as per <xref target="RFC7807"/>.
+</t>
+</section>
+
+<section anchor="blobcopy" title="Blob/copy">
+<t>Binary data may be copied <spanx style="strong">between</spanx> two different accounts using the <spanx style="verb">Blob/copy</spanx> method rather than having to download and then reupload on the client.
+</t>
+<t>The <spanx style="verb">Blob/copy</spanx> method takes the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>fromAccountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account to copy blobs from.</t>
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account to copy blobs to.</t>
+<t>blobIds: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
+A list of ids of blobs to copy to the other account.</t>
+</list>
+</t>
+<t>The response has the following arguments:
+</t>
+<t>
+<list style="symbols">
+<t>fromAccountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account blobs were copied from.</t>
+
+<t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
+The id of the account blobs were copied to.</t>
+
+<t>copied: <spanx style="verb">Id[Id]|null</spanx><vspace blankLines="1" />
+A map of the blobId in the fromAccount to the id for the blob in the account it was copied to, or <spanx style="verb">null</spanx> if none were successfully copied.</t>
+
+<t>notCopied: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
+A map of blobId to a SetError object for each blob that failed to be copied, or <spanx style="verb">null</spanx> if none.</t>
+</list>
+</t>
+<t>The SetError may be any of the standard set errors that may be returned for a create, as defined in <xref target="set"/>. In addition, the <spanx style="verb">notFound</spanx> SetError error may be returned if the blobId to be copied cannot be found.
+</t>
+<t>The following additional method-level error may be returned instead of the <spanx style="verb">Blob/copy</spanx> response:
+</t>
+<t><spanx style="verb">fromAccountNotFound</spanx>: The <spanx style="verb">fromAccountId</spanx> included with the request does not correspond to a valid account.
+</t>
+</section>
+</section>
+
+<section anchor="push" title="Push">
+<t>Push notifications allow clients to efficiently update (almost) instantly to stay in sync with data changes on the server. The general model for push is simple and sends minimal data over the push channel: just enough for the client to know whether it needs to resync. The format allows multiple changes to be coalesced into a single push update and the frequency of pushes to be rate limited by the server. It doesn't matter if some push events are dropped before they reach the client; the next time it gets/sets any records of a changed type, it will discover the data has changed and still sync all changes.
+</t>
+<t>There are two different mechanisms by which a client can receive push notifications, to allow for the different environments in which a client may exist. An event source resource (see <xref target="event-source"/>) allows clients that can hold transport connections open to receive push notifications directly from the JMAP server. This is simple and avoids third parties, but it is often not feasible on constrained platforms such as mobile devices. Alternatively, clients can make use of any push service supported by their environment. A URL for the push service is registered with the JMAP server (see <xref target="pushsubscription"/>); the server then POSTs each notification to that URL. The push service is then responsible for routing these to the client.
+</t>
+
+<section anchor="the-statechange-object" title="The StateChange Object">
+<t>When something changes on the server, the server pushes a StateChange object to the client. A <spanx style="strong">StateChange</spanx> object has the following properties:
+</t>
+<t>
+<list style="symbols">
+<t>@type: <spanx style="verb">String</spanx><vspace blankLines="1" />
+This MUST be the string &quot;StateChange&quot;.</t>
+
+<t>changed: <spanx style="verb">Id[TypeState]</spanx><vspace blankLines="1" />
+A map of an <spanx style="verb">account id</spanx> to an object encoding the state of data types that have changed for that account since the last StateChange object was pushed, for each of the accounts to which the user has access and for which something has changed.
+
+<vspace blankLines="1" />
+A <spanx style="strong">TypeState</spanx> object is a map. The keys are the type name <spanx style="verb">Foo</spanx> (e.g., &quot;Mailbox&quot; or &quot;Email&quot;), and the value is the <spanx style="verb">state</spanx> property that would currently be returned by a call to <spanx style="verb">Foo/get</spanx>.
+
+<vspace blankLines="1" />
+The client can compare the new state strings with its current values to see whether it has the current data for these types. If not, the changes can then be efficiently fetched in a single standard API request (using the /changes type methods).</t>
+</list>
+</t>
+
+<section anchor="example-3" title="Example">
+<t>In this example, the server has amalgamated a few changes together across two different accounts the user has access to, before pushing the following StateChange object to the client:
+</t>
+
+<figure align="center"><artwork align="center">
+{
+  "@type": "StateChange",
+  "changed": {
+    "a3123": {
+      "Email": "d35ecb040aab",
+      "EmailDelivery": "428d565f2440",
+      "CalendarEvent": "87accfac587a"
+    },
+    "a43461d": {
+      "Mailbox": "0af7a512ce70",
+      "CalendarEvent": "7a4297cecd76"
+    }
+  }
+}
+</artwork></figure>
+<t>The client can compare the state strings with its current state for the Email, CalendarEvent, etc., object types in the appropriate accounts to see if it needs to fetch changes.
+</t>
+<t>If the client is itself making changes, it may receive a StateChange object while the /set API call is in flight. It can wait until the call completes and then compare if the new state string after the /set is the same as was pushed in the StateChange object; if so, and the old state of the /set response matches the client's previous state, it does not need to waste a request asking for changes it already knows.
+</t>
+</section>
+</section>
+
+<section anchor="pushsubscription" title="PushSubscription">
+<t>Clients may create a PushSubscription to register a URL with the JMAP server. The JMAP server will then make an HTTP POST request to this URL for each push notification it wishes to send to the client.
+</t>
+<t>As a push subscription causes the JMAP server to make a number of requests to a previously unknown endpoint, it can be used as a vector for launching a denial-of-service attack. To prevent this, when a subscription is created, the JMAP server immediately sends a PushVerification object to that URL (see <xref target="pushsubscriptionset"/>). The JMAP server MUST NOT make any further requests to the URL until the client receives the push and updates the subscription with the correct verification code.
+</t>
+<t>A <spanx style="strong">PushSubscription</spanx> object has the following properties:
+</t>
+<t>
+<list style="symbols">
+<t>id: <spanx style="verb">Id</spanx> (immutable; server-set)<vspace blankLines="1" />
+The id of the push subscription.</t>
+
+<t>deviceClientId: <spanx style="verb">String</spanx> (immutable)<vspace blankLines="1" />
+An id that uniquely identifies the client + device it is running on. The purpose of this is to allow clients to identify which PushSubscription objects they created even if they lose their local state, so they can revoke or update them. This string MUST be different on different devices and be different from apps from other vendors. It SHOULD be easy to regenerate and not depend on persisted state. It is RECOMMENDED to use a secure hash of a string that contains:
+
+<list style="numbers">
+<t>A unique identifier associated with the device where the JMAP client is
+running, normally supplied by the device's operating system.</t>
+
+<t>A custom vendor/app id, including a domain controlled by the vendor of
+the JMAP client.</t>
+</list>
+To protect the privacy of the user, the deviceClientId id MUST NOT contain
+an unobfuscated device id.</t>
+
+<t>url: <spanx style="verb">String</spanx> (immutable)<vspace blankLines="1" />
+An absolute URL where the JMAP server will POST the data for the push message.
+This MUST begin with <spanx style="verb">https://</spanx>.</t>
+
+<t>keys: <spanx style="verb">Object|null</spanx> (immutable)<vspace blankLines="1" />
+Client-generated encryption keys. If supplied, the server MUST use them as specified in <xref target="RFC8291"/> to encrypt all data sent to the push subscription. The object MUST have the following properties:
+<list style="symbols">
+<t>p256dh: <spanx style="verb">String</spanx> <vspace blankLines="1" />
+The P-256 Elliptic Curve Diffie-Hellman (ECDH) public key as described in <xref target="RFC8291"/>, encoded in URL-safe base64 representation as defined in <xref target="RFC4648"/>.</t>
+<t>auth: <spanx style="verb">String</spanx> <vspace blankLines="1" />
+The authentication secret as described in <xref target="RFC8291"/>, encoded in URL-safe base64 representation as defined in <xref target="RFC4648"/>.</t>
+</list></t>
+<t>verificationCode: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
+This MUST be <spanx style="verb">null</spanx> (or omitted) when the subscription is created. The JMAP server then generates a verification code and sends it in a push message, and the client updates the PushSubscription object with the code; see <xref target="pushsubscriptionset"/> for details.</t>
+
+<t>expires: <spanx style="verb">UTCDate|null</spanx><vspace blankLines="1" />
+The time this push subscription expires. If specified, the JMAP server MUST NOT make further requests to this resource after this time. It MAY automatically destroy the push subscription at or after this time.
+<vspace blankLines="1" />
+The server MAY choose to set an expiry if none is given by the client or modify the expiry time given by the client to a shorter duration.</t>
+
+<t>types: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
+A list of types the client is interested in (using the same names as the keys in the TypeState object defined in the previous section). A StateChange notification will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If <spanx style="verb">null</spanx>, changes will be pushed for all types.</t>
+</list>
+</t>
+<t>The POST request MUST have a content type of <spanx style="verb">application/json</spanx> and contain the UTF-8 JSON-encoded object as the body. The request MUST have a <spanx style="verb">TTL</spanx> header and MAY have <spanx style="verb">Urgency</spanx> and/or <spanx style="verb">Topic</spanx> headers, as specified in Section 5 of <xref target="RFC8030"/>. The JMAP server is expected to understand and handle HTTP status responses in a reasonable manner. A <spanx style="verb">429</spanx> (Too Many Requests) response MUST cause the JMAP server to reduce the frequency of pushes; the JMAP push structure allows multiple changes to be coalesced into a single minimal StateChange object. See the security considerations in <xref target="connection-to-unknown-push-server"/> for a discussion of the risks in connecting to unknown servers.
+</t>
+<t>The JMAP server acts as an application server as defined in <xref target="RFC8030"/>. A client MAY use the rest of <xref target="RFC8030"/> in combination with its own push service to form a complete end-to-end solution, or it MAY rely on alternative mechanisms to ensure the delivery of the pushed data after it leaves the JMAP server.
+</t>
+<t>The push subscription is tied to the credentials used to authenticate the API request that created it. Should these credentials expire or be revoked, the push subscription MUST be destroyed by the JMAP server. Only subscriptions created by these credentials are returned when the client fetches existing subscriptions.
+</t>
+<t>When these credentials have their own expiry (i.e., it is a session with a timeout), the server SHOULD NOT set or bound the expiry time for the push subscription given by the client but MUST expire it when the session expires.
+</t>
+<t>When these credentials are not time bounded (e.g., Basic authentication <xref target="RFC7617"/>), the server SHOULD set an expiry time for the push subscription if none is given and limit the expiry time if set too far in the future. This maximum expiry time MUST be at least 48 hours in the future and SHOULD be at least 7 days in the future. An app running on a mobile device may only be able to refresh the push subscription lifetime when it is in the foreground, so this gives a reasonable time frame to allow this to happen.
+</t>
+<t>In the case of separate access and refresh credentials, as in Oauth 2.0 <xref target="RFC6749"/>, the server SHOULD tie the push subscription to the validity of the refresh token rather than the access token and behave according to whether this is time-limited or not.
+</t>
+<t>When a push subscription is destroyed, the server MUST securely erase the URL and encryption keys from memory and storage as soon as possible.
+</t>
+
+<section anchor="pushsubscriptionget" title="PushSubscription/get">
+<t>Standard /get method as described in <xref target="get"/>, except it does <spanx style="strong">not</spanx> take or return an <spanx style="verb">accountId</spanx> argument, as push subscriptions are not tied to specific accounts. It also does <spanx style="strong">not</spanx> return a <spanx style="verb">state</spanx> argument. The <spanx style="verb">ids</spanx> argument may be <spanx style="verb">null</spanx> to fetch all at once.
+</t>
+<t>The server MUST only return push subscriptions that were created using the same authentication credentials as for this PushSubscription/get request.
+</t>
+<t>As the <spanx style="verb">url</spanx> and <spanx style="verb">keys</spanx> properties may contain data that is private to a particular device, the values for these properties MUST NOT be returned. If the <spanx style="verb">properties</spanx> argument is <spanx style="verb">null</spanx> or omitted, the server MUST default to all properties excluding these two. If one of them is explicitly requested, the method call MUST be rejected with a <spanx style="verb">forbidden</spanx> error.
+</t>
+</section>
+
+<section anchor="pushsubscriptionset" title="PushSubscription/set">
+<t>Standard /set method  as described in <xref target="set"/>, except it does <spanx style="strong">not</spanx> take or return an <spanx style="verb">accountId</spanx> argument, as push subscriptions are not tied to specific accounts. It also does <spanx style="strong">not</spanx> take an <spanx style="verb">ifInState</spanx> argument or return <spanx style="verb">oldState</spanx> or <spanx style="verb">newState</spanx> arguments.
+</t>
+<t>The <spanx style="verb">url</spanx> and <spanx style="verb">keys</spanx> properties are immutable; if the client wishes to change these, it must destroy the current push subscription and create a new one.
+</t>
+<t>When a PushSubscription is created, the server MUST immediately push a <spanx style="strong">PushVerification</spanx> object to the URL. It has the following properties:
+</t>
+<t>
+<list style="symbols">
+<t>@type: <spanx style="verb">String</spanx><vspace blankLines="1" />
+This MUST be the string &quot;PushVerification&quot;.</t>
+
+<t>pushSubscriptionId: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The id of the push subscription that was created.</t>
+
+<t>verificationCode: <spanx style="verb">String</spanx><vspace blankLines="1" />
+The verification code to add to the push subscription. This MUST contain sufficient entropy to avoid the client being able to guess the code via brute force.</t>
+</list>
+</t>
+<t>The client MUST update the push subscription with the correct verification code
+before the server makes any further requests to the subscription's URL. Attempts to update the subscription with an invalid verification code MUST be rejected by the server with an <spanx style="verb">invalidProperties</spanx> SetError.
+</t>
+<t>The client may update the <spanx style="verb">expires</spanx> property to extend (or, less commonly, shorten) the lifetime of a push subscription. The server MAY modify the proposed new expiry time to enforce server-defined limits. Extending the lifetime does not require the subscription to be verified again.
+</t>
+<t>Clients SHOULD NOT update or destroy a push subscription that they did not create (i.e., has a <spanx style="verb">deviceClientId</spanx> that they do not recognise).
+</t>
+</section>
+
+<section anchor="example-4" title="Example">
+<t>At <spanx style="verb">2018-07-06T02:14:29Z</spanx>, a client with deviceClientId <spanx style="verb">a889-ffea-910</spanx> fetches the set of push subscriptions currently on the server, making an API request with:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "PushSubscription/get", {
+  "ids": null
+}, "0" ]]
+</artwork></figure>
+<t>Which returns:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "PushSubscription/get", {
+  "list": [{
+      "id": "e50b2c1d-9553-41a3-b0a7-a7d26b599ee1",
+      "deviceClientId": "b37ff8001ca0",
+      "verificationCode": "b210ef734fe5f439c1ca386421359f7b",
+      "expires": "2018-07-31T00:13:21Z",
+      "types": [ "Todo" ]
+  }, {
+      "id": "f2d0aab5-e976-4e8b-ad4b-b380a5b987e4",
+      "deviceClientId": "X8980fc",
+      "verificationCode": "f3d4618a9ae15c8b7f5582533786d531",
+      "expires": "2018-07-12T05:55:00Z",
+      "types": [ "Mailbox", "Email", "EmailDelivery" ]
+  }],
+  "notFound": []
+}, "0" ]]
+</artwork></figure>
+<t>Since neither of the returned push subscription objects have the client's deviceClientId, it knows it does not have a current push subscription active on the server. So it creates one, sending this request:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "PushSubscription/set", {
+  "create": {
+    "4f29": {
+      "deviceClientId": "a889-ffea-910",
+      "url": "https://example.com/push/?device=X8980fc&amp;client=12c6d086",
+      "types": null
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+<t>The server creates the push subscription but limits the expiry time to 7 days in the future, returning this response:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "PushSubscription/set", {
+  "created": {
+    "4f29": {
+      "id": "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60",
+      "keys": null,
+      "expires": "2018-07-13T02:14:29Z"
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+<t>The server also immediately makes a POST request to <spanx style="verb">https://example.com/push/?device=X8980fc&amp;client=12c6d086</spanx> with the data:
+</t>
+
+<figure align="center"><artwork align="center">
+{
+  "@type": "PushVerification",
+  "pushSubscriptionId": "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60",
+  "verificationCode": "da1f097b11ca17f06424e30bf02bfa67"
+}
+</artwork></figure>
+<t>The client receives this and updates the subscription with the verification code (note there is a potential race condition here; the client MUST be able to handle receiving the push while the request creating the subscription is still in progress):
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "PushSubscription/set", {
+  "update": {
+    "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
+      "verificationCode": "da1f097b11ca17f06424e30bf02bfa67"
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+<t>The server confirms the update was successful and will now make requests to the registered URL when the state changes.
+</t>
+<t>Two days later, the client updates the subscription to extend its lifetime, sending this request:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "PushSubscription/set", {
+  "update": {
+    "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
+      "expires": "2018-08-13T00:00:00Z"
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+<t>The server extends the expiry time, but only again to its maximum limit of 7 days in the future, returning this response:
+</t>
+
+<figure align="center"><artwork align="center">
+[[ "PushSubscription/set", {
+  "updated": {
+    "P43dcfa4-1dd4-41ef-9156-2c89b3b19c60": {
+      "expires": "2018-07-15T02:22:50Z"
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+</section>
+</section>
+
+<section anchor="event-source" title="Event Source">
+<t>Clients that can hold transport connections open can connect directly to the JMAP server to receive push notifications via a <spanx style="verb">text/event-stream</spanx> resource, as described in <xref target="EventSource"/>.
+
+<!--[rfced] Please clarify the following sentence.  What does 'down'
+refer to? Does the HTTP request enable the server to push data?
+
+Original:
+   This is a long running HTTP request down
+   which the server can push data.
+
+Perhaps:
+   This is a long running HTTP request that
+   enables the server to push data.
+
+Neil: I have tried to clarify.
+-->
+This is a long running HTTP request, where the server can push data to the client by appending data without ending the response.
+</t>
+<t>When a change occurs in the data on the server, it pushes an event called <spanx style="verb">state</spanx> to any connected clients, with the StateChange object as the data.
+</t>
+<t>The server SHOULD also send a new event id that encodes the entire server state visible to the user immediately after sending a <spanx style="verb">state</spanx> event. When a new connection is made to the event-source endpoint, a client following the server-sent events specification will send a Last-Event-ID HTTP header field with the last id it saw, which the server can use to work out whether the client has missed some changes. If so, it SHOULD send these changes immediately on connection.
+</t>
+<t>The Session object (see <xref target="the-jmap-session-resource"/>) has an <spanx style="verb">eventSourceUrl</spanx> property, which is in URI Template (level 1) format <xref target="RFC6570"/>. The URL MUST contain variables called <spanx style="verb">types</spanx>, <spanx style="verb">closeafter</spanx>, and <spanx style="verb">ping</spanx>.
+</t>
+<t>To connect to the resource, the client makes an authenticated GET request to the event-source URL with the appropriate variables substituted in:
+</t>
+<t>
+<list style="symbols">
+<t><spanx style="verb">types</spanx>: This MUST be either:
+<list style="symbols">
+<t>A comma-separated list of type names, e.g., <spanx
+style="verb">Email,CalendarEvent</spanx>. The
+server MUST only push changes for the types in this list.</t>
+<t>The single character: <spanx style="verb">*</spanx>. Changes to all types are pushed.</t>
+</list></t>
+<t><spanx style="verb">closeafter</spanx>: This MUST be one of the following values:
+<list style="symbols">
+<t><spanx style="verb">state</spanx>: The server MUST end the HTTP response after pushing a state event.
+This can be used by clients in environments where buffering proxies prevent the pushed data from arriving immediately, or indeed at all, when operating in the usual mode.</t>
+<t><spanx style="verb">no</spanx>: The connection is persisted by the server as a standard event-source
+resource.</t>
+</list></t>
+<t><spanx style="verb">ping</spanx>: A positive integer value representing a length of time in seconds,
+e.g., <spanx style="verb">300</spanx>. If non-zero, the server MUST send an event called <spanx style="verb">ping</spanx> whenever this time elapses since the previous event was sent. This MUST NOT set a new event id. If the value is <spanx style="verb">0</spanx>, the server MUST NOT send ping events.
+<vspace blankLines="1" />
+The server MAY modify a requested ping interval to be subject to a minimum and/or maximum value. For interoperability, servers MUST NOT have a minimum allowed value higher than 30 or a maximum allowed value less than 300.
+<vspace blankLines="1" />
+The data for the ping event MUST be a JSON object containing an <spanx style="verb">interval</spanx> property, the value (type <spanx style="verb">UnsignedInt</spanx>) being the interval in seconds the server is using to send pings (this may be different to the requested value if the server clamped it to be within a min/max value).
+<vspace blankLines="1" />
+Clients can monitor for the ping event to help determine when the closeafter mode may be required.</t>
+</list>
+</t>
+<t>A client MAY hold open multiple connections to the event-source resource, although it SHOULD try to use a single connection for efficiency.
+</t>
+</section>
+</section>
+
+<section anchor="security-considerations" title="Security Considerations">
+
+<section anchor="transport-confidentiality" title="Transport Confidentiality">
+<t>To ensure the confidentiality and integrity of data sent and received via
+JMAP, all requests MUST use TLS 1.2 <xref target="RFC5246"/> <xref target="RFC8446"/> or later,
+following the recommendations in <xref target="RFC7525"/>. Servers SHOULD
+support TLS 1.3 <xref target="RFC8446"/> or later.
+<!-- [rfced] As RFC 8446 also includes requirements for TLS 1.2
+implementations, please confirm that referencing only RFC 5246 here is
+correct.
+
+Original:
+   To ensure the confidentiality and integrity of data sent and received
+   via JMAP, all requests MUST use TLS 1.2 ([RFC5246]) or later,
+   following the recommendations in [RFC7525].
+
+From RFC 8446:
+   This document also specifies new requirements for
+   TLS 1.2 implementations.
+
+Also, note that RFC 5246 was not referenced.  We have added a normative
+reference.  Please let us know if any updates are needed.
+
+Neil: Yes, I think it probably makes sense to reference both here given the updates in RFC 8446 should be followed if using TLS 1.2.
+-->
+
+
+</t>
+<t>Clients MUST validate TLS certificate chains to protect against man&nbhy;in&nbhy;the&nbhy;middle attacks.
+</t>
+</section>
+
+<section anchor="authentication-scheme" title="Authentication Scheme">
+<t>A number of HTTP authentication schemes have been standardised (see
+&lt;https://www.iana.org/assignments/http-authschemes/&gt;). Servers should
+take care to assess the security characteristics of different schemes in
+relation to their needs when deciding what to implement.
+</t>
+<t>Use of the Basic authentication scheme is NOT RECOMMENDED. Services that
+choose to use it are strongly recommended to require generation of a unique
+&quot;app password&quot; via some external mechanism for each client they wish
+to connect. This allows connections from different devices to be
+differentiated by the server and access to be individually revoked.
+</t>
+</section>
+
+<section anchor="service-autodiscovery-1" title="Service Autodiscovery">
+<t>Unless secured by something like DNSSEC, autodiscovery of server
+details using SRV DNS records is vulnerable to a DNS poisoning attack, which
+can lead to the client talking to an attacker's server instead of the real
+JMAP server.
+<!-- [rfced] Please clarify "may man-in-the-middle requests".
+
+Original:
+The attacker may then man-in-the-middle requests and
+depending on the authentication scheme, steal credentials to generate
+its own requests.
+
+Perhaps:
+The attacker may then intercept requests to execute man-in-the-middle attacks
+and, depending on the authentication scheme, steal credentials to generate
+its own requests.
+
+Neil: that looks good.
+-->
+
+The attacker may then intercept requests to execute man-in-the-middle attacks
+and, depending on the authentication scheme, steal credentials to generate
+its own requests.
+</t>
+<t>Clients that do not support SRV lookups are likely to try just using the <spanx style="verb">/.well-known/jmap</spanx> path directly against the domain of the username over HTTPS. Servers SHOULD ensure this path resolves or redirects to the correct JMAP Session resource to allow this to work. If this is not feasible, servers MUST ensure this path cannot be controlled by an attacker, as again it may be used to steal credentials.
+</t>
+</section>
+
+<section anchor="json-parsing" title="JSON Parsing">
+<t>The Security Considerations of <xref target="RFC8259"/> apply to the use of JSON as the data interchange format.
+</t>
+<t>As for any serialization format, parsers need to thoroughly check the
+syntax of the supplied data. JSON uses opening and closing tags for
+several types and structures, and it is possible that the end of the supplied
+data will be reached when scanning for a matching closing tag; this is an
+error condition, and implementations need to stop scanning at the end of the
+supplied data.
+</t>
+<t>JSON also uses a string encoding with some escape sequences to encode
+special characters within a string.
+
+<!--[rfced] Please clarify the following.  Do the escape sequences
+appear at the end of the data, or do they appear adjacent to the
+end of the data?
+
+Original:
+   Care is needed when processing
+   these escape sequences to ensure that an escape sequence is fully
+   formed before the special processing is triggered, with special care
+   taken when the escape sequences appear adjacent to other (non-
+   escaped) special characters or the end of data (as in the previous
+   paragraph).
+
+Perhaps:
+   Care is needed when processing
+   these escape sequences to ensure that they are fully
+   formed before the special processing is triggered, with special care
+   taken when the escape sequences appear adjacent to other (non-
+   escaped) special characters or at the end of the data (as in the
+   previous paragraph).
+
+Neil: I believe this should be adjacent to.
+-->
+
+Care is needed when processing these
+escape sequences to ensure that they are fully formed before
+the special processing is triggered, with special care taken when the
+escape sequences appear adjacent to other (non-escaped) special characters
+or adjacent to the end of data (as in the previous paragraph).
+</t>
+<t>If parsing JSON into a non-textual structured data format, implementations
+may need to allocate storage to hold JSON string elements.  Since JSON
+does not use explicit string lengths, the risk of denial of service due to
+resource exhaustion is small, but implementations may still wish to place
+limits on the size of allocations they are willing to make in any given
+context, to avoid untrusted data causing excessive memory allocation.
+</t>
+</section>
+
+<section anchor="denial-of-service" title="Denial of Service">
+<t>A small request may result in a very large response and require considerable
+work on the server if resource limits are not enforced. JMAP provides
+mechanisms for advertising and enforcing a wide variety of limits for
+mitigating this threat, including limits on the number of objects fetched in a
+single method call, number of methods in a single request, number of concurrent requests, etc.
+</t>
+<t>JMAP servers MUST implement sensible limits to mitigate against resource exhaustion attacks.
+</t>
+</section>
+
+<section anchor="connection-to-unknown-push-server" title="Connection to Unknown Push Server">
+<t>When a push subscription is registered, the application server will make POST requests to the given URL. There are a number of security considerations that MUST be considered when implementing this.
+</t>
+<t>The server MUST ensure the URL is externally resolvable to avoid server-side request forgery, where the server makes a request to a resource on its internal network.
+</t>
+<t>A malicious client may use the push subscription to attempt to flood a third party server with requests, creating a denial-of-service attack and masking the attacker's true identity. There is no guarantee that the URL given to the JMAP server is actually a valid push server. Upon creation of a push subscription, the JMAP server sends a PushVerification object to the URL and MUST NOT send any further requests until the client verifies it has received the initial push. The verification code MUST contain sufficient entropy to prevent the client from being able to verify the subscription via brute force.
+</t>
+<t>The verification code does not guarantee the URL is a valid push server, only
+that the client is able to access the data submitted to it. While the
+verification step significantly reduces the set of potential targets, there is
+still a risk that the server is unrelated to the client and being targeted for
+a denial-of-service attack.
+</t>
+<t>The server MUST limit the number of push subscriptions any one user may have to ensure the user cannot cause the server to send a large number of push notifications at once, which could again be used as part of a denial-of-service attack. The rate of creation MUST also be limited to minimise the ability to abuse the verification request as an attack vector.
+</t>
+</section>
+
+<section anchor="push-encryption" title="Push Encryption">
+<t>When data changes, a small object is pushed with the new state strings for the types that have changed. While the data here is minimal, a passive man-in-the-middle attacker may be able to gain useful information. To ensure confidentiality and integrity, if the push is sent via a third party outside of the control of the client and JMAP server, the client MUST specify encryption keys when establishing the PushSubscription and ignore any push notification received that is not encrypted with those keys.
+</t>
+<t>The privacy and security considerations of <xref target="RFC8030"/> and <xref target="RFC8291"/> also apply to the use of the PushSubscription mechanism.
+</t>
+<t>As there is no crypto algorithm agility in Web Push Encryption <xref
+target="RFC8291"/>, a new
+specification will be needed to provide this if new algorithms are required in
+the future.
+</t>
+</section>
+
+<section anchor="traffic-analysis" title="Traffic Analysis">
+<t>While the data is encrypted, a passive observer with the ability to monitor network traffic may be able to glean information from the timing of API requests and push notifications. For example, suppose an email or calendar invitation is sent from User A (hosted on Server X) to User B (hosted on Server Y). If Server X hosts data for many users, a passive observer can see that the two servers connected but does not know who the data was for. However, if a push notification is immediately sent to User B and the attacker can observe this as well, they may reasonably conclude that someone on Server X is connecting to User B.
+</t>
+</section>
+</section>
+
+<section anchor="iana-considerations" title="IANA Considerations">
+
+<section anchor="assignment-of-jmap-service-name" title="Assignment of jmap Service Name">
+<t>IANA has assigned the 'jmap' service name in the "Service Name and
+Transport Protocol Port Number Registry" <xref target="RFC6335"/>.
+</t>
+<t>Service Name: jmap
+</t>
+<t>Transport Protocol(s): tcp
+</t>
+<t>Assignee: IESG
+</t>
+<t>Contact: IETF Chair
+</t>
+<t>Description: JSON Meta Application Protocol
+</t>
+<t>Reference: RFC 8620
+</t>
+<t>Assignment Notes: This service name was previously assigned under the name <spanx style="verb">JSON Mail Access Protocol</spanx>.  This will be de-assigned and re-assigned with the approval of the previous assignee.
+</t>
+</section>
+
+<section anchor="registration-of-wellknown-uri-suffix-for-jmap"
+	 title="Registration of Well-Known URI Suffix for JMAP">
+<!-- [rfced] Note that RFC 5785 has been obsoleted by 8615.  We have updated
+the reference throughout.  Please review and let us know if any updates are
+needed.
+
+Original:
+   o  *.well-known/servicename* ([RFC5785])
+
+...
+
+   IANA will register the following well-known URI suffix for JMAP as
+   described in [RFC5785]:
+
+Neil: That's fine, thanks.
+-->
+<t>IANA has registered the following suffix in the "Well-Known URIs" registry
+for JMAP, as described in <xref target="RFC8615"/>:
+</t>
+<t>URI Suffix: jmap
+</t>
+<t>Change Controller: IETF
+</t>
+<t>Specification Document: RFC 8620, <xref target="service-autodiscovery"/>.
+</t>
+</section>
+
+<section anchor="registration-of-the-jmap-urn-subnamespace" title="Registration of the jmap URN Sub-namespace">
+<t>IANA has registered the following URN sub-namespace in the "IETF URN
+Sub-namespace for Registered Protocol Parameter Identifiers" registry within
+the &quot;Uniform Resource Name (URN) Namespace for IETF Use&quot; registry as
+described in <xref target="RFC3553"/>.
+</t>
+<t>Registered Parameter Identifier: jmap
+</t>
+<t>Reference: RFC 8620, <xref target="creation-of-jmap-capabilities-registry"/>
+</t>
+<t>IANA Registry Reference: http://www.iana.org/assignments/jmap
+</t>
+</section>
+
+<section anchor="creation-of-jmap-capabilities-registry" title="Creation of &quot;JMAP Capabilities&quot; Registry">
+<t>IANA has created the "JMAP Capabilities" registry as described in <xref
+target="the-jmap-session-resource"/>. JMAP capabilities are advertised in the
+<spanx style="verb">capabilities</spanx> property of the JMAP Session
+resource. They are used to extend the functionality of a JMAP server. A
+capability is referenced by a URI. The JMAP capability URI can be a URN
+starting with <spanx style="verb">urn:ietf:params:jmap:</spanx> plus a unique
+suffix that is the index value in the jmap URN sub-namespace. Registration of
+a JMAP capability with another form of URI has no impact on the jmap URN
+sub-namespace.
+</t>
+<t>This registry follows the expert review process unless the &quot;intended
+use&quot; field is <spanx style="verb">common</spanx> or <spanx style="verb">placeholder</spanx>, in which case registration follows the
+specification required process.
+</t>
+<t>A JMAP capability registration can have an intended use of <spanx style="verb">common</spanx>, <spanx style="verb">placeholder</spanx>, <spanx style="verb">limited</spanx>, or <spanx style="verb">obsolete</spanx>.  IANA
+will list common-use registrations prominently and separately from those with
+other intended use values.
+</t>
+<t>The JMAP capability registration procedure is not a formal standards
+process but rather an administrative procedure intended to allow community
+comment and sanity checking without excessive time delay.
+</t>
+<t>A <spanx style="verb">placeholder</spanx> registration reserves part of the
+jmap URN namespace for another purpose but is typically not included in the
+<spanx style="verb">capabilities</spanx> property of the JMAP Session
+resource.
+</t>
+
+<section anchor="preliminary-community-review" title="Preliminary Community Review">
+<t>Notice of a potential JMAP common-use registration SHOULD be sent to the
+Jmap mailing list &lt;jmap@ietf.org&gt; for review. This mailing list is appropriate to
+solicit community feedback on a proposed JMAP capability. Registrations that
+are not intended for common use MAY be sent to the list for review as well;
+doing so is entirely OPTIONAL, but is encouraged.
+</t>
+<t>The intent of the public posting to this list is to solicit comments and
+feedback on the choice of the capability name, the unambiguity of the
+specification document, and a review of any interoperability or security
+considerations. The submitter may submit a revised registration proposal or
+abandon the registration completely at any time.
+</t>
+</section>
+
+<section anchor="submit-request-to-iana" title="Submit Request to IANA">
+<t>Registration requests can be sent to &lt;iana@iana.org&gt;.
+</t>
+</section>
+
+<section anchor="designated-expert-review" title="Designated Expert Review">
+<t>For a limited-use registration, the primary concern of the designated
+expert (DE) is preventing name collisions and encouraging the submitter to
+document security and privacy considerations; a published specification is not
+required. For a common-use registration, the DE is expected to confirm that
+suitable documentation, as described in Section 4.6 of <xref target="RFC8126"/>,
+is available. The DE should also verify that the capability does not conflict with
+work that is active or already published within the IETF.
+</t>
+<t>Before a period of 30 days has passed, the DE will either approve or deny
+the registration request and publish a notice of the decision to the JMAP WG
+mailing list or its successor, as well as inform IANA. A denial notice must be
+justified by an explanation, and, in the cases where it is possible, concrete
+suggestions on how the request can be modified so as to become acceptable
+should be provided.
+</t>
+<t>If the DE does not respond within 30 days, the registrant may request the
+IESG take action to process the request in a timely manner.
+</t>
+</section>
+
+<section anchor="change-procedures" title="Change Procedures">
+<t>Once a JMAP capability has been published by the IANA, the change
+controller may request a change to its definition. The same procedure that
+would be appropriate for the original registration request is used to process
+a change request.
+</t>
+<t>JMAP capability registrations may not be deleted; capabilities that are no
+longer believed appropriate for use can be declared obsolete by a change to
+their &quot;intended use&quot; field; such capabilities will be clearly marked
+in the lists published by the IANA.
+</t>
+<t>Significant changes to a capability's definition should be requested only
+when there are serious omissions or errors in the published
+specification. When review is required, a change request may be denied if it
+renders entities that were valid under the previous definition invalid under
+the new definition.
+</t>
+<t>The owner of a JMAP capability may pass responsibility to another person or
+agency by informing the IANA; this can be done without discussion or review.
+</t>
+<t>The IESG may reassign responsibility for a JMAP capability. The most common
+case of this will be to enable changes to be made to capabilities where the
+author of the registration has died, moved out of contact, or is otherwise
+unable to make changes that are important to the community.
+</t>
+</section>
+
+<section anchor="jmap-capabilities-registry-template" title="JMAP Capabilities Registry Template">
+<t>Capability name: (see capability property in <xref target="the-jmap-session-resource"/>)
+</t>
+<t>Specification document:
+</t>
+<t>Intended use: (one of common, limited, placeholder, or obsolete)
+</t>
+<t>Change controller: (<spanx style="verb">IETF</spanx> for Standards Track / BCP RFCs)
+</t>
+<t>Security and privacy considerations:
+</t>
+</section>
+
+<section anchor="initial-registration-for-jmap-core" title="Initial Registration for JMAP Core">
+<t>Capability Name: <spanx style="verb">urn:ietf:params:jmap:core</spanx>
+</t>
+<t>Specification document: RFC 8620, <xref target="the-jmap-session-resource"/>
+</t>
+<t>Intended use: common
+</t>
+<t>Change Controller: IETF
+</t>
+<t>Security and privacy considerations: RFC 8620, <xref target="security-considerations"/>.
+</t>
+</section>
+
+<section anchor="registration-for-jmap-error-placeholder-in-jmap-capabilities-registry" title="Registration for JMAP Error Placeholder in JMAP Capabilities Registry">
+<!-- [rfced] We note that "urn:ietf:params:jmap:error:" includes a colon as
+the final character, while the other capability names do not.  Please confirm
+that the closing colon is correct.
+
+Original:
+
+9.4.7.  Registration for JMAP error placeholder in JMAP capabilities
+        registry
+
+   Capability Name: "urn:ietf:params:jmap:error:"
+
+Neil: The colon is correct because it's reserving a prefix.
+
+-->
+
+<t>Capability Name: <spanx style="verb">urn:ietf:params:jmap:error:</spanx>
+</t>
+<t>Specification document: RFC 8620, <xref target="creation-of-jmap-error-codes-registry"/>
+</t>
+<t>Intended use: placeholder
+</t>
+<t>Change Controller: IETF
+</t>
+<t>Security and privacy considerations: RFC 8620, <xref target="security-considerations"/>.
+</t>
+</section>
+</section>
+
+<section anchor="creation-of-jmap-error-codes-registry" title="Creation of &quot;JMAP Error Codes&quot; Registry">
+<t>IANA has created the "JMAP Error Codes" registry. JMAP error codes appear
+in the &quot;type&quot; member of a JSON problem details object (as described
+in <xref target="requestlevel-errors"/>), the &quot;type&quot; member in a
+JMAP error object (as described in <xref target="methodlevel-errors"/>), or
+the &quot;type&quot; member of a JMAP method-specific error object (such as
+SetError in  <xref target="set"/>). When used in a problem details object, the
+prefix "urn:ietf:params:jmap:error:" is always included; when used in JMAP
+objects, the prefix is always omitted.
+</t>
+<t>This registry follows the expert review process. Preliminary community
+review for this registry follows the same procedures as the "JMAP Capabilities"
+registry, but it is optional. The change procedures for this registry are the same
+as the change procedures for the "JMAP Capabilities" registry.
+</t>
+
+<section anchor="designated-expert-review-1" title="Expert Review">
+<t>The designated expert should review the following aspects of the registration:
+</t>
+<t>
+<list style="numbers">
+<t>Verify the error code does not conflict with existing names.</t>
+<t>Verify the error code follows the syntax limitations (does not require URI encoding).</t>
+<!-- [rfced] It is odd to encourage an error code or description.  Perhaps
+this should refer to the "submitter" instead (e.g., Encourage the sumbitter to
+follow the naming convention of previoulsy registered errors; encourage the
+submitter to describe when the server should issue...).
+
+Original:
+   3.  Encourage the error code to follow the naming convention of
+       previously registered errors.
+
+   4.  Encourage description of client behaviors that are recommended in
+       response to the error code.  These may distinguish the error code
+       from other error codes.
+
+   5.  Encourage description of when the server should issue the error
+       as opposed to some other error code.
+
+Neil: Agreed.
+-->
+<t>Encourage the sumbitter to follow the naming convention of previously registered errors.</t>
+<t>Encourage the sumbitter to describe client behaviours that are recommended in response
+to the error code. These may distinguish the error code from other error
+codes.</t>
+<t>Encourage the submitter to describe when the server should issue the error as opposed
+to some other error code.</t>
+<t>Encourage the submitter to note any security considerations associated with
+the error, if any (e.g., an error code that might disclose existence of
+data the authenticated user does not have permission to know about).</t>
+</list>
+</t>
+<t>Steps 3-6 are meant to promote a higher-quality registry. However, the
+expert is encouraged to approve any registration that would not actively harm
+JMAP interoperability to make this a relatively lightweight process.
+</t>
+</section>
+
+<section anchor="jmap-error-codes-registry-template" title="JMAP Error Codes Registry Template">
+<t>JMAP Error Code:
+</t>
+<t>Intended use: (one of <spanx style="verb">common</spanx>, <spanx style="verb">limited</spanx>, <spanx style="verb">obsolete</spanx>)
+</t>
+<t>Change Controller: (<spanx style="verb">IETF</spanx> for Standards Track / BCP RFCs)
+</t>
+<!-- [rfced] What does "(optional, only if defined in an RFC.)" mean?  Is a
+reference required only if the registration is published as an RFC?
+
+Original:
+   Reference: (optional, only if defined in an RFC.)
+
+Perhaps:
+   Reference: (Optional.  Only required if defined in an RFC.)
+
+Neil: Correct.
+-->
+<t>Reference: (Optional. Only required if defined in an RFC.)
+</t>
+<t>Description:
+</t>
+</section>
+
+<section anchor="initial-jmap-error-codes-registry" title="Initial Contents for the JMAP Error Codes Registry">
+
+<!--[rfced] In the JMAP Error Codes Registry table (Section 9.5.3.),
+there are many cells where a line break was automatically
+inserted by xml2rfc, and it makes it tough to read the
+text. Please let us know if you would like to reformat the whole
+table (perhaps as a list) so that it does not contain line
+breaks.
+
+For example:
+
+JMAP Error Code: accountNotFound
+Intended Use: Common
+Change Controller: IETF
+Reference: RFC 8620, Section 3.6.2
+Description: [...]
+
+Alternatively, the descriptions could be cut from the table, and:
+
+A) they could be moved to paragraphs below the table (note that there
+would still be some line breaks in some of the cells) or
+
+B) the text could point to Sections 3.5.1 and 3.5.2 and Sections 5.1 to 5.6
+where the items are listed.
+
+For example:
+The registry is as follows; it also includes the descriptions of the JMAP
+Error Codes in Sections 3.5.1 and 3.5.2 and Sections 5.1 to 5.6.
+
+   + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -+
+   |  JMAP Error Code   | Intended | Change     |   Reference   |
+   |                    | Use      | Controller |               |
+   + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -+
+   |  accountNotFound   | common   |   IETF     | RFC 8620,     |
+   |                    |          |            | Section 3.6.2 |
+   |                    |          |            |               |
+   |                    |          |            |               |
+   |                    |          |            |               |
+   | accountNotSupporte | common   |   IETF     | RFC 8620,     |
+   |     dByMethod      |          |            | Section 3.6.2 |
+   |                    |          |            |
+
+Neil: Sure, please do reformat this; I agree it's hard to read in the current
+format. Probably the list format as you described above would be most readable.
+
+-->
+
+<texttable>
+<ttcol align="center">JMAP Error Code</ttcol>
+<ttcol align="left">Intended Use</ttcol>
+<ttcol align="center">Change Controller</ttcol>
+<ttcol align="left">Reference</ttcol>
+<ttcol align="left">Description</ttcol>
+
+<c>accountNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The accountId does not correspond to a valid account.</c>
+<c>accountNotSupportedByMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The accountId given corresponds to a valid account, but the account does not support this method or data type.</c>
+<!-- [rfced] Instead of "would modify", we wonder whether this should read
+"This method call modifies state..."?
+
+Original (description for accountReadOnly):
+   This method call would modify state in an account that is read-only (as
+   returned on the corresponding Account object in the JMAP Session resource).
+
+Neil: I have tried to simplify this.
+-->
+<c>accountReadOnly</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>This method modifies state, but the account is read-only (as returned on the corresponding Account object in the JMAP Session resource).</c>
+<c>anchorNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.5</c><c>An anchor argument was supplied, but it cannot be found in the results of the query.</c>
+<c>alreadyExists</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.4</c><c>The server forbids duplicates, and the record already exists in the target account. An existingId property of type Id MUST be included on the error object with the id of the existing record.</c>
+<c>cannotCalculateChanges</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.2 and 5.6</c><c>The server cannot calculate the changes from the state string given by the client.</c>
+<c>forbidden</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 3.5.2, 5.3, and 7.2.1</c><c>The action would violate an ACL or other permissions policy.</c>
+<c>fromAccountNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.4 and 6.3</c><c>The fromAccountId does not correspond to a valid account.</c>
+<c>fromAccountNotSupportedByMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.4</c><c>The fromAccountId given corresponds to a valid account, but the account does not support this data type.</c>
+<c>invalidArguments</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing.</c>
+<c>invalidPatch</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The PatchObject given to update the record was not a valid patch.</c>
+<c>invalidProperties</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The record given is invalid.</c>
+<c>notFound</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The id given cannot be found.</c>
+<c>notJSON</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.1</c><c>The content type of the request was not application/json, or the request did not parse as I-JSON.</c>
+<c>notRequest</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.1</c><c>The request parsed as JSON but did not match the type signature of the Request object.</c>
+<c>overQuota</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The create would exceed a server-defined limit on the number or total size of objects of this type.</c>
+<c>rateLimit</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>Too many objects of this type have been created recently, and a server-defined rate limit has been reached. It may work if tried again later.</c>
+<c>requestTooLarge</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.1 and
+5.3</c>
+<c>The total number of actions exceeds the maximum number the server is
+willing to process in a single method call.</c>
+<c>invalidResultReference</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The method used a result reference for one of its arguments, but this failed to resolve.</c>
+<c>serverFail</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>An unexpected or unknown error occurred during the processing of the call. The method call made no changes to the server's state.</c>
+<c>serverPartialFail</c><c>limited</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>Some, but not all, expected changes described by the method occurred. The client MUST resynchronise impacted data to determine the server state. Use of this error is strongly discouraged.</c>
+<c>serverUnavailable</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>Some internal server resource was temporarily unavailable. Attempting the same operation later (perhaps after a backoff with a random factor) may succeed.</c>
+<c>singleton</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>This is a singleton type, so you cannot create another one or destroy the existing one.</c>
+<c>stateMismatch</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>An ifInState argument was supplied, and it does not match the current state.</c>
+<c>tooLarge</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The action would result in an object that exceeds a server-defined limit for the maximum size of a single object of this type.</c>
+<c>tooManyChanges</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.6</c><c>There are more changes than the client's maxChanges argument.</c>
+<c>unknownCapability</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.1</c><c>The client included a capability in the "using" property of the request that the server does not support.</c>
+<c>unknownMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The server does not recognise this method name.</c>
+<c>unsupportedFilter</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.5</c><c>The filter is syntactically valid, but the server cannot process it.</c>
+<c>unsupportedSort</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.5</c><c>The sort is syntactically valid but includes a property the server does not support sorting on or a collation method it does not recognise.</c>
+<c>willDestroy</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The client requested an object be both updated and destroyed in the same /set request, and the server has decided to therefore ignore the update.</c>
+</texttable>
+</section>
+</section>
+</section>
+
+</middle>
+<back>
+<references title="Normative References">
+
+<reference anchor='EventSource' target='https://www.w3.org/TR/eventsource/'>
+  <front>
+    <title>Server-Sent Events</title>
+    <author initials='I.' surname='Hickson' fullname='Ian Hickson'>
+        <organization>Google, Inc.</organization>
+    </author>
+    <date month="February" year='2015'/>
+  </front>
+ <seriesInfo name='World Wide Web Consortium' value='Recommendation REC-eventsource-20150203' />
+</reference>
+
+<!--[rfced] When referencing this document, it is not necessary
+to include a citation in the text or reference information in the
+References section; thus, we have removed the reference entry
+below from the Normative References section. Please let us know
+of any concerns.
+
+Original:
+   [I-D.ietf-jmap-core]
+         Jenkins, N. and C. Newman, "JSON Meta Application
+         Protocol", draft-ietf-jmap-core-14 (work in progress),
+         January 2019.
+
+Neil: No, that's fine, thanks.
+-->
+
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2782.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2818.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3339.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3553.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3629.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4648.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4790.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5051.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5246.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5322.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8615.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6186.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6335.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6570.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6749.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6764.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6838.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6901.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7230.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7231.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7493.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7525.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7617.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7807.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8030.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8126.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8259.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8264.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8291.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8446.xml"?>
+</references>
+<references title="Informative References">
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8246.xml"?>
+</references>
+
+
+<!-- [rfced] Throughout the text, the following terminology appears to be used
+inconsistently. Please review these occurrences and let us know if/how they
+may be made consistent.
+
+argument object vs. arguments object (singular vs. plural. Should 'argument' be capitalized?)
+
+Foo id vs. foo id
+
+Todo vs. todo
+
+URN vs. urn (e.g., jmap URN sub-namespace vs. jmap urn namespace)
+
+Neil: thanks, I have reviewed these and ensured they are consistent.
+
+-->
+
+</back>
+</rfc>
