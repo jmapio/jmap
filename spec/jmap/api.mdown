@@ -6,7 +6,7 @@ The client may make an API request to the server to get or set structured data. 
 
 To make an API request, the client makes an authenticated POST request to the API resource, which is defined by the *apiUrl* property in the Session object (see Section 2).
 
-The request MUST be of type `application/json` and consist of a single JSON **Request** object, as defined in Section 3.3. If successful, the response MUST also be of type `application/json` and consist of a single **Response** object, as defined in Section 3.4.
+The request MUST be of type `application/json` and consist of a single JSON-encoded **Request** object, as defined in Section 3.3. If successful, the response MUST also be of type `application/json` and consist of a single **Response** object, as defined in Section 3.4.
 
 ## The Invocation Data Type
 
@@ -672,7 +672,7 @@ The *Foo/copy* method takes the following arguments:
 - **ifInState**: `String|null`
   This is a state string as returned by the *Foo/get* method. If supplied, the string must match the current state of the account referenced by the accountId; otherwise, the method will be aborted and a `stateMismatch` error returned. If `null`, any changes will be applied to the current state.
 - **create**: `Id[Foo]`
-  A map of the *creation id* to a Foo object. The object MUST contain an id property, which is the id (in the fromAccount) of the record to be copied. When creating the copy, any other properties included are used instead of the current value for that property on the original.
+  A map of the *creation id* to a Foo object. The Foo object MUST contain an id property, which is the id (in the fromAccount) of the record to be copied. When creating the copy, any other properties included are used instead of the current value for that property on the original.
 - **onSuccessDestroyOriginal**: `Boolean` (default: false)
   If `true`, an attempt will be made to destroy the original records that were successfully copied: after emitting the *Foo/copy* response, but before processing the next method, the server MUST make a single call to *Foo/set* to destroy the original of each successfully copied record; the output of this is added to the responses as normal, to be returned to the client.
 - **destroyFromIfInState**: `String|null`
@@ -785,9 +785,9 @@ A call to *Foo/query* takes the following arguments:
 - **calculateTotal**: `Boolean` (default: false)
   Does the client wish to know the total number of results in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.
 
-If an **anchor** argument is given, the anchor is looked for in the results after filtering and sorting. If found, the **anchor offset** is then added to its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
+If an **anchor** argument is given, the anchor is looked for in the results after filtering and sorting. If found, the *anchorOffset* is then added to its index. If the resulting index is now negative, it is clamped to 0. This index is now used exactly as though it were supplied as the `position` argument. If the anchor is not found, the call is rejected with an `anchorNotFound` error.
 
-If an *anchor* is specified, any position argument supplied by the client MUST be ignored. If no *anchor* is supplied, any anchor offset argument MUST be ignored.
+If an *anchor* is specified, any position argument supplied by the client MUST be ignored. If no *anchor* is supplied, any *anchorOffset* argument MUST be ignored.
 
 A client can use *anchor* instead of *position* to find the index of an id
 within a large set of results.

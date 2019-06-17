@@ -67,8 +67,11 @@ A **PushSubscription** object has the following properties:
 - **keys**: `Object|null` (immutable)
   Client-generated encryption keys. If supplied, the server MUST use them as specified in [@!RFC8291] to encrypt all data sent to the push subscription. The object MUST have the following properties:
 
-    - **p256dh**: the P-256 Elliptic Curve Diffie-Hellman (ECDH) public key as described in [@!RFC8291], encoded in URL-safe base64 representation as defined in [@!RFC4648].
-    - **auth**: the authentication secret as described in [@!RFC8291], encoded in URL-safe base64 representation as defined in [@!RFC4648].
+    - **p256dh**: `String`
+    The P-256 Elliptic Curve Diffie-Hellman (ECDH) public key as described in [@!RFC8291], encoded in URL-safe base64 representation as defined in [@!RFC4648].
+    - **auth**: `String`
+    The authentication secret as described in [@!RFC8291], encoded in URL-safe base64 representation as defined in [@!RFC4648].
+
 - **verificationCode**: `String|null`
   This MUST be `null` (or omitted) when the subscription is created. The JMAP server then generates a verification code and sends it in a push message, and the client updates the PushSubscription object with the code; see Section 7.2.2 for details.
 - **expires**: `UTCDate|null`
