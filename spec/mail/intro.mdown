@@ -1,6 +1,6 @@
 # Introduction
 
-JMAP ([@!I-D.ietf-jmap-core] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
+JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
 
 This specification defines a data model for accessing a mail store over JMAP,
 allowing you to query, read, organise and submit mail for sending.
@@ -29,7 +29,7 @@ user's inbox has been shared read-only with them.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
 
-Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1 of [@!I-D.ietf-jmap-core]. Data types defined in the core specification are also used in this document.
+Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1 of [@!RFC8620]. Data types defined in the core specification are also used in this document.
 
 Servers MUST support all properties specified for the new data types defined in this document.
 
@@ -39,7 +39,7 @@ The same terminology is used in this document as in the core JMAP specification.
 
 ## Additions to the capabilities object
 
-The capabilities object is returned as part of the JMAP Session object; see [@!I-D.ietf-jmap-core], section 2.
+The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], section 2.
 
 This document defines three additional capability URIs.
 
@@ -105,7 +105,7 @@ The server MUST include the appropriate capability strings as keys in the *accou
 
 ## Push
 
-Servers MUST support the JMAP push mechanisms, as specified in [@!I-D.ietf-jmap-core] section 7, to receive notifications when the state changes for any of the types defined in this specification.
+Servers MUST support the JMAP push mechanisms, as specified in [@!RFC8620] section 7, to receive notifications when the state changes for any of the types defined in this specification.
 
 In addition, servers that implement the "urn:ietf:params:jmap:mail" capability MUST support pushing state changes for a type called "EmailDelivery". There are no methods to act on this type; it only exists as part of the push mechanism. The state string for this MUST change whenever a new Email is added to the store, but SHOULD NOT change upon any other change to the Email objects, for example if one is marked as read or deleted.
 
@@ -113,7 +113,7 @@ Clients in battery constrained environments may wish to delay fetching changes i
 
 ### Example
 
-The client has registered for push notifications (see [@!I-D.ietf-jmap-core]) just for the `EmailDelivery` type. The user marks an email as read on another device, causing the state string for the `Email` type to change, however as nothing new was added to the store the `EmailDelivery` state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the `Email` state to change. This time the `EmailDelivery` state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new message immediately.
+The client has registered for push notifications (see [@!RFC8620]) just for the `EmailDelivery` type. The user marks an email as read on another device, causing the state string for the `Email` type to change, however as nothing new was added to the store the `EmailDelivery` state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the `Email` state to change. This time the `EmailDelivery` state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new message immediately.
 
 ## Ids
 
