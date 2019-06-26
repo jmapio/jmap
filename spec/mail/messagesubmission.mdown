@@ -91,7 +91,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
 
         For emails relayed via an alternative to SMTP, the server MAY generate a synthetic string representing the status instead. If it does this, the string MUST be of the following form:
 
-        - A 3-digit SMTP reply code, as defined in [@!RFC5321], section 4.2.3.
+        - A 3-digit SMTP reply code, as defined in [@!RFC5321], Section 4.2.3.
         - Then a single space character.
         - Then an SMTP Enhanced Mail System Status Code as defined in
           [@!RFC3463], with a registry defined in [@!RFC5248].
@@ -113,7 +113,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
 
         Note, successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the email has successfully reached the final mailbox. In this case though, the server may receive a DSN response, if requested.
 
-        If a DSN is received for the recipient with Action equal to "delivered", as per [@!RFC3464] section 2.3.3, then the *delivered* property SHOULD be set to `yes`; if the Action equals "failed", the property SHOULD be set to `no`. Receipt of any other DSN SHOULD NOT affect this property.
+        If a DSN is received for the recipient with Action equal to "delivered", as per [@!RFC3464] Section 2.3.3, then the *delivered* property SHOULD be set to `yes`; if the Action equals "failed", the property SHOULD be set to `no`. Receipt of any other DSN SHOULD NOT affect this property.
 
         The server MAY also set this property based on other feedback channels.
 
@@ -124,7 +124,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
         - `yes`: The recipient's system claims the email content has been
           displayed to the recipient. Note, there is no guarantee that the recipient has noticed, read, or understood the content.
 
-        If an MDN is received for this recipient with Disposition-Type (as per [@!RFC8098] section 3.2.6.2) equal to "displayed", this property SHOULD be set to `yes`.
+        If an MDN is received for this recipient with Disposition-Type (as per [@!RFC8098] Section 3.2.6.2) equal to "displayed", this property SHOULD be set to `yes`.
 
         The server MAY also set this property based on other feedback channels.
 
@@ -141,15 +141,15 @@ The following JMAP methods are supported:
 
 ## EmailSubmission/get
 
-Standard "/get" method as described in [@!RFC8620] section 5.1.
+Standard "/get" method as described in [@!RFC8620] Section 5.1.
 
 ## EmailSubmission/changes
 
-Standard "/changes" method as described in [@!RFC8620] section 5.2.
+Standard "/changes" method as described in [@!RFC8620] Section 5.2.
 
 ## EmailSubmission/query
 
-Standard "/query" method as described in [@!RFC8620] section 5.5.
+Standard "/query" method as described in [@!RFC8620] Section 5.5.
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
@@ -179,11 +179,11 @@ The following EmailSubmission properties MUST be supported for sorting:
 
 ## EmailSubmission/queryChanges
 
-Standard "/queryChanges" method as described in [@!RFC8620] section 5.6.
+Standard "/queryChanges" method as described in [@!RFC8620] Section 5.6.
 
 ## EmailSubmission/set
 
-Standard "/set" method as described in [@!RFC8620] section 5.3, with the following two additional request arguments:
+Standard "/set" method as described in [@!RFC8620] Section 5.3, with the following two additional request arguments:
 
 - **onSuccessUpdateEmail**: `Id[PatchObject]|null`
   A map of *EmailSubmission id* to an object containing properties to update on the Email object referenced by the EmailSubmission if the create/update/destroy succeeds. (For references to EmailSubmissions created in the same "/set" invocation, this is equivalent to a creation-reference so the id will be the creation id prefixed with a `#`.)
@@ -286,7 +286,7 @@ Suppose instead an admin has removed sending rights for the user, and so the ema
 
     Accept-Language: de;q=0.9,en;q=0.8
 
-The server should attempt to choose the best localisation from those it has available based on the Accept-Language header, as described in [@!RFC8620], section 3.7. If the server has English, French and German translations it would choose German as the preferred language and return a response like this:
+The server should attempt to choose the best localisation from those it has available based on the Accept-Language header, as described in [@!RFC8620], Section 3.7. If the server has English, French and German translations it would choose German as the preferred language and return a response like this:
 
     [[ "EmailSubmission/set", {
       "accountId": "ue411d190",

@@ -84,11 +84,11 @@ The following JMAP methods are supported:
 
 ## Mailbox/get
 
-Standard "/get" method as described in [@!RFC8620] section 5.1. The *ids* argument may be `null` to fetch all at once.
+Standard "/get" method as described in [@!RFC8620] Section 5.1. The *ids* argument may be `null` to fetch all at once.
 
 ## Mailbox/changes
 
-Standard "/changes" method as described in [@!RFC8620] section 5.2, but with one extra argument to the response:
+Standard "/changes" method as described in [@!RFC8620] Section 5.2, but with one extra argument to the response:
 
 - **updatedProperties**: `String[]|null`
   If only the mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e. `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
@@ -97,7 +97,7 @@ Since counts frequently change but other properties are generally only changed r
 
 ## Mailbox/query
 
-Standard "/query" method as described in [@!RFC8620] section 5.5, but with the following additional request argument:
+Standard "/query" method as described in [@!RFC8620] Section 5.5, but with the following additional request argument:
 
 - **sortAsTree**: `Boolean` (default: false)
   If `true`, when sorting the query results and comparing two mailboxes a and b:
@@ -136,11 +136,11 @@ The following Mailbox properties MUST be supported for sorting:
 
 ## Mailbox/queryChanges
 
-Standard "/queryChanges" method as described in [@!RFC8620] section 5.6.
+Standard "/queryChanges" method as described in [@!RFC8620] Section 5.6.
 
 ## Mailbox/set
 
-Standard "/set" method as described in [@!RFC8620] section 5.3, but with the following additional request argument:
+Standard "/set" method as described in [@!RFC8620] Section 5.3, but with the following additional request argument:
 
 - **onDestroyRemoveMessages**: `Boolean` (default: false)
   If `false`, any attempt to destroy a mailbox that still has messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the mailbox will be removed from it, and if in no other mailboxes will be destroyed when the mailbox is destroyed.

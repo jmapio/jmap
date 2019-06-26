@@ -83,7 +83,7 @@ Type: `String`
 
 The header field value with:
 
-1. White space unfolded (as defined in [@!RFC5322] section 2.2.3).
+1. White space unfolded (as defined in [@!RFC5322] Section 2.2.3).
 2. The terminating CRLF at the end of the value removed.
 3. Any SP characters at the beginning of the value removed.
 4. Any syntactically correct [@!RFC2047] encoded sections with a known
@@ -105,7 +105,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `EmailAddress[]`
 
-The header is parsed as an `address-list` value, as specified in [@!RFC5322] section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each `mailbox` parsed from the `address-list`. Group and comment information is discarded.
+The header is parsed as an `address-list` value, as specified in [@!RFC5322] Section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each `mailbox` parsed from the `address-list`. Group and comment information is discarded.
 
 The **EmailAddress** object has the following properties:
 
@@ -162,7 +162,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `EmailAddressGroup[]`
 
-This is similar to the Addresses form but preserves group information. The header is parsed as an `address-list` value, as specified in [@!RFC5322] section 3.4, into the `GroupedAddresses[]` type. Consecutive mailboxes that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
+This is similar to the Addresses form but preserves group information. The header is parsed as an `address-list` value, as specified in [@!RFC5322] Section 3.4, into the `GroupedAddresses[]` type. Consecutive mailboxes that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
 
 The **EmailAddressGroup** object has the following properties:
 
@@ -201,7 +201,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `String[]|null`
 
-The header is parsed as a list of `msg-id` values, as specified in [@!RFC5322] section 3.6.4, into the `String[]` type. CFWS and surrounding angle brackets (`<>`) are removed. If parsing fails, the value is `null`.
+The header is parsed as a list of `msg-id` values, as specified in [@!RFC5322] Section 3.6.4, into the `String[]` type. CFWS and surrounding angle brackets (`<>`) are removed. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
@@ -215,7 +215,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `Date|null`
 
-The header is parsed as a `date-time` value, as specified in [@!RFC5322] section 3.3, into the `Date` type. If parsing fails, the value is `null`.
+The header is parsed as a `date-time` value, as specified in [@!RFC5322] Section 3.3, into the `Date` type. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
@@ -509,7 +509,7 @@ In this case, the above algorithm would decompose this to:
 
 ## Email/get
 
-Standard "/get" method as described in [@!RFC8620] section 5.1, with the following additional request arguments:
+Standard "/get" method as described in [@!RFC8620] Section 5.1, with the following additional request arguments:
 
 - **bodyProperties**: `String[]`
   A list of properties to fetch for each EmailBodyPart returned. If omitted, this defaults to:
@@ -624,11 +624,11 @@ and response:
 
 ## Email/changes
 
-Standard "/changes" method as described in [@!RFC8620] section 5.2. If generating intermediate states for a large set of changes, it is recommended that newer changes are returned first, as these are generally of more interest to users.
+Standard "/changes" method as described in [@!RFC8620] Section 5.2. If generating intermediate states for a large set of changes, it is recommended that newer changes are returned first, as these are generally of more interest to users.
 
 ## Email/query
 
-Standard "/query" method as described in [@!RFC8620] section 5.5, but with the following additional request arguments:
+Standard "/query" method as described in [@!RFC8620] Section 5.5, but with the following additional request arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
   If `true`, emails in the same thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means only one email at most will be included in the list for any given thread.
@@ -702,13 +702,13 @@ The following values for the "property" field on the Comparator object SHOULD be
 - **size** - The *size* as returned in the Email object.
 - **from** – This is taken to be either the "name" part, or if `null`/empty then the "email" part, of the **first** EmailAddress object in the *from* property. If still none, consider the value to be the empty string.
 - **to** - This is taken to be either the "name" part, or if `null`/empty then the "email" part, of the **first** EmailAddress object in the *to* property. If still none, consider the value to be the empty string.
-- **subject** - This is taken to be the base subject of the email, as defined in section 2.1 of [@!RFC5256].
+- **subject** - This is taken to be the base subject of the email, as defined in Section 2.1 of [@!RFC5256].
 - **sentAt** - The *sentAt* property on the Email object.
 - **hasKeyword** - This value MUST be considered `true` if the email has the keyword given as an additional *keyword* property on the *Comparator* object, or `false` otherwise.
 - **allInThreadHaveKeyword** - This value MUST be considered `true` for the email if **all** of the emails in the same thread (regardless of mailbox) have the keyword given as an additional *keyword* property on the *Comparator* object.
 - **someInThreadHaveKeyword** - This value MUST be considered `true` for the email if **any** of the emails in the same thread (regardless of mailbox) have the keyword given as an additional *keyword* property on the *Comparator* object.
 
-The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's *capabilities* object (see section 1.3).
+The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's *capabilities* object (see Section 1.3).
 
 Example sort:
 
@@ -732,21 +732,21 @@ When *collapseThreads* is `true`, then after filtering and sorting the email lis
 
 ## Email/queryChanges
 
-Standard "/queryChanges" method as described in [@!RFC8620] section 5.6, with the following additional request arguments:
+Standard "/queryChanges" method as described in [@!RFC8620] Section 5.6, with the following additional request arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
   The *collapseThreads* argument that was used with *Email/query*.
 
 ## Email/set
 
-Standard "/set" method as described in [@!RFC8620] section 5.3. The *Email/set* method encompasses:
+Standard "/set" method as described in [@!RFC8620] Section 5.3. The *Email/set* method encompasses:
 
 - Creating a draft
 - Changing the keywords of an email (e.g. unread/flagged status)
 - Adding/removing an email to/from mailboxes (moving a message)
 - Deleting emails
 
-The format of the keywords/mailboxIds properties means that when updating an email you can either replace the entire set of keywords/mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see [@!RFC8620], section 5.3 for the specification and section 5.7 for an example).
+The format of the keywords/mailboxIds properties means that when updating an email you can either replace the entire set of keywords/mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see [@!RFC8620], Section 5.3 for the specification and Section 5.7 for an example).
 
 Due to the format of the Email object, when creating an email there are a number of ways to specify the same information. To ensure that the RFC5322 email to create is unambiguous, the following constraints apply to Email objects submitted for creation:
 
@@ -781,7 +781,7 @@ Due to the format of the Email object, when creating an email there are a number
 
 Creation attempts that violate any of this SHOULD be rejected with an `invalidProperties` error, however a server MAY choose to modify the Email (e.g. choose between conflicting headers, use a different content-encoding etc.) to comply with its requirements instead.
 
-The server MAY also choose to set additional headers. If not included, the server MUST generate and set a `Message-ID` header field in conformance with [@!RFC5322] section 3.6.4, and a `Date` header field in conformance with section 3.6.1.
+The server MAY also choose to set additional headers. If not included, the server MUST generate and set a `Message-ID` header field in conformance with [@!RFC5322] Section 3.6.4, and a `Date` header field in conformance with Section 3.6.1.
 
 The final RFC5322 email generated may be invalid. For example, if it is a half-finished draft, the "To" field may have a value that does not conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 
@@ -807,7 +807,7 @@ For **create** and **update**:
 
 ## Email/copy
 
-Standard "/copy" method as described in [@!RFC8620] section 5.4, except only the *mailboxIds*, *keywords* and *receivedAt* properties may be set during the copy. This method cannot modify the RFC5322 representation of an email.
+Standard "/copy" method as described in [@!RFC8620] Section 5.4, except only the *mailboxIds*, *keywords* and *receivedAt* properties may be set during the copy. This method cannot modify the RFC5322 representation of an email.
 
 The server MAY forbid two email objects with the same exact [@!RFC5322] content, or even just with the same [@!RFC5322] Message-ID, to coexist within an account; if the target account already has the email the copy will be rejected with a standard `alreadyExists` error.
 

@@ -29,7 +29,7 @@ user's inbox has been shared read-only with them.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
 
-Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1 of [@!RFC8620]. Data types defined in the core specification are also used in this document.
+Type signatures, examples, and property descriptions in this document follow the conventions established in Section 1.1 of [@!RFC8620]. Data types defined in the core specification are also used in this document.
 
 Servers MUST support all properties specified for the new data types defined in this document.
 
@@ -39,7 +39,7 @@ The same terminology is used in this document as in the core JMAP specification.
 
 ## Additions to the capabilities object
 
-The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], section 2.
+The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], Section 2.
 
 This document defines three additional capability URIs.
 
@@ -50,7 +50,7 @@ This represents support for the Mailbox, Thread, Email, and SearchSnippet data t
 The value of this property in an account's *accountCapabilities* property is an object which MUST contain the following information on server capabilities and permissions for that account:
 
 - **maxMailboxesPerEmail**: `UnsignedInt|null`
-  The maximum number of mailboxes that can be can assigned to a single Email object (see section 4). This MUST be an integer >= 1, or `null` for no limit (or rather, the limit is always the number of mailboxes in the account).
+  The maximum number of mailboxes that can be can assigned to a single Email object (see Section 4). This MUST be an integer >= 1, or `null` for no limit (or rather, the limit is always the number of mailboxes in the account).
 - **maxMailboxDepth**: `UnsignedInt|null`
   The maximum depth of the mailbox hierarchy (i.e. one more than the maximum number of ancestors a mailbox may have), or `null` for no limit.
 - **maxSizeMailboxName**: `UnsignedInt`
@@ -63,9 +63,9 @@ The value of this property in an account's *accountCapabilities* property is an 
     The server may separately have a limit for the total size of the RFC5322 message, which will have attachments Base64 encoded and message headers and bodies too. For example, suppose the server advertises `maxSizeAttachmentsPerEmail: 50000000` (50 MB). The enforced server limit may be for an RFC5322 size of 70000000 octets (70 MB). Even with Base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.
 
 - **emailQuerySortOptions**: `String[]`
-  A list of all the values the server supports for the "property" field of the Comparator object in an Email/query sort (see section 5.5). This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
+  A list of all the values the server supports for the "property" field of the Comparator object in an Email/query sort (see Section 5.5). This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
 - **mayCreateTopLevelMailbox**: `Boolean`
-  If `true`, the user may create a mailbox (see section 2) in this account with
+  If `true`, the user may create a mailbox (see Section 2) in this account with
   a `null` parentId. (Permission for creating a child of an existing mailbox is given by the myRights property on that mailbox.)
 
 ### urn:ietf:params:jmap:submission
@@ -79,7 +79,7 @@ The value of this property in an account's *accountCapabilities* property is an 
   (see the EmailSubmission object description). This is `0` if the server does
   not support delayed send.
 - **submissionExtensions**: `String[String[]]`
-  The set of SMTP submission extensions supported by the server, which the client may use when creating an EmailSubmission object (see section 7). Each key in the object is the *ehlo-name*, and the value is a list of *ehlo-args*.
+  The set of SMTP submission extensions supported by the server, which the client may use when creating an EmailSubmission object (see Section 7). Each key in the object is the *ehlo-name*, and the value is a list of *ehlo-args*.
 
     A JMAP implementation that talks to a Submission [@!RFC6409] server SHOULD have a configuration setting that allows an administrator to modify the set of submission EHLO capabilities it may expose on this property. This allows a JMAP server to easily add access to a new submission extension without code changes. By default, the JMAP server should hide EHLO capabilities that are to do with the transport mechanism and thus are only relevant to the JMAP server (for example PIPELINING, CHUNKING, or STARTTLS).
 
@@ -105,11 +105,11 @@ The server MUST include the appropriate capability strings as keys in the *accou
 
 ## Push
 
-Servers MUST support the JMAP push mechanisms, as specified in [@!RFC8620] section 7, to receive notifications when the state changes for any of the types defined in this specification.
+Servers MUST support the JMAP push mechanisms, as specified in [@!RFC8620] Section 7, to receive notifications when the state changes for any of the types defined in this specification.
 
 In addition, servers that implement the "urn:ietf:params:jmap:mail" capability MUST support pushing state changes for a type called "EmailDelivery". There are no methods to act on this type; it only exists as part of the push mechanism. The state string for this MUST change whenever a new Email is added to the store, but SHOULD NOT change upon any other change to the Email objects, for example if one is marked as read or deleted.
 
-Clients in battery constrained environments may wish to delay fetching changes initiated by the user, but fetch new messages immediately so they can notify the user. To do this, they can register for pushes for the EmailDelivery type rather than the Email type (defined in section 4).
+Clients in battery constrained environments may wish to delay fetching changes initiated by the user, but fetch new messages immediately so they can notify the user. To do this, they can register for pushes for the EmailDelivery type rather than the Email type (defined in Section 4).
 
 ### Example
 
