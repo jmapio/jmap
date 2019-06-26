@@ -136,14 +136,14 @@ signature. These have the following meanings:
 </t>
 <t>
 <list style="symbols">
-<t><spanx style="verb">server-set</spanx> - Only the server can set the value
+<t><spanx style="verb">server-set</spanx> -- Only the server can set the value
 for this property. The
 client MUST NOT send this property when creating a new object of this type.</t>
 
-<t><spanx style="verb">immutable</spanx> - The value MUST NOT change after
+<t><spanx style="verb">immutable</spanx> -- The value MUST NOT change after
 the object is created.</t>
 
-<t><spanx style="verb">default</spanx> - (This is followed by a JSON
+<t><spanx style="verb">default</spanx> -- (This is followed by a JSON
 value). The value that will be used for this property if it is omitted in an
 argument or when creating a new object of this type.</t>
 </list>
@@ -258,7 +258,7 @@ All HTTP requests MUST be authenticated.
 </t>
 <t>The server can advertise custom extensions it supports by including the identifiers in the capabilities object. Identifiers for vendor extensions MUST be a URL belonging to a domain owned by the vendor, to avoid conflict. The URL SHOULD resolve to documentation for the changes the extension makes.
 </t>
-<t>The client MUST opt in to use an extension by passing the appropriate capability identifier in the <spanx style="verb">using</spanx> array of the Request object, as described in <xref target="the-request-object"/>. The server MUST only follow the specifications that are opted into and behave as though it does not implement anything else when processing a request. This is to ensure compatibility with clients that don't know about a specific custom extension, and for compatibility with future versions of JMAP.
+<t>The client MUST opt in to use an extension by passing the appropriate capability identifier in the <spanx style="verb">using</spanx> array of the Request object, as described in <xref target="the-request-object"/>. The server MUST only follow the specifications that are opted into and behave as though it does not implement anything else when processing a request. This is to ensure compatibility with clients that don't know about a specific custom extension and for compatibility with future versions of JMAP.
 </t>
 </section>
 </section>
@@ -319,16 +319,7 @@ Specifications for future capabilities will define their own properties on the c
 Servers MAY advertise vendor-specific JMAP extensions, as described in <xref target="vendorspecific-extensions"/>. To avoid conflict, an identifier for a vendor-specific extension MUST be a URL with a domain owned by the vendor. Clients MUST opt in to any capability it wishes to use (see <xref target="the-request-object"/>).</t>
 
 <t>accounts: <spanx style="verb">Id[Account]</spanx><vspace blankLines="1" />
-<!--[rfced] This document does not contain Section 1.5.2.  Please
-clarify which section should be referenced in the following
-sentence (perhaps the intention was to reference Section 1.6.2).
 
-Original:
-   *accounts*: "Id[Account]" A map of *account id* to Account object
-   for each account (see section 1.5.2) the user has access to.
-
-Neil: Yes, 1.6.2 is correct.
--->
 A map of an account id to an Account object for each account (see <xref target="accounts"/>) the user has access to. An <spanx style="strong">Account</spanx> object has the following properties:
 <list style="symbols">
 <t>name: <spanx style="verb">String</spanx><vspace blankLines="1" />
@@ -528,20 +519,6 @@ As the server processes API requests, any time it successfully creates a new rec
 
 <vspace blankLines="1" />
 
-<!--[rfced] Is 'Request' capitalized in the following because it's
-referring to the 'Request objet'? If so, may we add 'object' for
-clarity?
-
-Original:
-    The client can pass an initial value for this map as the
-    _createdIds_ property of the Request.
-
-Perhaps:
-    The client can pass an initial value for this map as the
-    _createdIds_ property of the Request object.
-
-Neil: Yes.
--->
 The client can pass an initial value for this map as the <spanx style="verb">createdIds</spanx> property of the Request object. This may be an empty object. If given in the request, the response will also include a createdIds property. This allows proxy servers to easily split a JMAP request into multiple JMAP requests to send to different servers. For example, it could send the first two method calls to server A, then the third to server B, before sending the fourth to server A again. By passing the createdIds of the previous response to the next request, it can ensure all of these still resolve. See <xref target="proxy-considerations"/> for further discussion of proxy considerations.</t>
 </list>
 </t>
@@ -755,20 +732,6 @@ method call in the same request.
 <t>
 <list style="symbols">
 
-<!--[rfced] May we reword this for easier readability?
-
-Original:
-   The method call id of the method call to get
-   the result from (the string given as the third item in the array
-   for a method call).
-
-Perhaps:
-   The method call gets the result from the method call id
-   (the string is given as the third item in the array
-   for a method call).
-
-Neil: I have reworded this.
--->
 <t>resultOf: <spanx style="verb">String</spanx><vspace blankLines="1" />
 The method call id (see <xref target="the-invocation-data-type"/>) of a previous method call in the current request.</t>
 
@@ -791,26 +754,6 @@ property of the ResultReference in the <spanx style="verb">methodResponses</span
 <t>Apply the <spanx style="verb">path</spanx> to the arguments object of the response (the second item in the response array) following the JSON Pointer algorithm <xref target="RFC6901"/>, except with the following addition in "Evaluation" (see Section 4):
 <vspace blankLines="1" />
 If the currently referenced value is a JSON array, the reference token may be exactly the single character <spanx style="verb">*</spanx>, making the new referenced value the result of applying the rest of the JSON Pointer tokens to every item in the array and returning the results in the same order in a new array.
-<!--[rfced] In the following sentence, are the items included in
-the output rather than in the array itself? Please clarify the
-intended meaning.
-
-Original:
-    If the result of
-    applying the rest of the pointer tokens to a value was itself an
-    array, its items should be included individually in the output
-    rather than including the array itself (i.e. the result is
-    flattened from an array of arrays to a single array).
-
-Perhaps:
-    If the result of
-    applying the rest of the pointer tokens to a value was itself an
-    array, its items should be included individually in the output
-    rather than in the array itself (i.e., the result is flattened
-    from an array of arrays to a single array).
-
-Neil: I have reworded to try to clarify.
--->
 
 If the result of applying the rest of the pointer tokens to each item was itself an array, the contents of this array are added to the output rather than the array itself (i.e., the result is flattened from an array of arrays to a single array).
 
@@ -990,18 +933,6 @@ them.
 </section>
 
 <section anchor="localisation-of-uservisible-strings" title="Localisation of User-Visible Strings">
-<!--[rfced] Please clarify what 'multiple' is referring to in the
-following sentence.
-
-Original:
-   If returning a custom string to be displayed to the user, for example
-   an error message, the server SHOULD use information from the Accept-
-   Language header of the request (as defined in [RFC7231] section
-   5.3.5) to help determine the choice of localisation if multiple are
-   available.
-
-Neil: I have simplified this.
--->
 
 <t>If returning a custom string to be displayed to the user, for example, an error message, the server SHOULD use information from the Accept-Language header of the request (as defined in Section 5.3.5 of <xref target="RFC7231"/>) to choose the best available localisation. The Content-Language header of the response (see Section 3.1.3.2 of <xref target="RFC7231"/>) SHOULD indicate the language being used for user-visible strings.
 </t>
@@ -1151,24 +1082,6 @@ An array of ids for records that have been destroyed since the old state.</t>
 <t>If a record has been updated AND destroyed since the old state, the server SHOULD just return the id in the <spanx style="verb">destroyed</spanx> list but MAY return it in the <spanx style="verb">updated</spanx> list as well.
 </t>
 
-<!--[rfced] Please clarify the last part of the sentence.  Is the
-intended meaning that the server MAY include the id in the
-_destroyed_ list and also in the _created_ list?
-
-Original:
-   If a record has been created AND destroyed since the old state, the
-   server SHOULD remove the id from the response entirely, but MAY
-   include it in the _destroyed_ list, and if so MAY also include it in
-   the _created_ list.
-
-Perhaps:
-   If a record has been created AND destroyed since the old state, the
-   server SHOULD remove the id from the response entirely, but it MAY
-   include it in the _destroyed_ list and also in the _created_ list.
-
-Neil: In this situation the id may only be in the created list if it is in the destroyed list. That is what this sentence was trying to convey. I have tried to clarify.
--->
-
 <t>If a record has been created AND destroyed since the old state, the server SHOULD remove the id from the response entirely. However, it MAY include it in just the <spanx style="verb">destroyed</spanx> list or in both the <spanx style="verb">destroyed</spanx> and <spanx style="verb">created</spanx> lists.
 </t>
 <t>If a <spanx style="verb">maxChanges</spanx> is supplied, or set automatically by the server, the server MUST ensure the number of ids returned across <spanx style="verb">created</spanx>, <spanx style="verb">updated</spanx>, and <spanx style="verb">destroyed</spanx> does not exceed this limit. If there are more changes than this between the client's state and the current server state, the server SHOULD generate an update to take the client to an intermediate state, from which the client can continue to call <spanx style="verb">Foo/changes</spanx> until it is fully up to date. If it is unable to calculate an intermediate state, it MUST return a <spanx style="verb">cannotCalculateChanges</spanx> error response instead.
@@ -1202,29 +1115,6 @@ hasMoreChanges: false
 </artwork></figure>
 <t>Should the state on the server be modified in the middle of all this (to <spanx style="verb">F</spanx>), the server still does the same, but now when the update to state <spanx style="verb">E</spanx> is returned, it would indicate that it still has more changes for the client to fetch.
 </t>
-
-<!--[rfced] My we reword this sentence for easier readability
-(specifially, we would like to update 'the server MUST NOT return
-a record as created in a later response than one which gives it
-as updated or destroyed'). Also, is there a better word choice
-for 'gives it'; does 'deems it' convey the intended meaning?
-
-Original:
-   Where multiple changes to a record are split across different
-   intermediate states, the server MUST NOT return a record as created
-   in a later response than one which gives it as updated or destroyed,
-   and MUST NOT return a record as destroyed before a response that
-   gives it as created or updated.
-
-Perhaps:
-   Where multiple changes to a record are split across different
-   intermediate states, the server MUST NOT return a record as created
-   after a response that deems it as updated or destroyed, and it
-   MUST NOT return a record as destroyed before a response that deems
-   it as created or updated.
-
-Neil: Proposed wording seems fine to me, thanks.
--->
 
 <t>Where multiple changes to a record are split across different intermediate states, the server MUST NOT return a record as created after a response that deems it as updated or destroyed, and it MUST NOT return a record as destroyed before a response that deems it as created or updated. The server may have to coalesce multiple changes to a record to satisfy this requirement.
 </t>
@@ -1395,47 +1285,6 @@ not a valid patch (see the patch description).</t>
 <t><spanx style="verb">invalidProperties</spanx>: (create; update). The record given is invalid in some way. For example:
 <list style="symbols">
 <t>It contains properties that are invalid according to the type specification of this record type.</t>
-
-<!--[rfced] Is 'different to' the intended wording in the following,
-or should it be 'different from' or 'different than'?  Please
-note that there are 3 instances in question.
-
-A)
-Original:
-   It contains a property that may only be set by the server (e.g.
-   "id") and is different to the current value.
-
-Perhaps:
-   It contains a property that may only be set by the server (e.g.,
-   "id") and is different than the current value.
-
-
-B)
-Original:
-   *accountId*: "Id" The id of the account to copy records to.  This
-   MUST be different to the "fromAccountId".
-
-Perhaps:
-   *accountId*: "Id"
-   The id of the account to copy records to.  This
-   MUST be different than the "fromAccountId".
-
-
-C)
-Original:
-   A map of the creation id to an object containing any properties of
-   the copied Foo object that are set by the server (such as the _id_
-   in most object types; note, the id is likely to be different to
-   the id of the object in the account it was copied from).
-
-Perhaps:
-   A map of the creation id to an object containing any properties of
-   the copied Foo object that are set by the server (such as the _id_
-   in most object types; note, the id is likely to be different than
-   the id of the object in the account it was copied from).
-
-Neil: I believe this is a US English vs British English difference. As this document is in British English, I would prefer to keep "different to".
--->
 
 <t>It contains a property that may only be set by the server (e.g., &quot;id&quot;) and is different to the current value. Note, to allow clients to pass whole objects back, it is not an error to include a server-set property in an update as long as the value is identical to the current value on the server.</t>
 <t>There is a reference to another record (foreign key), and the given id does not correspond to a valid record.</t>
@@ -1617,22 +1466,6 @@ When the property being compared is not a string, the <spanx style="verb">collat
 The Comparator object may also have additional properties as required for
 specific sort operations defined in a type's /query method.</t>
 
-<!--[rfced] We notice the use of 'non-zero' and '0-based'.  Would you
-like to update '0-based' to be 'zero-based' for consistency?
-There are 3 instances in the text.
-
-One example
-
-Original:
-   The 0-based index of the first id in the full list of results to
-   return.
-
-Perhaps:
-   The zero-based index of the first id in the full list of results
-   to return.
-
-Neil: Agreed.
--->
 <t>position: <spanx style="verb">Int</spanx> (default: 0)<vspace blankLines="1" />
 The zero-based index of the first id in the full list of results to return.
 
@@ -2470,19 +2303,6 @@ before the server makes any further requests to the subscription's URL. Attempts
 <section anchor="event-source" title="Event Source">
 <t>Clients that can hold transport connections open can connect directly to the JMAP server to receive push notifications via a <spanx style="verb">text/event-stream</spanx> resource, as described in <xref target="EventSource"/>.
 
-<!--[rfced] Please clarify the following sentence.  What does 'down'
-refer to? Does the HTTP request enable the server to push data?
-
-Original:
-   This is a long running HTTP request down
-   which the server can push data.
-
-Perhaps:
-   This is a long running HTTP request that
-   enables the server to push data.
-
-Neil: I have tried to clarify.
--->
 This is a long running HTTP request, where the server can push data to the client by appending data without ending the response.
 </t>
 <t>When a change occurs in the data on the server, it pushes an event called <spanx style="verb">state</spanx> to any connected clients, with the StateChange object as the data.
@@ -2531,24 +2351,6 @@ Clients can monitor for the ping event to help determine when the closeafter mod
 JMAP, all requests MUST use TLS 1.2 <xref target="RFC5246"/> <xref target="RFC8446"/> or later,
 following the recommendations in <xref target="RFC7525"/>. Servers SHOULD
 support TLS 1.3 <xref target="RFC8446"/> or later.
-<!-- [rfced] As RFC 8446 also includes requirements for TLS 1.2
-implementations, please confirm that referencing only RFC 5246 here is
-correct.
-
-Original:
-   To ensure the confidentiality and integrity of data sent and received
-   via JMAP, all requests MUST use TLS 1.2 ([RFC5246]) or later,
-   following the recommendations in [RFC7525].
-
-From RFC 8446:
-   This document also specifies new requirements for
-   TLS 1.2 implementations.
-
-Also, note that RFC 5246 was not referenced.  We have added a normative
-reference.  Please let us know if any updates are needed.
-
-Neil: Yes, I think it probably makes sense to reference both here given the updates in RFC 8446 should be followed if using TLS 1.2.
--->
 
 
 </t>
@@ -2575,20 +2377,6 @@ differentiated by the server and access to be individually revoked.
 details using SRV DNS records is vulnerable to a DNS poisoning attack, which
 can lead to the client talking to an attacker's server instead of the real
 JMAP server.
-<!-- [rfced] Please clarify "may man-in-the-middle requests".
-
-Original:
-The attacker may then man-in-the-middle requests and
-depending on the authentication scheme, steal credentials to generate
-its own requests.
-
-Perhaps:
-The attacker may then intercept requests to execute man-in-the-middle attacks
-and, depending on the authentication scheme, steal credentials to generate
-its own requests.
-
-Neil: that looks good.
--->
 
 The attacker may then intercept requests to execute man-in-the-middle attacks
 and, depending on the authentication scheme, steal credentials to generate
@@ -2610,29 +2398,6 @@ supplied data.
 </t>
 <t>JSON also uses a string encoding with some escape sequences to encode
 special characters within a string.
-
-<!--[rfced] Please clarify the following.  Do the escape sequences
-appear at the end of the data, or do they appear adjacent to the
-end of the data?
-
-Original:
-   Care is needed when processing
-   these escape sequences to ensure that an escape sequence is fully
-   formed before the special processing is triggered, with special care
-   taken when the escape sequences appear adjacent to other (non-
-   escaped) special characters or the end of data (as in the previous
-   paragraph).
-
-Perhaps:
-   Care is needed when processing
-   these escape sequences to ensure that they are fully
-   formed before the special processing is triggered, with special care
-   taken when the escape sequences appear adjacent to other (non-
-   escaped) special characters or at the end of the data (as in the
-   previous paragraph).
-
-Neil: I believe this should be adjacent to.
--->
 
 Care is needed when processing these
 escape sequences to ensure that they are fully formed before
@@ -2719,20 +2484,7 @@ Transport Protocol Port Number Registry" <xref target="RFC6335"/>.
 
 <section anchor="registration-of-wellknown-uri-suffix-for-jmap"
 	 title="Registration of Well-Known URI Suffix for JMAP">
-<!-- [rfced] Note that RFC 5785 has been obsoleted by 8615.  We have updated
-the reference throughout.  Please review and let us know if any updates are
-needed.
 
-Original:
-   o  *.well-known/servicename* ([RFC5785])
-
-...
-
-   IANA will register the following well-known URI suffix for JMAP as
-   described in [RFC5785]:
-
-Neil: That's fine, thanks.
--->
 <t>IANA has registered the following suffix in the "Well-Known URIs" registry
 for JMAP, as described in <xref target="RFC8615"/>:
 </t>
@@ -2882,20 +2634,6 @@ unable to make changes that are important to the community.
 </section>
 
 <section anchor="registration-for-jmap-error-placeholder-in-jmap-capabilities-registry" title="Registration for JMAP Error Placeholder in JMAP Capabilities Registry">
-<!-- [rfced] We note that "urn:ietf:params:jmap:error:" includes a colon as
-the final character, while the other capability names do not.  Please confirm
-that the closing colon is correct.
-
-Original:
-
-9.4.7.  Registration for JMAP error placeholder in JMAP capabilities
-        registry
-
-   Capability Name: "urn:ietf:params:jmap:error:"
-
-Neil: The colon is correct because it's reserving a prefix.
-
--->
 
 <t>Capability Name: <spanx style="verb">urn:ietf:params:jmap:error:</spanx>
 </t>
@@ -2933,24 +2671,6 @@ as the change procedures for the "JMAP Capabilities" registry.
 <list style="numbers">
 <t>Verify the error code does not conflict with existing names.</t>
 <t>Verify the error code follows the syntax limitations (does not require URI encoding).</t>
-<!-- [rfced] It is odd to encourage an error code or description.  Perhaps
-this should refer to the "submitter" instead (e.g., Encourage the sumbitter to
-follow the naming convention of previoulsy registered errors; encourage the
-submitter to describe when the server should issue...).
-
-Original:
-   3.  Encourage the error code to follow the naming convention of
-       previously registered errors.
-
-   4.  Encourage description of client behaviors that are recommended in
-       response to the error code.  These may distinguish the error code
-       from other error codes.
-
-   5.  Encourage description of when the server should issue the error
-       as opposed to some other error code.
-
-Neil: Agreed.
--->
 <t>Encourage the sumbitter to follow the naming convention of previously registered errors.</t>
 <t>Encourage the sumbitter to describe client behaviours that are recommended in response
 to the error code. These may distinguish the error code from other error
@@ -2975,17 +2695,7 @@ JMAP interoperability to make this a relatively lightweight process.
 </t>
 <t>Change Controller: (<spanx style="verb">IETF</spanx> for Standards Track / BCP RFCs)
 </t>
-<!-- [rfced] What does "(optional, only if defined in an RFC.)" mean?  Is a
-reference required only if the registration is published as an RFC?
 
-Original:
-   Reference: (optional, only if defined in an RFC.)
-
-Perhaps:
-   Reference: (Optional.  Only required if defined in an RFC.)
-
-Neil: Correct.
--->
 <t>Reference: (Optional. Only required if defined in an RFC.)
 </t>
 <t>Description:
@@ -2994,52 +2704,7 @@ Neil: Correct.
 
 <section anchor="initial-jmap-error-codes-registry" title="Initial Contents for the JMAP Error Codes Registry">
 
-<!--[rfced] In the JMAP Error Codes Registry table (Section 9.5.3.),
-there are many cells where a line break was automatically
-inserted by xml2rfc, and it makes it tough to read the
-text. Please let us know if you would like to reformat the whole
-table (perhaps as a list) so that it does not contain line
-breaks.
-
-For example:
-
-JMAP Error Code: accountNotFound
-Intended Use: Common
-Change Controller: IETF
-Reference: RFC 8620, Section 3.6.2
-Description: [...]
-
-Alternatively, the descriptions could be cut from the table, and:
-
-A) they could be moved to paragraphs below the table (note that there
-would still be some line breaks in some of the cells) or
-
-B) the text could point to Sections 3.5.1 and 3.5.2 and Sections 5.1 to 5.6
-where the items are listed.
-
-For example:
-The registry is as follows; it also includes the descriptions of the JMAP
-Error Codes in Sections 3.5.1 and 3.5.2 and Sections 5.1 to 5.6.
-
-   + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -+
-   |  JMAP Error Code   | Intended | Change     |   Reference   |
-   |                    | Use      | Controller |               |
-   + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -+
-   |  accountNotFound   | common   |   IETF     | RFC 8620,     |
-   |                    |          |            | Section 3.6.2 |
-   |                    |          |            |               |
-   |                    |          |            |               |
-   |                    |          |            |               |
-   | accountNotSupporte | common   |   IETF     | RFC 8620,     |
-   |     dByMethod      |          |            | Section 3.6.2 |
-   |                    |          |            |
-
-Neil: Sure, please do reformat this; I agree it's hard to read in the current
-format. Probably the list format as you described above would be most readable.
-
--->
-
-<texttable>
+<!--<texttable>
 <ttcol align="center">JMAP Error Code</ttcol>
 <ttcol align="left">Intended Use</ttcol>
 <ttcol align="center">Change Controller</ttcol>
@@ -3048,22 +2713,12 @@ format. Probably the list format as you described above would be most readable.
 
 <c>accountNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The accountId does not correspond to a valid account.</c>
 <c>accountNotSupportedByMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The accountId given corresponds to a valid account, but the account does not support this method or data type.</c>
-<!-- [rfced] Instead of "would modify", we wonder whether this should read
-"This method call modifies state..."?
-
-Original (description for accountReadOnly):
-   This method call would modify state in an account that is read-only (as
-   returned on the corresponding Account object in the JMAP Session resource).
-
-Neil: I have tried to simplify this.
--->
 <c>accountReadOnly</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>This method modifies state, but the account is read-only (as returned on the corresponding Account object in the JMAP Session resource).</c>
 <c>anchorNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.5</c><c>An anchor argument was supplied, but it cannot be found in the results of the query.</c>
 <c>alreadyExists</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.4</c><c>The server forbids duplicates, and the record already exists in the target account. An existingId property of type Id MUST be included on the error object with the id of the existing record.</c>
 <c>cannotCalculateChanges</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.2 and 5.6</c><c>The server cannot calculate the changes from the state string given by the client.</c>
 <c>forbidden</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 3.5.2, 5.3, and 7.2.1</c><c>The action would violate an ACL or other permissions policy.</c>
-<c>fromAccountNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.4 and 6.3</c><c>The fromAccountId does not correspond to a valid account.</c>
-<c>fromAccountNotSupportedByMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.4</c><c>The fromAccountId given corresponds to a valid account, but the account does not support this data type.</c>
+<c>fromAccountNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.4 and 6.3</c><c>The fromAccountId does not correspond to a valid account.</c><c>fromAccountNotSupportedByMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.4</c><c>The fromAccountId given corresponds to a valid account, but the account does not support this data type.</c>
 <c>invalidArguments</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing.</c>
 <c>invalidPatch</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The PatchObject given to update the record was not a valid patch.</c>
 <c>invalidProperties</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The record given is invalid.</c>
@@ -3073,8 +2728,7 @@ Neil: I have tried to simplify this.
 <c>overQuota</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The create would exceed a server-defined limit on the number or total size of objects of this type.</c>
 <c>rateLimit</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>Too many objects of this type have been created recently, and a server-defined rate limit has been reached. It may work if tried again later.</c>
 <c>requestTooLarge</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.1 and
-5.3</c>
-<c>The total number of actions exceeds the maximum number the server is
+5.3</c><c>The total number of actions exceeds the maximum number the server is
 willing to process in a single method call.</c>
 <c>invalidResultReference</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The method used a result reference for one of its arguments, but this failed to resolve.</c>
 <c>serverFail</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>An unexpected or unknown error occurred during the processing of the call. The method call made no changes to the server's state.</c>
@@ -3088,8 +2742,257 @@ willing to process in a single method call.</c>
 <c>unknownMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The server does not recognise this method name.</c>
 <c>unsupportedFilter</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.5</c><c>The filter is syntactically valid, but the server cannot process it.</c>
 <c>unsupportedSort</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.5</c><c>The sort is syntactically valid but includes a property the server does not support sorting on or a collation method it does not recognise.</c>
+
 <c>willDestroy</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The client requested an object be both updated and destroyed in the same /set request, and the server has decided to therefore ignore the update.</c>
-</texttable>
+</texttable>-->
+
+<t><list style="symbols">
+<t>JMAP Error Code: accountNotFound<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="methodlevel-errors"/><vspace/>
+Description: The accountId does not correspond to a valid account.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: accountNotSupportedByMethod <vspace/>
+Intended Use: Common  <vspace/>
+Change Controller: IETF  <vspace/>
+Reference: RFC 8620, <xref target="methodlevel-errors"/><vspace/>
+Description: The accountId given corresponds to a valid account, but the account does not support this method or data type.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: accountReadOnly <vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="methodlevel-errors"/><vspace/>
+Description: This method modifies state, but the account is read-only (as returned on the corresponding Account object in the JMAP Session resource).</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: anchorNotFound<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="query"/><vspace/>
+Description: An anchor argument was supplied, but it cannot be found in the results of the query.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: alreadyExists<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="copy"/><vspace/>
+Description: The server forbids duplicates, and the record already exists in the target account. An existingId property of type Id MUST be included on the error object with the id of the existing record.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: cannotCalculateChanges<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, Sections <xref target="changes" format="counter"/> and <xref target="querychanges" format="counter"/><vspace/>
+Description: The server cannot calculate the changes from the state string given by the client.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: forbidden<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, Sections <xref target="methodlevel-errors" format="counter"/>, <xref target="set" format="counter"/>, and <xref target="pushsubscriptionget" format="counter"/><vspace/>
+Description: The action would violate an ACL or other permissions policy.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: fromAccountNotFound<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, Sections <xref target="copy" format="counter"/> and <xref target="blobcopy" format="counter"/><vspace/>
+Description: The fromAccountId does not correspond to a valid account.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: fromAccountNotSupportedByMethod<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="copy"/><vspace/>
+Description: The fromAccountId given corresponds to a valid account, but the account does not support this data type.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: invalidArguments<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="methodlevel-errors"/><vspace/>
+Description: One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: invalidPatch<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="set"/><vspace/>
+Description: The PatchObject given to update the record was not a valid patch.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: invalidProperties<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="set"/><vspace/>
+Description: The record given is invalid.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: notFound<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="set"/><vspace/>
+Description: The id given cannot be found.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: notJSON<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="requestlevel-errors"/><vspace/>
+Description: The content type of the request was not application/json, or the request did not parse as I-JSON.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: notRequest<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="requestlevel-errors"/><vspace/>
+Description: The request parsed as JSON but did not match the type signature of the Request object.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: overQuota<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="set"/><vspace/>
+Description: The create would exceed a server-defined limit on the number or total size of objects of this type.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: rateLimit<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="set"/><vspace/>
+Description: Too many objects of this type have been created recently, and a server-defined rate limit has been reached. It may work if tried again later.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: requestTooLarge<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, Sections <xref target="get" format="counter"/> and <xref target="set" format="counter"/><vspace/>
+Description: The total number of actions exceeds the maximum number the server is willing to process in a single method call.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: invalidResultReference<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="methodlevel-errors"/><vspace/>
+Description: The method used a result reference for one of its arguments, but this failed to resolve.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: serverFail<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="methodlevel-errors"/><vspace/>
+Description: An unexpected or unknown error occurred during the processing of the call. The method call made no changes to the server's state.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: serverPartialFail<vspace/>
+Intended Use: Limited <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="methodlevel-errors"/><vspace/>
+Description: Some, but not all, expected changes described by the method occurred. The client MUST resynchronise impacted data to determine the server state. Use of this error is strongly discouraged.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: serverUnavailable<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="methodlevel-errors"/><vspace/>
+Description: Some internal server resource was temporarily unavailable. Attempting the same operation later (perhaps after a backoff with a random factor) may succeed.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: singleton<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="set"/><vspace/>
+Description: This is a singleton type, so you cannot create another one or destroy the existing one.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: stateMismatch<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="set"/><vspace/>
+Description: An ifInState argument was supplied, and it does not match the current state.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: tooLarge<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="set"/><vspace/>
+Description: The action would result in an object that exceeds a server-defined limit for the maximum size of a single object of this type.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: tooManyChanges<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="querychanges"/><vspace/>
+Description: There are more changes than the client's maxChanges argument.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: unknownCapability<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="requestlevel-errors"/><vspace/>
+Description: The client included a capability in the "using" property of the request that the server does not support.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: unknownMethod<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620,  <xref target="methodlevel-errors"/><vspace/>
+Description: The server does not recognise this method name.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: unsupportedFilter<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="query"/><vspace/>
+Description: The filter is syntactically valid, but the server cannot process it.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: unsupportedSort<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="query"/><vspace/>
+Description: The sort is syntactically valid but includes a property the server does not support sorting on or a collation method it does not recognise.</t>
+</list></t>
+
+<t><list style="symbols">
+<t>JMAP Error Code: willDestroy<vspace/>
+Intended Use: Common <vspace/>
+Change Controller: IETF <vspace/>
+Reference: RFC 8620, <xref target="set"/><vspace/>
+Description: The client requested an object be both updated and destroyed in the same /set request, and the server has decided to therefore ignore the update.</t>
+</list></t>
 </section>
 </section>
 </section>
@@ -3108,21 +3011,6 @@ willing to process in a single method call.</c>
   </front>
  <seriesInfo name='World Wide Web Consortium' value='Recommendation REC-eventsource-20150203' />
 </reference>
-
-<!--[rfced] When referencing this document, it is not necessary
-to include a citation in the text or reference information in the
-References section; thus, we have removed the reference entry
-below from the Normative References section. Please let us know
-of any concerns.
-
-Original:
-   [I-D.ietf-jmap-core]
-         Jenkins, N. and C. Newman, "JSON Meta Application
-         Protocol", draft-ietf-jmap-core-14 (work in progress),
-         January 2019.
-
-Neil: No, that's fine, thanks.
--->
 
 <?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"?>
 <?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2782.xml"?>
@@ -3160,23 +3048,6 @@ Neil: No, that's fine, thanks.
 <references title="Informative References">
 <?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8246.xml"?>
 </references>
-
-
-<!-- [rfced] Throughout the text, the following terminology appears to be used
-inconsistently. Please review these occurrences and let us know if/how they
-may be made consistent.
-
-argument object vs. arguments object (singular vs. plural. Should 'argument' be capitalized?)
-
-Foo id vs. foo id
-
-Todo vs. todo
-
-URN vs. urn (e.g., jmap URN sub-namespace vs. jmap urn namespace)
-
-Neil: thanks, I have reviewed these and ensured they are consistent.
-
--->
 
 </back>
 </rfc>
