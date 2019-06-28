@@ -559,7 +559,7 @@ The *Foo/set* method takes the following arguments:
 - **destroy**: `Id[]|null`
   A list of ids for Foo objects to permanently delete, or `null` if no objects are to be destroyed.
 
-Each creation, modification, or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it MUST NOT only commit part of an update to a single record (e.g. update a *name* property but not a *count* property, if both are supplied in the update object).
+Each creation, modification, or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others, however it MUST NOT only commit part of an update to a single record (e.g., update a *name* property but not a *count* property, if both are supplied in the update object).
 
 The final state MUST be valid after the Foo/set is finished; however, the server may have to transition through invalid intermediate states (not exposed to the client) while processing the individual create/update/destroy requests. For example, suppose there is a "name" property that must be unique. A single method call could rename an object A => B and simultaneously rename another object B => A. If the final state is valid, this is allowed. Otherwise, each creation, modification, or destruction of an object should be processed sequentially and accepted/rejected based on the current server state.
 
