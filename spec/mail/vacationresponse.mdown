@@ -1,33 +1,32 @@
-# Vacation response
+# Vacation Response
 
-A vacation response automatically sends a reply to messages sent to a particular account, to inform the original sender that their message may not be read for some time. Automated message sending can produce undesirable behaviour. To avoid this, implementors MUST follow the recommendations set forth in [@!RFC3834].
+A vacation response automatically sends a reply to message to a particular account to inform the original sender that their message may not be read for some time. Automated message sending can produce undesirable behaviour. To avoid this, implementors MUST follow the recommendations set forth in [@!RFC3834].
 
-The **VacationResponse** object represents the state of vacation-response
-related settings for an account. It has the following properties:
+The **VacationResponse** object represents the state of vacation-response-related settings for an account. It has the following properties:
 
 - **id**: `Id` (immutable; server-set)
   The id of the object. There is only ever one vacation response object, and its id is `"singleton"`.
 - **isEnabled**: `Boolean`
   Should a vacation response be sent if an email arrives between the *fromDate* and *toDate*?
 - **fromDate**: `UTCDate|null`
-  If *isEnabled* is `true` emails that arrive on or after this date-time (but before the *toDate* if defined) should receive the user's vacation response. If `null`, the vacation response is effective immediately.
+  If *isEnabled* is `true`, emails that arrive on or after this date-time (but before the *toDate* if defined) should receive the user's vacation response. If `null`, the vacation response is effective immediately.
 - **toDate**: `UTCDate|null`
   If *isEnabled* is `true`, emails that arrive before this date-time (but on or after the *fromDate* if defined) should receive the user's vacation response. If `null`, the vacation response is effective indefinitely.
 - **subject**: `String|null`
   The subject that will be used by the message sent in response to emails when the vacation response is enabled. If `null`, an appropriate subject SHOULD be set by the server.
 - **textBody**: `String|null`
-  The plain text body to send in response to emails when the vacation response is enabled. If this is `null`, when the vacation message is sent a plain-text body part SHOULD be generated from the *htmlBody* but the server MAY choose to send the response as HTML only. If both *textBody* and *htmlBody* are `null`, an appropriate default body SHOULD be generated for responses by the server.
+  The plaintext body to send in response to emails when the vacation response is enabled. If this is `null`, when the vacation message is sent, a plaintext body part SHOULD be generated from the *htmlBody*, but the server MAY choose to send the response as HTML only. If both *textBody* and *htmlBody* are `null`, an appropriate default body SHOULD be generated for responses by the server.
 - **htmlBody**: `String|null`
-  The HTML body to send in response to emails when the vacation response is enabled. If this is `null`, when the vacation message is sent an HTML body part MAY be generated from the *textBody*, or the server MAY choose to send the response as plain-text only.
+  The HTML body to send in response to emails when the vacation response is enabled. If this is `null` when the vacation message is sent, an HTML body part MAY be generated from the *textBody*, or the server MAY choose to send the response as plaintext only.
 
-The following JMAP methods are supported:
+The following JMAP methods are supported.
 
 ## VacationResponse/get
 
-Standard "/get" method as described in [@!RFC8620] Section 5.1.
+Standard "/get" method as described in [@!RFC8620], Section 5.1.
 
 There MUST only be exactly one VacationResponse object in an account. It MUST have the id "singleton".
 
 ## VacationResponse/set
 
-Standard "/set" method as described in [@!RFC8620] Section 5.3.
+Standard "/set" method as described in [@!RFC8620], Section 5.3.

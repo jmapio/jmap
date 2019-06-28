@@ -1,15 +1,16 @@
 # Introduction
 
-JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
+The JSON Meta Application Protocol (JMAP) [@!RFC8620] is a generic protocol for synchronising data, such as mail, calendars, or contacts between a client and a server. It is optimised for mobile and web environments and aims to provide a consistent interface to different data types.
 
 This specification defines a data model for accessing a mail store over JMAP,
-allowing you to query, read, organise and submit mail for sending.
+allowing you to query, read, organise, and submit mail for sending.
 
 The data model is designed to allow a server to provide consistent access to
-the same data via IMAP ([@?RFC3501]) as well as JMAP. As in IMAP, a message
-must belong to a mailbox, however in JMAP its id does not change if you move it
-between mailboxes, and the server may allow it to belong to multiple mailboxes
-simultaneously (often exposed in a user agent as labels rather than folders).
+the same data via IMAP [@?RFC3501] as well as JMAP. As in IMAP, a message
+must belong to a mailbox; however, in JMAP, its id does not change if you move
+it between mailboxes, and the server may allow it to belong to multiple
+mailboxes simultaneously (often exposed in a user agent as labels rather than
+folders).
 
 As in IMAP, emails may also be assigned zero or more keywords: short arbitrary
 strings. These are primarily intended to store metadata to inform client
@@ -22,10 +23,10 @@ Clients may fetch the list of messages with a particular thread id to more
 easily present a threaded or conversational interface.
 
 Permissions for message access happen on a per-mailbox basis. Servers may give
-the user restricted permissions for certain mailboxes, for example if another
-user's inbox has been shared read-only with them.
+the user restricted permissions for certain mailboxes, for example, if another
+user's inbox has been shared as read-only with them.
 
-## Notational conventions
+## Notational Conventions
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
 
@@ -35,9 +36,9 @@ Servers MUST support all properties specified for the new data types defined in 
 
 ## Terminology
 
-The same terminology is used in this document as in the core JMAP specification.
+This document uses the same terminology as in the core JMAP specification.
 
-## Additions to the capabilities object
+## Additions to the Capabilities Object
 
 The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], Section 2.
 
@@ -47,23 +48,23 @@ This document defines three additional capability URIs.
 
 This represents support for the Mailbox, Thread, Email, and SearchSnippet data types and associated API methods. The value of this property in the JMAP session *capabilities* property is the empty object.
 
-The value of this property in an account's *accountCapabilities* property is an object which MUST contain the following information on server capabilities and permissions for that account:
+The value of this property in an account's *accountCapabilities* property is an object that MUST contain the following information on server capabilities and permissions for that account:
 
 - **maxMailboxesPerEmail**: `UnsignedInt|null`
   The maximum number of mailboxes that can be can assigned to a single Email object (see Section 4). This MUST be an integer >= 1, or `null` for no limit (or rather, the limit is always the number of mailboxes in the account).
 - **maxMailboxDepth**: `UnsignedInt|null`
-  The maximum depth of the mailbox hierarchy (i.e. one more than the maximum number of ancestors a mailbox may have), or `null` for no limit.
+  The maximum depth of the mailbox hierarchy (i.e., one more than the maximum number of ancestors a mailbox may have), or `null` for no limit.
 - **maxSizeMailboxName**: `UnsignedInt`
   The maximum length, in (UTF-8) octets, allowed for the name of a mailbox. This MUST be at least 100, although it is recommended servers allow more.
 - **maxSizeAttachmentsPerEmail**: `UnsignedInt`
-  The maximum total size of attachments, in octets, allowed for a single Email object. A server MAY still reject import or creation of emails with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
+  The maximum total size of attachments, in octets, allowed for a single Email object. A server MAY still reject the import or creation of emails with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
 
-    Note, this limit is for the sum of unencoded attachment sizes. Users are generally not knowledgeable about encoding overhead etc., nor should they need to be, so marketing and help materials normally tell them the "max size attachments". This is the unencoded size they see on their hard drive, and so this capability matches that and allows the client to consistently enforce what the user understands as the limit.
+    Note that this limit is for the sum of unencoded attachment sizes. Users are generally not knowledgeable about encoding overhead, etc., nor should they need to be, so marketing and help materials normally tell them the "max size attachments". This is the unencoded size they see on their hard drive, so this capability matches that and allows the client to consistently enforce what the user understands as the limit.
 
-    The server may separately have a limit for the total size of the RFC5322 message, which will have attachments Base64 encoded and message headers and bodies too. For example, suppose the server advertises `maxSizeAttachmentsPerEmail: 50000000` (50 MB). The enforced server limit may be for an RFC5322 size of 70000000 octets (70 MB). Even with Base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.
+    The server may separately have a limit for the total size of the message per RFC 5322, which will have attachments that are base64 encoded, as well as message headers and bodies. For example, suppose the server advertises `maxSizeAttachmentsPerEmail: 50000000` (50 MB). The enforced server limit may be for a size of 70000000 octets (70 MB) per RFC 5322. Even with base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.
 
 - **emailQuerySortOptions**: `String[]`
-  A list of all the values the server supports for the "property" field of the Comparator object in an Email/query sort (see Section 5.5). This MAY include properties the client does not recognise (for example custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
+  A list of all the values the server supports for the "property" field of the Comparator object in an Email/query sort (see Section 5.5). This MAY include properties the client does not recognise (for example, custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
 - **mayCreateTopLevelMailbox**: `Boolean`
   If `true`, the user may create a mailbox (see Section 2) in this account with
   a `null` parentId. (Permission for creating a child of an existing mailbox is given by the myRights property on that mailbox.)
@@ -72,7 +73,7 @@ The value of this property in an account's *accountCapabilities* property is an 
 
 This represents support for the Identity and MessageSubmission data types and associated API methods. The value of this property in the JMAP session *capabilities* property is the empty object.
 
-The value of this property in an account's *accountCapabilities* property is an object which MUST contain the following information on server capabilities and permissions for that account:
+The value of this property in an account's *accountCapabilities* property is an object that MUST contain the following information on server capabilities and permissions for that account:
 
 - **maxDelayedSend**: `UnsignedInt`
   The number in seconds of the maximum delay the server supports in sending
@@ -81,40 +82,41 @@ The value of this property in an account's *accountCapabilities* property is an 
 - **submissionExtensions**: `String[String[]]`
   The set of SMTP submission extensions supported by the server, which the client may use when creating an EmailSubmission object (see Section 7). Each key in the object is the *ehlo-name*, and the value is a list of *ehlo-args*.
 
-    A JMAP implementation that talks to a Submission [@!RFC6409] server SHOULD have a configuration setting that allows an administrator to modify the set of submission EHLO capabilities it may expose on this property. This allows a JMAP server to easily add access to a new submission extension without code changes. By default, the JMAP server should hide EHLO capabilities that are to do with the transport mechanism and thus are only relevant to the JMAP server (for example PIPELINING, CHUNKING, or STARTTLS).
+    A JMAP implementation that talks to a Submission server [@!RFC6409] SHOULD have a configuration setting that allows an administrator to modify the set of submission EHLO capabilities it may expose on this property. This allows a JMAP server to easily add access to a new submission extension without code changes. By default, the JMAP server should hide EHLO capabilities that have to do with the transport mechanism and thus are only relevant to the JMAP server (for example, PIPELINING, CHUNKING, or STARTTLS).
 
     Examples of Submission extensions to include:
 
-    - FUTURERELEASE ([@!RFC4865])
-    - SIZE ([@!RFC1870])
-    - DSN ([@!RFC3461])
-    - DELIVERYBY ([@!RFC2852])
-    - MT-PRIORITY ([@!RFC6710])
+    - FUTURERELEASE [@!RFC4865]
+    - SIZE [@!RFC1870]
+    - DSN [@!RFC3461]
+    - DELIVERYBY [@!RFC2852]
+    - MT-PRIORITY [@!RFC6710]
 
     A JMAP server MAY advertise an extension and implement the semantics of that extension locally on the JMAP server even if a submission server used by JMAP doesn't implement it.
 
-    The full IANA registry of submission extensions can be found at <https://www.iana.org/assignments/mail-parameters/mail-parameters.xhtml#mail-parameters-2>.
+    The full IANA registry of submission extensions can be found at
+    <https://www.iana.org/assignments/mail-parameters>.
 
 ### urn:ietf:params:jmap:vacationresponse
 
 This represents support for the VacationResponse data type and associated API methods. The value of this property is an empty object in both the JMAP session *capabilities* property and an account's *accountCapabilities* property.
 
-## Data type support in different accounts
+## Data Type Support in Different Accounts
 
-The server MUST include the appropriate capability strings as keys in the *accountCapabilities* property of any account with which the user may use the data types represented by that URI. Supported data types may differ between accounts the user has access to. For example, in the user's personal account they may have access to all three sets of data, but in a shared account they may only have data for `urn:ietf:params:jmap:mail`. This means they can access Mailbox/Thread/Email data in the shared account but are not allowed to send as that account (and so do not have access to Identity/MessageSubmission objects) or view/set its vacation response.
+The server MUST include the appropriate capability strings as keys in the *accountCapabilities* property of any account with which the user may use the data types represented by that URI. Supported data types may differ between accounts the user has access to. For example, in the user's personal account, they may have access to all three sets of data, but in a shared account, they may only have data for `urn:ietf:params:jmap:mail`. This means they can access Mailbox/Thread/Email data in the shared account but are not allowed to send as that account (and so do not have access to Identity/MessageSubmission objects) or view/set its vacation response.
 
 ## Push
 
 Servers MUST support the JMAP push mechanisms, as specified in [@!RFC8620] Section 7, to receive notifications when the state changes for any of the types defined in this specification.
 
-In addition, servers that implement the "urn:ietf:params:jmap:mail" capability MUST support pushing state changes for a type called "EmailDelivery". There are no methods to act on this type; it only exists as part of the push mechanism. The state string for this MUST change whenever a new Email is added to the store, but SHOULD NOT change upon any other change to the Email objects, for example if one is marked as read or deleted.
+In addition, servers that implement the "urn:ietf:params:jmap:mail" capability MUST support pushing state changes for a type called "EmailDelivery". There are no methods to act on this type; it only exists as part of the push mechanism. The state string for this MUST change whenever a new Email is added to the store, but it SHOULD NOT change upon any other change to the Email objects, for example, if one is marked as read or deleted.
 
-Clients in battery constrained environments may wish to delay fetching changes initiated by the user, but fetch new messages immediately so they can notify the user. To do this, they can register for pushes for the EmailDelivery type rather than the Email type (defined in Section 4).
+Clients in battery-constrained environments may wish to delay fetching changes initiated by the user but fetch new messages immediately so they can notify the user. To do this, they can register for pushes for the EmailDelivery type rather than the Email type (as defined in Section 4).
 
 ### Example
 
-The client has registered for push notifications (see [@!RFC8620]) just for the `EmailDelivery` type. The user marks an email as read on another device, causing the state string for the `Email` type to change, however as nothing new was added to the store the `EmailDelivery` state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the `Email` state to change. This time the `EmailDelivery` state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new message immediately.
+The client has registered for push notifications (see [@!RFC8620]) just for the `EmailDelivery` type. The user marks an email as read on another device, causing the state string for the `Email` type to change; however, as nothing new was added to the store, the `EmailDelivery` state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the `Email` state to change. This time, the `EmailDelivery` state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new message immediately.
 
 ## Ids
 
-If a JMAP Mail server also provides an IMAP interface to the data and supports [@!RFC8474] IMAP Extension for Object Identifiers, the ids SHOULD be the same for mailbox, thread, and email objects in JMAP.
+If a JMAP Mail server also provides an IMAP interface to the data and supports IMAP Extension for Object Identifiers [@!RFC8474], the ids SHOULD be the same for mailbox, thread, and Email objects in JMAP.

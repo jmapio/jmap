@@ -1,6 +1,6 @@
-# Search snippets
+# Search Snippets
 
-When doing a search on a `String` property, the client may wish to show the relevant section of the body that matches the search as a preview instead of the beginning of the message, and to highlight any matching terms in both this and the subject of the email. Search snippets represent this data.
+When doing a search on a `String` property, the client may wish to show the relevant section of the body that matches the search as a preview instead of as the beginning of the message and to highlight any matching terms in both this and the subject of the email. Search snippets represent this data.
 
 A **SearchSnippet** object has the following properties:
 
@@ -9,19 +9,19 @@ A **SearchSnippet** object has the following properties:
 - **subject**: `String|null`
   If text from the filter matches the subject, this is the subject of the email with the following transformations:
 
-    1. Any instance of the following three characters MUST be replaced by an appropriate [@!HTML] entity: & (ampersand), < (less-than sign), and > (greater-than sign). Other characters MAY also be replaced with an HTML entity form.
+    1. Any instance of the following three characters MUST be replaced by an appropriate entity: & (ampersand), < (less-than sign), and > (greater-than sign) [@!HTML]. Other characters MAY also be replaced with an HTML entity form.
 
     2. The matching words/phrases from the filter are wrapped in HTML `<mark></mark>` tags.
 
     If the subject does not match text from the filter, this property is `null`.
 - **preview**: `String|null`
-  If text from the filter matches the plain-text or HTML body, this is the relevant section of the body (converted to plain text if originally HTML), with the same transformations as the *subject* property. It MUST NOT be bigger than 255 octets in size. If the body does not contain a match for the text from the filter, this property is `null`.
+  If text from the filter matches the plaintext or HTML body, this is the relevant section of the body (converted to plaintext if originally HTML), with the same transformations as the *subject* property. It MUST NOT be bigger than 255 octets in size. If the body does not contain a match for the text from the filter, this property is `null`.
 
-It is server-defined what is a relevant section of the body for preview. If the server is unable to determine search snippets, it MUST return `null` for both the *subject* and *preview* properties.
+What is a relevant section of the body for preview is server defined. If the server is unable to determine search snippets, it MUST return `null` for both the *subject* and *preview* properties.
 
-Note, unlike most data types, a SearchSnippet DOES NOT have a property called `id`.
+Note that unlike most data types, a SearchSnippet DOES NOT have a property called `id`.
 
-The following JMAP method is supported:
+The following JMAP method is supported.
 
 ## SearchSnippet/get
 
@@ -41,7 +41,7 @@ The response has the following arguments:
 - **list**: `SearchSnippet[]`
   An array of SearchSnippet objects for the requested email ids. This may not be in the same order as the ids that were in the request.
 - **notFound**: `Id[]|null`
-  An array of email ids requested which could not be found, or `null` if all
+  An array of email ids requested that could not be found, or `null` if all
   ids were found.
 
 As the search snippets are derived from the message content and the algorithm for doing so could change over time, fetching the same snippets a second time MAY return a different result. However, the previous value is not considered incorrect, so there is no state string or update mechanism needed.
@@ -54,7 +54,7 @@ The following standard errors may be returned instead of the *searchSnippets* re
 
 ## Example
 
-Here we did an Email/query to search for any email in the account containing the word "foo", now we are fetching the search snippets for some of the ids that were returned in the results:
+Here, we did an Email/query to search for any email in the account containing the word "foo"; now, we are fetching the search snippets for some of the ids that were returned in the results:
 
     [[ "SearchSnippet/get", {
       "accountId": "ue150411c",

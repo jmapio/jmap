@@ -1,23 +1,23 @@
-# Security considerations
+# Security Considerations
 
 All security considerations of JMAP ([@!RFC8620]) apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.
 
-## EmailBodyPart value
+## EmailBodyPart Value
 
-Service providers typically perform security filtering on incoming email and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for *EmailBodyValue* SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mailbox host.
+Service providers typically perform security filtering on incoming email, and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for *EmailBodyValue* SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mailbox host.
 
-Automatic conversion of charsets that allow hidden channels for ASCII text, such as UTF-7, have been problematic for security filters in the past so server implementations can mitigate this risk by having such conversions  off-by-default and/or separately configurable.
+Automatic conversion of charsets that allow hidden channels for ASCII text, such as UTF-7, have been problematic for security filters in the past, so server implementations can mitigate this risk by having such conversions  off-by-default and/or separately configurable.
 
-To allow the client to restrict the volume of data it can receive in response to a request, a maximum length may be requested for the data returned for a textual body part. However, truncating the data may change the semantic meaning, for example truncating a URL changes its location. Servers that scan for links to malicious sites should take care to either ensure truncation is not at a semantically significant point, or to rescan the truncated value for malicious content before returning it.
+To allow the client to restrict the volume of data it can receive in response to a request, a maximum length may be requested for the data returned for a textual body part. However, truncating the data may change the semantic meaning, for example, truncating a URL changes its location. Servers that scan for links to malicious sites should take care to either ensure truncation is not at a semantically significant point or rescan the truncated value for malicious content before returning it.
 
-## HTML email display
+## HTML Email Display
 
-HTML message bodies provide richer formatting for emails but present a number of security challenges, especially when embedded in a webmail context in combination with interface HTML. Clients that render HTML email should make careful consideration of the potential risks, including:
+HTML message bodies provide richer formatting for emails but present a number of security challenges, especially when embedded in a webmail context in combination with interface HTML. Clients that render HTML emails should carefully consider the potential risks, including:
 
 * Embedded JavaScript can rewrite the email to change its content on subsequent
-  opening, allowing users to be mislead. In webmail systems, if run in the same origin as the interface it can access and exfiltrate all private data accessible to the user, including all other emails and potentially contacts, calendar events, settings, and credentials. It can also rewrite the interface to undetectably phish passwords. A compromise is likely to be persistent, not just for the duration of page load, due to exfiltration of session credentials or installation of a service worker that can intercept all subsequent network requests (this however would only be possible if blob downloads are also available on the same origin, and the service worker script is attached to the message).
-* HTML documents may load content directly from the internet, rather than just
-  referencing attached resources. For example you may have an `<img>` tag with an external `src` attribute. This may leak to the sender when a message is opened, as well as the IP address of the recipient. Cookies may also be sent and set by the server, allowing tracking between different emails and even website visits and advertising profiles.
+  opening, allowing users to be mislead. In webmail systems, if run in the same origin as the interface, it can access and exfiltrate all private data accessible to the user, including all other emails and potentially contacts, calendar events, settings, and credentials. It can also rewrite the interface to undetectably phish passwords. A compromise is likely to be persistent, not just for the duration of page load, due to exfiltration of session credentials or installation of a service worker that can intercept all subsequent network requests (however, this would only be possible if blob downloads are also available on the same origin, and the service worker script is attached to the message).
+* HTML documents may load content directly from the Internet, rather than just
+  referencing attached resources. For example, you may have an `<img>` tag with an external `src` attribute. This may leak to the sender when a message is opened, as well as the IP address of the recipient. Cookies may also be sent and set by the server, allowing tracking between different emails and even website visits and advertising profiles.
 * In webmail systems, CSS can break the layout or create phishing
   vulnerabilities. For example, the use of `position:fixed` can allow an email to draw content outside of its normal bounds, potentially clickjacking a real interface element.
 * If in a webmail context and not inside a separate frame, any styles defined in
@@ -32,16 +32,16 @@ HTML message bodies provide richer formatting for emails but present a number of
 There are a number of ways clients can mitigate these issues, and a defence-in-depth approach that uses a combination of techniques will provide the strongest security.
 
 * HTML can be filtered before rendering, stripping potentially malicious
-  content. Sanitizing HTML correctly is tricky, and implementers are strongly recommended to use a well-tested library with a carefully vetted whitelist-only approach. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
+  content. Sanitizing HTML correctly is tricky, and implementors are strongly recommended to use a well-tested library with a carefully vetted whitelist-only approach. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
 
-  Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accuracy you need to use the same parser when sanitizing that the HTML rendering engine will use.
+  Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accuracy, you need to use the same parser when sanitizing what the HTML rendering engine will use.
 
 * Encapsulating the message in an `<iframe sandbox>`, as defined in [@!HTML],
   Section 4.7.6, can help mitigate a number of risks. This will:
 
   * Disable JavaScript.
   * Disable form submission.
-  * Prevent drawing outside of its bounds, or conflict with interface CSS.
+  * Prevent drawing outside of its bounds or conflicting with interface CSS.
   * Establish a unique anonymous origin, separate to the containing origin.
 
 * A strong [Content Security Policy](https://www.w3.org/TR/CSP3/) can, among
@@ -57,11 +57,11 @@ There are a number of ways clients can mitigate these issues, and a defence-in-d
   to ensure the page that opens cannot change the URL in the original tab to
   redirect the user to a phishing site.
 
-As highly complex software components, HTML rendering engines increase the attack surface of a client considerably, especially when being used to process untrusted, potentially malicious content. Serious bugs have been found in image decoders, JavaScript engines and HTML parsers in the past, which could lead to full system compromise. Clients using an engine should ensure they get the latest version and continue to incorporate any security patches released by the vendor.
+As highly complex software components, HTML rendering engines increase the attack surface of a client considerably, especially when being used to process untrusted, potentially malicious content. Serious bugs have been found in image decoders, JavaScript engines, and HTML parsers in the past, which could lead to full system compromise. Clients using an engine should ensure they get the latest version and continue to incorporate any security patches released by the vendor.
 
-## Multiple part display
+## Multiple Part Display
 
-Messages may consist of multiple parts to be displayed sequentially as a body. Clients MUST render each part in isolation and MUST NOT concatenate the raw text values to render. Doing so may change the overall semantics of the message. If the client or server is decrypting a PGP or S/MIME encrypted part, concatenating with other parts may leak the decrypted text to an attacker, as described in [@?EFAIL].
+Messages may consist of multiple parts to be displayed sequentially as a body. Clients MUST render each part in isolation and MUST NOT concatenate the raw text values to render. Doing so may change the overall semantics of the message. If the client or server is decrypting a Pretty Good Privacy (PGP) or S/MIME encrypted part, concatenating with other parts may leak the decrypted text to an attacker, as described in [@?EFAIL].
 
 <reference anchor='EFAIL' target='https://www.usenix.org/system/files/conference/usenixsecurity18/sec18-poddebniak.pdf'>
     <front>
@@ -94,9 +94,9 @@ Messages may consist of multiple parts to be displayed sequentially as a body. C
     </front>
 </reference>
 
-## Email submission
+## Email Submission
 
-SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters (mail filters) and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP Submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de-facto [@?XCLIENT] extension to SMTP can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorized proxies.
+SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters (mail filters), and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de facto extension to SMTP [@?XCLIENT] can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorised proxies.
 
 <reference anchor='XCLIENT' target='http://www.postfix.org/XCLIENT_README.html'>
     <front>
@@ -108,9 +108,9 @@ SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damag
     </front>
 </reference>
 
-JMAP servers that proxy to an SMTP Submission server SHOULD allow use of the *submissions* port [@!RFC8314]. Implementation of a mechanism similar to SMTP XCLIENT is strongly encouraged. While SASL PLAIN over TLS [@!RFC4616] is presently the mandatory-to-implement mechanism for interoperability with SMTP submission servers [@!RFC4954], a JMAP submission proxy SHOULD implement and prefer a stronger mechanism for this use case such as TLS client certificate authentication with SASL EXTERNAL ([@!RFC4422] appendix A) or SCRAM [@!RFC7677].
+JMAP servers that proxy to an SMTP submission server SHOULD allow use of the *submissions* port [@!RFC8314]. Implementation of a mechanism similar to SMTP XCLIENT is strongly encouraged. While Simple Authentication and Security Layer (SASL) PLAIN over TLS [@!RFC4616] is presently the mandatory-to-implement mechanism for interoperability with SMTP submission servers [@!RFC4954], a JMAP submission proxy SHOULD implement and prefer a stronger mechanism for this use case such as TLS client certificate authentication with SASL EXTERNAL ([@!RFC4422], Appendix A) or Salted Challenge Response Authentication Mechanism (SCRAM) [@!RFC7677].
 
-In the event the JMAP server directly relays mail to SMTP servers in other administrative domains, then implementation of the de-facto [@?milter] protocol is strongly encouraged to integrate with third-party products that address security issues including anti-virus/anti-spam, reputation protection, compliance archiving, and data loss prevention. Proxying to a local SMTP Submission server may be a simpler way to provide such security services.
+In the event the JMAP server directly relays mail to SMTP servers in other administrative domains, implementation of the de facto [@?milter] protocol is strongly encouraged to integrate with third-party products that address security issues including anti-virus/anti-spam, reputation protection, compliance archiving, and data loss prevention. Proxying to a local SMTP submission server may be a simpler way to provide such security services.
 
 <reference anchor='milter' target='http://www.postfix.org/MILTER_README.html'>
     <front>
@@ -122,17 +122,17 @@ In the event the JMAP server directly relays mail to SMTP servers in other admin
     </front>
 </reference>
 
-## Partial account access
+## Partial Account Access
 
-A user may only have permission to access a subset of the data that exists in an account. To avoid leaking unauthorised information, in such a situation the server MUST treat any data the user does not have permission to access the same as if it did not exist.
+A user may only have permission to access a subset of the data that exists in an account. To avoid leaking unauthorised information, in such a situation, the server MUST treat any data the user does not have permission to access the same as if it did not exist.
 
-For example, suppose user A has an account with two mailboxes, Inbox and Sent, but only shares the Inbox with user B. In this case, when user B fetches mailboxes for this account, the server MUST behave as though the Sent mailbox did not exist. Similarly when querying or fetching Email objects, it MUST treat any messages that just belong to the Sent mailbox as though they did not exist. Fetching Thread objects MUST only return ids for Email objects the user has permission to access; if none, the Thread again MUST be treated the same as if it did not exist.
+For example, suppose user A has an account with two mailboxes, Inbox and Sent, but only shares the Inbox with user B. In this case, when user B fetches mailboxes for this account, the server MUST behave as though the Sent mailbox did not exist. Similarly, when querying or fetching Email objects, it MUST treat any messages that just belong to the Sent mailbox as though they did not exist. Fetching Thread objects MUST only return ids for Email objects the user has permission to access; if none, the Thread again MUST be treated the same as if it did not exist.
 
-If the server forbids a single account from having two identical messages, or two messages with the same `Message-Id` header field, a user with write access can use the error returned trying to create/import such a message to detect whether it already exists in an inaccessible portion of the account.
+If the server forbids a single account from having two identical messages, or two messages with the same `Message-Id` header field, a user with write access can use the error returned by trying to create/import such a message to detect whether it already exists in an inaccessible portion of the account.
 
-## Permission to send from an address
+## Permission to Send from an Address
 
-The email ecosystem has in recent years moved towards associating trust with the From address in the [@!RFC5322] message, particularly with schemes such as DMARC ([@?RFC7489]).
+In recent years, the email ecosystem has moved towards associating trust with the From address in the message [@!RFC5322], particularly with schemes such as Domain-based Message Authentication, Reporting, and Conformance (DMARC) ([@?RFC7489]).
 
 The set of Identity objects (see Section 6) in an account lets the client know which email addresses the user has permission to send from. Each email submission is associated with an identity, and servers SHOULD reject submissions where the `From` header field of the email does not correspond to the associated identity.
 
@@ -140,6 +140,6 @@ The server MAY allow an exception to send an exact copy of an existing message r
 
 If the user attempts to create a new Identity, the server MUST reject it with the appropriate error if the user does not have permission to use that email address to send from.
 
-The [@!RFC5321] SMTP MAIL FROM address is often confused with the [@!RFC5322] message header. The user generally only ever sees the message header address, and this is the primary one to enforce. However the server MUST also enforce appropriate restrictions on the [@!RFC5321] MAIL FROM address to stop the user from flooding a 3rd party address with bounces and non-delivery notices.
+The SMTP MAIL FROM address [@!RFC5321] is often confused with the message header [@!RFC5322]. The user generally only ever sees the message header address, and this is the primary one to enforce. However, the server MUST also enforce appropriate restrictions on the MAIL FROM address [@!RFC5321] to stop the user from flooding a third-party address with bounces and non-delivery notices.
 
 The JMAP submission model provides separate errors for impermissible addresses in either context.

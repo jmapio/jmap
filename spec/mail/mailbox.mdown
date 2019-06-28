@@ -9,15 +9,15 @@ A **Mailbox** object has the following properties:
 - **id**: `Id` (immutable; server-set)
   The id of the mailbox.
 - **name**: `String`
-  User-visible name for the mailbox, e.g. "Inbox". This MUST be a Net-Unicode string ([@!RFC5198]) of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing slash (/) or control characters).
+  User-visible name for the mailbox, e.g., "Inbox". This MUST be a Net-Unicode string [@!RFC5198] of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing a slash (/) or control characters).
 - **parentId**: `Id|null` (default: null)
   The mailbox id for the parent of this mailbox, or `null` if this mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.
 - **role**: `String|null` (default: null)
-  Identifies mailboxes that have a particular common purpose (e.g. the "inbox"), regardless of the *name* (which may be localised).
+  Identifies mailboxes that have a particular common purpose (e.g., the "inbox"), regardless of the *name* (which may be localised).
 
-    This value is shared with IMAP (exposed in IMAP via the [@!RFC6154] SPECIAL-USE extension). However, unlike in IMAP, a mailbox MUST only have a single role, and there MUST NOT be two mailboxes in the same account with the same role. Servers providing IMAP access to the same data are encouraged to enforce these extra restrictions in IMAP as well. Otherwise, it is implementation dependent how to modify the IMAP attributes to ensure compliance when exposing the data over JMAP.
+    This value is shared with IMAP (exposed in IMAP via the SPECIAL-USE extension [@!RFC6154]). However, unlike in IMAP, a mailbox MUST only have a single role, and there MUST NOT be two mailboxes in the same account with the same role. Servers providing IMAP access to the same data are encouraged to enforce these extra restrictions in IMAP as well. Otherwise, modifying the IMAP attributes to ensure compliance when exposing the data over JMAP is implementation dependent.
 
-    The value MUST be one of the mailbox attribute names listed in the [IANA IMAP Mailbox Name Attributes Registry](https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml), as established in [@!RFC8457], converted to lower-case. New roles may be established here in the future.
+    The value MUST be one of the mailbox attribute names listed in the [IANA IMAP Mailbox Name Attributes](https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml) registry, as established in [@!RFC8457], converted to lowercase. New roles may be established here in the future.
 
     An account is not required to have mailboxes with any particular roles.
 
@@ -40,20 +40,20 @@ A **Mailbox** object has the following properties:
     For compatibility with existing implementations, the way "unread threads" is
     determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this mailbox and has neither the `$seen` nor `$draft` keywords.
 
-    However, a quality implementation will return the number of unread items the user would see if they opened that mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore `unreadThreads` should be the number of threads where at least one email in the thread has neither the `$seen` nor the `$draft` keyword AND at least one email in the thread is in this mailbox. Note, the unread email does not need to be the one in this mailbox. In addition, the Trash mailbox (that is a mailbox whose `role` is `trash`) is treated specially:
+    However, a quality implementation will return the number of unread items the user would see if they opened that mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, `unreadThreads` should be the number of threads where at least one email in the thread has neither the `$seen` nor the `$draft` keyword AND at least one email in the thread is in this mailbox. Note that the unread email does not need to be the one in this mailbox. In addition, the Trash mailbox (that is, a mailbox whose `role` is `trash`) is treated as special:
 
     1. Emails that are **only** in the Trash (and no other mailbox) are ignored when calculating the `unreadThreads` count of other mailboxes.
     2. Emails that are **not** in the Trash are ignored when calculating the `unreadThreads` count for the Trash mailbox.
 
-    The result of this is that emails in the Trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the Trash when viewing a thread in another mailbox and vice versa. This allows you to delete a single email to the Trash out of a thread.
+    The result of this is that emails in the Trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the Trash when viewing a thread in another mailbox, and vice versa. This allows you to delete a single email to the Trash out of a thread.
 
-    So for example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the Trash and a read email in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
+    For example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the Trash and a read email in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
 
 - **myRights**: `MailboxRights` (server-set)
-  The set of rights (ACLs) the user has in relation to this mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A *MailboxRights* object has the following properties:
+  The set of rights (Access Control Lists (ACLs)) the user has in relation to this mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A *MailboxRights* object has the following properties:
 
     - **mayReadItems**: `Boolean`
-      If true, the user may use this mailbox as part of a filter in a *Email/query* call and the mailbox may be included in the *mailboxIds* set of *Email* objects. Email objects may be fetched if they are in **at least one** mailbox with this permission. If a sub-mailbox is shared but not the parent mailbox, this may be `false`. Corresponds to IMAP ACLs `lr` (if mapping from IMAP, both are required for this to be `true`).
+      If true, the user may use this mailbox as part of a filter in an *Email/query* call, and the mailbox may be included in the *mailboxIds* set of *Email* objects. Email objects may be fetched if they are in **at least one** mailbox with this permission. If a sub-mailbox is shared but not the parent mailbox, this may be `false`. Corresponds to IMAP ACLs `lr` (if mapping from IMAP, both are required for this to be `true`).
     - **mayAddItems**: `Boolean`
       The user may add mail to this mailbox (by either creating a new email or moving an existing one). Corresponds to IMAP ACL `i`.
     - **mayRemoveItems**: `Boolean`
@@ -72,35 +72,35 @@ A **Mailbox** object has the following properties:
       Messages may be submitted directly to this mailbox. Corresponds to IMAP ACL `p`.
 
 - **isSubscribed**: `Boolean`
-  Has the user indicated they wish to see this mailbox in their client? This SHOULD default to `false` for mailboxes in shared accounts the user has access to, and `true` for any new mailboxes created by the user themself. This MUST be stored separately per-user where multiple users have access to a shared mailbox.
+  Has the user indicated they wish to see this mailbox in their client? This SHOULD default to `false` for mailboxes in shared accounts the user has access to and `true` for any new mailboxes created by the user themself. This MUST be stored separately per user where multiple users have access to a shared mailbox.
 
-    A user may have permission to access a large number of shared accounts, or a shared account with a very large set of mailboxes, but only be interested in the contents of a few of these. Clients may choose only to display mailboxes to the user that have the `isSubscribed` property set to `true`, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation, or just for an account where `isPersonal` is `true` (indicating it is the user's own, rather than a shared account).
+    A user may have permission to access a large number of shared accounts, or a shared account with a very large set of mailboxes, but only be interested in the contents of a few of these. Clients may choose to only display mailboxes to the users that have the `isSubscribed` property set to `true`, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation or just for an account where `isPersonal` is `true` (indicating it is the user's own rather than a shared account).
 
-    This property corresponds to IMAP ([@?RFC3501]) mailbox subscriptions.
+    This property corresponds to IMAP [@?RFC3501] mailbox subscriptions.
 
-For IMAP compatibility, an email in both the Trash and another mailbox SHOULD be treated by the client as existing in both places (i.e. when emptying the trash, the client should just remove the Trash mailbox and leave it in the other mailbox).
+For IMAP compatibility, an email in both the Trash and another mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the Trash mailbox and leave it in the other mailbox).
 
-The following JMAP methods are supported:
+The following JMAP methods are supported.
 
 ## Mailbox/get
 
-Standard "/get" method as described in [@!RFC8620] Section 5.1. The *ids* argument may be `null` to fetch all at once.
+Standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
 
 ## Mailbox/changes
 
-Standard "/changes" method as described in [@!RFC8620] Section 5.2, but with one extra argument to the response:
+Standard "/changes" method as described in [@!RFC8620], Section 5.2 but with one extra argument to the response:
 
 - **updatedProperties**: `String[]|null`
-  If only the mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e. `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
+  If only the mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e., `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
-Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separately to other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same single request so only these properties are returned if nothing else has changed.
+Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separately to other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same single request, so only these properties are returned if nothing else has changed.
 
 ## Mailbox/query
 
-Standard "/query" method as described in [@!RFC8620] Section 5.5, but with the following additional request argument:
+Standard "/query" method as described in [@!RFC8620], Section 5.5, but with the following additional request argument:
 
 - **sortAsTree**: `Boolean` (default: false)
-  If `true`, when sorting the query results and comparing two mailboxes a and b:
+  If `true`, when sorting the query results and comparing mailboxes a and b:
 
     - If a is an ancestor of b, it always comes first regardless of the *sort*
       comparators. Similarly, if a is descendant of b, then b always comes
@@ -136,14 +136,14 @@ The following Mailbox properties MUST be supported for sorting:
 
 ## Mailbox/queryChanges
 
-Standard "/queryChanges" method as described in [@!RFC8620] Section 5.6.
+Standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
 
 ## Mailbox/set
 
-Standard "/set" method as described in [@!RFC8620] Section 5.3, but with the following additional request argument:
+Standard "/set" method as described in [@!RFC8620], Section 5.3, but with the following additional request argument:
 
 - **onDestroyRemoveMessages**: `Boolean` (default: false)
-  If `false`, any attempt to destroy a mailbox that still has messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the mailbox will be removed from it, and if in no other mailboxes will be destroyed when the mailbox is destroyed.
+  If `false`, any attempt to destroy a mailbox that still has messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the mailbox will be removed from it, and if in no other mailboxes, they will be destroyed when the mailbox is destroyed.
 
 The following extra *SetError* types are defined:
 
@@ -151,7 +151,7 @@ For **destroy**:
 
 - `mailboxHasChild`: The mailbox still has at least one child mailbox. The
   client MUST remove these before it can delete the parent mailbox.
-- `mailboxHasEmail`: The mailbox has at least one message assigned to it and
+- `mailboxHasEmail`: The mailbox has at least one message assigned to it, and
   the *onDestroyRemoveMessages* argument was `false`.
 
 ## Example
@@ -163,7 +163,7 @@ Fetching all mailboxes in an account:
       "ids": null
     }, "0" ]]
 
-And response:
+And the response:
 
     [[ "Mailbox/get", {
       "accountId": "u33084183",
@@ -198,7 +198,7 @@ And response:
       "notFound": []
     }, "0" ]]
 
-Now suppose a message is marked read and we get a push update that the Mailbox state has changed. You might fetch the updates like this:
+Now suppose a message is marked read, and we get a push update that the Mailbox state has changed. You might fetch the updates like this:
 
     [[ "Mailbox/changes", {
       "accountId": "u33084183",
@@ -226,7 +226,7 @@ Now suppose a message is marked read and we get a push update that the Mailbox s
       }
     }, "2" ]]
 
-This fetches the list of ids for created/updated/destroyed mailboxes, then using back-references fetches the data for just the created/updated mailboxes in the same request. The response may look something like this:
+This fetches the list of ids for created/updated/destroyed mailboxes, then using back-references, it fetches the data for just the created/updated mailboxes in the same request. The response may look something like this:
 
     [[ "Mailbox/changes", {
       "accountId": "u33084183",
@@ -273,7 +273,7 @@ Here's an example where we try to rename one mailbox and destroy another:
       "destroy": [ "MB23cfa8094c0f41e6" ]
     }, "0" ]]
 
-Suppose the rename succeeds, but we don't have permission to destroy the mailbox we tried to destroy, we might get back:
+Suppose the rename succeeds, but we don't have permission to destroy the mailbox we tried to destroy; we might get back:
 
     [[ "Mailbox/set", {
       "accountId": "u33084183",

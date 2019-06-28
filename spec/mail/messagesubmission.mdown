@@ -1,4 +1,4 @@
-# Email submission
+# Email Submission
 
 An **EmailSubmission** object represents the submission of an email for delivery to one or more recipients. It has the following properties:
 
@@ -7,7 +7,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
 - **identityId**: `Id` (immutable)
   The id of the identity to associate with this submission.
 - **emailId**: `Id` (immutable)
-  The id of the email to send. The email being sent does not have to be a draft, for example when "redirecting" an existing email to a different address.
+  The id of the email to send. The email being sent does not have to be a draft, for example, when "redirecting" an existing email to a different address.
 - **threadId**: `Id` (immutable; server-set)
   The thread id of the email to send. This is set by the server to the *threadId* property of the email referenced by the *emailId*.
 - **envelope**: `Envelope|null` (immutable)
@@ -19,7 +19,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
       The email address to use as the return address in the SMTP submission, plus any parameters to pass with the MAIL FROM address. The JMAP server MAY allow the address to be the empty string.
 
         When a JMAP server performs an SMTP message submission, it MAY use the
-        same id string for the [@!RFC3461] ENVID parameter and the
+        same id string for the ENVID parameter [@!RFC3461] and the
         EmailSubmission object id. Servers that do this MAY replace a
         client-provided value for ENVID with a server-provided value.
 
@@ -31,24 +31,24 @@ An **EmailSubmission** object represents the submission of an email for delivery
     - **email**: `String`
       The email address being represented by the object. This is a "Mailbox" as used in the Reverse-path or Forward-path of the MAIL FROM or RCPT TO command in [@!RFC5321].
     - **parameters**: `Object|null`
-      Any parameters to send with the email (either mail-parameter or rcpt-parameter as appropriate, as specified in [@!RFC5321]). If supplied, each key in the object is a parameter name, and the value either the parameter value (type `String`) or if the parameter does not take a value then `null`. For both name and value, any xtext or unitext encodings are removed ([@!RFC3461], [@!RFC6533]) and JSON string encoding applied.
+      Any parameters to send with the email (either mail-parameter or rcpt-parameter as appropriate, as specified in [@!RFC5321]). If supplied, each key in the object is a parameter name, and the value is either the parameter value (type `String`) or `null` if the parameter does not take a value. For both name and value, any xtext or unitext encodings are removed (see [@!RFC3461] and [@!RFC6533]) and JSON string encoding is applied.
 
     If the *envelope* property is `null` or omitted on creation, the server MUST generate this from the referenced email as follows:
 
-    - **mailFrom**: The email in the *Sender* header, if present, otherwise
-      the *From* header, if present, and no parameters.
+    - **mailFrom**: The email in the *Sender* header, if present; otherwise,
+      it's the *From* header, if present, and no parameters.
 
-        If multiple addresses are present in one of these headers, or there is more than one *Sender*/*From* header, the server SHOULD reject the email as invalid but otherwise MUST take the first address in the last *Sender*/*From* header in the [@!RFC5322] version of the message.
+        If multiple addresses are present in one of these headers, or there is more than one *Sender*/*From* header, the server SHOULD reject the email as invalid; otherwise, it MUST take the first address in the last *Sender*/*From* header in the  version of the message described in [@!RFC5322].
 
         If the address found from this is not allowed by the identity associated with this submission, the *email* property from the identity MUST be used instead.
 
-    - **rcptTo**: The deduplicated set of email addresses from the *To*, *Cc*
+    - **rcptTo**: The deduplicated set of email addresses from the *To*, *Cc*,
       and *Bcc* headers, if present, with no parameters for any of them.
 
 - **sendAt**: `UTCDate` (immutable; server-set)
   The date the email was/will be released for delivery.
 
-    If the client successfully used [@!RFC4865] FUTURERELEASE with the email, this MUST be the time when the server will release the email; otherwise it MUST be the time the EmailSubmission was created.
+    If the client successfully used FUTURERELEASE [@!RFC4865] with the email, this MUST be the time when the server will release the email; otherwise, it MUST be the time the EmailSubmission was created.
 
 - **undoStatus**: `String`
   This represents whether the submission may be canceled. This is server set and MUST be one of the following values:
@@ -60,7 +60,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
     - `canceled`: The email submission was canceled and will not be delivered
       to any recipient.
 
-    On systems that do not support unsending, the value of this property will always be `final`. On systems that do support canceling submission, it will start as `pending`, and MAY transition to `final` when the server knows it definitely cannot recall the email, but MAY just remain `pending`. If in pending state, a client can attempt to cancel the submission by setting this property to `canceled`; if the update succeeds, the submission was successfully canceled and the email has not been delivered to any of the original recipients.
+    On systems that do not support unsending, the value of this property will always be `final`. On systems that do support canceling submission, it will start as `pending` and MAY transition to `final` when the server knows it definitely cannot recall the email, but it MAY just remain `pending`. If in pending state, a client can attempt to cancel the submission by setting this property to `canceled`; if the update succeeds, the submission was successfully canceled, and the email has not been delivered to any of the original recipients.
 
 - **deliveryStatus**: `String[DeliveryStatus]|null` (server-set)
   This represents the delivery status for each of the email's recipients, if known. This property MAY not be supported by all servers, in which case it will remain `null`. Servers that support it SHOULD update the EmailSubmission object each time the status of any of the recipients changes, even if some recipients are still being retried.
@@ -70,7 +70,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
     A **DeliveryStatus** object has the following properties:
 
     - **smtpReply**: `String`
-      The SMTP reply string returned for this recipient when the server last tried to relay the email, or in a later DSN (Delivery Status Notification, as defined in [@!RFC3464]) response for the email. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the email as a whole rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
+      The SMTP reply string returned for this recipient when the server last tried to relay the email, or in a later Delivery Status Notification (DSN, as defined in [@!RFC3464]) response for the email. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the email as a whole was rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
 
         Multi-line SMTP responses should be concatenated to a single string as follows:
 
@@ -96,8 +96,8 @@ An **EmailSubmission** object represents the submission of an email for delivery
         - Then an SMTP Enhanced Mail System Status Code as defined in
           [@!RFC3463], with a registry defined in [@!RFC5248].
         - Then a single space character.
-        - Then an implementation-specific information string with a human
-          readable explanation of the response.
+        - Then an implementation-specific information string with a
+          human-readable explanation of the response.
 
     - **delivered**: `String`
       Represents whether the email has been successfully delivered to the recipient. This MUST be one of the following values:
@@ -108,12 +108,12 @@ An **EmailSubmission** object represents the submission of an email for delivery
           recipient. The *smtpReply* property is final.
         - `no`: Delivery to the recipient permanently failed. The *smtpReply*
           property is final.
-        - `unknown`: The final delivery status is unknown, (e.g. it was relayed
+        - `unknown`: The final delivery status is unknown, (e.g., it was relayed
           to an external machine and no further information is available). The *smtpReply* property may still change if a DSN arrives.
 
-        Note, successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the email has successfully reached the final mailbox. In this case though, the server may receive a DSN response, if requested.
+        Note that successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the email has successfully reached the final mailbox. In this case though, the server may receive a DSN response, if requested.
 
-        If a DSN is received for the recipient with Action equal to "delivered", as per [@!RFC3464] Section 2.3.3, then the *delivered* property SHOULD be set to `yes`; if the Action equals "failed", the property SHOULD be set to `no`. Receipt of any other DSN SHOULD NOT affect this property.
+        If a DSN is received for the recipient with Action equal to "delivered", as per [@!RFC3464], Section 2.3.3, then the *delivered* property SHOULD be set to `yes`; if the Action equals "failed", the property SHOULD be set to `no`. Receipt of any other DSN SHOULD NOT affect this property.
 
         The server MAY also set this property based on other feedback channels.
 
@@ -122,34 +122,34 @@ An **EmailSubmission** object represents the submission of an email for delivery
 
         - `unknown`: The display status is unknown. This is the initial value.
         - `yes`: The recipient's system claims the email content has been
-          displayed to the recipient. Note, there is no guarantee that the recipient has noticed, read, or understood the content.
+          displayed to the recipient. Note that there is no guarantee that the recipient has noticed, read, or understood the content.
 
-        If an MDN is received for this recipient with Disposition-Type (as per [@!RFC8098] Section 3.2.6.2) equal to "displayed", this property SHOULD be set to `yes`.
+        If a Message Disposition Notification (MDN) is received for this recipient with Disposition-Type (as per [@!RFC8098], Section 3.2.6.2) equal to "displayed", this property SHOULD be set to `yes`.
 
         The server MAY also set this property based on other feedback channels.
 
 - **dsnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for Delivery Status Notifications ([@!RFC3464]) received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
+  A list of blob ids for DSNs [@!RFC3464] received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
 - **mdnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for Message Disposition Notifications ([@!RFC8098]) received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
+  A list of blob ids for MDNs [@!RFC8098] received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
 
-JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to an EmailSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
+JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to an EmailSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and it expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
 
-For efficiency, a server MAY destroy EmailSubmission objects a certain amount of time after the email is successfully sent or it has finished retrying sending the email. For very basic SMTP proxies, this MAY be immediately after creation, as it has no way to assign a real id and return the information again if fetched later.
+For efficiency, a server MAY destroy EmailSubmission objects in a certain amount of time after the email is successfully sent or after it has finished retrying to send the email. For very basic SMTP proxies, this MAY be immediately after creation, as it has no way to assign a real id and return the information again if fetched later.
 
-The following JMAP methods are supported:
+The following JMAP methods that are supported.
 
 ## EmailSubmission/get
 
-Standard "/get" method as described in [@!RFC8620] Section 5.1.
+Standard "/get" method as described in [@!RFC8620], Section 5.1.
 
 ## EmailSubmission/changes
 
-Standard "/changes" method as described in [@!RFC8620] Section 5.2.
+Standard "/changes" method as described in [@!RFC8620], Section 5.2.
 
 ## EmailSubmission/query
 
-Standard "/query" method as described in [@!RFC8620] Section 5.5.
+Standard "/query" method as described in [@!RFC8620], Section 5.5.
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
@@ -179,22 +179,22 @@ The following EmailSubmission properties MUST be supported for sorting:
 
 ## EmailSubmission/queryChanges
 
-Standard "/queryChanges" method as described in [@!RFC8620] Section 5.6.
+Standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
 
 ## EmailSubmission/set
 
-Standard "/set" method as described in [@!RFC8620] Section 5.3, with the following two additional request arguments:
+Standard "/set" method as described in [@!RFC8620], Section 5.3 with the following two additional request arguments:
 
 - **onSuccessUpdateEmail**: `Id[PatchObject]|null`
-  A map of *EmailSubmission id* to an object containing properties to update on the Email object referenced by the EmailSubmission if the create/update/destroy succeeds. (For references to EmailSubmissions created in the same "/set" invocation, this is equivalent to a creation-reference so the id will be the creation id prefixed with a `#`.)
+  A map of *EmailSubmission id* to an object containing properties to update on the Email object referenced by the EmailSubmission if the create/update/destroy succeeds. (For references to EmailSubmissions created in the same "/set" invocation, this is equivalent to a creation-reference, so the id will be the creation id prefixed with a `#`.)
 - **onSuccessDestroyEmail**: `Id[]|null`
   A list of *EmailSubmission ids* for which the email with the corresponding emailId should be destroyed if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a creation-reference so the id will be the creation id prefixed with a `#`.)
 
-A single implicit *Email/set* call MUST be made after all EmailSubmissions cred in the same "/set" invocation/update/destroy requests have been processed to perform any changes requested in these two arguments. The response to this MUST be returned after the *EmailSubmission/set* response.
+A single implicit *Email/set* call MUST be made after all EmailSubmissions credentials in the same "/set" invocation/update/destroy requests have been processed to perform any changes requested in these two arguments. The response to this MUST be returned after the *EmailSubmission/set* response.
 
-An email is sent by creating an EmailSubmission object. When processing each create, the server must check that the email is valid, and the user has sufficient authorization to send it. If the creation succeeds, the email will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the email during delivery. The server MAY add or remove other headers from the submitted email, or make further alterations in accordance with the server's policy during delivery.
+An email is sent by creating an EmailSubmission object. When processing each create, the server must check that the email is valid, and the user has sufficient authorisation to send it. If the creation succeeds, the email will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the email during delivery. The server MAY add or remove other headers from the submitted email or make further alterations in accordance with the server's policy during delivery.
 
-If the referenced email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the email submission (i.e. it does not cancel a future send). The *emailId* and *threadId* properties of the submission object remain, but trying to fetch them (with a standard Email/get call) will return a `notFound` error if the corresponding objects have been destroyed.
+If the referenced email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the email submission (i.e., it does not cancel a future send). The *emailId* and *threadId* properties of the submission object remain, but trying to fetch them (with a standard Email/get call) will return a `notFound` error if the corresponding objects have been destroyed.
 
 Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the email submission. The server MAY automatically destroy EmailSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
 
@@ -216,21 +216,21 @@ For **create**:
   generated) contains at least one rcptTo value which is not a valid email
   for sending to. An *invalidRecipients* `String[]` property MUST also be present on the SetError, which is a list of the invalid addresses.
 - `forbiddenMailFrom` – The server does not permit the user to send an email
-  with the [@!RFC5321] envelope From.
+  with the envelope From [@!RFC5321].
 - `forbiddenFrom` – The server does not permit the user to send an email
-  with the [@!RFC5322] From header of the email to be sent.
+  with the From header [@!RFC5322] of the email to be sent.
 - `forbiddenToSend` – The user does not have permission to send at all right
   now for some reason. A *description* `String` property MAY be present on the SetError object to display to the user why they are not permitted.
 
 For **update**:
 
-- `cannotUnsend`: The client attempted to update the *undoStatus* of a valid
+- `cannotUnsend` – The client attempted to update the *undoStatus* of a valid
   EmailSubmission object from `pending` to `canceled`, but the email cannot be unsent.
 
 
 ### Example
 
-The following example presumes a draft of the message to be sent has already been saved, and its Email id is "M7f6ed5bcfd7e2604d1753f6c". This call then sends the email immediately, and if successful removes the draft flag and moves it from the Drafts folder (which has Mailbox id "7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e") to the Sent folder (which we presume has Mailbox id "73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6").
+The following example presumes a draft of the message to be sent has already been saved, and its email id is "M7f6ed5bcfd7e2604d1753f6c". This call then sends the email immediately, and if successful, removes the draft flag and moves it from the Drafts folder (which has mailbox id "7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e") to the Sent folder (which we presume has mailbox id "73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6").
 
     [[ "EmailSubmission/set", {
       "accountId": "ue411d190",
@@ -282,11 +282,11 @@ A successful response might look like this. Note there are two responses due to 
       }
     }, "0" ]]
 
-Suppose instead an admin has removed sending rights for the user, and so the email submission is rejected with a "forbiddenToSend" error. The description argument of the error is intended for display to the user, so should be localised appropriately. Let's suppose the request was sent with an Accept-Language header like this:
+Suppose instead an admin has removed sending rights for the user, so the email submission is rejected with a "forbiddenToSend" error. The description argument of the error is intended for display to the user, so it should be localised appropriately. Let's suppose the request was sent with an Accept-Language header like this:
 
     Accept-Language: de;q=0.9,en;q=0.8
 
-The server should attempt to choose the best localisation from those it has available based on the Accept-Language header, as described in [@!RFC8620], Section 3.7. If the server has English, French and German translations it would choose German as the preferred language and return a response like this:
+The server should attempt to choose the best localisation from those it has available based on the Accept-Language header, as described in [@!RFC8620], Section 3.7. If the server has English, French, and German translations, it would choose German as the preferred language and return a response like this:
 
     [[ "EmailSubmission/set", {
       "accountId": "ue411d190",
