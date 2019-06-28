@@ -342,7 +342,7 @@ Messages may be submitted directly to this mailbox. Corresponds to IMAP ACL <spa
 <t>isSubscribed: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
 Has the user indicated they wish to see this mailbox in their client? This SHOULD default to <spanx style="verb">false</spanx> for mailboxes in shared accounts the user has access to and <spanx style="verb">true</spanx> for any new mailboxes created by the user themself. This MUST be stored separately per user where multiple users have access to a shared mailbox.
 <vspace blankLines="1" />
-A user may have permission to access a large number of shared accounts, or a shared account with a very large set of mailboxes, but only be interested in the contents of a few of these. Clients may choose to only display mailboxes to the users that have the <spanx style="verb">isSubscribed</spanx> property set to <spanx style="verb">true</spanx>, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation or just for an account where <spanx style="verb">isPersonal</spanx> is <spanx style="verb">true</spanx> (indicating it is the user's own rather than a shared account).
+A user may have permission to access a large number of shared accounts, or a shared account with a very large set of mailboxes, but only be interested in the contents of a few of these. Clients may choose to only display mailboxes where the <spanx style="verb">isSubscribed</spanx> property is set to <spanx style="verb">true</spanx>, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation or just for an account where <spanx style="verb">isPersonal</spanx> is <spanx style="verb">true</spanx> (indicating it is the user's own rather than a shared account).
 <vspace blankLines="1" />
 This property corresponds to IMAP <xref target="RFC3501"/> mailbox subscriptions.</t>
 </list>
@@ -817,7 +817,7 @@ Original:
 Because JSON is case sensitive, servers MUST return keywords in lowercase.
 <vspace blankLines="1" />
 The IANA "IMAP and JMAP Keywords" registry at
-&lt;https://www.iana.org/assignments/imap-keywords/&gt; as established in
+&lt;https://www.iana.org/assignments/imap-jmap-keywords/&gt; as established in
 <xref target="RFC5788"/> assigns semantic meaning to some other keywords in
 common use. New keywords may be established here in the future. In particular,
 note:
@@ -1164,7 +1164,7 @@ The value is identical to the value of <spanx style="emph">header:Date:asDate</s
 <section anchor="body-parts" title="Body Parts">
 <t>These properties are derived from the message body <xref target="RFC5322"/> and its MIME entities <xref target="RFC2045"/>.
 </t>
-<t>A <spanx style="strong">EmailBodyPart</spanx> object has the following properties:
+<t>An <spanx style="strong">EmailBodyPart</spanx> object has the following properties:
 </t>
 <t>
 <list style="symbols">
@@ -1193,7 +1193,7 @@ The value of the charset parameter of the <spanx style="emph">Content-Type</span
 The value of the <spanx style="emph">Content-Disposition</spanx> header field of the part, if present; otherwise, it's <spanx style="verb">null</spanx>. CFWS is removed and any parameters are stripped.</t>
 
 <t>cid: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-The value of the <spanx style="emph">Content-Id</spanx> header field of the part, if present; otherwise, it's <spanx style="verb">null</spanx>. CFWS and surrounding angle brackets (<spanx style="verb">&lt;&gt;</spanx>) are removed. This may be used to reference the content from within a body part <xref target="HTML"/> using the <spanx style="verb">cid:</spanx> protocol, as defined in <xref target="RFC2392"/>.</t>
+The value of the <spanx style="emph">Content-Id</spanx> header field of the part, if present; otherwise, it's <spanx style="verb">null</spanx>. CFWS and surrounding angle brackets (<spanx style="verb">&lt;&gt;</spanx>) are removed. This may be used to reference the content from within a <spanx style="verb">text/html</spanx> body part <xref target="HTML"/> using the <spanx style="verb">cid:</spanx> protocol, as defined in <xref target="RFC2392"/>.</t>
 
 <t>language: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
 The list of language tags, as defined in <xref target="RFC3282"/>, in the <spanx style="emph">Content-Language</spanx> header field of the part, if present.</t>
@@ -1268,7 +1268,7 @@ A list of all parts in <spanx style="emph">bodyStructure</spanx>, traversing dep
 
 None of these parts include subParts, including <spanx style="verb">message/*</spanx> types. Attached messages may be fetched using the Email/parse method and the blobId.
 <vspace blankLines="1" />
-Note that a body part <xref target="HTML"/> may reference image parts in attachments by using <spanx style="verb">cid:</spanx> links to reference the <spanx style="emph">Content-Id</spanx>, as defined in <xref target="RFC2392"/>, or by referencing the <spanx style="emph">Content-Location</spanx>.</t>
+Note that a <spanx style="verb">text/html</spanx> body part <xref target="HTML"/> may reference image parts in attachments by using <spanx style="verb">cid:</spanx> links to reference the <spanx style="emph">Content-Id</spanx>, as defined in <xref target="RFC2392"/>, or by referencing the <spanx style="emph">Content-Location</spanx>.</t>
 
 <t>hasAttachment: <spanx style="verb">Boolean</spanx> (immutable; server-set)<vspace blankLines="1" />
 This is <spanx style="verb">true</spanx> if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment to <spanx style="verb">true</spanx> if the <spanx style="emph">attachments</spanx> list contains at least one item that does not have <spanx style="verb">Content-Disposition: inline</spanx>. The server MAY ignore parts in this list that are processed automatically in some way or are referenced as embedded images in one of the <spanx style="verb">text/html</spanx> parts of the message.
@@ -1698,7 +1698,7 @@ The array MUST contain either one or two elements. The first element is the name
   "isAscending": false
 }]
 </artwork></figure>
-<t>This would sort emails in flagged threads first (the thread is considered flagged if any email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails both have an identical flagged status, a subject, and a date, the order is server dependent but must be stable.
+<t>This would sort emails in flagged threads first (the thread is considered flagged if any email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails have identical values for all three properties, then the order is server dependent but must be stable.
 </t>
 </section>
 
@@ -1757,8 +1757,8 @@ attachments properties.</t>
 representing a header field that is already defined on the top-level Email
 object.</t>
 
-<t>If given, textBody MUST contain exactly one body part of type <spanx style="verb">text/plain</spanx>.</t>
-<t>If given, htmlBody MUST contain exactly one body part of type <spanx style="verb">text/html</spanx>.</t>
+<t>If given, textBody MUST contain exactly one body part and it MUST be of type <spanx style="verb">text/plain</spanx>.</t>
+<t>If given, htmlBody MUST contain exactly one body part and it MUST be of type <spanx style="verb">text/html</spanx>.</t>
 <t>Within an EmailBodyPart:
 <list style="symbols">
 <t>The client may specify a partId OR a blobId, but not both. If a partId is
@@ -2300,7 +2300,7 @@ A list of blob ids given that could not be found, or <spanx style="verb">null</s
 </section>
 
 <section anchor="search-snippets" title="Search Snippets">
-<t>When doing a search on a <spanx style="verb">String</spanx> property, the client may wish to show the relevant section of the body that matches the search as a preview instead of as the beginning of the message and to highlight any matching terms in both this and the subject of the email. Search snippets represent this data.
+<t>When doing a search on a <spanx style="verb">String</spanx> property, the client may wish to show the relevant section of the body that matches the search as a preview and to highlight any matching terms in both this and the subject of the email. Search snippets represent this data.
 </t>
 <t>A <spanx style="strong">SearchSnippet</spanx> object has the following properties:
 </t>
@@ -2312,7 +2312,7 @@ The email id the snippet applies to.</t>
 <t>subject: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
 If text from the filter matches the subject, this is the subject of the email with the following transformations:
 <list style="numbers">
-<t>Any instance of the following three characters MUST be replaced by an appropriate entity: &amp; (ampersand), &lt; (less-than sign), and &gt; (greater-than sign) <xref target="HTML"/>. Other characters MAY also be replaced with an HTML entity form.</t>
+<t>Any instance of the following three characters MUST be replaced by an appropriate HTML entity: &amp; (ampersand), &lt; (less-than sign), and &gt; (greater-than sign) <xref target="HTML"/>. Other characters MAY also be replaced with an HTML entity form.</t>
 
 <t>The matching words/phrases from the filter are wrapped in HTML <spanx style="verb">&lt;mark&gt;&lt;/mark&gt;</spanx> tags.</t>
 </list>
@@ -2450,7 +2450,7 @@ Is the user allowed to delete this identity? Servers may wish to set this to <sp
 </t>
 <t>Multiple identities with the same email address MAY exist, to allow for different settings the user wants to pick between (for example, with different names/signatures).
 </t>
-<t>Following are JMAP methods that are supported.
+<t>The following JMAP methods are supported.
 </t>
 
 <section anchor="identityget" title="Identity/get">
@@ -2670,11 +2670,10 @@ A list of blob ids for MDNs <xref target="RFC8098"/> received for this submissio
 </t>
 <t>JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to an EmailSubmission object. It SHOULD only do this if it exposes them in the <spanx style="emph">dsnBlobIds</spanx> and <spanx style="emph">mdnblobIds</spanx> fields instead, and it expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
 </t>
-<t>For efficiency, a server MAY destroy EmailSubmission objects in a certain
-amount of time after the email is successfully sent or after it has finished
+<t>For efficiency, a server MAY destroy EmailSubmission objects at any time after the email is successfully sent or after it has finished
 retrying to send the email. For very basic SMTP proxies, this MAY be immediately after creation, as it has no way to assign a real id and return the information again if fetched later.
 </t>
-<t>The following JMAP methods that are supported.
+<t>The following JMAP methods are supported.
 </t>
 
 <section anchor="emailsubmissionget" title="EmailSubmission/get">
@@ -2876,7 +2875,8 @@ Accept-Language: de;q=0.9,en;q=0.8
 </section>
 
 <section anchor="vacation-response" title="Vacation Response">
-<t>A vacation response automatically sends a reply to message to a particular account to inform the original sender that their message may not be read for some time. Automated message sending can produce undesirable behaviour. To avoid this, implementors MUST follow the recommendations set forth in <xref target="RFC3834"/>.
+<t>A vacation response sends an automatic reply when a message is delivered to the mail store, informing the original sender that their message may not be read for some time.</t>
+<t>Automated message sending can produce undesirable behaviour. To avoid this, implementors MUST follow the recommendations set forth in <xref target="RFC3834"/>.
 </t>
 <t>The <spanx style="strong">VacationResponse</spanx> object represents the state of vacation-response-related
 settings for an account. It has the following properties:
@@ -2960,9 +2960,9 @@ allowed to submit directly from the email display.</t>
 <t>
 <list style="symbols">
 <t>HTML can be filtered before rendering, stripping potentially malicious
-content. Sanitizing HTML correctly is tricky, and implementors are strongly recommended to use a well-tested library with a carefully vetted whitelist-only approach. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
+content. Sanitising HTML correctly is tricky, and implementors are strongly recommended to use a well-tested library with a carefully vetted whitelist-only approach. New features with unexpected security characteristics may be added to HTML rendering engines in the future; a blacklist approach is likely to result in security issues.
 <vspace blankLines="1" />
-Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accuracy, you need to use the same parser when sanitizing what the HTML rendering engine will use.
+Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accuracy, you need to use the same parser that the HTML rendering engine will use.
 </t>
 <t>Encapsulating the message in an <spanx style="verb">&lt;iframe sandbox&gt;</spanx>, as defined in <xref target="HTML"/>,
 Section 4.7.6, can help mitigate a number of risks. This will:
@@ -3348,8 +3348,11 @@ or
 
 B)
 Registration of the "inbox" Attribute
+
+neilj: For consistency with others, this should be within a section titled with the name of the registry being updated, so I have done that.
 -->
-<section anchor="registration-of-inbox-role-in" title="Registration of &quot;inbox&quot; role in">
+<section anchor="imap-mailbox-name-attributes-registry" title="IMAP Mailbox Name Attributes Registry">
+<section anchor="registration-of-inbox-role" title="Registration of &quot;inbox&quot; role">
 <t>This registers the "JMAP-only" &quot;inbox&quot; attribute in the &quot;IMAP Mailbox Name Attributes&quot; registry, as established in <xref target="RFC8457"/>.
 </t>
 <t>Attribute Name: Inbox
@@ -3360,6 +3363,7 @@ Registration of the "inbox" Attribute
 </t>
 <t>Usage Notes: JMAP only
 </t>
+</section>
 </section>
 
 <section anchor="jmap-error-codes-registry" title="JMAP Error Codes Registry">
@@ -3480,7 +3484,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </t>
 <t>Reference: This document, <xref target="emailsubmissionset"/>
 </t>
-<t>Description:  The rcptTo property of the envelope (supplied or generated) per RFC 5321 contains at least one rcptTo value, which is not a valid email for sending to.
+<t>Description:  The rcptTo property of the envelope (supplied or generated) per RFC 5321 contains at least one rcptTo value that is not a valid email for sending to.
 </t>
 </section>
 

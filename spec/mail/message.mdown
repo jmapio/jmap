@@ -306,7 +306,7 @@ The following convenience properties are also specified for the **Email** object
 
 These properties are derived from the message body [@!RFC5322] and its MIME entities [@RFC2045].
 
-A **EmailBodyPart** object has the following properties:
+An **EmailBodyPart** object has the following properties:
 
 - **partId**: `String|null`
   Identifies this part uniquely within the Email. This is scoped to the *emailId* and has no meaning outside of the JMAP Email object representation. This is `null` if, and only if, the part is of type `multipart/*`.
@@ -325,7 +325,7 @@ A **EmailBodyPart** object has the following properties:
 - **disposition**: `String|null`
   The value of the *Content-Disposition* header field of the part, if present; otherwise, it's `null`. CFWS is removed and any parameters are stripped.
 - **cid**: `String|null`
-  The value of the *Content-Id* header field of the part, if present; otherwise it's `null`. CFWS and surrounding angle brackets (`<>`) are removed. This may be used to reference the content from within a body part [@!HTML] using the `cid:` protocol, as defined in [@!RFC2392].
+  The value of the *Content-Id* header field of the part, if present; otherwise it's `null`. CFWS and surrounding angle brackets (`<>`) are removed. This may be used to reference the content from within a `text/html` body part [@!HTML] using the `cid:` protocol, as defined in [@!RFC2392].
 - **language**: `String[]|null`
   The list of language tags, as defined in [@!RFC3282], in the *Content-Language* header field of the part, if present.
 - **location**: `String|null`
@@ -371,7 +371,7 @@ The following **Email** properties are specified for access to the body data of 
 
     None of these parts include subParts, including `message/*` types. Attached messages may be fetched using the Email/parse method and the blobId.
 
-    Note that a body part [@!HTML] may reference image parts in attachments by using `cid:` links to reference the *Content-Id*, as defined in [@!RFC2392], or by referencing the *Content-Location*.
+    Note that a `text/html` body part [@!HTML] may reference image parts in attachments by using `cid:` links to reference the *Content-Id*, as defined in [@!RFC2392], or by referencing the *Content-Location*.
 - **hasAttachment**: `Boolean` (immutable; server-set)
   This is `true` if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment to `true` if the *attachments* list contains at least one item that does not have `Content-Disposition: inline`. The server MAY ignore parts in this list that are processed automatically in some way or are referenced as embedded images in one of the `text/html` parts of the message.
 
@@ -726,7 +726,7 @@ Example sort:
       "isAscending": false
     }]
 
-This would sort emails in flagged threads first (the thread is considered flagged if any email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails both have an identical flagged status, a subject, and a date, the order is server dependent but must be stable.
+This would sort emails in flagged threads first (the thread is considered flagged if any email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails have identical values for all three properties, then the order is server dependent but must be stable.
 
 ### Thread Collapsing
 
@@ -766,8 +766,10 @@ Due to the format of the Email object, when creating an email there are a number
 - If given, the bodyStructure EmailBodyPart MUST NOT contain a property
   representing a header field that is already defined on the top-level Email
   object.
-- If given, textBody MUST contain exactly one body part of type `text/plain`.
-- If given, htmlBody MUST contain exactly one body part of type `text/html`.
+- If given, textBody MUST contain exactly one body part and it MUST be of type
+  `text/plain`.
+- If given, htmlBody MUST contain exactly one body part and it MUST be of type
+  `text/html`.
 - Within an EmailBodyPart:
   - The client may specify a partId OR a blobId, but not both. If a partId is
     given, this partId MUST be present in the bodyValues property.
