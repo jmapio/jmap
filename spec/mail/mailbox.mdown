@@ -13,7 +13,7 @@ A **Mailbox** object has the following properties:
 - **parentId**: `Id|null` (default: null)
   The mailbox id for the parent of this mailbox, or `null` if this mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.
 - **role**: `String|null` (default: null)
-  Identifies mailboxes that have a particular common purpose (e.g., the "inbox"), regardless of the *name* (which may be localised).
+  Identifies mailboxes that have a particular common purpose (e.g., the "inbox"), regardless of the *name* property (which may be localised).
 
     This value is shared with IMAP (exposed in IMAP via the SPECIAL-USE extension [@!RFC6154]). However, unlike in IMAP, a mailbox MUST only have a single role, and there MUST NOT be two mailboxes in the same account with the same role. Servers providing IMAP access to the same data are encouraged to enforce these extra restrictions in IMAP as well. Otherwise, modifying the IMAP attributes to ensure compliance when exposing the data over JMAP is implementation dependent.
 
@@ -50,10 +50,10 @@ A **Mailbox** object has the following properties:
     For example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the Trash and a read email in the Inbox. The `unreadThreads` count would be `1` for the Trash and `0` for the Inbox.
 
 - **myRights**: `MailboxRights` (server-set)
-  The set of rights (Access Control Lists (ACLs)) the user has in relation to this mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A *MailboxRights* object has the following properties:
+  The set of rights (Access Control Lists (ACLs)) the user has in relation to this mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A **MailboxRights** object has the following properties:
 
     - **mayReadItems**: `Boolean`
-      If true, the user may use this mailbox as part of a filter in an *Email/query* call, and the mailbox may be included in the *mailboxIds* set of *Email* objects. Email objects may be fetched if they are in **at least one** mailbox with this permission. If a sub-mailbox is shared but not the parent mailbox, this may be `false`. Corresponds to IMAP ACLs `lr` (if mapping from IMAP, both are required for this to be `true`).
+      If true, the user may use this mailbox as part of a filter in an *Email/query* call, and the mailbox may be included in the *mailboxIds* property of Email objects. Email objects may be fetched if they are in **at least one** mailbox with this permission. If a sub-mailbox is shared but not the parent mailbox, this may be `false`. Corresponds to IMAP ACLs `lr` (if mapping from IMAP, both are required for this to be `true`).
     - **mayAddItems**: `Boolean`
       The user may add mail to this mailbox (by either creating a new email or moving an existing one). Corresponds to IMAP ACL `i`.
     - **mayRemoveItems**: `Boolean`

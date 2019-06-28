@@ -1,6 +1,6 @@
 # Emails
 
-The **Email** object is a representation of a message per [@!RFC5322], which allows clients to avoid the complexities of MIME parsing, transfer encoding, and character encoding.
+An **Email** object is a representation of a message per [@!RFC5322], which allows clients to avoid the complexities of MIME parsing, transfer encoding, and character encoding.
 
 ## Properties of the Email Object
 
@@ -109,7 +109,7 @@ Type: `EmailAddress[]`
 
 The header is parsed as an `address-list` value, as specified in [@!RFC5322], Section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each `mailbox` parsed from the `address-list`. Group and comment information is discarded.
 
-The **EmailAddress** object has the following properties:
+An **EmailAddress** object has the following properties:
 
 - **name**: `String|null`
   The *display-name* of the *mailbox* [@!RFC5322]. If this is a *quoted-string*:
@@ -166,7 +166,7 @@ Type: `EmailAddressGroup[]`
 
 This is similar to the Addresses form but preserves group information. The header is parsed as an `address-list` value, as specified in [@!RFC5322], Section 3.4, into the `GroupedAddresses[]` type. Consecutive mailboxes that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
 
-The **EmailAddressGroup** object has the following properties:
+An **EmailAddressGroup** object has the following properties:
 
 - **name**: `String|null`
   The *display-name* of the  *group* [@!RFC5322], or `null` if the addresses are not part of a group. If this is a *quoted-string*, it is processed the same as the *name* in the *EmailAddress* type.
@@ -678,7 +678,7 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **subject**: `String`
   Looks for the text in the *subject* property of the email.
 - **body**: `String`
-  Looks for the text in one of the body parts of the email. The server MAY exclude MIME body parts with content media types other than "text/*" and "message/*" from consideration in search matching. Care should be taken to match based on the text content actually presented to an end user by viewers for that media type or otherwise identified as appropriate for search indexing. Matching document metadata uninteresting to an end user (e.g., markup tag and attribute names) is undesirable.
+  Looks for the text in one of the body parts of the email. The server MAY exclude MIME body parts with content media types other than `text/*` and `message/*` from consideration in search matching. Care should be taken to match based on the text content actually presented to an end user by viewers for that media type or otherwise identified as appropriate for search indexing. Matching document metadata uninteresting to an end user (e.g., markup tag and attribute names) is undesirable.
 - **header**: `String[]`
   The array MUST contain either one or two elements. The first element is the name of the header field to match against. The second (optional) element is the text to look for in the header field value. If not supplied, the message matches simply if it *has* a header field of the given name.
 
@@ -691,15 +691,15 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 - Text SHOULD be matched in a case-insensitive manner.
 - Text contained in either (but matched) single or double quotes SHOULD be treated as a **phrase search**; that is, a match is required for that exact word or sequence of words, excluding the surrounding quotation marks. Use `\"`, `\'`, and `\\` to match a literal `"`, `'`, and `\`, respectively, in a phrase.
 - Outside of a phrase, white space SHOULD be treated as dividing separate tokens that may be searched for separately but MUST all be present for the email to match the filter.
-- Tokens (not part of a phrase) MAY be matched on a whole-word basis using stemming (for example, a text search for `bus` would match "buses" but not "business").
+- Tokens (not part of a phrase) MAY be matched on a whole-word basis using stemming (for example, a text search for "bus" would match "buses" but not "business").
 
 ### Sorting
 
-The following value for the "property" field on the Comparator object MUST be supported for sorting:
+The following value for the *property* field on the Comparator object MUST be supported for sorting:
 
 - **receivedAt** - The *receivedAt* date as returned in the Email object.
 
-The following values for the "property" field on the Comparator object SHOULD be supported for sorting. When specifying a "hasKeyword", "allInThreadHaveKeyword", or "someInThreadHaveKeyword" sort, the Comparator object MUST also have a *keyword* property.
+The following values for the *property* field on the Comparator object SHOULD be supported for sorting. When specifying a "hasKeyword", "allInThreadHaveKeyword", or "someInThreadHaveKeyword" sort, the Comparator object MUST also have a *keyword* property.
 
 - **size** - The *size* as returned in the Email object.
 - **from** – This is taken to be either the "name" part or if `null`/empty, the "email" part of the **first** EmailAddress object in the *from* property. If still none, consider the value to be the empty string.
@@ -1197,7 +1197,7 @@ The server creates the message and sends the success response:
       ...
     }, "0" ]]
 
-The client moves this draft to a different account. The only way to do this is via the `/copy` method. It MUST set a new mailboxIds property, since the current value will not be valid mailbox ids in the destination account:
+The client moves this draft to a different account. The only way to do this is via the `Email/copy` method. It MUST set a new mailboxIds property, since the current value will not be valid mailbox ids in the destination account:
 
     [[ "Email/copy", {
       "fromAccountId": "ue150411c",
