@@ -9,13 +9,13 @@ A **Contact** object stores information about a person or company. It has the fo
 - **avatar**: `File|null`
   A file containing an image to be used to represent this contact.
 - **prefix**: `String`
-  The honorific title of the contact, e.g. "Mr", "Ms", "Dr", etc.
+  The honorific title of the contact, e.g., "Mr", "Ms", "Dr", etc.
 - **firstName**: `String`
   The first name(s) of a contact.
 - **lastName**: `String`
   The last name of a contact.
 - **suffix**: `String`
-  The honorific suffix of the contact, e.g. "B.A.", "Esq." etc.
+  The honorific suffix of the contact, e.g., "B.A.", "Esq." etc.
 - **nickname**: `String`
   The nickname of the contact.
 - **birthday**: `String`
@@ -44,8 +44,8 @@ A **Contact** object stores information about a person or company. It has the fo
 - **online**: `ContactInformation[]`
   An array of ContactInformation objects where the values are URIs or usernames associated with the person for online services.
   Types are:
-  - `"uri"` The value is a URI, e.g. a website link.
-  - `"username"` The value is a username associated with the person (e.g. for Twitter, or Facebook, or an IM client). A *label* property SHOULD be included to identify what service this is for. For compatibility between clients, this label SHOULD be the canonical service name, including capitalisation. e.g. `"Twitter"`, `"Facebook"`, `"Skype"`, `"GitHub"`, `"XMPP"`.
+  - `"uri"` The value is a URI, e.g., a website link.
+  - `"username"` The value is a username associated with the person (e.g., for Twitter, or Facebook, or an IM client). A *label* property SHOULD be included to identify what service this is for. For compatibility between clients, this label SHOULD be the canonical service name, including capitalisation. e.g., `"Twitter"`, `"Facebook"`, `"Skype"`, `"GitHub"`, `"XMPP"`.
   - `"other"` The value is something else not covered by the above categories. A *label* property MAY be included to display next to the number to help the user identify its purpose.
 - **addresses**: `Address[]`
   An array of Address objects, containing physical locations associated with the person.
@@ -58,7 +58,7 @@ A **Contact** object stores information about a person or company. It has the fo
 - **notes**: `String`
   Arbitrary notes about the contact.
 
-Note, none of these properties have a `null`able type. If the specific information is not known for a contact, the empty string or empty array should be used as appropriate, or in the case of birthday the string `"0000-00-00"`.
+Note that none of these properties have a `null`able type. If the specific information is not known for a contact, the empty string or empty array should be used as appropriate, or in the case of birthday the string `"0000-00-00"`.
 
 A **ContactInformation** object has the following properties:
 
@@ -67,7 +67,7 @@ A **ContactInformation** object has the following properties:
 - **label**: `String|null`
   A label describing the value in more detail, especially if `type === "other"` (but MAY be included with any type).
 - **value**: `String`
-  The actual contact information, e.g. the email address or phone number.
+  The actual contact information, e.g., the email address or phone number.
 - **isDefault**: `Boolean`
   Whether this contact is the default for its type (SHOULD only be one per type, but some backends will allow multiple defaults)
 
@@ -97,21 +97,21 @@ A **File** Object has the following properties:
 - **type**: `String|null`
   The content-type of the file, if known.
 - **name**: `String|null`
-  The full file name, if known. e.g. "myface.png"
+  The full file name, if known. e.g., "myface.png"
 - **size**: `UnsignedInt|null`
-  The size, in octets, of the file when fully decoded (i.e. the number of octets in the file the user would download), if known.
+  The size, in octets, of the file when fully decoded (i.e., the number of octets in the file the user would download), if known.
 
 ## Contact/get
 
-Standard "/get" method as described in [@!RFC8620] Section 5.1. The *ids* argument may be `null` to fetch all at once.
+Standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
 
 ## Contact/changes
 
-Standard "/changes" method as described in [@!RFC8620] Section 5.2.
+Standard "/changes" method as described in [@!RFC8620], Section 5.2.
 
 ## Contact/query
 
-Standard "/query" method as described in [@!RFC8620] Section 5.5.
+Standard "/query" method as described in [@!RFC8620], Section 5.5.
 
 ### Filtering
 
@@ -174,15 +174,15 @@ The following properties MUST be supported for sorting:
 
 ## Contact/queryChanges
 
-Standard "/queryChanges" method as described in [@!RFC8620] Section 5.6.
+Standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
 
 ## Contact/set
 
-Standard "/set" method as described in [@!RFC8620] Section 5.3.
+Standard "/set" method as described in [@!RFC8620], Section 5.3.
 
-To set a new avatar, the file must first be uploaded using the upload mechanism as described in [@!RFC8620] Section 6.1. This will give the client a valid blobId/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the avatar for a contact.
+To set a new avatar, the file must first be uploaded using the upload mechanism as described in [@!RFC8620], Section 6.1. This will give the client a valid blobId/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the avatar for a contact.
 
 ## Contact/copy
 
-Standard "/copy" method as described in [@!RFC8620] Section 5.4.
+Standard "/copy" method as described in [@!RFC8620], Section 5.4.
 
