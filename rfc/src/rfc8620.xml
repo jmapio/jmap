@@ -598,7 +598,7 @@ Session object, as described in <xref target="the-jmap-session-resource"/>. Clie
 <section anchor="omitting-arguments" title="Omitting Arguments">
 <t>An argument to a method may be specified to have a default value. If omitted by the client, the server MUST treat the method call the same as if the default value had been specified. Similarly, the server MAY omit any argument in a response that has the default value.
 </t>
-<t>Unless otherwise specified in a method description, <spanx style="verb">null</spanx> is the default value for any argument in a request or response where this is allowed by the type signature. Other arguments may only be omitted if an explicit default value is defined in the method description.
+<t>Unless otherwise specified in a method description, null is the default value for any argument in a request or response where this is allowed by the type signature. Other arguments may only be omitted if an explicit default value is defined in the method description.
 </t>
 </section>
 
@@ -1004,10 +1004,10 @@ Content-Language: de
 The id of the account to use.</t>
 
 <t>ids: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
-The ids of the Foo objects to return. If <spanx style="verb">null</spanx>, then <spanx style="strong">all</spanx> records of the data type are returned, if this is supported for that data type and the number of records does not exceed the <spanx style="verb">maxObjectsInGet</spanx> limit.</t>
+The ids of the Foo objects to return. If null, then <spanx style="strong">all</spanx> records of the data type are returned, if this is supported for that data type and the number of records does not exceed the <spanx style="verb">maxObjectsInGet</spanx> limit.</t>
 
 <t>properties: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
-If supplied, only the properties listed in the array are returned for each Foo object. If <spanx style="verb">null</spanx>, all properties of the object are returned. The id property of the object is <spanx style="strong">always</spanx> returned, even if not explicitly requested. If an invalid property is requested, the call MUST be rejected with an <spanx style="verb">invalidArguments</spanx> error.</t>
+If supplied, only the properties listed in the array are returned for each Foo object. If null, all properties of the object are returned. The id property of the object is <spanx style="strong">always</spanx> returned, even if not explicitly requested. If an invalid property is requested, the call MUST be rejected with an <spanx style="verb">invalidArguments</spanx> error.</t>
 </list>
 </t>
 <t>The response has the following arguments:
@@ -1026,7 +1026,7 @@ When a client receives a response with a different state string to a previous ca
 An array of the Foo objects requested. This is the <spanx style="strong">empty array</spanx> if no objects were found or if the <spanx style="verb">ids</spanx> argument passed in was also an empty array. The results MAY be in a different order to the <spanx style="verb">ids</spanx> in the request arguments. If an identical id is included more than once in the request, the server MUST only include it once in either the <spanx style="verb">list</spanx> or the <spanx style="verb">notFound</spanx> argument of the response.</t>
 
 <t>notFound: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
-This array contains the ids passed to the method for records that do not exist. The array is empty if all requested ids were found or if the <spanx style="verb">ids</spanx> argument passed in was either <spanx style="verb">null</spanx> or an empty array.</t>
+This array contains the ids passed to the method for records that do not exist. The array is empty if all requested ids were found or if the <spanx style="verb">ids</spanx> argument passed in was either null or an empty array.</t>
 </list>
 </t>
 <t>The following additional error may be returned instead of the <spanx style="verb">Foo/get</spanx> response:
@@ -1137,10 +1137,10 @@ hasMoreChanges: false
 The id of the account to use.</t>
 
 <t>ifInState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-This is a state string as returned by the <spanx style="verb">Foo/get</spanx> method (representing the state of all objects of this type in the account). If supplied, the string must match the current state; otherwise, the method will be aborted and a <spanx style="verb">stateMismatch</spanx> error returned. If <spanx style="verb">null</spanx>, any changes will be applied to the current state.</t>
+This is a state string as returned by the <spanx style="verb">Foo/get</spanx> method (representing the state of all objects of this type in the account). If supplied, the string must match the current state; otherwise, the method will be aborted and a <spanx style="verb">stateMismatch</spanx> error returned. If null, any changes will be applied to the current state.</t>
 
 <t>create: <spanx style="verb">Id[Foo]|null</spanx><vspace blankLines="1" />
-A map of a <spanx style="strong">creation id</spanx> (a temporary id set by the client) to Foo objects, or <spanx style="verb">null</spanx> if no objects are to be created.
+A map of a <spanx style="strong">creation id</spanx> (a temporary id set by the client) to Foo objects, or null if no objects are to be created.
 
 <vspace blankLines="1" />
 The Foo object type definition may define default values for properties. Any such property may be omitted by the client.
@@ -1149,7 +1149,7 @@ The Foo object type definition may define default values for properties. Any suc
 The client MUST omit any properties that may only be set by the server (for example, the <spanx style="verb">id</spanx> property on most object types).</t>
 
 <t>update: <spanx style="verb">Id[PatchObject]|null</spanx><vspace blankLines="1" />
-A map of an id to a Patch object to apply to the current Foo object with that id, or <spanx style="verb">null</spanx> if no objects are to be updated.
+A map of an id to a Patch object to apply to the current Foo object with that id, or null if no objects are to be updated.
 <vspace blankLines="1" />
 
 A <spanx style="strong">PatchObject</spanx> is of type <spanx style="verb">String[*]</spanx> and represents an unordered set of patches.  The keys are a path in JSON Pointer format <xref target="RFC6901"/>, with an implicit leading &quot;/&quot; (i.e., prefix each key with &quot;/&quot; before applying the JSON Pointer evaluation algorithm).
@@ -1164,7 +1164,7 @@ All paths MUST also conform to the following restrictions; if there is any viola
 </list>
 The value associated with each pointer determines how to apply that patch:
 <list style="symbols">
-<t>If <spanx style="verb">null</spanx>, set to the default value if specified for this property; otherwise, remove the property from the patched object. If the key is not present in the parent, this a no-op.</t>
+<t>If null, set to the default value if specified for this property; otherwise, remove the property from the patched object. If the key is not present in the parent, this a no-op.</t>
 
 <t>Anything else: The value to set for this property (this may be a replacement or addition to the object being patched).</t>
 </list>
@@ -1174,7 +1174,7 @@ Any server-set properties MAY be included in the patch if their value is identic
 This patch definition is designed such that an entire Foo object is also a valid PatchObject. The client may choose to optimise network usage by just sending the diff or may send the whole object; the server processes it the same either way.</t>
 
 <t>destroy: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
-A list of ids for Foo objects to permanently delete, or <spanx style="verb">null</spanx> if no objects are to be destroyed.</t>
+A list of ids for Foo objects to permanently delete, or null if no objects are to be destroyed.</t>
 </list>
 </t>
 <t>Each creation, modification, or destruction of an object is considered an atomic unit. It is permissible for the server to commit changes to some objects but not others; however, it MUST NOT only commit part of an update to a single record (e.g., update a <spanx style="verb">name</spanx> property but not a <spanx style="verb">count</spanx> property, if both are supplied in the update object).
@@ -1213,7 +1213,7 @@ same type, the server MUST order the creates and updates within a single method 
 The id of the account used for the call.</t>
 
 <t>oldState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-The state string that would have been returned by <spanx style="verb">Foo/get</spanx> before making the requested changes, or <spanx style="verb">null</spanx> if the server doesn't know what the previous state string was.</t>
+The state string that would have been returned by <spanx style="verb">Foo/get</spanx> before making the requested changes, or null if the server doesn't know what the previous state string was.</t>
 
 <t>newState: <spanx style="verb">String</spanx><vspace blankLines="1" />
 The state string that will now be returned by <spanx style="verb">Foo/get</spanx>.</t>
@@ -1222,28 +1222,28 @@ The state string that will now be returned by <spanx style="verb">Foo/get</spanx
 A map of the creation id to an object containing any properties of the created Foo object that were not sent by the client. This includes all server-set properties (such as the <spanx style="verb">id</spanx> in most object types) and any properties that were omitted by the client and thus set to a default by the server.
 
 <vspace blankLines="1" />
-This argument is <spanx style="verb">null</spanx> if no Foo objects were successfully created.</t>
+This argument is null if no Foo objects were successfully created.</t>
 
 <t>updated: <spanx style="verb">Id[Foo|null]|null</spanx><vspace blankLines="1" />
 The keys in this map are the ids of all Foos that were successfully updated.
 <vspace blankLines="1" />
 The value for each id is a Foo object containing any property that
-changed in a way <spanx style="strong">not</spanx> explicitly requested by the PatchObject sent to the server, or <spanx style="verb">null</spanx> if none. This lets the client know of any changes to server-set or computed properties.
+changed in a way <spanx style="strong">not</spanx> explicitly requested by the PatchObject sent to the server, or null if none. This lets the client know of any changes to server-set or computed properties.
 <vspace blankLines="1" />
 
-This argument is <spanx style="verb">null</spanx> if no Foo objects were successfully updated.</t>
+This argument is null if no Foo objects were successfully updated.</t>
 
 <t>destroyed: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
-A list of Foo ids for records that were successfully destroyed, or <spanx style="verb">null</spanx> if none.</t>
+A list of Foo ids for records that were successfully destroyed, or null if none.</t>
 
 <t>notCreated: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
-A map of the creation id to a SetError object for each record that failed to be created, or <spanx style="verb">null</spanx> if all successful.</t>
+A map of the creation id to a SetError object for each record that failed to be created, or null if all successful.</t>
 
 <t>notUpdated: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
-A map of the Foo id to a SetError object for each record that failed to be updated, or <spanx style="verb">null</spanx> if all successful.</t>
+A map of the Foo id to a SetError object for each record that failed to be updated, or null if all successful.</t>
 
 <t>notDestroyed: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
-A map of the Foo id to a SetError object for each record that failed to be destroyed, or <spanx style="verb">null</spanx> if all successful.</t>
+A map of the Foo id to a SetError object for each record that failed to be destroyed, or null if all successful.</t>
 </list>
 </t>
 <t>A <spanx style="strong">SetError</spanx> object has the following properties:
@@ -1332,12 +1332,12 @@ process in a single method call.
 The id of the account to copy records from.</t>
 
 <t>ifFromInState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-This is a state string as returned by the <spanx style="verb">Foo/get</spanx> method. If supplied, the string must match the current state of the account referenced by the fromAccountId when reading the data to be copied; otherwise, the method will be aborted and a <spanx style="verb">stateMismatch</spanx> error returned. If <spanx style="verb">null</spanx>, the data will be read from the current state.</t>
+This is a state string as returned by the <spanx style="verb">Foo/get</spanx> method. If supplied, the string must match the current state of the account referenced by the fromAccountId when reading the data to be copied; otherwise, the method will be aborted and a <spanx style="verb">stateMismatch</spanx> error returned. If null, the data will be read from the current state.</t>
 
 <t>accountId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
 The id of the account to copy records to. This MUST be different to the <spanx style="verb">fromAccountId</spanx>.</t>
 <t>ifInState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-This is a state string as returned by the <spanx style="verb">Foo/get</spanx> method. If supplied, the string must match the current state of the account referenced by the accountId; otherwise, the method will be aborted and a <spanx style="verb">stateMismatch</spanx> error returned. If <spanx style="verb">null</spanx>, any changes will be applied to the current state.</t>
+This is a state string as returned by the <spanx style="verb">Foo/get</spanx> method. If supplied, the string must match the current state of the account referenced by the accountId; otherwise, the method will be aborted and a <spanx style="verb">stateMismatch</spanx> error returned. If null, any changes will be applied to the current state.</t>
 
 <t>create: <spanx style="verb">Id[Foo]</spanx><vspace blankLines="1" />
 A map of the <spanx style="strong">creation id</spanx> to a Foo object. The Foo object MUST contain an <spanx style="verb">id</spanx> property, which is the id (in the fromAccount) of the record to be copied. When creating the copy, any other properties included are used instead of the current value for that property on the original.</t>
@@ -1362,7 +1362,7 @@ The id of the account records were copied from.</t>
 The id of the account records were copied to.</t>
 
 <t>oldState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-The state string that would have been returned by <spanx style="verb">Foo/get</spanx> on the account records that were copied to before making the requested changes, or <spanx style="verb">null</spanx> if the server doesn't know what the previous state string was.</t>
+The state string that would have been returned by <spanx style="verb">Foo/get</spanx> on the account records that were copied to before making the requested changes, or null if the server doesn't know what the previous state string was.</t>
 
 <t>newState: <spanx style="verb">String</spanx><vspace blankLines="1" />
 The state string that will now be returned by <spanx style="verb">Foo/get</spanx> on the account records were copied to.</t>
@@ -1374,10 +1374,10 @@ note, the id is likely to be different to the id of the object in the account
 it was copied from).
 
 <vspace blankLines="1" />
-This argument is <spanx style="verb">null</spanx> if no Foo objects were successfully copied.</t>
+This argument is null if no Foo objects were successfully copied.</t>
 
 <t>notCreated: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
-A map of the creation id to a SetError object for each record that failed to be copied, or <spanx style="verb">null</spanx> if none.</t>
+A map of the creation id to a SetError object for each record that failed to be copied, or null if none.</t>
 </list>
 </t>
 <t>The SetError may be any of the standard set errors returned for a create or update.  In addition, the following SetError is defined:
@@ -1411,7 +1411,7 @@ A map of the creation id to a SetError object for each record that failed to be 
 The id of the account to use.</t>
 
 <t>filter: <spanx style="verb">FilterOperator|FilterCondition|null</spanx><vspace blankLines="1" />
-Determines the set of Foos returned in the results. If <spanx style="verb">null</spanx>, all objects in the account of this type are included in the results.
+Determines the set of Foos returned in the results. If null, all objects in the account of this type are included in the results.
 A <spanx style="strong">FilterOperator</spanx> object has the following properties:
 
 <list style="symbols">
@@ -1429,7 +1429,7 @@ The conditions to evaluate against each record.</t>
 A <spanx style="strong">FilterCondition</spanx> is an <spanx style="verb">object</spanx> whose allowed properties and semantics depend on the data type and is defined in the /query method specification for that type. It MUST NOT have an <spanx style="verb">operator</spanx> property.</t>
 
 <t>sort: <spanx style="verb">Comparator[]|null</spanx><vspace blankLines="1" />
-Lists the names of properties to compare between two Foo records, and how to compare them, to determine which comes first in the sort. If two Foo records have an identical value for the first comparator, the next comparator will be considered, and so on. If all comparators are the same (this includes the case where an empty array or <spanx style="verb">null</spanx> is given as the <spanx style="verb">sort</spanx> argument), the sort order is server dependent, but it MUST be stable between calls to Foo/query.
+Lists the names of properties to compare between two Foo records, and how to compare them, to determine which comes first in the sort. If two Foo records have an identical value for the first comparator, the next comparator will be considered, and so on. If all comparators are the same (this includes the case where an empty array or null is given as the <spanx style="verb">sort</spanx> argument), the sort order is server dependent, but it MUST be stable between calls to Foo/query.
 A <spanx style="strong">Comparator</spanx> has the following properties:
 
 <list style="symbols">
@@ -1482,7 +1482,7 @@ A Foo id. If supplied, the <spanx style="verb">position</spanx> argument is igno
 The index of the first result to return relative to the index of the anchor, if an anchor is given. This MAY be negative. For example, <spanx style="verb">-1</spanx> means the Foo immediately preceding the anchor is the first result in the list returned (see below for more details).</t>
 
 <t>limit: <spanx style="verb">UnsignedInt|null</spanx><vspace blankLines="1" />
-The maximum number of results to return. If <spanx style="verb">null</spanx>, no limit presumed. The server MAY choose to enforce a maximum <spanx style="verb">limit</spanx> argument. In this case, if a greater value is given (or if it is <spanx style="verb">null</spanx>), the limit is clamped to the maximum; the new limit is returned with the response so the client is aware. If a negative value is given, the call MUST be rejected with an <spanx style="verb">invalidArguments</spanx> error.</t>
+The maximum number of results to return. If null, no limit presumed. The server MAY choose to enforce a maximum <spanx style="verb">limit</spanx> argument. In this case, if a greater value is given (or if it is null), the limit is clamped to the maximum; the new limit is returned with the response so the client is aware. If a negative value is given, the call MUST be rejected with an <spanx style="verb">invalidArguments</spanx> error.</t>
 
 <t>calculateTotal: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
 Does the client wish to know the total number of results in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.</t>
@@ -2023,10 +2023,10 @@ The id of the account blobs were copied from.</t>
 The id of the account blobs were copied to.</t>
 
 <t>copied: <spanx style="verb">Id[Id]|null</spanx><vspace blankLines="1" />
-A map of the blobId in the fromAccount to the id for the blob in the account it was copied to, or <spanx style="verb">null</spanx> if none were successfully copied.</t>
+A map of the blobId in the fromAccount to the id for the blob in the account it was copied to, or null if none were successfully copied.</t>
 
 <t>notCopied: <spanx style="verb">Id[SetError]|null</spanx><vspace blankLines="1" />
-A map of blobId to a SetError object for each blob that failed to be copied, or <spanx style="verb">null</spanx> if none.</t>
+A map of blobId to a SetError object for each blob that failed to be copied, or null if none.</t>
 </list>
 </t>
 <t>The SetError may be any of the standard set errors that may be returned for a create, as defined in <xref target="set"/>. In addition, the <spanx style="verb">notFound</spanx> SetError error may be returned if the blobId to be copied cannot be found.
@@ -2128,7 +2128,7 @@ The P-256 Elliptic Curve Diffie-Hellman (ECDH) public key as described in <xref 
 The authentication secret as described in <xref target="RFC8291"/>, encoded in URL-safe base64 representation as defined in <xref target="RFC4648"/>.</t>
 </list></t>
 <t>verificationCode: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-This MUST be <spanx style="verb">null</spanx> (or omitted) when the subscription is created. The JMAP server then generates a verification code and sends it in a push message, and the client updates the PushSubscription object with the code; see <xref target="pushsubscriptionset"/> for details.</t>
+This MUST be null (or omitted) when the subscription is created. The JMAP server then generates a verification code and sends it in a push message, and the client updates the PushSubscription object with the code; see <xref target="pushsubscriptionset"/> for details.</t>
 
 <t>expires: <spanx style="verb">UTCDate|null</spanx><vspace blankLines="1" />
 The time this push subscription expires. If specified, the JMAP server MUST NOT make further requests to this resource after this time. It MAY automatically destroy the push subscription at or after this time.
@@ -2136,7 +2136,7 @@ The time this push subscription expires. If specified, the JMAP server MUST NOT 
 The server MAY choose to set an expiry if none is given by the client or modify the expiry time given by the client to a shorter duration.</t>
 
 <t>types: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
-A list of types the client is interested in (using the same names as the keys in the TypeState object defined in the previous section). A StateChange notification will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If <spanx style="verb">null</spanx>, changes will be pushed for all types.</t>
+A list of types the client is interested in (using the same names as the keys in the TypeState object defined in the previous section). A StateChange notification will only be sent if the data for one of these types changes. Other types are omitted from the TypeState object. If null, changes will be pushed for all types.</t>
 </list>
 </t>
 <t>The POST request MUST have a content type of <spanx style="verb">application/json</spanx> and contain the UTF-8 JSON-encoded object as the body. The request MUST have a <spanx style="verb">TTL</spanx> header and MAY have <spanx style="verb">Urgency</spanx> and/or <spanx style="verb">Topic</spanx> headers, as specified in Section 5 of <xref target="RFC8030"/>. The JMAP server is expected to understand and handle HTTP status responses in a reasonable manner. A <spanx style="verb">429</spanx> (Too Many Requests) response MUST cause the JMAP server to reduce the frequency of pushes; the JMAP push structure allows multiple changes to be coalesced into a single minimal StateChange object. See the security considerations in <xref target="connection-to-unknown-push-server"/> for a discussion of the risks in connecting to unknown servers.
@@ -2155,11 +2155,11 @@ A list of types the client is interested in (using the same names as the keys in
 </t>
 
 <section anchor="pushsubscriptionget" title="PushSubscription/get">
-<t>Standard /get method as described in <xref target="get"/>, except it does <spanx style="strong">not</spanx> take or return an <spanx style="verb">accountId</spanx> argument, as push subscriptions are not tied to specific accounts. It also does <spanx style="strong">not</spanx> return a <spanx style="verb">state</spanx> argument. The <spanx style="verb">ids</spanx> argument may be <spanx style="verb">null</spanx> to fetch all at once.
+<t>Standard /get method as described in <xref target="get"/>, except it does <spanx style="strong">not</spanx> take or return an <spanx style="verb">accountId</spanx> argument, as push subscriptions are not tied to specific accounts. It also does <spanx style="strong">not</spanx> return a <spanx style="verb">state</spanx> argument. The <spanx style="verb">ids</spanx> argument may be null to fetch all at once.
 </t>
 <t>The server MUST only return push subscriptions that were created using the same authentication credentials as for this PushSubscription/get request.
 </t>
-<t>As the <spanx style="verb">url</spanx> and <spanx style="verb">keys</spanx> properties may contain data that is private to a particular device, the values for these properties MUST NOT be returned. If the <spanx style="verb">properties</spanx> argument is <spanx style="verb">null</spanx> or omitted, the server MUST default to all properties excluding these two. If one of them is explicitly requested, the method call MUST be rejected with a <spanx style="verb">forbidden</spanx> error.
+<t>As the <spanx style="verb">url</spanx> and <spanx style="verb">keys</spanx> properties may contain data that is private to a particular device, the values for these properties MUST NOT be returned. If the <spanx style="verb">properties</spanx> argument is null or omitted, the server MUST default to all properties excluding these two. If one of them is explicitly requested, the method call MUST be rejected with a <spanx style="verb">forbidden</spanx> error.
 </t>
 </section>
 
