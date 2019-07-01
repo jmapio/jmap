@@ -177,7 +177,7 @@ neilj: Thanks, fixed.
 A list of all the values the server supports for the &quot;property&quot; field of the Comparator object in an Email/query sort (see <xref target="sorting" />). This MAY include properties the client does not recognise (for example, custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.</t>
 
 <t>mayCreateTopLevelMailbox: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, the user may create a Mailbox (see <xref target="mailboxes"/>) in this account with
+If true, the user may create a Mailbox (see <xref target="mailboxes"/>) in this account with
 a null parentId. (Permission for creating a child of an existing Mailbox is given by the <spanx style="verb">myRights</spanx> property on that Mailbox.)</t>
 </list>
 </t>
@@ -315,13 +315,13 @@ For example, suppose you have an account where the entire contents is a single T
 The set of rights (Access Control Lists (ACLs)) the user has in relation to this Mailbox. These are backwards compatible with IMAP ACLs, as defined in <xref target="RFC4314"/>. A <spanx style="strong">MailboxRights</spanx> object has the following properties:
 <list style="symbols">
 <t>mayReadItems: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-If true, the user may use this Mailbox as part of a filter in an <spanx style="verb">Email/query</spanx> call, and the Mailbox may be included in the <spanx style="verb">mailboxIds</spanx> property of Email objects. Email objects may be fetched if they are in <spanx style="strong">at least one</spanx> Mailbox with this permission. If a sub-Mailbox is shared but not the parent Mailbox, this may be <spanx style="verb">false</spanx>. Corresponds to IMAP ACLs <spanx style="verb">lr</spanx> (if mapping from IMAP, both are required for this to be <spanx style="verb">true</spanx>).</t>
+If true, the user may use this Mailbox as part of a filter in an <spanx style="verb">Email/query</spanx> call, and the Mailbox may be included in the <spanx style="verb">mailboxIds</spanx> property of Email objects. Email objects may be fetched if they are in <spanx style="strong">at least one</spanx> Mailbox with this permission. If a sub-Mailbox is shared but not the parent Mailbox, this may be false. Corresponds to IMAP ACLs <spanx style="verb">lr</spanx> (if mapping from IMAP, both are required for this to be true).</t>
 
 <t>mayAddItems: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
 The user may add mail to this Mailbox (by either creating a new Email or moving an existing one). Corresponds to IMAP ACL <spanx style="verb">i</spanx>.</t>
 
 <t>mayRemoveItems: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may remove mail from this Mailbox (by either changing the Mailboxes of an Email or deleting it). Corresponds to IMAP ACLs <spanx style="verb">te</spanx> (if mapping from IMAP, both are required for this to be <spanx style="verb">true</spanx>).</t>
+The user may remove mail from this Mailbox (by either changing the Mailboxes of an Email or deleting it). Corresponds to IMAP ACLs <spanx style="verb">te</spanx> (if mapping from IMAP, both are required for this to be true).</t>
 
 <t>maySetSeen: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
 The user may add or remove the <spanx style="verb">$seen</spanx> keyword to/from an Email. If an Email belongs to multiple Mailboxes, the user may only modify <spanx style="verb">$seen</spanx> if they have this permission for <spanx style="strong">all</spanx> of the Mailboxes. Corresponds to IMAP ACL <spanx style="verb">s</spanx>.</t>
@@ -343,9 +343,9 @@ Messages may be submitted directly to this Mailbox. Corresponds to IMAP ACL <spa
 </list></t>
 
 <t>isSubscribed: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-Has the user indicated they wish to see this Mailbox in their client? This SHOULD default to <spanx style="verb">false</spanx> for Mailboxes in shared accounts the user has access to and <spanx style="verb">true</spanx> for any new Mailboxes created by the user themself. This MUST be stored separately per user where multiple users have access to a shared Mailbox.
+Has the user indicated they wish to see this Mailbox in their client? This SHOULD default to false for Mailboxes in shared accounts the user has access to and true for any new Mailboxes created by the user themself. This MUST be stored separately per user where multiple users have access to a shared Mailbox.
 <vspace blankLines="1" />
-A user may have permission to access a large number of shared accounts, or a shared account with a very large set of Mailboxes, but only be interested in the contents of a few of these. Clients may choose to only display Mailboxes where the <spanx style="verb">isSubscribed</spanx> property is set to <spanx style="verb">true</spanx>, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of Mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation or just for an account where <spanx style="verb">isPersonal</spanx> is <spanx style="verb">true</spanx> (indicating it is the user's own rather than a shared account).
+A user may have permission to access a large number of shared accounts, or a shared account with a very large set of Mailboxes, but only be interested in the contents of a few of these. Clients may choose to only display Mailboxes where the <spanx style="verb">isSubscribed</spanx> property is set to true, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of Mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation or just for an account where <spanx style="verb">isPersonal</spanx> is true (indicating it is the user's own rather than a shared account).
 <vspace blankLines="1" />
 This property corresponds to IMAP <xref target="RFC3501"/> mailbox subscriptions.</t>
 </list>
@@ -437,7 +437,7 @@ Original:
 
 neilj: Yes, thanks I think that's better.
 -->
-If <spanx style="verb">true</spanx>, when sorting the query results and comparing Mailboxes A and B:
+If true, when sorting the query results and comparing Mailboxes A and B:
 <list style="symbols">
 <t>If A is an ancestor of B, it always comes first regardless of the sort comparators. Similarly, if A is descendant of B, then B always comes
 first.</t>
@@ -450,7 +450,7 @@ properties on those Mailboxes instead.</t>
 The result of this is that the Mailboxes are sorted as a tree according to the parentId properties, with each set of children with a common parent sorted according to the standard sort comparators.</t>
 
 <t>filterAsTree: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, a Mailbox is only included in the query if all its ancestors are
+If true, a Mailbox is only included in the query if all its ancestors are
 also included in the query according to the filter.</t>
 </list>
 </t>
@@ -468,14 +468,14 @@ The Mailbox <spanx style="verb">name</spanx> property contains the given string.
 The Mailbox <spanx style="verb">role</spanx> property must match the given value exactly.</t>
 
 <t>hasAnyRole: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, a Mailbox matches if it has any non-null value for its <spanx style="verb">role</spanx> property.</t>
+If true, a Mailbox matches if it has any non-null value for its <spanx style="verb">role</spanx> property.</t>
 
 <t>isSubscribed: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
 The <spanx style="verb">isSubscribed</spanx> property of the Mailbox must be identical to the value given to match the condition.</t>
 </list>
 </t>
 
-<t>A Mailbox object matches the FilterCondition if and only if all of the given conditions match. If zero properties are specified, it is automatically <spanx style="verb">true</spanx> for all objects.
+<t>A Mailbox object matches the FilterCondition if and only if all of the given conditions match. If zero properties are specified, it is automatically true for all objects.
 </t>
 <t>The following Mailbox properties MUST be supported for sorting:
 </t>
@@ -498,7 +498,7 @@ The <spanx style="verb">isSubscribed</spanx> property of the Mailbox must be ide
 <t>
 <list style="symbols">
 <t>onDestroyRemoveMessages: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">false</spanx>, any attempt to destroy a Mailbox that still has Emails in it will be rejected with a <spanx style="verb">mailboxHasEmail</spanx> SetError. If <spanx style="verb">true</spanx>, any Emails that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.</t>
+If false, any attempt to destroy a Mailbox that still has Emails in it will be rejected with a <spanx style="verb">mailboxHasEmail</spanx> SetError. If true, any Emails that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.</t>
 </list>
 </t>
 <t>The following extra SetError types are defined:
@@ -511,7 +511,7 @@ If <spanx style="verb">false</spanx>, any attempt to destroy a Mailbox that stil
 client MUST remove these before it can delete the parent Mailbox.</t>
 
 <t><spanx style="verb">mailboxHasEmail</spanx>: The Mailbox has at least one Email assigned to it, and
-the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx style="verb">false</spanx>.</t>
+the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was false.</t>
 </list>
 </t>
 </section>
@@ -782,10 +782,10 @@ The id representing the raw octets of the message <xref target="RFC5322"/>. This
 The id of the Thread to which this Email belongs.</t>
 
 <t>mailboxIds: <spanx style="verb">Id[Boolean]</spanx><vspace blankLines="1" />
-The set of Mailbox ids this Email belongs to. An Email in the mail store MUST belong to one or more Mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a Mailbox id.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.</t>
+The set of Mailbox ids this Email belongs to. An Email in the mail store MUST belong to one or more Mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a Mailbox id.  The value for each key in the object MUST be true.</t>
 
 <t>keywords: <spanx style="verb">String[Boolean]</spanx> (default: {})<vspace blankLines="1" />
-A set of keywords that apply to the Email. The set is represented as an object, with the keys being the keywords.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.
+A set of keywords that apply to the Email. The set is represented as an object, with the keys being the keywords.  The value for each key in the object MUST be true.
 <vspace blankLines="1" />
 Keywords are shared with IMAP. The six system keywords from IMAP get special treatment. The following four keywords have their first character changed from <spanx style="verb">\</spanx> in IMAP to <spanx style="verb">$</spanx> in JMAP and have particular semantic meaning:
 <list style="symbols">
@@ -1256,10 +1256,10 @@ Decoding is best effort; the server SHOULD insert the unicode replacement charac
 Note that due to the charset decoding and line ending normalisation, the length of this string will probably not be exactly the same as the <spanx style="verb">size</spanx> property on the corresponding EmailBodyPart.</t>
 
 <t>isEncodingProblem: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-This is <spanx style="verb">true</spanx> if malformed sections were found while decoding the charset, the charset was unknown, or the content-transfer-encoding was unknown.</t>
+This is true if malformed sections were found while decoding the charset, the charset was unknown, or the content-transfer-encoding was unknown.</t>
 
 <t>isTruncated: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-This is <spanx style="verb">true</spanx> if the <spanx style="verb">value</spanx> has been truncated.</t>
+This is true if the <spanx style="verb">value</spanx> has been truncated.</t>
 </list>
 
 See the Security Considerations section for issues related to truncation
@@ -1285,7 +1285,7 @@ None of these parts include subParts, including <spanx style="verb">message/*</s
 Note that a <spanx style="verb">text/html</spanx> body part <xref target="HTML"/> may reference image parts in attachments by using <spanx style="verb">cid:</spanx> links to reference the Content-Id, as defined in <xref target="RFC2392"/>, or by referencing the Content-Location.</t>
 
 <t>hasAttachment: <spanx style="verb">Boolean</spanx> (immutable; server-set)<vspace blankLines="1" />
-This is <spanx style="verb">true</spanx> if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment to <spanx style="verb">true</spanx> if the <spanx style="verb">attachments</spanx> list contains at least one item that does not have <spanx style="verb">Content-Disposition: inline</spanx>. The server MAY ignore parts in this list that are processed automatically in some way or are referenced as embedded images in one of the <spanx style="verb">text/html</spanx> parts of the message.
+This is true if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment to true if the <spanx style="verb">attachments</spanx> list contains at least one item that does not have <spanx style="verb">Content-Disposition: inline</spanx>. The server MAY ignore parts in this list that are processed automatically in some way or are referenced as embedded images in one of the <spanx style="verb">text/html</spanx> parts of the message.
 <vspace blankLines="1" />
 The server MAY set hasAttachment based on implementation-defined or site-configurable heuristics.</t>
 
@@ -1443,13 +1443,13 @@ A list of properties to fetch for each EmailBodyPart returned. If omitted, this 
   "disposition", "cid", "language", "location" ]
 </artwork></figure></t>
 <t>fetchTextBodyValues: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">textBody</spanx> property.</t>
+If true, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">textBody</spanx> property.</t>
 
 <t>fetchHTMLBodyValues: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">htmlBody</spanx> property.</t>
+If true, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">htmlBody</spanx> property.</t>
 
 <t>fetchAllBodyValues: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">bodyStructure</spanx> property.</t>
+If true, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">bodyStructure</spanx> property.</t>
 
 <t>maxBodyValueBytes: <spanx style="verb">UnsignedInt</spanx> (default: 0)<vspace blankLines="1" />
 If greater than zero, the <spanx style="verb">value</spanx> property of any EmailBodyValue object returned in <spanx style="verb">bodyValues</spanx> MUST be truncated if necessary so it does not exceed this number of octets in size. If <spanx style="verb">0</spanx> (the default), no truncation occurs.
@@ -1573,7 +1573,7 @@ The server MUST ensure the truncation results in valid UTF-8 and does not occur 
 <t>
 <list style="symbols">
 <t>collapseThreads: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, Emails in the same Thread as a previous Email in the list (given the filter and sort order) will be removed from the list. This means only one Email at most will be included in the list for any given Thread.</t>
+If true, Emails in the same Thread as a previous Email in the list (given the filter and sort order) will be removed from the list. This means only one Email at most will be included in the list for any given Thread.</t>
 </list>
 </t>
 <t>In quality implementations, the query &quot;total&quot; property is expected to be fast to calculate when the filter consists solely of a single <spanx style="verb">inMailbox</spanx> property, as it is the same as the totalEmails or totalThreads properties (depending on whether collapseThreads is true) of the associated Mailbox object.
@@ -1645,7 +1645,7 @@ Looks for the text in one of the body parts of the message. The server MAY exclu
 The array MUST contain either one or two elements. The first element is the name of the header field to match against. The second (optional) element is the text to look for in the header field value. If not supplied, the message matches simply if it has a header field of the given name.</t>
 </list>
 </t>
-<t>If zero properties are specified on the FilterCondition, the condition MUST always evaluate to <spanx style="verb">true</spanx>. If multiple properties are specified, ALL must apply for the condition to be <spanx style="verb">true</spanx> (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
+<t>If zero properties are specified on the FilterCondition, the condition MUST always evaluate to true. If multiple properties are specified, ALL must apply for the condition to be true (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
 </t>
 <t>The exact semantics for matching <spanx style="verb">String</spanx> fields is <spanx style="strong">deliberately not defined</spanx> to allow for flexibility in indexing implementation, subject to the following:
 </t>
@@ -1693,11 +1693,11 @@ Within a phrase, to match one of the following characters you MUST escape it by 
 <t><spanx style="verb">subject</spanx> - This is taken to be the base subject of the message, as defined in Section 2.1 of <xref target="RFC5256"/>.</t>
 
 <t><spanx style="verb">sentAt</spanx> - The <spanx style="verb">sentAt</spanx> property on the Email object.</t>
-<t><spanx style="verb">hasKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> if the Email has the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object, or <spanx style="verb">false</spanx> otherwise.</t>
+<t><spanx style="verb">hasKeyword</spanx> - This value MUST be considered true if the Email has the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object, or false otherwise.</t>
 
-<t><spanx style="verb">allInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the Email if <spanx style="strong">all</spanx> of the Emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
+<t><spanx style="verb">allInThreadHaveKeyword</spanx> - This value MUST be considered true for the Email if <spanx style="strong">all</spanx> of the Emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
 
-<t><spanx style="verb">someInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the Email if <spanx style="strong">any</spanx> of the Emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
+<t><spanx style="verb">someInThreadHaveKeyword</spanx> - This value MUST be considered true for the Email if <spanx style="strong">any</spanx> of the Emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
 </list>
 </t>
 <t>The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's <spanx style="verb">capabilities</spanx> object (see <xref target="additions-to-the-capabilities-object"/>).
@@ -1723,7 +1723,7 @@ Within a phrase, to match one of the following characters you MUST escape it by 
 </section>
 
 <section anchor="thread-collapsing" title="Thread Collapsing">
-<t>When <spanx style="verb">collapseThreads</spanx> is <spanx style="verb">true</spanx>, then after filtering and sorting the Email list, the list is further winnowed by removing any Emails for a Thread id that has already been seen (when passing through the list sequentially). A Thread will therefore only appear <spanx style="strong">once</spanx> in the result, at the position of the first Email in the list that belongs to the Thread (given the current sort/filter).
+<t>When <spanx style="verb">collapseThreads</spanx> is true, then after filtering and sorting the Email list, the list is further winnowed by removing any Emails for a Thread id that has already been seen (when passing through the list sequentially). A Thread will therefore only appear <spanx style="strong">once</spanx> in the result, at the position of the first Email in the list that belongs to the Thread (given the current sort/filter).
 </t>
 </section>
 </section>
@@ -1795,7 +1795,7 @@ actually calculated from the blob content itself).</t>
 <t>A Content-Transfer-Encoding header field MUST NOT be given.</t>
 </list></t>
 <t>Within an EmailBodyValue object, isEncodingProblem and isTruncated MUST be
-either <spanx style="verb">false</spanx> or omitted.</t>
+either false or omitted.</t>
 </list>
 </t>
 <t>Creation attempts that violate any of this SHOULD be rejected with an <spanx style="verb">invalidProperties</spanx> error; however, a server MAY choose to modify the Email (e.g., choose between conflicting headers, use a different content-encoding, etc.) to comply with its requirements instead.
@@ -1941,13 +1941,13 @@ If supplied, only the properties listed in the array are returned for each Email
 <t>bodyProperties: <spanx style="verb">String[]</spanx><vspace blankLines="1" />
 A list of properties to fetch for each EmailBodyPart returned. If omitted, defaults to the same value as the Email/get &quot;bodyProperties&quot; default argument.</t>
 <t>fetchTextBodyValues: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">textBody</spanx> property.</t>
+If true, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">textBody</spanx> property.</t>
 
 <t>fetchHTMLBodyValues: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">htmlBody</spanx> property.</t>
+If true, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">htmlBody</spanx> property.</t>
 
 <t>fetchAllBodyValues: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">bodyStructure</spanx> property.</t>
+If true, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">bodyStructure</spanx> property.</t>
 
 <t>maxBodyValueBytes: <spanx style="verb">UnsignedInt</spanx> (default: 0)<vspace blankLines="1" />
 If greater than zero, the <spanx style="verb">value</spanx> property of any EmailBodyValue object returned in <spanx style="verb">bodyValues</spanx> MUST be truncated if necessary so it does not exceed this number of octets in size. If <spanx style="verb">0</spanx> (the default), no truncation occurs.
@@ -2462,7 +2462,7 @@ Signature the client SHOULD insert into new plaintext messages that will be sent
 Signature the client SHOULD insert into new HTML messages that will be sent from this Identity. This text MUST be an HTML snippet to be inserted into the <spanx style="verb">&lt;body&gt;&lt;/body&gt;</spanx> section of the HTML. Clients MAY ignore this and/or combine this with a client-specific signature preference.</t>
 
 <t>mayDelete: <spanx style="verb">Boolean</spanx> (server-set)<vspace blankLines="1" />
-Is the user allowed to delete this Identity? Servers may wish to set this to <spanx style="verb">false</spanx> for the user's username or other default address. Attempts to destroy an Identity with <spanx style="verb">mayDelete: false</spanx> will be rejected with a standard <spanx style="verb">forbidden</spanx> SetError.</t>
+Is the user allowed to delete this Identity? Servers may wish to set this to false for the user's username or other default address. Attempts to destroy an Identity with <spanx style="verb">mayDelete: false</spanx> will be rejected with a standard <spanx style="verb">forbidden</spanx> SetError.</t>
 </list>
 </t>
 <t>See the &quot;Addresses&quot; header form description in the Email object for the definition of EmailAddress.
@@ -2727,7 +2727,7 @@ The <spanx style="verb">sendAt</spanx> property of the EmailSubmission object mu
 The <spanx style="verb">sendAt</spanx> property of the EmailSubmission object must be the same as or after this date-time to match the condition.</t>
 </list>
 </t>
-<t>An EmailSubmission object matches the FilterCondition if and only if all of the given conditions match. If zero properties are specified, it is automatically <spanx style="verb">true</spanx> for all objects.
+<t>An EmailSubmission object matches the FilterCondition if and only if all of the given conditions match. If zero properties are specified, it is automatically true for all objects.
 </t>
 <t>The following EmailSubmission properties MUST be supported for sorting:
 </t>
@@ -2907,10 +2907,10 @@ The id of the object. There is only ever one VacationResponse object, and its id
 Should a vacation response be sent if a message arrives between the <spanx style="verb">fromDate</spanx> and <spanx style="verb">toDate</spanx>?</t>
 
 <t>fromDate: <spanx style="verb">UTCDate|null</spanx><vspace blankLines="1" />
-If <spanx style="verb">isEnabled</spanx> is <spanx style="verb">true</spanx>, messages that arrive on or after this date-time (but before the <spanx style="verb">toDate</spanx> if defined) should receive the user's vacation response. If null, the vacation response is effective immediately.</t>
+If <spanx style="verb">isEnabled</spanx> is true, messages that arrive on or after this date-time (but before the <spanx style="verb">toDate</spanx> if defined) should receive the user's vacation response. If null, the vacation response is effective immediately.</t>
 
 <t>toDate: <spanx style="verb">UTCDate|null</spanx><vspace blankLines="1" />
-If <spanx style="verb">isEnabled</spanx> is <spanx style="verb">true</spanx>, messages that arrive before this date-time (but on or after the <spanx style="verb">fromDate</spanx> if defined) should receive the user's vacation response. If null, the vacation response is effective indefinitely.</t>
+If <spanx style="verb">isEnabled</spanx> is true, messages that arrive before this date-time (but on or after the <spanx style="verb">fromDate</spanx> if defined) should receive the user's vacation response. If null, the vacation response is effective indefinitely.</t>
 
 <t>subject: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
 The subject that will be used by the message sent in response to messages when the vacation response is enabled. If null, an appropriate subject SHOULD be set by the server.</t>

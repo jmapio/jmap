@@ -326,9 +326,9 @@ A map of an account id to an Account object for each account (see <xref target="
 A user-friendly string to show when presenting content from this account, e.g., the email address representing the owner of the account.</t>
 
 <t>isPersonal: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-This is <spanx style="verb">true</spanx> if the account belongs to the authenticated user rather than a group account or a personal account of another user that has been shared with them.</t>
+This is true if the account belongs to the authenticated user rather than a group account or a personal account of another user that has been shared with them.</t>
 <t>isReadOnly: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-This is <spanx style="verb">true</spanx> if the entire account is read-only.</t>
+This is true if the entire account is read-only.</t>
 
 <t>accountCapabilities: <spanx style="verb">String[Object]</spanx><vspace blankLines="1" />
 The set of capability URIs for the methods supported in this account. Each key is a URI for a capability that has methods you can use with this account. The value for each of these keys is an object with further information about the account's permissions and restrictions with respect to this capability, as defined in the capability's specification.
@@ -1065,7 +1065,7 @@ This is the <spanx style="verb">sinceState</spanx> argument echoed back; it's th
 This is the state the client will be in after applying the set of changes to the old state.</t>
 
 <t>hasMoreChanges: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, the client may call <spanx style="verb">Foo/changes</spanx> again with the <spanx style="verb">newState</spanx> returned to get further updates. If <spanx style="verb">false</spanx>, <spanx style="verb">newState</spanx> is the current server state.</t>
+If true, the client may call <spanx style="verb">Foo/changes</spanx> again with the <spanx style="verb">newState</spanx> returned to get further updates. If false, <spanx style="verb">newState</spanx> is the current server state.</t>
 
 <t>created: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
 An array of ids for records that have been created since the old state.</t>
@@ -1343,7 +1343,7 @@ This is a state string as returned by the <spanx style="verb">Foo/get</spanx> me
 A map of the <spanx style="strong">creation id</spanx> to a Foo object. The Foo object MUST contain an <spanx style="verb">id</spanx> property, which is the id (in the fromAccount) of the record to be copied. When creating the copy, any other properties included are used instead of the current value for that property on the original.</t>
 
 <t>onSuccessDestroyOriginal: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, an attempt will be made to destroy the original records that were successfully copied: after emitting the <spanx style="verb">Foo/copy</spanx> response, but before processing the next method, the server MUST make a single call to <spanx style="verb">Foo/set</spanx> to destroy the original of each successfully copied record; the output of this is added to the responses as normal, to be returned to the client.</t>
+If true, an attempt will be made to destroy the original records that were successfully copied: after emitting the <spanx style="verb">Foo/copy</spanx> response, but before processing the next method, the server MUST make a single call to <spanx style="verb">Foo/set</spanx> to destroy the original of each successfully copied record; the output of this is added to the responses as normal, to be returned to the client.</t>
 
 <t>destroyFromIfInState: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
 This argument is passed on as the <spanx style="verb">ifInState</spanx> argument to the implicit <spanx style="verb">Foo/set</spanx> call, if made at the end of this request to destroy the originals that were successfully copied.</t>
@@ -1437,7 +1437,7 @@ A <spanx style="strong">Comparator</spanx> has the following properties:
 The name of the property on the Foo objects to compare.</t>
 
 <t>isAscending: <spanx style="verb">Boolean</spanx> (optional; default: true)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, sort in ascending order. If <spanx style="verb">false</spanx>, reverse the comparator's results to sort in descending order.</t>
+If true, sort in ascending order. If false, reverse the comparator's results to sort in descending order.</t>
 
 <t>collation: <spanx style="verb">String</spanx> (optional; default is server-dependent)<vspace blankLines="1" />
 The identifier, as registered in the collation registry defined in <xref target="RFC4790"/>, for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the Session object (see <xref target="the-jmap-session-resource"/>).
@@ -1458,7 +1458,7 @@ The &quot;i;unicode-casemap&quot; collation <xref target="RFC5051"/> and the Uni
 <vspace blankLines="1" />
 When the property being compared is not a string, the <spanx style="verb">collation</spanx> property is ignored, and the following comparison rules apply based on the type. In ascending order:
 <list style="symbols">
-<t><spanx style="verb">Boolean</spanx>: <spanx style="verb">false</spanx> comes before <spanx style="verb">true</spanx>.</t>
+<t><spanx style="verb">Boolean</spanx>: false comes before true.</t>
 <t><spanx style="verb">Number</spanx>: A lower number comes before a higher number.</t>
 <t><spanx style="verb">Date</spanx>/<spanx style="verb">UTCDate</spanx>: The earlier date comes first.</t>
 </list></t>
@@ -1512,7 +1512,7 @@ The queryState string only represents the ordered list of ids that match the par
 Should a client receive back a response with a different queryState string to a previous call, it MUST either throw away the currently cached query and fetch it again (note, this does not require fetching the records again, just the list of ids) or call <spanx style="verb">Foo/queryChanges</spanx> to get the difference.</t>
 
 <t>canCalculateChanges: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-This is <spanx style="verb">true</spanx> if the server supports calling <spanx style="verb">Foo/queryChanges</spanx> with these <spanx style="verb">filter</spanx>/<spanx style="verb">sort</spanx> parameters. Note, this does not guarantee that the <spanx style="verb">Foo/queryChanges</spanx> call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.</t>
+This is true if the server supports calling <spanx style="verb">Foo/queryChanges</spanx> with these <spanx style="verb">filter</spanx>/<spanx style="verb">sort</spanx> parameters. Note, this does not guarantee that the <spanx style="verb">Foo/queryChanges</spanx> call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.</t>
 
 <t>position: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
 The zero-based index of the first result in the <spanx style="verb">ids</spanx> array within the complete list of query results.</t>
@@ -1521,7 +1521,7 @@ The zero-based index of the first result in the <spanx style="verb">ids</spanx> 
 The list of ids for each Foo in the query results, starting at the index given by the <spanx style="verb">position</spanx> argument of this response and continuing until it hits the end of the results or reaches the <spanx style="verb">limit</spanx> number of ids. If <spanx style="verb">position</spanx> is &gt;= <spanx style="verb">total</spanx>, this MUST be the empty list.</t>
 
 <t>total: <spanx style="verb">UnsignedInt</spanx> (only if requested)<vspace blankLines="1" />
-The total number of Foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not <spanx style="verb">true</spanx>.</t>
+The total number of Foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not true.</t>
 
 <t>limit: <spanx style="verb">UnsignedInt</spanx> (if set by the server)<vspace blankLines="1" />
 The limit enforced by the server on the maximum number of results to return.
@@ -1582,7 +1582,7 @@ This is the <spanx style="verb">sinceQueryState</spanx> argument echoed back; th
 This is the state the query will be in after applying the set of changes to the old state.</t>
 
 <t>total: <spanx style="verb">UnsignedInt</spanx> (only if requested)<vspace blankLines="1" />
-The total number of Foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not <spanx style="verb">true</spanx>.</t>
+The total number of Foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not true.</t>
 
 <t>removed: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
 The <spanx style="verb">id</spanx> for every Foo that was in the query results in the old state and that is not in the results in the new state.
@@ -1658,7 +1658,7 @@ The id of the object.</t>
 A brief summary of what is to be done.</t>
 
 <t>keywords: <spanx style="verb">String[Boolean]</spanx> (default: {})<vspace blankLines="1" />
-A set of keywords that apply to the Todo. The set is represented as an object, with the keys being the <spanx style="verb">keywords</spanx>.  The value for each key in the object MUST be <spanx style="verb">true</spanx>. (This format allows you to update an individual key using patch syntax rather than having to update the whole set of keywords as one, which a <spanx style="verb">String[]</spanx> representation would require.)</t>
+A set of keywords that apply to the Todo. The set is represented as an object, with the keys being the <spanx style="verb">keywords</spanx>.  The value for each key in the object MUST be true. (This format allows you to update an individual key using patch syntax rather than having to update the whole set of keywords as one, which a <spanx style="verb">String[]</spanx> representation would require.)</t>
 
 <t>neuralNetworkTimeEstimation: <spanx style="verb">Number</spanx> (server-set)<vspace blankLines="1" />
 The title and keywords are fed into the server's state-of-the-art neural
