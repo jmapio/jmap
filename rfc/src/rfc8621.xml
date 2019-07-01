@@ -300,14 +300,14 @@ An indication of the number of &quot;unread&quot; threads in the mailbox.
 For compatibility with existing implementations, the way &quot;unread threads&quot; is
 determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this mailbox and has neither the <spanx style="verb">$seen</spanx> nor <spanx style="verb">$draft</spanx> keywords.
 <vspace blankLines="1" />
-However, a quality implementation will return the number of unread items the user would see if they opened that mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of threads where at least one email in the thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one email in the thread is in this mailbox. Note that the unread email does not need to be the one in this mailbox. In addition, the Trash mailbox (that is, a mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
+However, a quality implementation will return the number of unread items the user would see if they opened that mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of threads where at least one email in the thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one email in the thread is in this mailbox. Note that the unread email does not need to be the one in this mailbox. In addition, the trash mailbox (that is, a mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
 <list style="numbers">
-<t>Emails that are <spanx style="strong">only</spanx> in the Trash (and no other mailbox) are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count of other mailboxes.</t>
-<t>Emails that are <spanx style="strong">not</spanx> in the Trash are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count for the Trash mailbox.</t>
+<t>Emails that are <spanx style="strong">only</spanx> in the trash (and no other mailbox) are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count of other mailboxes.</t>
+<t>Emails that are <spanx style="strong">not</spanx> in the trash are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count for the trash mailbox.</t>
 </list>
-The result of this is that emails in the Trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the Trash when viewing a thread in another mailbox, and vice versa. This allows you to delete a single email to the Trash out of a thread.
+The result of this is that emails in the trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a thread in another mailbox, and vice versa. This allows you to delete a single email to the trash out of a thread.
 <vspace blankLines="1" />
-For example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the Trash and a read email in the Inbox. The <spanx style="verb">unreadThreads</spanx> count would be <spanx style="verb">1</spanx> for the Trash and <spanx style="verb">0</spanx> for the Inbox.</t>
+For example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the trash and a read email in the inbox. The <spanx style="verb">unreadThreads</spanx> count would be <spanx style="verb">1</spanx> for the trash and <spanx style="verb">0</spanx> for the inbox.</t>
 
 <t>myRights: <spanx style="verb">MailboxRights</spanx> (server-set)<vspace blankLines="1" />
 The set of rights (Access Control Lists (ACLs)) the user has in relation to this mailbox. These are backwards compatible with IMAP ACLs, as defined in <xref target="RFC4314"/>. A <spanx style="strong">MailboxRights</spanx> object has the following properties:
@@ -348,7 +348,7 @@ A user may have permission to access a large number of shared accounts, or a sha
 This property corresponds to IMAP <xref target="RFC3501"/> mailbox subscriptions.</t>
 </list>
 </t>
-<t>For IMAP compatibility, an email in both the Trash and another mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the Trash mailbox and leave it in the other mailbox).
+<t>For IMAP compatibility, an email in both the trash and another mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash mailbox and leave it in the other mailbox).
 </t>
 <t>The following JMAP methods are supported.
 </t>
@@ -1804,7 +1804,7 @@ either <spanx style="verb">false</spanx> or omitted.</t>
 </t>
 <t>Destroying an email removes it from all mailboxes to which it belonged. To  just delete an email to trash, simply change the <spanx style="verb">mailboxIds</spanx> property, so it is now in the mailbox with a <spanx style="verb">role</spanx> property equal to <spanx style="verb">trash</spanx>, and remove all other mailbox ids.
 </t>
-<t>When emptying the trash, clients SHOULD NOT destroy emails that are also in a mailbox other than trash. For those emails, they SHOULD just remove the Trash mailbox from the email.
+<t>When emptying the trash, clients SHOULD NOT destroy emails that are also in a mailbox other than trash. For those emails, they SHOULD just remove the trash mailbox from the email.
 </t>
 <t>For successfully created Email objects, the <spanx style="verb">created</spanx> response contains the <spanx style="verb">id</spanx>, <spanx style="verb">blobId</spanx>, <spanx style="verb">threadId</spanx>, and <spanx style="verb">size</spanx> properties of the object.
 </t>
@@ -2806,7 +2806,7 @@ EmailSubmission object from <spanx style="verb">pending</spanx> to <spanx style=
 </t>
 
 <section anchor="example-6" title="Example">
-<t>The following example presumes a draft of the message to be sent has already been saved, and its email id is &quot;M7f6ed5bcfd7e2604d1753f6c&quot;. This call then sends the email immediately, and if successful, removes the draft flag and moves it from the Drafts folder (which has mailbox id &quot;7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e&quot;) to the Sent folder (which we presume has mailbox id &quot;73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6&quot;).
+<t>The following example presumes a draft of the message to be sent has already been saved, and its email id is &quot;M7f6ed5bcfd7e2604d1753f6c&quot;. This call then sends the email immediately, and if successful, removes the draft flag and moves it from the drafts folder (which has mailbox id &quot;7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e&quot;) to the sent folder (which we presume has mailbox id &quot;73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6&quot;).
 </t>
 
 <figure align="center"><artwork align="center">
@@ -3034,7 +3034,7 @@ target="RFC7677"/>.
 <section anchor="partial-account-access" title="Partial Account Access">
 <t>A user may only have permission to access a subset of the data that exists in an account. To avoid leaking unauthorised information, in such a situation, the server MUST treat any data the user does not have permission to access the same as if it did not exist.
 </t>
-<t>For example, suppose user A has an account with two mailboxes, Inbox and Sent, but only shares the Inbox with user B. In this case, when user B fetches mailboxes for this account, the server MUST behave as though the Sent mailbox did not exist. Similarly, when querying or fetching Email objects, it MUST treat any messages that just belong to the Sent mailbox as though they did not exist. Fetching Thread objects MUST only return ids for Email objects the user has permission to access; if none, the Thread again MUST be treated the same as if it did not exist.
+<t>For example, suppose user A has an account with two mailboxes, inbox and sent, but only shares the inbox with user B. In this case, when user B fetches mailboxes for this account, the server MUST behave as though the sent mailbox did not exist. Similarly, when querying or fetching Email objects, it MUST treat any messages that just belong to the sent mailbox as though they did not exist. Fetching Thread objects MUST only return ids for Email objects the user has permission to access; if none, the Thread again MUST be treated the same as if it did not exist.
 </t>
 <t>If the server forbids a single account from having two identical messages, or two messages with the same Message-Id header field, a user with write access can use the error returned by trying to create/import such a message to detect whether it already exists in an inaccessible portion of the account.
 </t>
