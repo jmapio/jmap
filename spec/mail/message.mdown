@@ -689,7 +689,12 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 - Any syntactically correct encoded sections [@!RFC2047] of header fields with a known encoding SHOULD be decoded before attempting to match text.
 - When searching inside a `text/html` body part, any text considered markup rather than content SHOULD be ignored, including HTML tags and most attributes, anything inside the `<head>` tag, Cascading Style Sheets (CSS) and JavaScript. Attribute content intended for presentation to the user such as "alt" and "title" SHOULD be considered in the search.
 - Text SHOULD be matched in a case-insensitive manner.
-- Text contained in either (but matched) single or double quotes SHOULD be treated as a **phrase search**; that is, a match is required for that exact word or sequence of words, excluding the surrounding quotation marks. Use `\"`, `\'`, and `\\` to match a literal `"`, `'`, and `\`, respectively, in a phrase.
+- Text contained in either (but matched) single (') or double (") quotes SHOULD be treated as a **phrase search**; that is, a match is required for that exact word or sequence of words, excluding the surrounding quotation marks.
+
+    Within a phrase, to match one of the following characters you MUST escape it by prefixing it with a backslash (\\):
+
+        ' " \
+
 - Outside of a phrase, white space SHOULD be treated as dividing separate tokens that may be searched for separately but MUST all be present for the email to match the filter.
 - Tokens (not part of a phrase) MAY be matched on a whole-word basis using stemming (for example, a text search for "bus" would match "buses" but not "business").
 
@@ -789,7 +794,7 @@ The server MAY also choose to set additional headers. If not included, the serve
 
 The final email generated per RFC 5322 may be invalid. For example, if it is a half-finished draft, the "To" field may have a value that does not conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 
-Destroying an email removes it from all mailboxes to which it belonged. To  just delete an email to trash, simply change the `mailboxIds` property, so it is now in the mailbox with `role == "trash"`, and remove all other mailbox ids.
+Destroying an email removes it from all mailboxes to which it belonged. To  just delete an email to trash, simply change the `mailboxIds` property, so it is now in the mailbox with a *role* property equal to `trash`, and remove all other mailbox ids.
 
 When emptying the trash, clients SHOULD NOT destroy emails that are also in a mailbox other than trash. For those emails, they SHOULD just remove the Trash mailbox from the email.
 

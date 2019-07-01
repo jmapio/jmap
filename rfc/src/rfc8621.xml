@@ -157,8 +157,7 @@ The maximum total size of attachments, in octets, allowed for a single Email obj
 <vspace blankLines="1" />
 Note that this limit is for the sum of unencoded attachment sizes. Users are generally not knowledgeable about encoding overhead, etc., nor should they need to be, so marketing and help materials normally tell them the &quot;max size attachments&quot;. This is the unencoded size they see on their hard drive, so this capability matches that and allows the client to consistently enforce what the user understands as the limit.
 <vspace blankLines="1" />
-The server may separately have a limit for the total size of the
-message per RFC 5322, which will have attachments that are base64 encoded, as well as message headers and bodies. For example, suppose the server advertises <spanx style="verb">maxSizeAttachmentsPerEmail: 50000000</spanx> (50 MB). The enforced server limit may be for a size of 70000000 octets (70 MB) per RFC 5322. Even with base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.</t>
+The server may separately have a limit for the total size of the message, created by combining the attachments (often base64 encoded) with the message headers and bodies as per RFC 5322. For example, suppose the server advertises <spanx style="verb">maxSizeAttachmentsPerEmail: 50000000</spanx> (50 MB). The enforced server limit may be for a message size of 70000000 octets. Even with base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.</t>
 
 <t>emailQuerySortOptions: <spanx style="verb">String[]</spanx><vspace blankLines="1" />
 
@@ -809,9 +808,11 @@ Original:
    ... so it is now in the mailbox with "role ==
    "trash"", and remove all other mailbox ids
 
+neilj: Done.
 -->
 
-<spanx style="verb">( ) { ] % * " \</spanx>.
+<figure align="center"><artwork align="center">( ) { ] % * " \</artwork></figure>
+
 <vspace blankLines="1" />
 Because JSON is case sensitive, servers MUST return keywords in lowercase.
 <vspace blankLines="1" />
@@ -1642,7 +1643,13 @@ The array MUST contain either one or two elements. The first element is the name
 
 <t>Text SHOULD be matched in a case-insensitive manner.</t>
 
-<t>Text contained in either (but matched) single or double quotes SHOULD be treated as a <spanx style="strong">phrase search</spanx>; that is, a match is required for that exact word or sequence of words, excluding the surrounding quotation marks. Use <spanx style="verb">\"</spanx>, <spanx style="verb">\'</spanx>, and <spanx style="verb">\\</spanx> to match a literal <spanx style="verb">"</spanx>, <spanx style="verb">'</spanx>, and <spanx style="verb">\</spanx>, respectively, in a phrase.</t>
+<t>Text contained in either (but matched) single (') or double (") quotes SHOULD be treated as a <spanx style="strong">phrase search</spanx>; that is, a match is required for that exact word or sequence of words, excluding the surrounding quotation marks.
+<vspace blankLines="1" />
+Within a phrase, to match one of the following characters you MUST escape it by prefixing it with a backslash (\):
+<figure align="center"><artwork align="center">
+  ' " \
+</artwork></figure>
+</t>
 
 <t>Outside of a phrase, white space SHOULD be treated as dividing separate tokens that may be searched for separately but MUST all be present for the email to match the filter.</t>
 
@@ -1783,7 +1790,7 @@ either <spanx style="verb">false</spanx> or omitted.</t>
 </t>
 <t>The final email generated per RFC 5322 may be invalid. For example, if it is a half-finished draft, the &quot;To&quot; field may have a value that does not conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 </t>
-<t>Destroying an email removes it from all mailboxes to which it belonged. To  just delete an email to trash, simply change the <spanx style="verb">mailboxIds</spanx> property, so it is now in the mailbox with <spanx style="verb">role == "trash"</spanx>, and remove all other mailbox ids.
+<t>Destroying an email removes it from all mailboxes to which it belonged. To  just delete an email to trash, simply change the <spanx style="verb">mailboxIds</spanx> property, so it is now in the mailbox with a <spanx style="verb">role</spanx> property equal to <spanx style="verb">trash</spanx>, and remove all other mailbox ids.
 </t>
 <t>When emptying the trash, clients SHOULD NOT destroy emails that are also in a mailbox other than trash. For those emails, they SHOULD just remove the Trash mailbox from the email.
 </t>
