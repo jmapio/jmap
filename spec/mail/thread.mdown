@@ -1,22 +1,22 @@
 # Threads
 
-Replies are grouped together with the original message to form a Thread. In JMAP, a Thread is simply a flat list of emails, ordered by date. Every email MUST belong to a Thread, even if it is the only email in the Thread.
+Replies are grouped together with the original message to form a Thread. In JMAP, a Thread is simply a flat list of Emails, ordered by date. Every Email MUST belong to a Thread, even if it is the only Email in the Thread.
 
-The exact algorithm for determining whether two emails belong to the same Thread is not mandated in this spec to allow for compatibility with different existing systems. For new implementations, it is suggested that two messages belong in the same Thread if both of the following conditions apply:
+The exact algorithm for determining whether two Emails belong to the same Thread is not mandated in this spec to allow for compatibility with different existing systems. For new implementations, it is suggested that two messages belong in the same Thread if both of the following conditions apply:
 
   1. An identical message id [@!RFC5322] appears in both messages in any of the
      Message-Id, In-Reply-To, and References headers.
   2. After stripping automatically added prefixes such as "Fwd:", "Re:",
      "[List-Tag]", etc., and ignoring white space, the subjects are the same. This avoids the situation where a person replies to an old message as a convenient way of finding the right recipient to send to but changes the subject and starts a new conversation.
 
-If emails are delivered out of order for some reason, a user may receive two emails in the same Thread but without headers that associate them with each other. The arrival of a third email may provide the missing references to join them all together into a single Thread. Since the *threadId* of an email is immutable, if the server wishes to merge the Threads, it MUST handle this by deleting and reinserting (with a new email id) the emails that change *threadId*.
+If messages are delivered out of order for some reason, a user may have two Emails in the same Thread but without headers that associate them with each other. The arrival of a third Email may provide the missing references to join them all together into a single Thread. Since the *threadId* of an Email is immutable, if the server wishes to merge the Threads, it MUST handle this by deleting and reinserting (with a new Email id) the Emails that change *threadId*.
 
 A **Thread** object has the following properties:
 
 - **id**: `Id` (immutable; server-set)
   The id of the Thread.
 - **emailIds**: `Id[]` (server-set)
-  The ids of the Emails in the Thread, sorted by the *receivedAt* date of the email, oldest first. If two emails have an identical date, the sort is server dependent but MUST be stable (sorting by id is recommended).
+  The ids of the Emails in the Thread, sorted by the *receivedAt* date of the Email, oldest first. If two Emails have an identical date, the sort is server dependent but MUST be stable (sorting by id is recommended).
 
 The following JMAP methods are supported.
 

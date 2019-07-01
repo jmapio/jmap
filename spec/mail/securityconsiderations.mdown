@@ -4,7 +4,7 @@ All security considerations of JMAP ([@!RFC8620]) apply to this specification. A
 
 ## EmailBodyPart Value
 
-Service providers typically perform security filtering on incoming email, and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for an *EmailBodyValue* SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mail host.
+Service providers typically perform security filtering on incoming messages, and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for an *EmailBodyValue* SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mail host.
 
 Automatic conversion of charsets that allow hidden channels for ASCII text, such as UTF-7, have been problematic for security filters in the past, so server implementations can mitigate this risk by having such conversions  off-by-default and/or separately configurable.
 
@@ -12,22 +12,22 @@ To allow the client to restrict the volume of data it can receive in response to
 
 ## HTML Email Display
 
-HTML message bodies provide richer formatting for emails but present a number of security challenges, especially when embedded in a webmail context in combination with interface HTML. Clients that render HTML emails should carefully consider the potential risks, including:
+HTML message bodies provide richer formatting for messages but present a number of security challenges, especially when embedded in a webmail context in combination with interface HTML. Clients that render HTML messages should carefully consider the potential risks, including:
 
-* Embedded JavaScript can rewrite the email to change its content on subsequent
-  opening, allowing users to be mislead. In webmail systems, if run in the same origin as the interface, it can access and exfiltrate all private data accessible to the user, including all other emails and potentially contacts, calendar events, settings, and credentials. It can also rewrite the interface to undetectably phish passwords. A compromise is likely to be persistent, not just for the duration of page load, due to exfiltration of session credentials or installation of a service worker that can intercept all subsequent network requests (however, this would only be possible if blob downloads are also available on the same origin, and the service worker script is attached to the message).
+* Embedded JavaScript can rewrite the message to change its content on
+  subsequent opening, allowing users to be mislead. In webmail systems, if run in the same origin as the interface, it can access and exfiltrate all private data accessible to the user, including all other messages and potentially contacts, calendar events, settings, and credentials. It can also rewrite the interface to undetectably phish passwords. A compromise is likely to be persistent, not just for the duration of page load, due to exfiltration of session credentials or installation of a service worker that can intercept all subsequent network requests (however, this would only be possible if blob downloads are also available on the same origin, and the service worker script is attached to the message).
 * HTML documents may load content directly from the Internet, rather than just
-  referencing attached resources. For example, you may have an `<img>` tag with an external `src` attribute. This may leak to the sender when a message is opened, as well as the IP address of the recipient. Cookies may also be sent and set by the server, allowing tracking between different emails and even website visits and advertising profiles.
+  referencing attached resources. For example, you may have an `<img>` tag with an external `src` attribute. This may leak to the sender when a message is opened, as well as the IP address of the recipient. Cookies may also be sent and set by the server, allowing tracking between different messages and even website visits and advertising profiles.
 * In webmail systems, CSS can break the layout or create phishing
-  vulnerabilities. For example, the use of `position:fixed` can allow an email to draw content outside of its normal bounds, potentially clickjacking a real interface element.
+  vulnerabilities. For example, the use of `position:fixed` can allow a message to draw content outside of its normal bounds, potentially clickjacking a real interface element.
 * If in a webmail context and not inside a separate frame, any styles defined in
-  CSS rules will apply to interface elements as well if the selector matches, allowing the interface to be modified. Similarly, any interface styles that match elements in the email will alter their appearance, potentially breaking the layout of the email.
+  CSS rules will apply to interface elements as well if the selector matches, allowing the interface to be modified. Similarly, any interface styles that match elements in the message will alter their appearance, potentially breaking the layout of the message.
 * The link text in HTML has no necessary correlation with the actual target of
   the link, which can be used to make phishing attacks more convincing.
-* Links opened from an email or embedded external content may leak private info
+* Links opened from a message or embedded external content may leak private info
   in the `Referer` header sent by default in most systems.
 * Forms can be used to mimic login boxes, providing a potent phishing vector if
-  allowed to submit directly from the email display.
+  allowed to submit directly from the message display.
 
 There are a number of ways clients can mitigate these issues, and a defence-in-depth approach that uses a combination of techniques will provide the strongest security.
 
@@ -134,7 +134,7 @@ If the server forbids a single account from having two identical messages, or tw
 
 In recent years, the email ecosystem has moved towards associating trust with the From address in the message [@!RFC5322], particularly with schemes such as Domain-based Message Authentication, Reporting, and Conformance (DMARC) ([@?RFC7489]).
 
-The set of Identity objects (see Section 6) in an account lets the client know which email addresses the user has permission to send from. Each email submission is associated with an Identity, and servers SHOULD reject submissions where the `From` header field of the email does not correspond to the associated Identity.
+The set of Identity objects (see Section 6) in an account lets the client know which email addresses the user has permission to send from. Each email submission is associated with an Identity, and servers SHOULD reject submissions where the `From` header field of the message does not correspond to the associated Identity.
 
 The server MAY allow an exception to send an exact copy of an existing message received into the mail store to another address (otherwise known as "redirecting" or "bouncing"), although it is RECOMMENDED the server limit this to destinations the user has verified they also control.
 

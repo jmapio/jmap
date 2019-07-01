@@ -288,28 +288,28 @@ is consistent between devices. The number MUST be an integer in the range
 <vspace blankLines="1" />
 A Mailbox with a lower order should be displayed before a Mailbox with a higher order (that has the same parent) in any Mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.</t>
 <t>totalEmails: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
-The number of emails in this Mailbox.</t>
+The number of Emails in this Mailbox.</t>
 
 <t>unreadEmails: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
-The number of emails in this Mailbox that have neither the <spanx style="verb">$seen</spanx> keyword nor the <spanx style="verb">$draft</spanx> keyword.</t>
+The number of Emails in this Mailbox that have neither the <spanx style="verb">$seen</spanx> keyword nor the <spanx style="verb">$draft</spanx> keyword.</t>
 
 <t>totalThreads: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
-The number of Threads where at least one email in the Thread is in this Mailbox.</t>
+The number of Threads where at least one Email in the Thread is in this Mailbox.</t>
 
 <t>unreadThreads: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
 An indication of the number of &quot;unread&quot; Threads in the Mailbox.
 <vspace blankLines="1" />
 For compatibility with existing implementations, the way &quot;unread Threads&quot; is
-determined is not mandated in this document. The simplest solution to implement is simply the number of Threads where at least one email in the Thread is both in this Mailbox and has neither the <spanx style="verb">$seen</spanx> nor <spanx style="verb">$draft</spanx> keywords.
+determined is not mandated in this document. The simplest solution to implement is simply the number of Threads where at least one Email in the Thread is both in this Mailbox and has neither the <spanx style="verb">$seen</spanx> nor <spanx style="verb">$draft</spanx> keywords.
 <vspace blankLines="1" />
-However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread messages that will be displayed when the Thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of Threads where at least one email in the Thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one email in the Thread is in this Mailbox. Note that the unread email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
+However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread messages that will be displayed when the Thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of Threads where at least one Email in the Thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one Email in the Thread is in this Mailbox. Note that the unread Email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
 <list style="numbers">
 <t>Emails that are <spanx style="strong">only</spanx> in the trash (and no other Mailbox) are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count of other Mailboxes.</t>
 <t>Emails that are <spanx style="strong">not</spanx> in the trash are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count for the trash Mailbox.</t>
 </list>
-The result of this is that emails in the trash are treated as though they are in a separate Thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a Thread in another Mailbox, and vice versa. This allows you to delete a single email to the trash out of a Thread.
+The result of this is that Emails in the trash are treated as though they are in a separate Thread for the purposes of unread counts. It is expected that clients will hide Emails in the trash when viewing a Thread in another Mailbox, and vice versa. This allows you to delete a single Email to the trash out of a Thread.
 <vspace blankLines="1" />
-For example, suppose you have an account where the entire contents is a single Thread with 2 emails: an unread email in the trash and a read email in the inbox. The <spanx style="verb">unreadThreads</spanx> count would be <spanx style="verb">1</spanx> for the trash and <spanx style="verb">0</spanx> for the inbox.</t>
+For example, suppose you have an account where the entire contents is a single Thread with 2 Emails: an unread Email in the trash and a read Email in the inbox. The <spanx style="verb">unreadThreads</spanx> count would be <spanx style="verb">1</spanx> for the trash and <spanx style="verb">0</spanx> for the inbox.</t>
 
 <t>myRights: <spanx style="verb">MailboxRights</spanx> (server-set)<vspace blankLines="1" />
 The set of rights (Access Control Lists (ACLs)) the user has in relation to this Mailbox. These are backwards compatible with IMAP ACLs, as defined in <xref target="RFC4314"/>. A <spanx style="strong">MailboxRights</spanx> object has the following properties:
@@ -318,16 +318,16 @@ The set of rights (Access Control Lists (ACLs)) the user has in relation to this
 If true, the user may use this Mailbox as part of a filter in an <spanx style="verb">Email/query</spanx> call, and the Mailbox may be included in the <spanx style="verb">mailboxIds</spanx> property of Email objects. Email objects may be fetched if they are in <spanx style="strong">at least one</spanx> Mailbox with this permission. If a sub-Mailbox is shared but not the parent Mailbox, this may be <spanx style="verb">false</spanx>. Corresponds to IMAP ACLs <spanx style="verb">lr</spanx> (if mapping from IMAP, both are required for this to be <spanx style="verb">true</spanx>).</t>
 
 <t>mayAddItems: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may add mail to this Mailbox (by either creating a new email or moving an existing one). Corresponds to IMAP ACL <spanx style="verb">i</spanx>.</t>
+The user may add mail to this Mailbox (by either creating a new Email or moving an existing one). Corresponds to IMAP ACL <spanx style="verb">i</spanx>.</t>
 
 <t>mayRemoveItems: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may remove mail from this Mailbox (by either changing the Mailboxes of an email or deleting it). Corresponds to IMAP ACLs <spanx style="verb">te</spanx> (if mapping from IMAP, both are required for this to be <spanx style="verb">true</spanx>).</t>
+The user may remove mail from this Mailbox (by either changing the Mailboxes of an Email or deleting it). Corresponds to IMAP ACLs <spanx style="verb">te</spanx> (if mapping from IMAP, both are required for this to be <spanx style="verb">true</spanx>).</t>
 
 <t>maySetSeen: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may add or remove the <spanx style="verb">$seen</spanx> keyword to/from an email. If an email belongs to multiple Mailboxes, the user may only modify <spanx style="verb">$seen</spanx> if they have this permission for <spanx style="strong">all</spanx> of the Mailboxes. Corresponds to IMAP ACL <spanx style="verb">s</spanx>.</t>
+The user may add or remove the <spanx style="verb">$seen</spanx> keyword to/from an Email. If an Email belongs to multiple Mailboxes, the user may only modify <spanx style="verb">$seen</spanx> if they have this permission for <spanx style="strong">all</spanx> of the Mailboxes. Corresponds to IMAP ACL <spanx style="verb">s</spanx>.</t>
 
 <t>maySetKeywords: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may add or remove any keyword other than <spanx style="verb">$seen</spanx> to/from an email. If an email belongs to multiple Mailboxes, the user may only modify keywords if they have this permission for <spanx style="strong">all</spanx> of the Mailboxes. Corresponds to IMAP ACL <spanx style="verb">w</spanx>.</t>
+The user may add or remove any keyword other than <spanx style="verb">$seen</spanx> to/from an Email. If an Email belongs to multiple Mailboxes, the user may only modify keywords if they have this permission for <spanx style="strong">all</spanx> of the Mailboxes. Corresponds to IMAP ACL <spanx style="verb">w</spanx>.</t>
 
 <t>mayCreateChild: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
 The user may create a Mailbox with this Mailbox as its parent. Corresponds to IMAP ACL <spanx style="verb">k</spanx>.</t>
@@ -350,7 +350,7 @@ A user may have permission to access a large number of shared accounts, or a sha
 This property corresponds to IMAP <xref target="RFC3501"/> mailbox subscriptions.</t>
 </list>
 </t>
-<t>For IMAP compatibility, an email in both the trash and another Mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash Mailbox and leave it in the other Mailbox).
+<t>For IMAP compatibility, an Email in both the trash and another Mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash Mailbox and leave it in the other Mailbox).
 </t>
 <t>The following JMAP methods are supported.
 </t>
@@ -388,7 +388,7 @@ style="verb">null</spanx> to fetch all at once.
 <t>
 <list style="symbols">
 <t>updatedProperties: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
-If only the Mailbox counts (unread/total emails/Threads) have changed since the old state, this will be the list of properties that may have changed, i.e., ["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
+If only the Mailbox counts (unread/total Emails/Threads) have changed since the old state, this will be the list of properties that may have changed, i.e., ["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
 </list>
 </t>
 
@@ -410,7 +410,7 @@ Perhaps:
 
 neilj: Sure, done.
 -->
-<t>Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/Thread counts separate from other state changes. The <spanx style="verb">updatedProperties</spanx> array may be used directly via a back-reference in a subsequent <spanx style="verb">Mailbox/get</spanx> call in the same single request, so only these properties are returned if nothing else has changed.
+<t>Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to Email/Thread counts separate from other state changes. The <spanx style="verb">updatedProperties</spanx> array may be used directly via a back-reference in a subsequent <spanx style="verb">Mailbox/get</spanx> call in the same single request, so only these properties are returned if nothing else has changed.
 </t>
 </section>
 
@@ -668,7 +668,7 @@ the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx styl
 <section anchor="threads" title="Threads">
 <t>Replies are grouped together with the original message to form a Thread. In JMAP, a Thread is simply a flat list of Emails, ordered by date. Every Email MUST belong to a Thread, even if it is the only Email in the Thread.
 </t>
-<t>The exact algorithm for determining whether two emails belong to the same Thread is not mandated in this spec to allow for compatibility with different existing systems. For new implementations, it is suggested that two messages belong in the same Thread if both of the following conditions apply:
+<t>The exact algorithm for determining whether two Emails belong to the same Thread is not mandated in this spec to allow for compatibility with different existing systems. For new implementations, it is suggested that two messages belong in the same Thread if both of the following conditions apply:
 </t>
 <t>
 <list style="numbers">
@@ -679,7 +679,7 @@ the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx styl
  &quot;[List-Tag]&quot;, etc., and ignoring white space, the subjects are the same. This avoids the situation where a person replies to an old message as a convenient way of finding the right recipient to send to but changes the subject and starts a new conversation.</t>
 </list>
 </t>
-<t>If emails are delivered out of order for some reason, a user may receive two emails in the same Thread but without headers that associate them with each other. The arrival of a third email may provide the missing references to join them all together into a single Thread. Since the <spanx style="verb">threadId</spanx> of an email is immutable, if the server wishes to merge the Threads, it MUST handle this by deleting and reinserting (with a new email id) the emails that change <spanx style="verb">threadId</spanx>.
+<t>If messages are delivered out of order for some reason, a user may have two Emails in the same Thread but without headers that associate them with each other. The arrival of a third Email may provide the missing references to join them all together into a single Thread. Since the <spanx style="verb">threadId</spanx> of an Email is immutable, if the server wishes to merge the Threads, it MUST handle this by deleting and reinserting (with a new Email id) the Emails that change <spanx style="verb">threadId</spanx>.
 </t>
 <t>A <spanx style="strong">Thread</spanx> object has the following properties:
 </t>
@@ -689,7 +689,7 @@ the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx styl
 The id of the Thread.</t>
 
 <t>emailIds: <spanx style="verb">Id[]</spanx> (server-set)<vspace blankLines="1" />
-The ids of the Emails in the Thread, sorted by the <spanx style="verb">receivedAt</spanx> date of the email, oldest first. If two emails have an identical date, the sort is server dependent but MUST be stable (sorting by id is recommended).</t>
+The ids of the Emails in the Thread, sorted by the <spanx style="verb">receivedAt</spanx> date of the Email, oldest first. If two Emails have an identical date, the sort is server dependent but MUST be stable (sorting by id is recommended).</t>
 </list>
 </t>
 <t>The following JMAP methods are supported.
@@ -747,7 +747,7 @@ The ids of the Emails in the Thread, sorted by the <spanx style="verb">receivedA
 </t>
 <t>While raw headers can be fetched and set, the vast majority of clients should use an appropriate parsed form for each of the headers it wants to process, as this allows it to avoid the complexities of various encodings that are required in a valid message per RFC 5322.
 </t>
-<t>The body of a message is normally a MIME-encoded set of documents in a tree structure. This may be arbitrarily nested, but the majority of email clients present a flat model of an email body (normally plaintext or HTML) with a set of attachments. Flattening the MIME structure to form this model can be difficult and causes inconsistency between clients. Therefore, in addition to the <spanx style="verb">bodyStructure</spanx> property, which gives the full tree, the Email object contains 3 alternate properties with flat lists of body parts:
+<t>The body of a message is normally a MIME-encoded set of documents in a tree structure. This may be arbitrarily nested, but the majority of email clients present a flat model of a message body (normally plaintext or HTML) with a set of attachments. Flattening the MIME structure to form this model can be difficult and causes inconsistency between clients. Therefore, in addition to the <spanx style="verb">bodyStructure</spanx> property, which gives the full tree, the Email object contains 3 alternate properties with flat lists of body parts:
 </t>
 <t>
 <list style="symbols">
@@ -782,21 +782,21 @@ The id representing the raw octets of the message <xref target="RFC5322"/>. This
 The id of the Thread to which this Email belongs.</t>
 
 <t>mailboxIds: <spanx style="verb">Id[Boolean]</spanx><vspace blankLines="1" />
-The set of Mailbox ids this email belongs to. An email in the mail store MUST belong to one or more Mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a Mailbox id.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.</t>
+The set of Mailbox ids this Email belongs to. An Email in the mail store MUST belong to one or more Mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a Mailbox id.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.</t>
 
 <t>keywords: <spanx style="verb">String[Boolean]</spanx> (default: {})<vspace blankLines="1" />
-A set of keywords that apply to the email. The set is represented as an object, with the keys being the keywords.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.
+A set of keywords that apply to the Email. The set is represented as an object, with the keys being the keywords.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.
 <vspace blankLines="1" />
 Keywords are shared with IMAP. The six system keywords from IMAP get special treatment. The following four keywords have their first character changed from <spanx style="verb">\</spanx> in IMAP to <spanx style="verb">$</spanx> in JMAP and have particular semantic meaning:
 <list style="symbols">
-<t><spanx style="verb">$draft</spanx>: The email is a draft the user is composing.</t>
-<t><spanx style="verb">$seen</spanx>: The email has been read.</t>
-<t><spanx style="verb">$flagged</spanx>: The email has been flagged for urgent/special attention.</t>
-<t><spanx style="verb">$answered</spanx>: The email has been replied to.</t>
+<t><spanx style="verb">$draft</spanx>: The Email is a draft the user is composing.</t>
+<t><spanx style="verb">$seen</spanx>: The Email has been read.</t>
+<t><spanx style="verb">$flagged</spanx>: The Email has been flagged for urgent/special attention.</t>
+<t><spanx style="verb">$answered</spanx>: The Email has been replied to.</t>
 </list>
 The IMAP <spanx style="verb">\Recent</spanx> keyword is not exposed via JMAP. The IMAP <spanx style="verb">\Deleted</spanx> keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the <spanx style="verb">\Deleted</spanx> keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts).
 <vspace blankLines="1" />
-Users may add arbitrary keywords to an email. For compatibility with IMAP, a
+Users may add arbitrary keywords to an Email. For compatibility with IMAP, a
 keyword is a case-insensitive string of 1-255 characters in the ASCII subset
 %x21-%x7e (excludes control chars and space), and it MUST NOT include any of
 these characters:
@@ -832,17 +832,17 @@ The IANA "IMAP and JMAP Keywords" registry at
 common use. New keywords may be established here in the future. In particular,
 note:
 <list style="symbols">
-<t><spanx style="verb">$forwarded</spanx>: The email has been forwarded.</t>
-<t><spanx style="verb">$phishing</spanx>: The email is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this email and disable links and attachments.</t>
-<t><spanx style="verb">$junk</spanx>: The email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.</t>
+<t><spanx style="verb">$forwarded</spanx>: The Email has been forwarded.</t>
+<t><spanx style="verb">$phishing</spanx>: The Email is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this Email and disable links and attachments.</t>
+<t><spanx style="verb">$junk</spanx>: The Email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.</t>
 
-<t><spanx style="verb">$notjunk</spanx>: The email is definitely not spam. Clients SHOULD set this flag when users indicate an email is legitimate, to help train automated spam-detection systems.</t>
+<t><spanx style="verb">$notjunk</spanx>: The Email is definitely not spam. Clients SHOULD set this flag when users indicate an Email is legitimate, to help train automated spam-detection systems.</t>
 </list></t>
 
 <t>size: <spanx style="verb">UnsignedInt</spanx> (immutable; server-set)<vspace blankLines="1" />
 The size, in octets, of the raw data for the message <xref target="RFC5322"/> (as referenced by the <spanx style="verb">blobId</spanx>, i.e., the number of octets in the file the user would download).</t>
 <t>receivedAt: <spanx style="verb">UTCDate</spanx> (immutable; default: time of creation on server)<vspace blankLines="1" />
-The date the email was received by the message store. This is the <spanx style="verb">internal date</spanx> in IMAP <xref target="RFC3501"/>.</t>
+The date the Email was received by the message store. This is the <spanx style="verb">internal date</spanx> in IMAP <xref target="RFC3501"/>.</t>
 </list>
 </t>
 </section>
@@ -1294,7 +1294,7 @@ A plaintext fragment of the message body. This is intended to be shown as a prev
 <vspace blankLines="1" />
 This MUST NOT be more than 256 characters in length.
 <vspace blankLines="1" />
-As this is derived from the message content by the server, and the algorithm for doing so could change over time, fetching this for an email a second time MAY return a different result. However, the previous value is not considered incorrect, and the change SHOULD NOT cause the Email object to be considered as changed by the server.</t>
+As this is derived from the message content by the server, and the algorithm for doing so could change over time, fetching this for an Email a second time MAY return a different result. However, the previous value is not considered incorrect, and the change SHOULD NOT cause the Email object to be considered as changed by the server.</t>
 </list>
 </t>
 <t>The exact algorithm for decomposing bodyStructure into textBody, htmlBody, and attachments part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time. However, the following algorithm (expressed here in JavaScript) is suggested as a starting point, based on real-world experience:
@@ -1573,7 +1573,7 @@ The server MUST ensure the truncation results in valid UTF-8 and does not occur 
 <t>
 <list style="symbols">
 <t>collapseThreads: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, emails in the same Thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means only one email at most will be included in the list for any given Thread.</t>
+If <spanx style="verb">true</spanx>, Emails in the same Thread as a previous Email in the list (given the filter and sort order) will be removed from the list. This means only one Email at most will be included in the list for any given Thread.</t>
 </list>
 </t>
 <t>In quality implementations, the query &quot;total&quot; property is expected to be fast to calculate when the filter consists solely of a single <spanx style="verb">inMailbox</spanx> property, as it is the same as the totalEmails or totalThreads properties (depending on whether collapseThreads is true) of the associated Mailbox object.
@@ -1585,43 +1585,43 @@ If <spanx style="verb">true</spanx>, emails in the same Thread as a previous ema
 <t>
 <list style="symbols">
 <t>inMailbox: <spanx style="verb">Id</spanx><vspace blankLines="1" />
-A Mailbox id. An email must be in this Mailbox to match the condition.</t>
+A Mailbox id. An Email must be in this Mailbox to match the condition.</t>
 
 <t>inMailboxOtherThan: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
-A list of Mailbox ids. An email must be in at least one Mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.</t>
+A list of Mailbox ids. An Email must be in at least one Mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.</t>
 
 <t>before: <spanx style="verb">UTCDate</spanx><vspace blankLines="1" />
-The <spanx style="verb">receivedAt</spanx> date-time of the email must be before this date-time to match the condition.</t>
+The <spanx style="verb">receivedAt</spanx> date-time of the Email must be before this date-time to match the condition.</t>
 
 <t>after: <spanx style="verb">UTCDate</spanx><vspace blankLines="1" />
-The <spanx style="verb">receivedAt</spanx> date-time of the email must be the same or after this date-time to match the condition.</t>
+The <spanx style="verb">receivedAt</spanx> date-time of the Email must be the same or after this date-time to match the condition.</t>
 
 <t>minSize: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
-The <spanx style="verb">size</spanx> of the email in octets must be equal to or greater than this number to match the condition.</t>
+The <spanx style="verb">size</spanx> property of the Email must be equal to or greater than this number to match the condition.</t>
 
 <t>maxSize: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
-The <spanx style="verb">size</spanx> of the email in octets must be less than this number to match the condition.</t>
+The <spanx style="verb">size</spanx> property of the Email must be less than this number to match the condition.</t>
 
 <t>allInThreadHaveKeyword: <spanx style="verb">String</spanx><vspace blankLines="1" />
-All emails (including this one) in the same Thread as this email must have the given keyword to match the condition.</t>
+All Emails (including this one) in the same Thread as this Email must have the given keyword to match the condition.</t>
 
 <t>someInThreadHaveKeyword: <spanx style="verb">String</spanx><vspace blankLines="1" />
-At least one email (possibly this one) in the same Thread as this email must have the given keyword to match the condition.</t>
+At least one Email (possibly this one) in the same Thread as this Email must have the given keyword to match the condition.</t>
 
 <t>noneInThreadHaveKeyword: <spanx style="verb">String</spanx><vspace blankLines="1" />
-All emails (including this one) in the same Thread as this email must <spanx style="strong">not</spanx> have the given keyword to match the condition.</t>
+All Emails (including this one) in the same Thread as this Email must <spanx style="strong">not</spanx> have the given keyword to match the condition.</t>
 
 <t>hasKeyword: <spanx style="verb">String</spanx><vspace blankLines="1" />
-This email must have the given keyword to match the condition.</t>
+This Email must have the given keyword to match the condition.</t>
 
 <t>notKeyword: <spanx style="verb">String</spanx><vspace blankLines="1" />
-This email must not have the given keyword to match the condition.</t>
+This Email must not have the given keyword to match the condition.</t>
 
 <t>hasAttachment: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The <spanx style="verb">hasAttachment</spanx> property of the email must be identical to the value given to match the condition.</t>
+The <spanx style="verb">hasAttachment</spanx> property of the Email must be identical to the value given to match the condition.</t>
 
 <t>text: <spanx style="verb">String</spanx><vspace blankLines="1" />
-Looks for the text in emails. The server MUST look up text in the <spanx style="verb">from</spanx>, <spanx style="verb">to</spanx>, <spanx style="verb">cc</spanx>, <spanx style="verb">bcc</spanx>, and <spanx style="verb">subject</spanx> header fields of the message and SHOULD look inside any <spanx style="verb">text/*</spanx> or other body parts that may be converted to text by the server. The server MAY extend the search to any additional textual property.</t>
+Looks for the text in Emails. The server MUST look up text in the <spanx style="verb">from</spanx>, <spanx style="verb">to</spanx>, <spanx style="verb">cc</spanx>, <spanx style="verb">bcc</spanx>, and <spanx style="verb">subject</spanx> header fields of the message and SHOULD look inside any <spanx style="verb">text/*</spanx> or other body parts that may be converted to text by the server. The server MAY extend the search to any additional textual property.</t>
 
 <t>from: <spanx style="verb">String</spanx><vspace blankLines="1" />
 Looks for the text in the <spanx style="verb">From</spanx> header field of the message.</t>
@@ -1636,10 +1636,10 @@ Looks for the text in the <spanx style="verb">Cc</spanx> header field of the mes
 Looks for the text in the <spanx style="verb">Bcc</spanx> header field of the message.</t>
 
 <t>subject: <spanx style="verb">String</spanx><vspace blankLines="1" />
-Looks for the text in the <spanx style="verb">subject</spanx> property of the email.</t>
+Looks for the text in the <spanx style="verb">Subject</spanx> header field of the message.</t>
 
 <t>body: <spanx style="verb">String</spanx><vspace blankLines="1" />
-Looks for the text in one of the body parts of the email. The server MAY exclude MIME body parts with content media types other than <spanx style="verb">text/*</spanx> and <spanx style="verb">message/*</spanx> from consideration in search matching. Care should be taken to match based on the text content actually presented to an end user by viewers for that media type or otherwise identified as appropriate for search indexing. Matching document metadata uninteresting to an end user (e.g., markup tag and attribute names) is undesirable.</t>
+Looks for the text in one of the body parts of the message. The server MAY exclude MIME body parts with content media types other than <spanx style="verb">text/*</spanx> and <spanx style="verb">message/*</spanx> from consideration in search matching. Care should be taken to match based on the text content actually presented to an end user by viewers for that media type or otherwise identified as appropriate for search indexing. Matching document metadata uninteresting to an end user (e.g., markup tag and attribute names) is undesirable.</t>
 
 <t>header: <spanx style="verb">String[]</spanx><vspace blankLines="1" />
 The array MUST contain either one or two elements. The first element is the name of the header field to match against. The second (optional) element is the text to look for in the header field value. If not supplied, the message matches simply if it has a header field of the given name.</t>
@@ -1665,7 +1665,7 @@ Within a phrase, to match one of the following characters you MUST escape it by 
 </artwork></figure>
 </t>
 
-<t>Outside of a phrase, white space SHOULD be treated as dividing separate tokens that may be searched for separately but MUST all be present for the email to match the filter.</t>
+<t>Outside of a phrase, white space SHOULD be treated as dividing separate tokens that may be searched for separately but MUST all be present for the Email to match the filter.</t>
 
 <t>Tokens (not part of a phrase) MAY be matched on a whole-word basis using stemming (for example, a text search for &quot;bus&quot; would match &quot;buses&quot; but not &quot;business&quot;).</t>
 </list>
@@ -1686,18 +1686,18 @@ Within a phrase, to match one of the following characters you MUST escape it by 
 <list style="symbols">
 <t><spanx style="verb">size</spanx> - The <spanx style="verb">size</spanx> as returned in the Email object.</t>
 
-<t><spanx style="verb">from</spanx> - This is taken to be either the &quot;name&quot; part or if null/empty, the &quot;email&quot; part of the <spanx style="strong">first</spanx> EmailAddress object in the <spanx style="verb">from</spanx> property. If still none, consider the value to be the empty string.</t>
+<t><spanx style="verb">from</spanx> - This is taken to be either the <spanx style="verb">name</spanx> property or if null/empty, the <spanx style="verb">email</spanx> property of the <spanx style="strong">first</spanx> EmailAddress object in the Email's <spanx style="verb">from</spanx> property. If still none, consider the value to be the empty string.</t>
 
-<t><spanx style="verb">to</spanx> - This is taken to be either the &quot;name&quot; part or if null/empty, the &quot;email&quot; part of the <spanx style="strong">first</spanx> EmailAddress object in the <spanx style="verb">to</spanx> property. If still none, consider the value to be the empty string.</t>
+<t><spanx style="verb">to</spanx> - This is taken to be either the <spanx style="verb">name</spanx> property or if null/empty, the <spanx style="verb">email</spanx> property of the <spanx style="strong">first</spanx> EmailAddress object in the Email's <spanx style="verb">to</spanx> property. If still none, consider the value to be the empty string.</t>
 
-<t><spanx style="verb">subject</spanx> - This is taken to be the base subject of the email, as defined in Section 2.1 of <xref target="RFC5256"/>.</t>
+<t><spanx style="verb">subject</spanx> - This is taken to be the base subject of the message, as defined in Section 2.1 of <xref target="RFC5256"/>.</t>
 
 <t><spanx style="verb">sentAt</spanx> - The <spanx style="verb">sentAt</spanx> property on the Email object.</t>
-<t><spanx style="verb">hasKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> if the email has the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object, or <spanx style="verb">false</spanx> otherwise.</t>
+<t><spanx style="verb">hasKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> if the Email has the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object, or <spanx style="verb">false</spanx> otherwise.</t>
 
-<t><spanx style="verb">allInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">all</spanx> of the emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
+<t><spanx style="verb">allInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the Email if <spanx style="strong">all</spanx> of the Emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
 
-<t><spanx style="verb">someInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">any</spanx> of the emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
+<t><spanx style="verb">someInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the Email if <spanx style="strong">any</spanx> of the Emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
 </list>
 </t>
 <t>The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's <spanx style="verb">capabilities</spanx> object (see <xref target="additions-to-the-capabilities-object"/>).
@@ -1718,12 +1718,12 @@ Within a phrase, to match one of the following characters you MUST escape it by 
   "isAscending": false
 }]
 </artwork></figure>
-<t>This would sort emails in flagged Threads first (the Thread is considered flagged if any email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails have identical values for all three properties, then the order is server dependent but must be stable.
+<t>This would sort Emails in flagged Threads first (the Thread is considered flagged if any Email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two Emails have identical values for all three properties, then the order is server dependent but must be stable.
 </t>
 </section>
 
 <section anchor="thread-collapsing" title="Thread Collapsing">
-<t>When <spanx style="verb">collapseThreads</spanx> is <spanx style="verb">true</spanx>, then after filtering and sorting the email list, the list is further winnowed by removing any emails for a Thread id that has already been seen (when passing through the list sequentially). A Thread will therefore only appear <spanx style="strong">once</spanx> in the result, at the position of the first email in the list that belongs to the Thread (given the current sort/filter).
+<t>When <spanx style="verb">collapseThreads</spanx> is <spanx style="verb">true</spanx>, then after filtering and sorting the Email list, the list is further winnowed by removing any Emails for a Thread id that has already been seen (when passing through the list sequentially). A Thread will therefore only appear <spanx style="strong">once</spanx> in the result, at the position of the first Email in the list that belongs to the Thread (given the current sort/filter).
 </t>
 </section>
 </section>
@@ -1745,21 +1745,21 @@ The <spanx style="verb">collapseThreads</spanx> argument that was used with <spa
 <t>
 <list style="symbols">
 <t>Creating a draft</t>
-<t>Changing the keywords of an email (e.g., unread/flagged status)</t>
-<t>Adding/removing an email to/from Mailboxes (moving a message)</t>
-<t>Deleting emails</t>
+<t>Changing the keywords of an Email (e.g., unread/flagged status)</t>
+<t>Adding/removing an Email to/from Mailboxes (moving a message)</t>
+<t>Deleting Emails</t>
 </list>
 </t>
-<t>The format of the <spanx style="verb">keywords</spanx>/<spanx style="verb">mailboxIds</spanx> properties means that when updating an email, you can either replace the entire set of keywords/Mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see <xref target="RFC8620"/>, Section 5.3 for the specification and Section 5.7 for an example).
+<t>The format of the <spanx style="verb">keywords</spanx>/<spanx style="verb">mailboxIds</spanx> properties means that when updating an Email, you can either replace the entire set of keywords/Mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see <xref target="RFC8620"/>, Section 5.3 for the specification and Section 5.7 for an example).
 </t>
-<t>Due to the format of the Email object, when creating an email, there are a
-number of ways to specify the same information. To ensure that the email to
-create per RFC 5322 is unambiguous, the following constraints apply to Email
+<t>Due to the format of the Email object, when creating an Email, there are a
+number of ways to specify the same information. To ensure that the message <xref target="RFC5322"/> to
+create is unambiguous, the following constraints apply to Email
 objects submitted for creation:
 </t>
 <t>
 <list style="symbols">
-<t>The <spanx style="verb">headers</spanx> property MUST NOT be given on either the top-level email or an
+<t>The <spanx style="verb">headers</spanx> property MUST NOT be given on either the top-level Email or an
 EmailBodyPart -- the client must set each header field as an individual property.</t>
 
 <t>There MUST NOT be two properties that represent the same header field
@@ -1802,11 +1802,11 @@ either <spanx style="verb">false</spanx> or omitted.</t>
 </t>
 <t>The server MAY also choose to set additional headers. If not included, the server MUST generate and set a Message-ID header field in conformance with <xref target="RFC5322"/>, Section 3.6.4 and a Date header field in conformance with Section 3.6.1.
 </t>
-<t>The final email generated per RFC 5322 may be invalid. For example, if it is a half-finished draft, the &quot;To&quot; field may have a value that does not conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
+<t>The final message generated may be invalid per RFC 5322. For example, if it is a half-finished draft, the To header field may have a value that does not conform to the required syntax for this header. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 </t>
-<t>Destroying an email removes it from all Mailboxes to which it belonged. To  just delete an email to trash, simply change the <spanx style="verb">mailboxIds</spanx> property, so it is now in the Mailbox with a <spanx style="verb">role</spanx> property equal to <spanx style="verb">trash</spanx>, and remove all other Mailbox ids.
+<t>Destroying an Email removes it from all Mailboxes to which it belonged. To  just delete an Email to trash, simply change the <spanx style="verb">mailboxIds</spanx> property, so it is now in the Mailbox with a <spanx style="verb">role</spanx> property equal to <spanx style="verb">trash</spanx>, and remove all other Mailbox ids.
 </t>
-<t>When emptying the trash, clients SHOULD NOT destroy emails that are also in a Mailbox other than trash. For those emails, they SHOULD just remove the trash Mailbox from the email.
+<t>When emptying the trash, clients SHOULD NOT destroy Emails that are also in a Mailbox other than trash. For those Emails, they SHOULD just remove the trash Mailbox from the Email.
 </t>
 <t>For successfully created Email objects, the <spanx style="verb">created</spanx> response contains the <spanx style="verb">id</spanx>, <spanx style="verb">blobId</spanx>, <spanx style="verb">threadId</spanx>, and <spanx style="verb">size</spanx> properties of the object.
 </t>
@@ -1824,25 +1824,24 @@ exist. An extra <spanx style="verb">notFound</spanx> property of type <spanx sty
 </t>
 <t>
 <list style="symbols">
-<t><spanx style="verb">tooManyKeywords</spanx>: The change to the email's keywords would exceed a
+<t><spanx style="verb">tooManyKeywords</spanx>: The change to the Email's keywords would exceed a
 server-defined maximum.</t>
-<t><spanx style="verb">tooManyMailboxes</spanx>: The change to the email's Mailboxes would exceed a
-server-defined maximum.</t>
+<t><spanx style="verb">tooManyMailboxes</spanx>: The change to the set of Mailboxes that this Email is in would exceed a server-defined maximum.</t>
 </list>
 </t>
 </section>
 
 <section anchor="emailcopy" title="Email/copy">
-<t>Standard &quot;/copy&quot; method as described in <xref target="RFC8620"/>, Section 5.4, except only the <spanx style="verb">mailboxIds</spanx>, <spanx style="verb">keywords</spanx>, and <spanx style="verb">receivedAt</spanx> properties may be set during the copy. This method cannot modify the representation of an email per RFC 5322.
+<t>Standard &quot;/copy&quot; method as described in <xref target="RFC8620"/>, Section 5.4, except only the <spanx style="verb">mailboxIds</spanx>, <spanx style="verb">keywords</spanx>, and <spanx style="verb">receivedAt</spanx> properties may be set during the copy. This method cannot modify the message represented by the Email.
 </t>
-<t>The server MAY forbid two Email objects with the same exact content <xref target="RFC5322"/>, or even just with the same Message-ID <xref target="RFC5322"/>, to coexist within an account; if the target account already has the email, the copy will be rejected with a standard <spanx style="verb">alreadyExists</spanx> error.
+<t>The server MAY forbid two Email objects with the same exact content <xref target="RFC5322"/>, or even just with the same Message-ID <xref target="RFC5322"/>, to coexist within an account; if the target account already has the Email, the copy will be rejected with a standard <spanx style="verb">alreadyExists</spanx> error.
 </t>
 <t>For successfully copied Email objects, the <spanx style="verb">created</spanx> response contains the <spanx style="verb">id</spanx>, <spanx style="verb">blobId</spanx>, <spanx style="verb">threadId</spanx>, and <spanx style="verb">size</spanx> properties of the new object.
 </t>
 </section>
 
 <section anchor="emailimport" title="Email/import">
-<t>The <spanx style="verb">Email/import</spanx> method adds messages  <xref target="RFC5322"/> to the set of emails in an account. The server MUST support messages with Email Address Internationalization (EAI) headers <xref target="RFC6532"/>. The messages must first be uploaded as blobs using the standard upload mechanism. The method takes the following arguments:
+<t>The <spanx style="verb">Email/import</spanx> method adds messages  <xref target="RFC5322"/> to the set of Emails in an account. The server MUST support messages with Email Address Internationalization (EAI) headers <xref target="RFC6532"/>. The messages must first be uploaded as blobs using the standard upload mechanism. The method takes the following arguments:
 </t>
 <t>
 <list style="symbols">
@@ -1864,22 +1863,22 @@ A map of creation id (client specified) to EmailImport objects.</t>
 The id of the blob containing the raw message <xref target="RFC5322"/>.</t>
 
 <t>mailboxIds: <spanx style="verb">Id[Boolean]</spanx><vspace blankLines="1" />
-The ids of the Mailboxes to assign this email to. At least one Mailbox MUST be given.</t>
+The ids of the Mailboxes to assign this Email to. At least one Mailbox MUST be given.</t>
 
 <t>keywords: <spanx style="verb">String[Boolean]</spanx> (default: {})<vspace blankLines="1" />
-The keywords to apply to the email.</t>
+The keywords to apply to the Email.</t>
 
 <t>receivedAt: <spanx style="verb">UTCDate</spanx> (default: time of most recent Received header, or time of import on server if none)<vspace blankLines="1" />
-The <spanx style="verb">receivedAt</spanx> date to set on the email.</t>
+The <spanx style="verb">receivedAt</spanx> date to set on the Email.</t>
 </list>
 </t>
-<t>Each email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given Mailboxes, keywords, and receivedAt date.
+<t>Each Email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given Mailboxes, keywords, and receivedAt date.
 </t>
-<t>The server MAY forbid two Email objects with the same exact content <xref target="RFC5322"/>, or even just with the same Message-ID <xref target="RFC5322"/>, to coexist within an account. In this case, it MUST reject attempts to import an email considered to be a duplicate with an <spanx style="verb">alreadyExists</spanx> SetError. An <spanx style="verb">existingId</spanx> property of type <spanx style="verb">Id</spanx> MUST be included on the error object with the id of the existing email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
+<t>The server MAY forbid two Email objects with the same exact content <xref target="RFC5322"/>, or even just with the same Message-ID <xref target="RFC5322"/>, to coexist within an account. In this case, it MUST reject attempts to import an Email considered to be a duplicate with an <spanx style="verb">alreadyExists</spanx> SetError. An <spanx style="verb">existingId</spanx> property of type <spanx style="verb">Id</spanx> MUST be included on the error object with the id of the existing Email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
 </t>
 <t>If the <spanx style="verb">blobId</spanx>, <spanx style="verb">mailboxIds</spanx>, or <spanx style="verb">keywords</spanx> properties are invalid (e.g., missing, wrong type, id not found), the server MUST reject the import with an <spanx style="verb">invalidProperties</spanx> SetError.
 </t>
-<t>If the email cannot be imported because it would take the account over quota, the import should be rejected with an <spanx style="verb">overQuota</spanx> SetError.
+<t>If the Email cannot be imported because it would take the account over quota, the import should be rejected with an <spanx style="verb">overQuota</spanx> SetError.
 </t>
 <t>If the blob referenced is not a valid message <xref target="RFC5322"/>, the server MAY modify the message to fix errors (such as removing NUL octets or fixing invalid headers). If it does this, the <spanx style="verb">blobId</spanx> on the response MUST represent the new representation and therefore be different to the <spanx style="verb">blobId</spanx> on the EmailImport object. Alternatively, the server MAY reject the import with an <spanx style="verb">invalidEmail</spanx> SetError.
 </t>
@@ -1910,7 +1909,7 @@ A map of the creation id to a SetError object for each Email that failed to be c
 </section>
 
 <section anchor="emailparse" title="Email/parse">
-<t>This method allows you to parse blobs as messages <xref target="RFC5322"/> to get Email objects. The server MUST support messages with EAI headers <xref target="RFC6532"/>. This can be used to parse and display attached emails without having to import them as top-level Email objects in the mail store in their own right.
+<t>This method allows you to parse blobs as messages <xref target="RFC5322"/> to get Email objects. The server MUST support messages with EAI headers <xref target="RFC6532"/>. This can be used to parse and display attached messages without having to import them as top-level Email objects in the mail store in their own right.
 </t>
 <t>The following metadata properties on the Email objects will be null if requested:
 </t>
@@ -1967,7 +1966,7 @@ The id of the account used for the call.</t>
 A map of blob id to parsed Email representation for each successfully parsed blob, or null if none.</t>
 
 <t>notParsable: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
-A list of ids given that corresponded to blobs that could not be parsed as emails, or null if none.</t>
+A list of ids given that corresponded to blobs that could not be parsed as Emails, or null if none.</t>
 
 <t>notFound: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
 A list of blob ids given that could not be found, or null if none.</t>
@@ -2041,7 +2040,7 @@ A list of blob ids given that could not be found, or null if none.</t>
 </t>
 <t>&quot;0&quot;: This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same Thread as a newer message in the Mailbox (i.e., it is the first 30 unique Threads).
 </t>
-<t>&quot;1&quot;: Now we use a back-reference to fetch the Thread ids for each of these email ids.
+<t>&quot;1&quot;: Now we use a back-reference to fetch the Thread ids for each of these Email ids.
 </t>
 <t>&quot;2&quot;: Another back-reference fetches the Thread object for each of these Thread ids.
 </t>
@@ -2194,7 +2193,7 @@ A list of blob ids given that could not be found, or null if none.</t>
   "total": 115
 }, "11" ]]
 </artwork></figure>
-<t>The client can update its local cache of the query results by removing &quot;M9bd17497e2a99cb345fc1d0a&quot; and then splicing in &quot;Me8de6c9f6de198239b982ea2&quot; at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using back-references).
+<t>The client can update its local cache of the query results by removing &quot;M9bd17497e2a99cb345fc1d0a&quot; and then splicing in &quot;Me8de6c9f6de198239b982ea2&quot; at position 0. As it does not have the data for this new Email, it will then fetch it (it also could have done this in the same request using back-references).
 </t>
 <t>It knows something has changed about &quot;Ma783e5cdf5f2deffbc97930a&quot;, so it will refetch the Mailbox ids and keywords (the only mutable properties) for this Email too.
 </t>
@@ -2289,7 +2288,7 @@ A list of blob ids given that could not be found, or null if none.</t>
   "onSuccessDestroyOriginal": true
 }, "0" ]]
 </artwork></figure>
-<t>The server successfully copies the email and deletes the original. Due to the implicit call to &quot;Email/set&quot;, there are two responses to the single method call, both with the same method call id:
+<t>The server successfully copies the Email and deletes the original. Due to the implicit call to &quot;Email/set&quot;, there are two responses to the single method call, both with the same method call id:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2320,17 +2319,17 @@ A list of blob ids given that could not be found, or null if none.</t>
 </section>
 
 <section anchor="search-snippets" title="Search Snippets">
-<t>When doing a search on a <spanx style="verb">String</spanx> property, the client may wish to show the relevant section of the body that matches the search as a preview and to highlight any matching terms in both this and the subject of the email. Search snippets represent this data.
+<t>When doing a search on a <spanx style="verb">String</spanx> property, the client may wish to show the relevant section of the body that matches the search as a preview and to highlight any matching terms in both this and the subject of the Email. Search snippets represent this data.
 </t>
 <t>A <spanx style="strong">SearchSnippet</spanx> object has the following properties:
 </t>
 <t>
 <list style="symbols">
 <t>emailId: <spanx style="verb">Id</spanx><vspace blankLines="1" />
-The email id the snippet applies to.</t>
+The Email id the snippet applies to.</t>
 
 <t>subject: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-If text from the filter matches the subject, this is the subject of the email with the following transformations:
+If text from the filter matches the subject, this is the subject of the Email with the following transformations:
 <list style="numbers">
 <t>Any instance of the following three characters MUST be replaced by an appropriate HTML entity: &amp; (ampersand), &lt; (less-than sign), and &gt; (greater-than sign) <xref target="HTML"/>. Other characters MAY also be replaced with an HTML entity form.</t>
 
@@ -2361,7 +2360,7 @@ The id of the account to use.</t>
 The same filter as passed to Email/query; see the description of this method in <xref target="emailquery"/> for details.</t>
 
 <t>emailIds: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
-The ids of the emails to fetch snippets for.</t>
+The ids of the Emails to fetch snippets for.</t>
 </list>
 </t>
 <t>The response has the following arguments:
@@ -2372,10 +2371,10 @@ The ids of the emails to fetch snippets for.</t>
 The id of the account used for the call.</t>
 
 <t>list: <spanx style="verb">SearchSnippet[]</spanx><vspace blankLines="1" />
-An array of SearchSnippet objects for the requested email ids. This may not be in the same order as the ids that were in the request.</t>
+An array of SearchSnippet objects for the requested Email ids. This may not be in the same order as the ids that were in the request.</t>
 
 <t>notFound: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
-An array of email ids requested that could not be found, or null if all
+An array of Email ids requested that could not be found, or null if all
 ids were found.</t>
 </list>
 </t>
@@ -2390,7 +2389,7 @@ ids were found.</t>
 </section>
 
 <section anchor="example-4" title="Example">
-<t>Here, we did an Email/query to search for any email in the account containing the word &quot;foo&quot;; now, we are fetching the search snippets for some of the ids that were returned in the results:
+<t>Here, we did an Email/query to search for any Email in the account containing the word &quot;foo&quot;; now, we are fetching the search snippets for some of the ids that were returned in the results:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2460,7 +2459,7 @@ The Bcc value the client SHOULD set when creating a new message from this Identi
 Signature the client SHOULD insert into new plaintext messages that will be sent from this Identity. Clients MAY ignore this and/or combine this with a client-specific signature preference.</t>
 
 <t>htmlSignature: <spanx style="verb">String</spanx> (default: &quot;&quot;)<vspace blankLines="1" />
-Signature the client SHOULD insert into new HTML messages that will be sent from this Identity. This text MUST be an HTML snippet to be inserted into the <spanx style="verb">&lt;body&gt;&lt;/body&gt;</spanx> section of the new email. Clients MAY ignore this and/or combine this with a client-specific signature preference.</t>
+Signature the client SHOULD insert into new HTML messages that will be sent from this Identity. This text MUST be an HTML snippet to be inserted into the <spanx style="verb">&lt;body&gt;&lt;/body&gt;</spanx> section of the HTML. Clients MAY ignore this and/or combine this with a client-specific signature preference.</t>
 
 <t>mayDelete: <spanx style="verb">Boolean</spanx> (server-set)<vspace blankLines="1" />
 Is the user allowed to delete this Identity? Servers may wish to set this to <spanx style="verb">false</spanx> for the user's username or other default address. Attempts to destroy an Identity with <spanx style="verb">mayDelete: false</spanx> will be rejected with a standard <spanx style="verb">forbidden</spanx> SetError.</t>
@@ -2545,7 +2544,7 @@ the <spanx style="verb">email</spanx> property of the Identity.</t>
 </section>
 
 <section anchor="email-submission" title="Email Submission">
-<t>An <spanx style="strong">EmailSubmission</spanx> object represents the submission of an email for delivery to one or more recipients. It has the following properties:
+<t>An <spanx style="strong">EmailSubmission</spanx> object represents the submission of an Email for delivery to one or more recipients. It has the following properties:
 </t>
 <t>
 <list style="symbols">
@@ -2556,10 +2555,10 @@ The id of the EmailSubmission.</t>
 The id of the Identity to associate with this submission.</t>
 
 <t>emailId: <spanx style="verb">Id</spanx> (immutable)<vspace blankLines="1" />
-The id of the email to send. The email being sent does not have to be a draft, for example, when &quot;redirecting&quot; an existing email to a different address.</t>
+The id of the Email to send. The Email being sent does not have to be a draft, for example, when &quot;redirecting&quot; an existing Email to a different address.</t>
 
 <t>threadId: <spanx style="verb">Id</spanx> (immutable; server-set)<vspace blankLines="1" />
-The Thread id of the email to send. This is set by the server to the <spanx style="verb">threadId</spanx> property of the email referenced by the <spanx style="verb">emailId</spanx>.</t>
+The Thread id of the Email to send. This is set by the server to the <spanx style="verb">threadId</spanx> property of the Email referenced by the <spanx style="verb">emailId</spanx>.</t>
 
 <t>envelope: <spanx style="verb">Envelope|null</spanx> (immutable)<vspace blankLines="1" />
 Information for use when sending via SMTP.
@@ -2582,37 +2581,37 @@ An <spanx style="strong">Address</spanx> object has the following properties:
 The email address being represented by the object. This is a &quot;Mailbox&quot; as used in the Reverse-path or Forward-path of the MAIL FROM or RCPT TO command in <xref target="RFC5321"/>.</t>
 
 <t>parameters: <spanx style="verb">Object|null</spanx><vspace blankLines="1" />
-Any parameters to send with the email (either mail-parameter or rcpt-parameter as appropriate, as specified in <xref target="RFC5321"/>). If supplied, each key in the object is a parameter name, and the value is either the parameter value (type <spanx style="verb">String</spanx>) or "null" if the parameter does not take a value. For both name and value, any xtext or unitext encodings are removed (see <xref target="RFC3461"/> and <xref target="RFC6533"/>) and JSON string encoding is applied.</t>
+Any parameters to send with the email address (either mail-parameter or rcpt-parameter as appropriate, as specified in <xref target="RFC5321"/>). If supplied, each key in the object is a parameter name, and the value is either the parameter value (type <spanx style="verb">String</spanx>) or "null" if the parameter does not take a value. For both name and value, any xtext or unitext encodings are removed (see <xref target="RFC3461"/> and <xref target="RFC6533"/>) and JSON string encoding is applied.</t>
 </list>
-If the <spanx style="verb">envelope</spanx> property is null or omitted on creation, the server MUST generate this from the referenced email as follows:
+If the <spanx style="verb">envelope</spanx> property is null or omitted on creation, the server MUST generate this from the referenced Email as follows:
 <list style="symbols">
 <t><spanx style="verb">mailFrom</spanx>: The email address in the Sender header, if present; otherwise, it's the email address in the From header, if present. In either case, no parameters are added.
 <vspace blankLines="1" />
-If multiple addresses are present in one of these headers, or there is more than one Sender/From header, the server SHOULD reject the email as invalid; otherwise, it MUST take the first address in the last Sender/From header in the version of the message described in <xref target="RFC5322"/>.
+If multiple addresses are present in one of these headers, or there is more than one Sender/From header, the server SHOULD reject the EmailSubmission as invalid; otherwise, it MUST take the first address in the last Sender/From header in the version of the message described in <xref target="RFC5322"/>.
 <vspace blankLines="1" />
 If the address found from this is not allowed by the Identity associated with this submission, the <spanx style="verb">email</spanx> property from the Identity MUST be used instead.</t>
 
 <t><spanx style="verb">rcptTo</spanx>: The deduplicated set of email addresses from the To, Cc, and Bcc headers, if present, with no parameters for any of them.</t>
 </list></t>
 <t>sendAt: <spanx style="verb">UTCDate</spanx> (immutable; server-set)<vspace blankLines="1" />
-The date the email was/will be released for delivery.
-If the client successfully used FUTURERELEASE <xref target="RFC4865"/> with the email, this MUST be the time when the server will release the email; otherwise, it MUST be the time the EmailSubmission was created.</t>
+The date the submission was/will be released for delivery.
+If the client successfully used FUTURERELEASE <xref target="RFC4865"/> with the submission, this MUST be the time when the server will release the message; otherwise, it MUST be the time the EmailSubmission was created.</t>
 
 <t>undoStatus: <spanx style="verb">String</spanx><vspace blankLines="1" />
 This represents whether the submission may be canceled. This is server set and MUST be one of the following values:
 <list style="symbols">
 <t><spanx style="verb">pending</spanx>: It may be possible to cancel this submission.</t>
-<t><spanx style="verb">final</spanx>: The email has been relayed to at least one recipient in a
+<t><spanx style="verb">final</spanx>: The message has been relayed to at least one recipient in a
 manner that cannot be recalled. It is no longer possible to cancel this
 submission.</t>
 
-<t><spanx style="verb">canceled</spanx>: The email submission was canceled and will not be delivered
+<t><spanx style="verb">canceled</spanx>: The submission was canceled and will not be delivered
 to any recipient.</t>
 </list>
-On systems that do not support unsending, the value of this property will always be <spanx style="verb">final</spanx>. On systems that do support canceling submission, it will start as <spanx style="verb">pending</spanx> and MAY transition to <spanx style="verb">final</spanx> when the server knows it definitely cannot recall the email, but it MAY just remain <spanx style="verb">pending</spanx>. If in pending state, a client can attempt to cancel the submission by setting this property to <spanx style="verb">canceled</spanx>; if the update succeeds, the submission was successfully canceled, and the email has not been delivered to any of the original recipients.</t>
+On systems that do not support unsending, the value of this property will always be <spanx style="verb">final</spanx>. On systems that do support canceling submission, it will start as <spanx style="verb">pending</spanx> and MAY transition to <spanx style="verb">final</spanx> when the server knows it definitely cannot recall the message, but it MAY just remain <spanx style="verb">pending</spanx>. If in pending state, a client can attempt to cancel the submission by setting this property to <spanx style="verb">canceled</spanx>; if the update succeeds, the submission was successfully canceled, and the message has not been delivered to any of the original recipients.</t>
 
 <t>deliveryStatus: <spanx style="verb">String[DeliveryStatus]|null</spanx> (server-set)<vspace blankLines="1" />
-This represents the delivery status for each of the email's recipients, if known. This property MAY not be supported by all servers, in which case it will remain null. Servers that support it SHOULD update the EmailSubmission object each time the status of any of the recipients changes, even if some recipients are still being retried.
+This represents the delivery status for each of the submission's recipients, if known. This property MAY not be supported by all servers, in which case it will remain null. Servers that support it SHOULD update the EmailSubmission object each time the status of any of the recipients changes, even if some recipients are still being retried.
 <vspace blankLines="1" />
 This value is a map from the email address of each recipient to a DeliveryStatus object.
 <vspace blankLines="1" />
@@ -2620,7 +2619,7 @@ A <spanx style="strong">DeliveryStatus</spanx> object has the following properti
 <list style="symbols">
 <t>smtpReply: <spanx style="verb">String</spanx><vspace blankLines="1" />
 The SMTP reply string returned for this recipient when the server last tried
-to relay the email, or in a later Delivery Status Notification (DSN, as defined in <xref target="RFC3464"/>) response for the email. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the email as a whole was rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
+to relay the message, or in a later Delivery Status Notification (DSN, as defined in <xref target="RFC3464"/>) response for the message. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the message as a whole was rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
 <vspace blankLines="1" />
 Multi-line SMTP responses should be concatenated to a single string as follows:
 <list style="symbols">
@@ -2641,7 +2640,7 @@ would become:
 <figure align="center"><artwork align="center">
 550 5.7.1 Our system has detected that this message is likely spam.
 </artwork></figure>
-For emails relayed via an alternative to SMTP, the server MAY generate a synthetic string representing the status instead. If it does this, the string MUST be of the following form:
+For messages relayed via an alternative to SMTP, the server MAY generate a synthetic string representing the status instead. If it does this, the string MUST be of the following form:
 <list style="symbols">
 <t>A 3-digit SMTP reply code, as defined in <xref target="RFC5321"/>, Section 4.2.3.</t>
 <t>Then a single space character.</t>
@@ -2651,28 +2650,28 @@ For emails relayed via an alternative to SMTP, the server MAY generate a synthet
 <t>Then an implementation-specific information string with a human-readable explanation of the response.</t>
 </list></t>
 <t>delivered: <spanx style="verb">String</spanx><vspace blankLines="1" />
-Represents whether the email has been successfully delivered to the recipient. This MUST be one of the following values:
+Represents whether the message has been successfully delivered to the recipient. This MUST be one of the following values:
 <list style="symbols">
-<t><spanx style="verb">queued</spanx>: The email is in a local mail queue and the status will change
+<t><spanx style="verb">queued</spanx>: The message is in a local mail queue and the status will change
 once it exits the local mail queues. The <spanx style="verb">smtpReply</spanx> property may still change.</t>
-<t><spanx style="verb">yes</spanx>: The email was successfully delivered to the mail store of the
+<t><spanx style="verb">yes</spanx>: The message was successfully delivered to the mail store of the
 recipient. The <spanx style="verb">smtpReply</spanx> property is final.</t>
 <t><spanx style="verb">no</spanx>: Delivery to the recipient permanently failed. The <spanx style="verb">smtpReply</spanx>
 property is final.</t>
 <t><spanx style="verb">unknown</spanx>: The final delivery status is unknown, (e.g., it was relayed
 to an external machine and no further information is available). The <spanx style="verb">smtpReply</spanx> property may still change if a DSN arrives.</t>
 </list>
-Note that successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the email has successfully reached the final mail store. In this case though, the server may receive a DSN response, if requested.
+Note that successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the message has successfully reached the final mail store. In this case though, the server may receive a DSN response, if requested.
 <vspace blankLines="1" />
 If a DSN is received for the recipient with Action equal to &quot;delivered&quot;, as per <xref target="RFC3464"/>, Section 2.3.3, then the <spanx style="verb">delivered</spanx> property SHOULD be set to <spanx style="verb">yes</spanx>; if the Action equals &quot;failed&quot;, the property SHOULD be set to <spanx style="verb">no</spanx>. Receipt of any other DSN SHOULD NOT affect this property.
 <vspace blankLines="1" />
 The server MAY also set this property based on other feedback channels.</t>
 
 <t>displayed: <spanx style="verb">String</spanx><vspace blankLines="1" />
-Represents whether the email has been displayed to the recipient. This MUST be one of the following values:
+Represents whether the message has been displayed to the recipient. This MUST be one of the following values:
 <list style="symbols">
 <t><spanx style="verb">unknown</spanx>: The display status is unknown. This is the initial value.</t>
-<t><spanx style="verb">yes</spanx>: The recipient's system claims the email content has been
+<t><spanx style="verb">yes</spanx>: The recipient's system claims the message content has been
 displayed to the recipient. Note that there is no guarantee that the recipient has noticed, read, or understood the content.</t>
 </list>
 If a Message Disposition Notification (MDN) is received for this recipient with Disposition-Type (as per <xref target="RFC8098"/>, Section 3.2.6.2) equal to &quot;displayed&quot;, this property SHOULD be set to <spanx style="verb">yes</spanx>.
@@ -2688,8 +2687,8 @@ A list of blob ids for MDNs <xref target="RFC8098"/> received for this submissio
 </t>
 <t>JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to an EmailSubmission object. It SHOULD only do this if it exposes them in the <spanx style="verb">dsnBlobIds</spanx> and <spanx style="verb">mdnblobIds</spanx> fields instead, and it expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
 </t>
-<t>For efficiency, a server MAY destroy EmailSubmission objects at any time after the email is successfully sent or after it has finished
-retrying to send the email. For very basic SMTP proxies, this MAY be immediately after creation, as it has no way to assign a real id and return the information again if fetched later.
+<t>For efficiency, a server MAY destroy EmailSubmission objects at any time after the message is successfully sent or after it has finished
+retrying to send the message. For very basic SMTP proxies, this MAY be immediately after creation, as it has no way to assign a real id and return the information again if fetched later.
 </t>
 <t>The following JMAP methods are supported.
 </t>
@@ -2755,20 +2754,20 @@ The <spanx style="verb">sendAt</spanx> property of the EmailSubmission object mu
 A map of EmailSubmission id to an object containing properties to update on the Email object referenced by the EmailSubmission if the create/update/destroy succeeds. (For references to EmailSubmissions created in the same &quot;/set&quot; invocation, this is equivalent to a creation-reference, so the id will be the creation id prefixed with a <spanx style="verb">#</spanx>.)</t>
 
 <t>onSuccessDestroyEmail: <spanx style="verb">Id[]|null</spanx><vspace blankLines="1" />
-A list of EmailSubmission ids for which the email with the corresponding emailId should be destroyed if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a creation-reference, so the id will be the creation id prefixed with a <spanx style="verb">#</spanx>.)</t>
+A list of EmailSubmission ids for which the Email with the corresponding <spanx style="verb">emailId</spanx> should be destroyed if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a creation-reference, so the id will be the creation id prefixed with a <spanx style="verb">#</spanx>.)</t>
 </list>
 </t>
 <t>After all create/update/destroy items in the <spanx style="verb">EmailSubmission/set</spanx> invocation  have been processed, a single implicit <spanx style="verb">Email/set</spanx> call MUST be made to perform any changes requested in these two arguments. The response to this MUST be returned after the <spanx style="verb">EmailSubmission/set</spanx> response.
 </t>
-<t>An email is sent by creating an EmailSubmission object. When processing each create, the server must check that the email is valid, and the user has sufficient authorisation to send it. If the creation succeeds, the email will be sent to the recipients given in the envelope <spanx style="verb">rcptTo</spanx> parameter. The server MUST remove any Bcc header present on the email during delivery. The server MAY add or remove other headers from the submitted email or make further alterations in accordance with the server's policy during delivery.
+<t>An Email is sent by creating an EmailSubmission object. When processing each create, the server must check that the message is valid, and the user has sufficient authorisation to send it. If the creation succeeds, the message will be sent to the recipients given in the envelope <spanx style="verb">rcptTo</spanx> parameter. The server MUST remove any Bcc header present on the message during delivery. The server MAY add or remove other headers from the submitted message or make further alterations in accordance with the server's policy during delivery.
 </t>
-<t>If the referenced email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the email submission (i.e., it does not cancel a future send). The <spanx style="verb">emailId</spanx> and <spanx style="verb">threadId</spanx> properties of the submission object remain, but trying to fetch them (with a standard Email/get call) will return a <spanx style="verb">notFound</spanx> error if the corresponding objects have been destroyed.
+<t>If the referenced Email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the submission (i.e., it does not cancel a future send). The <spanx style="verb">emailId</spanx> and <spanx style="verb">threadId</spanx> properties of the submission object remain, but trying to fetch them (with a standard Email/get call) will return a <spanx style="verb">notFound</spanx> error if the corresponding objects have been destroyed.
 </t>
-<t>Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the email submission. The server MAY automatically destroy EmailSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
+<t>Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the submission. The server MAY automatically destroy EmailSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
 </t>
-<t>If the email to be sent is larger than the server supports sending, a standard <spanx style="verb">tooLarge</spanx> SetError MUST be returned. A <spanx style="verb">maxSize</spanx> <spanx style="verb">UnsignedInt</spanx> property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
+<t>If the Email to be sent is larger than the server supports sending, a standard <spanx style="verb">tooLarge</spanx> SetError MUST be returned. A <spanx style="verb">maxSize</spanx> <spanx style="verb">UnsignedInt</spanx> property MUST be present on the SetError specifying the maximum size of an Email that may be sent, in octets.
 </t>
-<t>If the email or Identity id given cannot be found, the submission creation is rejected with a standard <spanx style="verb">invalidProperties</spanx> SetError.
+<t>If the Email or Identity id given cannot be found, the submission creation is rejected with a standard <spanx style="verb">invalidProperties</spanx> SetError.
 </t>
 <t>The following extra SetError types are defined:
 </t>
@@ -2776,23 +2775,23 @@ A list of EmailSubmission ids for which the email with the corresponding emailId
 </t>
 <t>
 <list style="symbols">
-<t><spanx style="verb">invalidEmail</spanx> - The email to be sent is invalid in some way. The
-SetError SHOULD contain a property called <spanx style="verb">properties</spanx> of type <spanx style="verb">String[]</spanx> that lists <spanx style="strong">all</spanx> the properties of the email that were invalid.</t>
+<t><spanx style="verb">invalidEmail</spanx> - The Email to be sent is invalid in some way. The
+SetError SHOULD contain a property called <spanx style="verb">properties</spanx> of type <spanx style="verb">String[]</spanx> that lists <spanx style="strong">all</spanx> the properties of the Email that were invalid.</t>
 
 <t><spanx style="verb">tooManyRecipients</spanx> - The envelope (supplied or generated) has more
 recipients than the server allows. A <spanx style="verb">maxRecipients</spanx> <spanx style="verb">UnsignedInt</spanx> property MUST also be present on the SetError specifying the maximum number of allowed recipients.</t>
 
 <t><spanx style="verb">noRecipients</spanx> - The envelope (supplied or generated) does not have any
-rcptTo emails.</t>
+rcptTo email addresses.</t>
 
 <t><spanx style="verb">invalidRecipients</spanx> - The <spanx style="verb">rcptTo</spanx> property of the envelope (supplied or
-generated) contains at least one rcptTo value, which is not a valid email
+generated) contains at least one rcptTo value, which is not a valid email address
 for sending to. An <spanx style="verb">invalidRecipients</spanx> <spanx style="verb">String[]</spanx> property MUST also be present on the SetError, which is a list of the invalid addresses.</t>
-<t><spanx style="verb">forbiddenMailFrom</spanx> - The server does not permit the user to send an email
+<t><spanx style="verb">forbiddenMailFrom</spanx> - The server does not permit the user to send a message
 with the envelope From <xref target="RFC5321"/>.</t>
 
-<t><spanx style="verb">forbiddenFrom</spanx> - The server does not permit the user to send an email
-with the From header <xref target="RFC5322"/> of the email to be sent.</t>
+<t><spanx style="verb">forbiddenFrom</spanx> - The server does not permit the user to send a message
+with the From header <xref target="RFC5322"/> of the message to be sent.</t>
 
 <t><spanx style="verb">forbiddenToSend</spanx> - The user does not have permission to send at all right
 now for some reason. A <spanx style="verb">description</spanx> <spanx style="verb">String</spanx> property MAY be present on the SetError object to display to the user why they are not permitted.</t>
@@ -2803,12 +2802,12 @@ now for some reason. A <spanx style="verb">description</spanx> <spanx style="ver
 <t>
 <list style="symbols">
 <t><spanx style="verb">cannotUnsend</spanx> - The client attempted to update the <spanx style="verb">undoStatus</spanx> of a valid
-EmailSubmission object from <spanx style="verb">pending</spanx> to <spanx style="verb">canceled</spanx>, but the email cannot be unsent.</t>
+EmailSubmission object from <spanx style="verb">pending</spanx> to <spanx style="verb">canceled</spanx>, but the message cannot be unsent.</t>
 </list>
 </t>
 
 <section anchor="example-6" title="Example">
-<t>The following example presumes a draft of the message to be sent has already been saved, and its email id is &quot;M7f6ed5bcfd7e2604d1753f6c&quot;. This call then sends the email immediately, and if successful, removes the draft flag and moves it from the drafts folder (which has Mailbox id &quot;7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e&quot;) to the sent folder (which we presume has Mailbox id &quot;73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6&quot;).
+<t>The following example presumes a draft of the Email to be sent has already been saved, and its Email id is &quot;M7f6ed5bcfd7e2604d1753f6c&quot;. This call then sends the Email immediately, and if successful, removes the draft flag and moves it from the drafts folder (which has Mailbox id &quot;7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e&quot;) to the sent folder (which we presume has Mailbox id &quot;73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6&quot;).
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2864,7 +2863,7 @@ EmailSubmission object from <spanx style="verb">pending</spanx> to <spanx style=
   }
 }, "0" ]]
 </artwork></figure>
-<t>Suppose instead an admin has removed sending rights for the user, so the email submission is rejected with a &quot;forbiddenToSend&quot; error. The description argument of the error is intended for display to the user, so it should be localised appropriately. Let's suppose the request was sent with an Accept-Language header like this:
+<t>Suppose instead an admin has removed sending rights for the user, so the submission is rejected with a &quot;forbiddenToSend&quot; error. The description argument of the error is intended for display to the user, so it should be localised appropriately. Let's suppose the request was sent with an Accept-Language header like this:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2905,22 +2904,22 @@ settings for an account. It has the following properties:
 The id of the object. There is only ever one VacationResponse object, and its id is <spanx style="verb">"singleton"</spanx>.</t>
 
 <t>isEnabled: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-Should a vacation response be sent if an email arrives between the <spanx style="verb">fromDate</spanx> and <spanx style="verb">toDate</spanx>?</t>
+Should a vacation response be sent if a message arrives between the <spanx style="verb">fromDate</spanx> and <spanx style="verb">toDate</spanx>?</t>
 
 <t>fromDate: <spanx style="verb">UTCDate|null</spanx><vspace blankLines="1" />
-If <spanx style="verb">isEnabled</spanx> is <spanx style="verb">true</spanx>, emails that arrive on or after this date-time (but before the <spanx style="verb">toDate</spanx> if defined) should receive the user's vacation response. If null, the vacation response is effective immediately.</t>
+If <spanx style="verb">isEnabled</spanx> is <spanx style="verb">true</spanx>, messages that arrive on or after this date-time (but before the <spanx style="verb">toDate</spanx> if defined) should receive the user's vacation response. If null, the vacation response is effective immediately.</t>
 
 <t>toDate: <spanx style="verb">UTCDate|null</spanx><vspace blankLines="1" />
-If <spanx style="verb">isEnabled</spanx> is <spanx style="verb">true</spanx>, emails that arrive before this date-time (but on or after the <spanx style="verb">fromDate</spanx> if defined) should receive the user's vacation response. If null, the vacation response is effective indefinitely.</t>
+If <spanx style="verb">isEnabled</spanx> is <spanx style="verb">true</spanx>, messages that arrive before this date-time (but on or after the <spanx style="verb">fromDate</spanx> if defined) should receive the user's vacation response. If null, the vacation response is effective indefinitely.</t>
 
 <t>subject: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-The subject that will be used by the message sent in response to emails when the vacation response is enabled. If null, an appropriate subject SHOULD be set by the server.</t>
+The subject that will be used by the message sent in response to messages when the vacation response is enabled. If null, an appropriate subject SHOULD be set by the server.</t>
 
 <t>textBody: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-The plaintext body to send in response to emails when the vacation response is enabled. If this is nullthe server SHOULD generate a plaintext body part from the <spanx style="verb">htmlBody</spanx> when sending vacation responses, but MAY choose to send the response as HTML only. If both <spanx style="verb">textBody</spanx> and <spanx style="verb">htmlBody</spanx> are null, an appropriate default body SHOULD be generated for responses by the server.</t>
+The plaintext body to send in response to messages when the vacation response is enabled. If this is nullthe server SHOULD generate a plaintext body part from the <spanx style="verb">htmlBody</spanx> when sending vacation responses, but MAY choose to send the response as HTML only. If both <spanx style="verb">textBody</spanx> and <spanx style="verb">htmlBody</spanx> are null, an appropriate default body SHOULD be generated for responses by the server.</t>
 
 <t>htmlBody: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-The HTML body to send in response to emails when the vacation response is enabled. If this is null the server MAY choose to generate an HTML body part from the <spanx style="verb">textBody</spanx> when sending vacation responses, or MAY choose to send the response as plaintext only.</t>
+The HTML body to send in response to messages when the vacation response is enabled. If this is null the server MAY choose to generate an HTML body part from the <spanx style="verb">textBody</spanx> when sending vacation responses, or MAY choose to send the response as plaintext only.</t>
 </list>
 </t>
 <t>The following JMAP methods are supported.
@@ -2944,7 +2943,7 @@ The HTML body to send in response to emails when the vacation response is enable
 </t>
 
 <section anchor="emailbodypart-value" title="EmailBodyPart Value">
-<t>Service providers typically perform security filtering on incoming email, and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for an EmailBodyValue SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mail host.
+<t>Service providers typically perform security filtering on incoming messages, and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for an EmailBodyValue SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mail host.
 </t>
 <t>Automatic conversion of charsets that allow hidden channels for ASCII text, such as UTF-7, have been problematic for security filters in the past, so server implementations can mitigate this risk by having such conversions  off-by-default and/or separately configurable.
 </t>
@@ -2953,24 +2952,23 @@ The HTML body to send in response to emails when the vacation response is enable
 </section>
 
 <section anchor="html-email-display" title="HTML Email Display">
-<t>HTML message bodies provide richer formatting for emails but present a number of security challenges, especially when embedded in a webmail context in combination with interface HTML. Clients that render HTML emails should carefully consider the potential risks, including:
+<t>HTML message bodies provide richer formatting for messages but present a number of security challenges, especially when embedded in a webmail context in combination with interface HTML. Clients that render HTML messages should carefully consider the potential risks, including:
 </t>
 <t>
 <list style="symbols">
-<t>Embedded JavaScript can rewrite the email to change its content on subsequent
-opening, allowing users to be mislead. In webmail systems, if run in the same origin as the interface, it can access and exfiltrate all private data accessible to the user, including all other emails and potentially contacts, calendar events, settings, and credentials. It can also rewrite the interface to undetectably phish passwords. A compromise is likely to be persistent, not just for the duration of page load, due to exfiltration of session credentials or installation of a service worker that can intercept all subsequent network requests (however, this would only be possible if blob downloads are also available on the same origin, and the service worker script is attached to the message).</t>
+<t>Embedded JavaScript can rewrite the message to change its content on
+subsequent opening, allowing users to be mislead. In webmail systems, if run in the same origin as the interface, it can access and exfiltrate all private data accessible to the user, including all other messages and potentially contacts, calendar events, settings, and credentials. It can also rewrite the interface to undetectably phish passwords. A compromise is likely to be persistent, not just for the duration of page load, due to exfiltration of session credentials or installation of a service worker that can intercept all subsequent network requests (however, this would only be possible if blob downloads are also available on the same origin, and the service worker script is attached to the message).</t>
 <t>HTML documents may load content directly from the Internet rather than just
-referencing attached resources. For example, you may have an <spanx style="verb">&lt;img&gt;</spanx> tag with an external <spanx style="verb">src</spanx> attribute. This may leak to the sender when a message is opened, as well as the IP address of the recipient. Cookies may also be sent and set by the server, allowing tracking between different emails and even website visits and advertising profiles.</t>
+referencing attached resources. For example, you may have an <spanx style="verb">&lt;img&gt;</spanx> tag with an external <spanx style="verb">src</spanx> attribute. This may leak to the sender when a message is opened, as well as the IP address of the recipient. Cookies may also be sent and set by the server, allowing tracking between different messages and even website visits and advertising profiles.</t>
 <t>In webmail systems, CSS can break the layout or create phishing
-vulnerabilities. For example, the use of <spanx style="verb">position:fixed</spanx> can allow an email to draw content outside of its normal bounds, potentially clickjacking a real interface element.</t>
+vulnerabilities. For example, the use of <spanx style="verb">position:fixed</spanx> can allow a message to draw content outside of its normal bounds, potentially clickjacking a real interface element.</t>
 <t>If in a webmail context and not inside a separate frame, any styles defined in
-CSS rules will apply to interface elements as well if the selector matches, allowing the interface to be modified. Similarly, any interface styles that match elements in the email will alter their appearance, potentially breaking the layout of the email.</t>
+CSS rules will apply to interface elements as well if the selector matches, allowing the interface to be modified. Similarly, any interface styles that match elements in the message will alter their appearance, potentially breaking the layout of the message.</t>
 <t>The link text in HTML has no necessary correlation with the actual target of
 the link, which can be used to make phishing attacks more convincing.</t>
-<t>Links opened from an email or embedded external content may leak private info
-in the Referer header sent by default in most systems.</t>
+<t>Links opened from a message or embedded external content may leak private info in the Referer header sent by default in most systems.</t>
 <t>Forms can be used to mimic login boxes, providing a potent phishing vector if
-allowed to submit directly from the email display.</t>
+allowed to submit directly from the message display.</t>
 </list>
 </t>
 <t>There are a number of ways clients can mitigate these issues, and a defence-in-depth approach that uses a combination of techniques will provide the strongest security.
@@ -3045,7 +3043,7 @@ target="RFC7677"/>.
 <section anchor="permission-to-send-from-an-address" title="Permission to Send from an Address">
 <t>In recent years, the email ecosystem has moved towards associating trust with the From address in the message <xref target="RFC5322"/>, particularly with schemes such as Domain-based Message Authentication, Reporting, and Conformance (DMARC) <xref target="RFC7489"/>.
 </t>
-<t>The set of Identity objects (see <xref target="identities"/>) in an account lets the client know which email addresses the user has permission to send from. Each email submission is associated with an Identity, and servers SHOULD reject submissions where the From header field of the email does not correspond to the associated Identity.
+<t>The set of Identity objects (see <xref target="identities"/>) in an account lets the client know which email addresses the user has permission to send from. Each email submission is associated with an Identity, and servers SHOULD reject submissions where the From header field of the message does not correspond to the associated Identity.
 </t>
 <t>The server MAY allow an exception to send an exact copy of an existing message received into the mail store to another address (otherwise known as &quot;redirecting&quot; or &quot;bouncing&quot;), although it is RECOMMENDED the server limit this to destinations the user has verified they also control.
 </t>
@@ -3169,7 +3167,7 @@ composer window rather than a viewer window.
 </t>
 <t>When/by whom the keyword is set/cleared:
 This is typically set by a JMAP client when referring to a draft
-message. One model for draft emails would result in clearing this flag
+message. One model for draft Emails would result in clearing this flag
 in an EmailSubmission/set operation with an onSuccessUpdateEmail
 attribute. In a mailstore shared by JMAP and IMAP, this is also set and
 cleared as necessary so it matches the IMAP \Draft flag.
@@ -3452,7 +3450,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </t>
 <t>Reference: This document, <xref target="emailset"/>
 </t>
-<t>Description: The change to set of Mailboxes that this Email is in would exceed a server-defined maximum.
+<t>Description: The change to the set of Mailboxes that this Email is in would exceed a server-defined maximum.
 </t>
 </section>
 

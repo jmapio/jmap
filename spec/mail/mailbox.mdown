@@ -1,8 +1,8 @@
 # Mailboxes
 
-A Mailbox represents a named set of emails. This is the primary mechanism for organising emails within an account. It is analogous to a folder or a label in other systems. A Mailbox may perform a certain role in the system; see below for more details.
+A Mailbox represents a named set of Emails. This is the primary mechanism for organising Emails within an account. It is analogous to a folder or a label in other systems. A Mailbox may perform a certain role in the system; see below for more details.
 
-For compatibility with IMAP, an email MUST belong to one or more Mailboxes. The email id does not change if the email changes Mailboxes.
+For compatibility with IMAP, an Email MUST belong to one or more Mailboxes. The Email id does not change if the Email changes Mailboxes.
 
 A **Mailbox** object has the following properties:
 
@@ -29,25 +29,25 @@ A **Mailbox** object has the following properties:
     A Mailbox with a lower order should be displayed before a Mailbox with a higher order (that has the same parent) in any Mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
 
 - **totalEmails**: `UnsignedInt` (server-set)
-  The number of emails in this Mailbox.
+  The number of Emails in this Mailbox.
 - **unreadEmails**: `UnsignedInt` (server-set)
-  The number of emails in this Mailbox that have neither the `$seen` keyword nor the `$draft` keyword.
+  The number of Emails in this Mailbox that have neither the `$seen` keyword nor the `$draft` keyword.
 - **totalThreads**: `UnsignedInt` (server-set)
-  The number of Threads where at least one email in the Thread is in this Mailbox.
+  The number of Threads where at least one Email in the Thread is in this Mailbox.
 - **unreadThreads**: `UnsignedInt` (server-set)
   An indication of the number of "unread" Threads in the Mailbox.
 
     For compatibility with existing implementations, the way "unread Threads" is
     determined is not mandated in this document. The simplest solution to implement is simply the number of Threads where at least one Email in the Thread is both in this Mailbox and has neither the `$seen` nor `$draft` keywords.
 
-    However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread messages that will be displayed when the Thread is opened. Therefore, `unreadThreads` should be the number of Threads where at least one Email in the Thread has neither the `$seen` nor the `$draft` keyword AND at least one Email in the Thread is in this Mailbox. Note that the unread email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose `role` is `trash`) requires special treatment:
+    However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread messages that will be displayed when the Thread is opened. Therefore, `unreadThreads` should be the number of Threads where at least one Email in the Thread has neither the `$seen` nor the `$draft` keyword AND at least one Email in the Thread is in this Mailbox. Note that the unread Email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose `role` is `trash`) requires special treatment:
 
     1. Emails that are **only** in the trash (and no other Mailbox) are ignored when calculating the `unreadThreads` count of other Mailboxes.
     2. Emails that are **not** in the trash are ignored when calculating the `unreadThreads` count for the trash Mailbox.
 
-    The result of this is that emails in the trash are treated as though they are in a separate Thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a Thread in another Mailbox, and vice versa. This allows you to delete a single email to the trash out of a Thread.
+    The result of this is that Emails in the trash are treated as though they are in a separate Thread for the purposes of unread counts. It is expected that clients will hide Emails in the trash when viewing a Thread in another Mailbox, and vice versa. This allows you to delete a single Email to the trash out of a Thread.
 
-    For example, suppose you have an account where the entire contents is a single Thread with 2 emails: an unread email in the trash and a read email in the inbox. The `unreadThreads` count would be `1` for the trash and `0` for the inbox.
+    For example, suppose you have an account where the entire contents is a single Thread with 2 Emails: an unread Email in the trash and a read Email in the inbox. The `unreadThreads` count would be `1` for the trash and `0` for the inbox.
 
 - **myRights**: `MailboxRights` (server-set)
   The set of rights (Access Control Lists (ACLs)) the user has in relation to this Mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A **MailboxRights** object has the following properties:
@@ -55,13 +55,13 @@ A **Mailbox** object has the following properties:
     - **mayReadItems**: `Boolean`
       If true, the user may use this Mailbox as part of a filter in an *Email/query* call, and the Mailbox may be included in the *mailboxIds* property of Email objects. Email objects may be fetched if they are in **at least one** Mailbox with this permission. If a sub-Mailbox is shared but not the parent Mailbox, this may be `false`. Corresponds to IMAP ACLs `lr` (if mapping from IMAP, both are required for this to be `true`).
     - **mayAddItems**: `Boolean`
-      The user may add mail to this Mailbox (by either creating a new email or moving an existing one). Corresponds to IMAP ACL `i`.
+      The user may add mail to this Mailbox (by either creating a new Email or moving an existing one). Corresponds to IMAP ACL `i`.
     - **mayRemoveItems**: `Boolean`
-      The user may remove mail from this Mailbox (by either changing the Mailboxes of an email or deleting it). Corresponds to IMAP ACLs `te` (if mapping from IMAP, both are required for this to be `true`).
+      The user may remove mail from this Mailbox (by either changing the Mailboxes of an Email or deleting it). Corresponds to IMAP ACLs `te` (if mapping from IMAP, both are required for this to be `true`).
     - **maySetSeen**: `Boolean`
-      The user may add or remove the `$seen` keyword to/from an email. If an email belongs to multiple Mailboxes, the user may only modify `$seen` if they have this permission for **all** of the Mailboxes. Corresponds to IMAP ACL `s`.
+      The user may add or remove the `$seen` keyword to/from an Email. If an Email belongs to multiple Mailboxes, the user may only modify `$seen` if they have this permission for **all** of the Mailboxes. Corresponds to IMAP ACL `s`.
     - **maySetKeywords**: `Boolean`
-      The user may add or remove any keyword *other than* `$seen` to/from an email. If an email belongs to multiple Mailboxes, the user may only modify keywords if they have this permission for **all** of the Mailboxes. Corresponds to IMAP ACL `w`.
+      The user may add or remove any keyword *other than* `$seen` to/from an Email. If an Email belongs to multiple Mailboxes, the user may only modify keywords if they have this permission for **all** of the Mailboxes. Corresponds to IMAP ACL `w`.
     - **mayCreateChild**: `Boolean`
       The user may create a Mailbox with this Mailbox as its parent. Corresponds to IMAP ACL `k`.
     - **mayRename**: `Boolean`
@@ -78,7 +78,7 @@ A **Mailbox** object has the following properties:
 
     This property corresponds to IMAP [@?RFC3501] Mailbox subscriptions.
 
-For IMAP compatibility, an email in both the trash and another Mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash Mailbox and leave it in the other Mailbox).
+For IMAP compatibility, an Email in both the trash and another Mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash Mailbox and leave it in the other Mailbox).
 
 The following JMAP methods are supported.
 

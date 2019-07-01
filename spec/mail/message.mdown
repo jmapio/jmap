@@ -8,7 +8,7 @@ Broadly, a message consists of two parts: a list of header fields and then a bod
 
 While raw headers can be fetched and set, the vast majority of clients should use an appropriate parsed form for each of the headers it wants to process, as this allows it to avoid the complexities of various encodings that are required in a valid message per RFC 5322.
 
-The body of a message is normally a MIME-encoded set of documents in a tree structure. This may be arbitrarily nested, but the majority of email clients present a flat model of an email body (normally plaintext or HTML) with a set of attachments. Flattening the MIME structure to form this model can be difficult and causes inconsistency between clients. Therefore, in addition to the *bodyStructure* property, which gives the full tree, the Email object contains 3 alternate properties with flat lists of body parts:
+The body of a message is normally a MIME-encoded set of documents in a tree structure. This may be arbitrarily nested, but the majority of email clients present a flat model of a message body (normally plaintext or HTML) with a set of attachments. Flattening the MIME structure to form this model can be difficult and causes inconsistency between clients. Therefore, in addition to the *bodyStructure* property, which gives the full tree, the Email object contains 3 alternate properties with flat lists of body parts:
 
 - *textBody*/*htmlBody*: These provide a list of parts that should be
   rendered sequentially as the "body" of the message. This is a list rather than a single part as messages may have headers and/or footers appended/prepended as separate parts when they are transmitted, and some clients send text and images intended to be displayed inline in the body (or even videos and sound clips) as multiple parts rather than a single HTML part with referenced images.
@@ -35,20 +35,20 @@ These properties represent metadata about the message [@!RFC5322], and are not d
 - **threadId**: `Id` (immutable; server-set)
   The id of the Thread to which this Email belongs.
 - **mailboxIds**: `Id[Boolean]`
-  The set of Mailbox ids this email belongs to. An email in the mail store MUST belong to one or more Mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
+  The set of Mailbox ids this Email belongs to. An Email in the mail store MUST belong to one or more Mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
 - **keywords**: `String[Boolean]` (default: \{\})
-  A set of keywords that apply to the email. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
+  A set of keywords that apply to the Email. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 
     Keywords are shared with IMAP. The six system keywords from IMAP get special treatment. The following four keywords have their first character changed from `\` in IMAP to `$` in JMAP and have particular semantic meaning:
 
-    - `$draft`: The email is a draft the user is composing.
-    - `$seen`: The email has been read.
-    - `$flagged`: The email has been flagged for urgent/special attention.
-    - `$answered`: The email has been replied to.
+    - `$draft`: The Email is a draft the user is composing.
+    - `$seen`: The Email has been read.
+    - `$flagged`: The Email has been flagged for urgent/special attention.
+    - `$answered`: The Email has been replied to.
 
     The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts).
 
-    Users may add arbitrary keywords to an email. For compatibility with IMAP, a keyword is a case-insensitive string of 1–255 characters in the ASCII subset %x21–%x7e (excludes control chars and space), and it MUST NOT include any of these characters:
+    Users may add arbitrary keywords to an Email. For compatibility with IMAP, a keyword is a case-insensitive string of 1–255 characters in the ASCII subset %x21–%x7e (excludes control chars and space), and it MUST NOT include any of these characters:
 
         ( ) { ] % * " \
 
@@ -56,15 +56,15 @@ These properties represent metadata about the message [@!RFC5322], and are not d
 
     The [IMAP and JMAP Keywords](https://www.iana.org/assignments/imap-jmap-keywords/) registry as established in [@!RFC5788] assigns semantic meaning to some other keywords in common use. New keywords may be established here in the future. In particular, note:
 
-    - `$forwarded`: The email has been forwarded.
-    - `$phishing`: The email is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this email and disable links and attachments.
-    - `$junk`: The email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
-    - `$notjunk`: The email is definitely not spam. Clients SHOULD set this flag when users indicate an email is legitimate, to help train automated spam-detection systems.
+    - `$forwarded`: The Email has been forwarded.
+    - `$phishing`: The Email is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this Email and disable links and attachments.
+    - `$junk`: The Email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
+    - `$notjunk`: The Email is definitely not spam. Clients SHOULD set this flag when users indicate an Email is legitimate, to help train automated spam-detection systems.
 
 - **size**: `UnsignedInt` (immutable; server-set)
   The size, in octets, of the raw data for the message [@!RFC5322]  (as referenced by the *blobId*, i.e., the number of octets in the file the user would download).
 - **receivedAt**: `UTCDate` (immutable; default: time of creation on server)
-  The date the email was received by the message store. This is the *internal date* in IMAP [@?RFC3501].
+  The date the Email was received by the message store. This is the *internal date* in IMAP [@?RFC3501].
 
 ### Header Fields Parsed Forms
 
@@ -382,7 +382,7 @@ The following **Email** properties are specified for access to the body data of 
 
     This MUST NOT be more than 256 characters in length.
 
-    As this is derived from the message content by the server, and the algorithm for doing so could change over time, fetching this for an email a second time MAY return a different result. However, the previous value is not considered incorrect, and the change SHOULD NOT cause the Email object to be considered as changed by the server.
+    As this is derived from the message content by the server, and the algorithm for doing so could change over time, fetching this for an Email a second time MAY return a different result. However, the previous value is not considered incorrect, and the change SHOULD NOT cause the Email object to be considered as changed by the server.
 
 The exact algorithm for decomposing bodyStructure into textBody, htmlBody, and attachments part lists is not mandated, as this is a quality-of-service implementation issue and likely to require workarounds for malformed content discovered over time. However, the following algorithm (expressed here in JavaScript) is suggested as a starting point, based on real-world experience:
 
@@ -633,7 +633,7 @@ Standard "/changes" method as described in [@!RFC8620], Section 5.2. If generati
 Standard "/query" method as described in [@!RFC8620], Section 5.5, but with the following additional request arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
-  If `true`, emails in the same Thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means only one email at most will be included in the list for any given Thread.
+  If `true`, Emails in the same Thread as a previous Email in the list (given the filter and sort order) will be removed from the list. This means only one Email at most will be included in the list for any given Thread.
 
 In quality implementations, the query "total" property is expected to be fast to calculate when the filter consists solely of a single `inMailbox` property, as it is the same as the totalEmails or totalThreads properties (depending on whether collapseThreads is true) of the associated Mailbox object.
 
@@ -642,31 +642,31 @@ In quality implementations, the query "total" property is expected to be fast to
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
 - **inMailbox**: `Id`
-  A Mailbox id. An email must be in this Mailbox to match the condition.
+  A Mailbox id. An Email must be in this Mailbox to match the condition.
 - **inMailboxOtherThan**: `Id[]`
-  A list of Mailbox ids. An email must be in at least one Mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.
+  A list of Mailbox ids. An Email must be in at least one Mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.
 - **before**: `UTCDate`
-  The *receivedAt* date-time of the email must be before this date-time to match the condition.
+  The *receivedAt* date-time of the Email must be before this date-time to match the condition.
 - **after**: `UTCDate`
-  The *receivedAt* date-time of the email must be the same or after this date-time to match the condition.
+  The *receivedAt* date-time of the Email must be the same or after this date-time to match the condition.
 - **minSize**: `UnsignedInt`
-  The *size* of the email in octets must be equal to or greater than this number to match the condition.
+  The *size* property of the Email must be equal to or greater than this number to match the condition.
 - **maxSize**: `UnsignedInt`
-  The *size* of the email in octets must be less than this number to match the condition.
+  The *size* property of the Email must be less than this number to match the condition.
 - **allInThreadHaveKeyword**: `String`
-  All emails (including this one) in the same Thread as this email must have the given keyword to match the condition.
+  All Emails (including this one) in the same Thread as this Email must have the given keyword to match the condition.
 - **someInThreadHaveKeyword**: `String`
-  At least one email (possibly this one) in the same Thread as this email must have the given keyword to match the condition.
+  At least one Email (possibly this one) in the same Thread as this Email must have the given keyword to match the condition.
 - **noneInThreadHaveKeyword**: `String`
-  All emails (including this one) in the same Thread as this email must **not** have the given keyword to match the condition.
+  All Emails (including this one) in the same Thread as this Email must **not** have the given keyword to match the condition.
 - **hasKeyword**: `String`
-  This email must have the given keyword to match the condition.
+  This Email must have the given keyword to match the condition.
 - **notKeyword**: `String`
-  This email must not have the given keyword to match the condition.
+  This Email must not have the given keyword to match the condition.
 - **hasAttachment**: `Boolean`
-  The `hasAttachment` property of the email must be identical to the value given to match the condition.
+  The `hasAttachment` property of the Email must be identical to the value given to match the condition.
 - **text**: `String`
-  Looks for the text in emails. The server MUST look up text in the *from*, *to*, *cc*, *bcc*, and *subject* header fields of the message and SHOULD look inside any `text/*` or other body parts that may be converted to text by the server. The server MAY extend the search to any additional textual property.
+  Looks for the text in Emails. The server MUST look up text in the *from*, *to*, *cc*, *bcc*, and *subject* header fields of the message and SHOULD look inside any `text/*` or other body parts that may be converted to text by the server. The server MAY extend the search to any additional textual property.
 - **from**: `String`
   Looks for the text in the *From* header field of the message.
 - **to**: `String`
@@ -676,9 +676,9 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **bcc**: `String`
   Looks for the text in the *Bcc* header field of the message.
 - **subject**: `String`
-  Looks for the text in the *subject* property of the email.
+  Looks for the text in the *Subject* header field of the message.
 - **body**: `String`
-  Looks for the text in one of the body parts of the email. The server MAY exclude MIME body parts with content media types other than `text/*` and `message/*` from consideration in search matching. Care should be taken to match based on the text content actually presented to an end user by viewers for that media type or otherwise identified as appropriate for search indexing. Matching document metadata uninteresting to an end user (e.g., markup tag and attribute names) is undesirable.
+  Looks for the text in one of the body parts of the message. The server MAY exclude MIME body parts with content media types other than `text/*` and `message/*` from consideration in search matching. Care should be taken to match based on the text content actually presented to an end user by viewers for that media type or otherwise identified as appropriate for search indexing. Matching document metadata uninteresting to an end user (e.g., markup tag and attribute names) is undesirable.
 - **header**: `String[]`
   The array MUST contain either one or two elements. The first element is the name of the header field to match against. The second (optional) element is the text to look for in the header field value. If not supplied, the message matches simply if it *has* a header field of the given name.
 
@@ -695,7 +695,7 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 
         ' " \
 
-- Outside of a phrase, white space SHOULD be treated as dividing separate tokens that may be searched for separately but MUST all be present for the email to match the filter.
+- Outside of a phrase, white space SHOULD be treated as dividing separate tokens that may be searched for separately but MUST all be present for the Email to match the filter.
 - Tokens (not part of a phrase) MAY be matched on a whole-word basis using stemming (for example, a text search for "bus" would match "buses" but not "business").
 
 ### Sorting
@@ -707,13 +707,13 @@ The following value for the *property* field on the Comparator object MUST be su
 The following values for the *property* field on the Comparator object SHOULD be supported for sorting. When specifying a "hasKeyword", "allInThreadHaveKeyword", or "someInThreadHaveKeyword" sort, the Comparator object MUST also have a *keyword* property.
 
 - **size** - The *size* as returned in the Email object.
-- **from** – This is taken to be either the "name" part or if `null`/empty, the "email" part of the **first** EmailAddress object in the *from* property. If still none, consider the value to be the empty string.
-- **to** - This is taken to be either the "name" part or if `null`/empty, the "email" part of the **first** EmailAddress object in the *to* property. If still none, consider the value to be the empty string.
-- **subject** - This is taken to be the base subject of the email, as defined in Section 2.1 of [@!RFC5256].
+- **from** – This is taken to be either the *name* property or if `null`/empty, the *email* property of the **first** EmailAddress object in the Email's *from* property. If still none, consider the value to be the empty string.
+- **to** - This is taken to be either the *name* property or if `null`/empty, the *email* property of the **first** EmailAddress object in the Email's *to* property. If still none, consider the value to be the empty string.
+- **subject** - This is taken to be the base subject of the message, as defined in Section 2.1 of [@!RFC5256].
 - **sentAt** - The *sentAt* property on the Email object.
-- **hasKeyword** - This value MUST be considered `true` if the email has the keyword given as an additional *keyword* property on the *Comparator* object, or `false` otherwise.
-- **allInThreadHaveKeyword** - This value MUST be considered `true` for the email if **all** of the emails in the same Thread have the keyword given as an additional *keyword* property on the *Comparator* object.
-- **someInThreadHaveKeyword** - This value MUST be considered `true` for the email if **any** of the emails in the same Thread have the keyword given as an additional *keyword* property on the *Comparator* object.
+- **hasKeyword** - This value MUST be considered `true` if the Email has the keyword given as an additional *keyword* property on the *Comparator* object, or `false` otherwise.
+- **allInThreadHaveKeyword** - This value MUST be considered `true` for the Email if **all** of the Emails in the same Thread have the keyword given as an additional *keyword* property on the *Comparator* object.
+- **someInThreadHaveKeyword** - This value MUST be considered `true` for the Email if **any** of the Emails in the same Thread have the keyword given as an additional *keyword* property on the *Comparator* object.
 
 The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's *capabilities* object (see Section 1.3).
 
@@ -731,11 +731,11 @@ Example sort:
       "isAscending": false
     }]
 
-This would sort Emails in flagged Threads first (the Thread is considered flagged if any Email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails have identical values for all three properties, then the order is server dependent but must be stable.
+This would sort Emails in flagged Threads first (the Thread is considered flagged if any Email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two Emails have identical values for all three properties, then the order is server dependent but must be stable.
 
 ### Thread Collapsing
 
-When *collapseThreads* is `true`, then after filtering and sorting the email list, the list is further winnowed by removing any emails for a Thread id that has already been seen (when passing through the list sequentially). A Thread will therefore only appear **once** in the result, at the position of the first email in the list that belongs to the Thread (given the current sort/filter).
+When *collapseThreads* is `true`, then after filtering and sorting the Email list, the list is further winnowed by removing any Emails for a Thread id that has already been seen (when passing through the list sequentially). A Thread will therefore only appear **once** in the result, at the position of the first Email in the list that belongs to the Thread (given the current sort/filter).
 
 ## Email/queryChanges
 
@@ -749,15 +749,15 @@ Standard "/queryChanges" method as described in [@!RFC8620], Section 5.6, with t
 Standard "/set" method as described in [@!RFC8620], Section 5.3. The *Email/set* method encompasses:
 
 - Creating a draft
-- Changing the keywords of an email (e.g., unread/flagged status)
-- Adding/removing an email to/from Mailboxes (moving a message)
-- Deleting emails
+- Changing the keywords of an Email (e.g., unread/flagged status)
+- Adding/removing an Email to/from Mailboxes (moving a message)
+- Deleting Emails
 
-The format of the keywords/mailboxIds properties means that when updating an email, you can either replace the entire set of keywords/Mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see [@!RFC8620], Section 5.3 for the specification and Section 5.7 for an example).
+The format of the keywords/mailboxIds properties means that when updating an Email, you can either replace the entire set of keywords/Mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see [@!RFC8620], Section 5.3 for the specification and Section 5.7 for an example).
 
-Due to the format of the Email object, when creating an email there are a number of ways to specify the same information. To ensure that the email to create per RFC5322 is unambiguous, the following constraints apply to Email objects submitted for creation:
+Due to the format of the Email object, when creating an Email there are a number of ways to specify the same information. To ensure that the message [@!RFC5322] to create is unambiguous, the following constraints apply to Email objects submitted for creation:
 
-- The *headers* property MUST NOT be given on either the top-level email or an
+- The *headers* property MUST NOT be given on either the top-level Email or an
   EmailBodyPart — the client must set each header field as an individual
   property.
 - There MUST NOT be two properties that represent the same header field
@@ -792,11 +792,11 @@ Creation attempts that violate any of this SHOULD be rejected with an `invalidPr
 
 The server MAY also choose to set additional headers. If not included, the server MUST generate and set a `Message-ID` header field in conformance with [@!RFC5322], Section 3.6.4, and a `Date` header field in conformance with Section 3.6.1.
 
-The final email generated per RFC 5322 may be invalid. For example, if it is a half-finished draft, the "To" field may have a value that does not conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
+The final message generated may be invalid per RFC 5322. For example, if it is a half-finished draft, the To header field may have a value that does not conform to the required syntax for this header. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 
-Destroying an email removes it from all Mailboxes to which it belonged. To  just delete an email to trash, simply change the `mailboxIds` property, so it is now in the Mailbox with a *role* property equal to `trash`, and remove all other Mailbox ids.
+Destroying an Email removes it from all Mailboxes to which it belonged. To  just delete an Email to trash, simply change the `mailboxIds` property, so it is now in the Mailbox with a *role* property equal to `trash`, and remove all other Mailbox ids.
 
-When emptying the trash, clients SHOULD NOT destroy emails that are also in a Mailbox other than trash. For those emails, they SHOULD just remove the trash Mailbox from the email.
+When emptying the trash, clients SHOULD NOT destroy Emails that are also in a Mailbox other than trash. For those Emails, they SHOULD just remove the trash Mailbox from the Email.
 
 For successfully created Email objects, the *created* response contains the *id*, *blobId*, *threadId*, and *size* properties of the object.
 
@@ -809,23 +809,22 @@ For **create**:
 
 For **create** and **update**:
 
-- `tooManyKeywords`: The change to the email's keywords would exceed a
+- `tooManyKeywords`: The change to the Email's keywords would exceed a
   server-defined maximum.
-- `tooManyMailboxes`: The change to the email's Mailboxes would exceed a
-  server-defined maximum.
+- `tooManyMailboxes`: The change to the set of Mailboxes that this Email is in would exceed a server-defined maximum.
 
 ## Email/copy
 
-Standard "/copy" method as described in [@!RFC8620], Section 5.4, except only the *mailboxIds*, *keywords*, and *receivedAt* properties may be set during the copy. This method cannot modify the representation of an email per RFC 5322.
+Standard "/copy" method as described in [@!RFC8620], Section 5.4, except only the *mailboxIds*, *keywords*, and *receivedAt* properties may be set during the copy. This method cannot modify the message represented by the Email.
 
-The server MAY forbid two Email objects with the same exact content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account; if the target account already has the email, the copy will be rejected with a standard `alreadyExists` error.
+The server MAY forbid two Email objects with the same exact content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account; if the target account already has the Email, the copy will be rejected with a standard `alreadyExists` error.
 
 For successfully copied Email objects, the *created* response contains the *id*, *blobId*, *threadId*, and *size* properties of the new object.
 
 
 ## Email/import
 
-The *Email/import* method adds messages [@!RFC5322] to the set of emails in an account. The server MUST support messages with Email Address Internationalization (EAI) headers [@!RFC6532]. The messages must first be uploaded as blobs using the standard upload mechanism. The method takes the following arguments:
+The *Email/import* method adds messages [@!RFC5322] to the set of Emails in an account. The server MUST support messages with Email Address Internationalization (EAI) headers [@!RFC6532]. The messages must first be uploaded as blobs using the standard upload mechanism. The method takes the following arguments:
 
 - **accountId**: `Id`
   The id of the account to use.
@@ -839,19 +838,19 @@ An **EmailImport** object has the following properties:
 - **blobId**: `Id`
   The id of the blob containing the raw message [@!RFC5322].
 - **mailboxIds**: `Id[Boolean]`
-  The ids of the Mailboxes to assign this email to. At least one Mailbox MUST be given.
+  The ids of the Mailboxes to assign this Email to. At least one Mailbox MUST be given.
 - **keywords**: `String[Boolean]` (default: \{\})
-  The keywords to apply to the email.
+  The keywords to apply to the Email.
 - **receivedAt**: `UTCDate` (default: time of most recent Received header, or time of import on server if none)
-  The *receivedAt* date to set on the email.
+  The *receivedAt* date to set on the Email.
 
-Each email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given Mailboxes, keywords, and receivedAt date.
+Each Email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given Mailboxes, keywords, and receivedAt date.
 
-The server MAY forbid two Email objects with the same exact content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account. In this case, it MUST reject attempts to import an email considered to be a duplicate with an `alreadyExists` SetError. An *existingId* property of type `Id` MUST be included on the error object with the id of the existing email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
+The server MAY forbid two Email objects with the same exact content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account. In this case, it MUST reject attempts to import an Email considered to be a duplicate with an `alreadyExists` SetError. An *existingId* property of type `Id` MUST be included on the error object with the id of the existing Email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
 
 If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g., missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
 
-If the email cannot be imported because it would take the account over quota, the import should be rejected with an `overQuota` SetError.
+If the Email cannot be imported because it would take the account over quota, the import should be rejected with an `overQuota` SetError.
 
 If the blob referenced is not a valid message [@!RFC5322], the server MAY modify the message to fix errors (such as removing NUL octets or fixing invalid headers). If it does this, the *blobId* on the response MUST represent the new representation and therefore be different to the *blobId* on the EmailImport object. Alternatively, the server MAY reject the import with an `invalidEmail` SetError.
 
@@ -874,7 +873,7 @@ The following additional errors may be returned instead of the *Email/import* re
 
 ## Email/parse
 
-This method allows you to parse blobs as messages [@!RFC5322] to get Email objects. The server MUST support messages with EAI headers [@!RFC6532]. This can be used to parse and display attached emails without having to import them as top-level Email objects in the mail store in their own right.
+This method allows you to parse blobs as messages [@!RFC5322] to get Email objects. The server MUST support messages with EAI headers [@!RFC6532]. This can be used to parse and display attached messages without having to import them as top-level Email objects in the mail store in their own right.
 
 The following metadata properties on the Email objects will be `null` if requested:
 
@@ -916,7 +915,7 @@ The response has the following arguments:
 - **parsed**: `Id[Email]|null`
   A map of blob id to parsed Email representation for each successfully parsed blob, or `null` if none.
 - **notParsable**: `Id[]|null`
-  A list of ids given that corresponded to blobs that could not be parsed as emails, or `null` if none.
+  A list of ids given that corresponded to blobs that could not be parsed as Emails, or `null` if none.
 - **notFound**: `Id[]|null`
   A list of blob ids given that could not be found, or `null` if none.
 
@@ -986,7 +985,7 @@ Let's break down the 4 method calls to see what they're doing:
 
 "0": This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same Thread as a newer Email in the Mailbox (i.e., it is the first 30 unique Threads).
 
-"1": Now we use a back-reference to fetch the Thread ids for each of these email ids.
+"1": Now we use a back-reference to fetch the Thread ids for each of these Email ids.
 
 "2": Another back-reference fetches the Thread object for each of these Thread ids.
 
@@ -1129,7 +1128,7 @@ The response:
       "total": 115
     }, "11" ]]
 
-The client can update its local cache of the query results by removing "M9bd17497e2a99cb345fc1d0a" and then splicing in "Me8de6c9f6de198239b982ea2" at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using back-references).
+The client can update its local cache of the query results by removing "M9bd17497e2a99cb345fc1d0a" and then splicing in "Me8de6c9f6de198239b982ea2" at position 0. As it does not have the data for this new Email, it will then fetch it (it also could have done this in the same request using back-references).
 
 It knows something has changed about "Ma783e5cdf5f2deffbc97930a", so it will refetch the Mailbox ids and keywords (the only mutable properties) for this Email too.
 
@@ -1218,7 +1217,7 @@ The client moves this draft to a different account. The only way to do this is v
       "onSuccessDestroyOriginal": true
     }, "0" ]]
 
-The server successfully copies the email and deletes the original. Due to the implicit call to "Email/set", there are two responses to the single method call, both with the same method call id:
+The server successfully copies the Email and deletes the original. Due to the implicit call to "Email/set", there are two responses to the single method call, both with the same method call id:
 
     [[ "Email/copy", {
       "fromAccountId": "ue150411c",

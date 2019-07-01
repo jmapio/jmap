@@ -1,13 +1,13 @@
 # Search Snippets
 
-When doing a search on a `String` property, the client may wish to show the relevant section of the body that matches the search as a preview and to highlight any matching terms in both this and the subject of the email. Search snippets represent this data.
+When doing a search on a `String` property, the client may wish to show the relevant section of the body that matches the search as a preview and to highlight any matching terms in both this and the subject of the Email. Search snippets represent this data.
 
 A **SearchSnippet** object has the following properties:
 
 - **emailId**: `Id`
-  The email id the snippet applies to.
+  The Email id the snippet applies to.
 - **subject**: `String|null`
-  If text from the filter matches the subject, this is the subject of the email with the following transformations:
+  If text from the filter matches the subject, this is the subject of the Email with the following transformations:
 
     1. Any instance of the following three characters MUST be replaced by an appropriate HTML entity: & (ampersand), < (less-than sign), and > (greater-than sign) [@!HTML]. Other characters MAY also be replaced with an HTML entity form.
 
@@ -32,16 +32,16 @@ To fetch search snippets, make a call to `SearchSnippet/get`. It takes the follo
 - **filter**: `FilterOperator|FilterCondition|null`
   The same filter as passed to Email/query; see the description of this method in Section 4.4 for details.
 - **emailIds**: `Id[]`
-  The ids of the emails to fetch snippets for.
+  The ids of the Emails to fetch snippets for.
 
 The response has the following arguments:
 
 - **accountId**: `Id`
   The id of the account used for the call.
 - **list**: `SearchSnippet[]`
-  An array of SearchSnippet objects for the requested email ids. This may not be in the same order as the ids that were in the request.
+  An array of SearchSnippet objects for the requested Email ids. This may not be in the same order as the ids that were in the request.
 - **notFound**: `Id[]|null`
-  An array of email ids requested that could not be found, or `null` if all
+  An array of Email ids requested that could not be found, or `null` if all
   ids were found.
 
 As the search snippets are derived from the message content and the algorithm for doing so could change over time, fetching the same snippets a second time MAY return a different result. However, the previous value is not considered incorrect, so there is no state string or update mechanism needed.
@@ -54,7 +54,7 @@ The following additional errors may be returned instead of the *SearchSnippet/ge
 
 ## Example
 
-Here, we did an Email/query to search for any email in the account containing the word "foo"; now, we are fetching the search snippets for some of the ids that were returned in the results:
+Here, we did an Email/query to search for any Email in the account containing the word "foo"; now, we are fetching the search snippets for some of the ids that were returned in the results:
 
     [[ "SearchSnippet/get", {
       "accountId": "ue150411c",
