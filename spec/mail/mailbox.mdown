@@ -1,84 +1,84 @@
 # Mailboxes
 
-A mailbox represents a named set of emails. This is the primary mechanism for organising emails within an account. It is analogous to a folder or a label in other systems. A mailbox may perform a certain role in the system; see below for more details.
+A Mailbox represents a named set of emails. This is the primary mechanism for organising emails within an account. It is analogous to a folder or a label in other systems. A Mailbox may perform a certain role in the system; see below for more details.
 
-For compatibility with IMAP, an email MUST belong to one or more mailboxes. The email id does not change if the email changes mailboxes.
+For compatibility with IMAP, an email MUST belong to one or more Mailboxes. The email id does not change if the email changes Mailboxes.
 
 A **Mailbox** object has the following properties:
 
 - **id**: `Id` (immutable; server-set)
-  The id of the mailbox.
+  The id of the Mailbox.
 - **name**: `String`
-  User-visible name for the mailbox, e.g., "Inbox". This MUST be a Net-Unicode string [@!RFC5198] of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing a slash (/) or control characters).
+  User-visible name for the Mailbox, e.g., "Inbox". This MUST be a Net-Unicode string [@!RFC5198] of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling Mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing a slash (/) or control characters).
 - **parentId**: `Id|null` (default: null)
-  The mailbox id for the parent of this mailbox, or `null` if this mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.
+  The Mailbox id for the parent of this Mailbox, or `null` if this Mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.
 - **role**: `String|null` (default: null)
-  Identifies mailboxes that have a particular common purpose (e.g., the "inbox"), regardless of the *name* property (which may be localised).
+  Identifies Mailboxes that have a particular common purpose (e.g., the "inbox"), regardless of the *name* property (which may be localised).
 
-    This value is shared with IMAP (exposed in IMAP via the SPECIAL-USE extension [@!RFC6154]). However, unlike in IMAP, a mailbox MUST only have a single role, and there MUST NOT be two mailboxes in the same account with the same role. Servers providing IMAP access to the same data are encouraged to enforce these extra restrictions in IMAP as well. Otherwise, modifying the IMAP attributes to ensure compliance when exposing the data over JMAP is implementation dependent.
+    This value is shared with IMAP (exposed in IMAP via the SPECIAL-USE extension [@!RFC6154]). However, unlike in IMAP, a Mailbox MUST only have a single role, and there MUST NOT be two Mailboxes in the same account with the same role. Servers providing IMAP access to the same data are encouraged to enforce these extra restrictions in IMAP as well. Otherwise, modifying the IMAP attributes to ensure compliance when exposing the data over JMAP is implementation dependent.
 
-    The value MUST be one of the mailbox attribute names listed in the [IANA IMAP Mailbox Name Attributes](https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml) registry, as established in [@!RFC8457], converted to lowercase. New roles may be established here in the future.
+    The value MUST be one of the Mailbox attribute names listed in the [IANA IMAP Mailbox Name Attributes](https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml) registry, as established in [@!RFC8457], converted to lowercase. New roles may be established here in the future.
 
-    An account is not required to have mailboxes with any particular roles.
+    An account is not required to have Mailboxes with any particular roles.
 
 - **sortOrder**: `UnsignedInt` (default: 0)
-  Defines the sort order of mailboxes when presented in the client's UI, so it
+  Defines the sort order of Mailboxes when presented in the client's UI, so it
   is consistent between devices. The number MUST be an integer in the range
   0 <= sortOrder < 2^31.
 
-    A mailbox with a lower order should be displayed before a mailbox with a higher order (that has the same parent) in any mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
+    A Mailbox with a lower order should be displayed before a Mailbox with a higher order (that has the same parent) in any Mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
 
 - **totalEmails**: `UnsignedInt` (server-set)
-  The number of emails in this mailbox.
+  The number of emails in this Mailbox.
 - **unreadEmails**: `UnsignedInt` (server-set)
-  The number of emails in this mailbox that have neither the `$seen` keyword nor the `$draft` keyword.
+  The number of emails in this Mailbox that have neither the `$seen` keyword nor the `$draft` keyword.
 - **totalThreads**: `UnsignedInt` (server-set)
-  The number of threads where at least one email in the thread is in this mailbox.
+  The number of threads where at least one email in the thread is in this Mailbox.
 - **unreadThreads**: `UnsignedInt` (server-set)
-  An indication of the number of "unread" threads in the mailbox.
+  An indication of the number of "unread" threads in the Mailbox.
 
     For compatibility with existing implementations, the way "unread threads" is
-    determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this mailbox and has neither the `$seen` nor `$draft` keywords.
+    determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this Mailbox and has neither the `$seen` nor `$draft` keywords.
 
-    However, a quality implementation will return the number of unread items the user would see if they opened that mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, `unreadThreads` should be the number of threads where at least one email in the thread has neither the `$seen` nor the `$draft` keyword AND at least one email in the thread is in this mailbox. Note that the unread email does not need to be the one in this mailbox. In addition, the trash mailbox (that is, a mailbox whose `role` is `trash`) requires special treatment:
+    However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, `unreadThreads` should be the number of threads where at least one email in the thread has neither the `$seen` nor the `$draft` keyword AND at least one email in the thread is in this Mailbox. Note that the unread email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose `role` is `trash`) requires special treatment:
 
-    1. Emails that are **only** in the trash (and no other mailbox) are ignored when calculating the `unreadThreads` count of other mailboxes.
-    2. Emails that are **not** in the trash are ignored when calculating the `unreadThreads` count for the trash mailbox.
+    1. Emails that are **only** in the trash (and no other Mailbox) are ignored when calculating the `unreadThreads` count of other Mailboxes.
+    2. Emails that are **not** in the trash are ignored when calculating the `unreadThreads` count for the trash Mailbox.
 
-    The result of this is that emails in the trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a thread in another mailbox, and vice versa. This allows you to delete a single email to the trash out of a thread.
+    The result of this is that emails in the trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a thread in another Mailbox, and vice versa. This allows you to delete a single email to the trash out of a thread.
 
     For example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the trash and a read email in the inbox. The `unreadThreads` count would be `1` for the trash and `0` for the inbox.
 
 - **myRights**: `MailboxRights` (server-set)
-  The set of rights (Access Control Lists (ACLs)) the user has in relation to this mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A **MailboxRights** object has the following properties:
+  The set of rights (Access Control Lists (ACLs)) the user has in relation to this Mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A **MailboxRights** object has the following properties:
 
     - **mayReadItems**: `Boolean`
-      If true, the user may use this mailbox as part of a filter in an *Email/query* call, and the mailbox may be included in the *mailboxIds* property of Email objects. Email objects may be fetched if they are in **at least one** mailbox with this permission. If a sub-mailbox is shared but not the parent mailbox, this may be `false`. Corresponds to IMAP ACLs `lr` (if mapping from IMAP, both are required for this to be `true`).
+      If true, the user may use this Mailbox as part of a filter in an *Email/query* call, and the Mailbox may be included in the *mailboxIds* property of Email objects. Email objects may be fetched if they are in **at least one** Mailbox with this permission. If a sub-Mailbox is shared but not the parent Mailbox, this may be `false`. Corresponds to IMAP ACLs `lr` (if mapping from IMAP, both are required for this to be `true`).
     - **mayAddItems**: `Boolean`
-      The user may add mail to this mailbox (by either creating a new email or moving an existing one). Corresponds to IMAP ACL `i`.
+      The user may add mail to this Mailbox (by either creating a new email or moving an existing one). Corresponds to IMAP ACL `i`.
     - **mayRemoveItems**: `Boolean`
-      The user may remove mail from this mailbox (by either changing the mailboxes of an email or deleting it). Corresponds to IMAP ACLs `te` (if mapping from IMAP, both are required for this to be `true`).
+      The user may remove mail from this Mailbox (by either changing the Mailboxes of an email or deleting it). Corresponds to IMAP ACLs `te` (if mapping from IMAP, both are required for this to be `true`).
     - **maySetSeen**: `Boolean`
-      The user may add or remove the `$seen` keyword to/from an email. If an email belongs to multiple mailboxes, the user may only modify `$seen` if they have this permission for **all** of the mailboxes. Corresponds to IMAP ACL `s`.
+      The user may add or remove the `$seen` keyword to/from an email. If an email belongs to multiple Mailboxes, the user may only modify `$seen` if they have this permission for **all** of the Mailboxes. Corresponds to IMAP ACL `s`.
     - **maySetKeywords**: `Boolean`
-      The user may add or remove any keyword *other than* `$seen` to/from an email. If an email belongs to multiple mailboxes, the user may only modify keywords if they have this permission for **all** of the mailboxes. Corresponds to IMAP ACL `w`.
+      The user may add or remove any keyword *other than* `$seen` to/from an email. If an email belongs to multiple Mailboxes, the user may only modify keywords if they have this permission for **all** of the Mailboxes. Corresponds to IMAP ACL `w`.
     - **mayCreateChild**: `Boolean`
-      The user may create a mailbox with this mailbox as its parent. Corresponds to IMAP ACL `k`.
+      The user may create a Mailbox with this Mailbox as its parent. Corresponds to IMAP ACL `k`.
     - **mayRename**: `Boolean`
-      The user may rename the mailbox or make it a child of another mailbox. Corresponds to IMAP ACL `x` (although this covers both rename and delete permissions).
+      The user may rename the Mailbox or make it a child of another Mailbox. Corresponds to IMAP ACL `x` (although this covers both rename and delete permissions).
     - **mayDelete**: `Boolean`
-      The user may delete the mailbox itself. Corresponds to IMAP ACL `x` (although this covers both rename and delete permissions).
+      The user may delete the Mailbox itself. Corresponds to IMAP ACL `x` (although this covers both rename and delete permissions).
     - **maySubmit**: `Boolean`
-      Messages may be submitted directly to this mailbox. Corresponds to IMAP ACL `p`.
+      Messages may be submitted directly to this Mailbox. Corresponds to IMAP ACL `p`.
 
 - **isSubscribed**: `Boolean`
-  Has the user indicated they wish to see this mailbox in their client? This SHOULD default to `false` for mailboxes in shared accounts the user has access to and `true` for any new mailboxes created by the user themself. This MUST be stored separately per user where multiple users have access to a shared mailbox.
+  Has the user indicated they wish to see this Mailbox in their client? This SHOULD default to `false` for Mailboxes in shared accounts the user has access to and `true` for any new Mailboxes created by the user themself. This MUST be stored separately per user where multiple users have access to a shared Mailbox.
 
-    A user may have permission to access a large number of shared accounts, or a shared account with a very large set of mailboxes, but only be interested in the contents of a few of these. Clients may choose to only display mailboxes where the `isSubscribed` property is set to `true`, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation or just for an account where `isPersonal` is `true` (indicating it is the user's own rather than a shared account).
+    A user may have permission to access a large number of shared accounts, or a shared account with a very large set of Mailboxes, but only be interested in the contents of a few of these. Clients may choose to only display Mailboxes where the `isSubscribed` property is set to `true`, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of Mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation or just for an account where `isPersonal` is `true` (indicating it is the user's own rather than a shared account).
 
-    This property corresponds to IMAP [@?RFC3501] mailbox subscriptions.
+    This property corresponds to IMAP [@?RFC3501] Mailbox subscriptions.
 
-For IMAP compatibility, an email in both the trash and another mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash mailbox and leave it in the other mailbox).
+For IMAP compatibility, an email in both the trash and another Mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash Mailbox and leave it in the other Mailbox).
 
 The following JMAP methods are supported.
 
@@ -91,7 +91,7 @@ Standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argum
 Standard "/changes" method as described in [@!RFC8620], Section 5.2 but with one extra argument to the response:
 
 - **updatedProperties**: `String[]|null`
-  If only the mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e., `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
+  If only the Mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e., `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
 Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separate from other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same single request, so only these properties are returned if nothing else has changed.
 
@@ -100,18 +100,18 @@ Since counts frequently change but other properties are generally only changed r
 Standard "/query" method as described in [@!RFC8620], Section 5.5, but with the following additional request argument:
 
 - **sortAsTree**: `Boolean` (default: false)
-  If `true`, when sorting the query results and comparing mailboxes A and B:
+  If `true`, when sorting the query results and comparing Mailboxes A and B:
 
     - If A is an ancestor of B, it always comes first regardless of the *sort*
       comparators. Similarly, if A is descendant of B, then B always comes
       first.
     - Otherwise, if A and B do not share a *parentId*, find the nearest
       ancestors of each that do have the same *parentId* and compare the sort
-      properties on those mailboxes instead.
+      properties on those Mailboxes instead.
 
-    The result of this is that the mailboxes are sorted as a tree according to the parentId properties, with each set of children with a common parent sorted according to the standard sort comparators.
+    The result of this is that the Mailboxes are sorted as a tree according to the parentId properties, with each set of children with a common parent sorted according to the standard sort comparators.
 - **filterAsTree**: `Boolean` (default: false)
-  If `true`, a mailbox is only included in the query if all its ancestors are
+  If `true`, a Mailbox is only included in the query if all its ancestors are
   also included in the query according to the filter.
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
@@ -125,7 +125,7 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **hasAnyRole**: `Boolean`
   If `true`, a Mailbox matches if it has any non-`null` value for its *role* property.
 - **isSubscribed**: `Boolean`
-  The `isSubscribed` property of the mailbox must be identical to the value given to match the condition.
+  The `isSubscribed` property of the Mailbox must be identical to the value given to match the condition.
 
 A Mailbox object matches the FilterCondition if and only if all of the given conditions match. If zero properties are specified, it is automatically `true` for all objects.
 
@@ -143,20 +143,20 @@ Standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
 Standard "/set" method as described in [@!RFC8620], Section 5.3, but with the following additional request argument:
 
 - **onDestroyRemoveMessages**: `Boolean` (default: false)
-  If `false`, any attempt to destroy a mailbox that still has messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the mailbox will be removed from it, and if in no other mailboxes, they will be destroyed when the mailbox is destroyed.
+  If `false`, any attempt to destroy a Mailbox that still has messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.
 
 The following extra *SetError* types are defined:
 
 For **destroy**:
 
-- `mailboxHasChild`: The mailbox still has at least one child mailbox. The
-  client MUST remove these before it can delete the parent mailbox.
-- `mailboxHasEmail`: The mailbox has at least one message assigned to it, and
+- `mailboxHasChild`: The Mailbox still has at least one child Mailbox. The
+  client MUST remove these before it can delete the parent Mailbox.
+- `mailboxHasEmail`: The Mailbox has at least one message assigned to it, and
   the *onDestroyRemoveMessages* argument was `false`.
 
 ## Example
 
-Fetching all mailboxes in an account:
+Fetching all Mailboxes in an account:
 
     [[ "Mailbox/get", {
       "accountId": "u33084183",
@@ -226,7 +226,7 @@ Now suppose a message is marked read, and we get a push update that the Mailbox 
       }
     }, "2" ]]
 
-This fetches the list of ids for created/updated/destroyed mailboxes, then using back-references, it fetches the data for just the created/updated mailboxes in the same request. The response may look something like this:
+This fetches the list of ids for created/updated/destroyed Mailboxes, then using back-references, it fetches the data for just the created/updated Mailboxes in the same request. The response may look something like this:
 
     [[ "Mailbox/changes", {
       "accountId": "u33084183",
@@ -260,7 +260,7 @@ This fetches the list of ids for created/updated/destroyed mailboxes, then using
       "notFound": []
     }, "2" ]]
 
-Here's an example where we try to rename one mailbox and destroy another:
+Here's an example where we try to rename one Mailbox and destroy another:
 
     [[ "Mailbox/set", {
       "accountId": "u33084183",
@@ -273,7 +273,7 @@ Here's an example where we try to rename one mailbox and destroy another:
       "destroy": [ "MB23cfa8094c0f41e6" ]
     }, "0" ]]
 
-Suppose the rename succeeds, but we don't have permission to destroy the mailbox we tried to destroy; we might get back:
+Suppose the rename succeeds, but we don't have permission to destroy the Mailbox we tried to destroy; we might get back:
 
     [[ "Mailbox/set", {
       "accountId": "u33084183",

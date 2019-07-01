@@ -4,7 +4,7 @@ All security considerations of JMAP ([@!RFC8620]) apply to this specification. A
 
 ## EmailBodyPart Value
 
-Service providers typically perform security filtering on incoming email, and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for an *EmailBodyValue* SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mailbox host.
+Service providers typically perform security filtering on incoming email, and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for an *EmailBodyValue* SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mail host.
 
 Automatic conversion of charsets that allow hidden channels for ASCII text, such as UTF-7, have been problematic for security filters in the past, so server implementations can mitigate this risk by having such conversions  off-by-default and/or separately configurable.
 
@@ -126,7 +126,7 @@ In the event the JMAP server directly relays mail to SMTP servers in other admin
 
 A user may only have permission to access a subset of the data that exists in an account. To avoid leaking unauthorised information, in such a situation, the server MUST treat any data the user does not have permission to access the same as if it did not exist.
 
-For example, suppose user A has an account with two mailboxes, inbox and sent, but only shares the inbox with user B. In this case, when user B fetches mailboxes for this account, the server MUST behave as though the sent mailbox did not exist. Similarly, when querying or fetching Email objects, it MUST treat any messages that just belong to the sent mailbox as though they did not exist. Fetching Thread objects MUST only return ids for Email objects the user has permission to access; if none, the Thread again MUST be treated the same as if it did not exist.
+For example, suppose user A has an account with two Mailboxes, inbox and sent, but only shares the inbox with user B. In this case, when user B fetches Mailboxes for this account, the server MUST behave as though the sent Mailbox did not exist. Similarly, when querying or fetching Email objects, it MUST treat any messages that just belong to the sent Mailbox as though they did not exist. Fetching Thread objects MUST only return ids for Email objects the user has permission to access; if none, the Thread again MUST be treated the same as if it did not exist.
 
 If the server forbids a single account from having two identical messages, or two messages with the same `Message-Id` header field, a user with write access can use the error returned by trying to create/import such a message to detect whether it already exists in an inaccessible portion of the account.
 

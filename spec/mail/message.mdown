@@ -35,7 +35,7 @@ These properties represent metadata about the message [@!RFC5322], and are not d
 - **threadId**: `Id` (immutable; server-set)
   The id of the Thread to which this Email belongs.
 - **mailboxIds**: `Id[Boolean]`
-  The set of mailbox ids this email belongs to. An email in the mail store MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
+  The set of Mailbox ids this email belongs to. An email in the mail store MUST belong to one or more Mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
 - **keywords**: `String[Boolean]` (default: \{\})
   A set of keywords that apply to the email. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 
@@ -46,7 +46,7 @@ These properties represent metadata about the message [@!RFC5322], and are not d
     - `$flagged`: The email has been flagged for urgent/special attention.
     - `$answered`: The email has been replied to.
 
-    The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP (including as part of any mailbox counts).
+    The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts).
 
     Users may add arbitrary keywords to an email. For compatibility with IMAP, a keyword is a case-insensitive string of 1–255 characters in the ASCII subset %x21–%x7e (excludes control chars and space), and it MUST NOT include any of these characters:
 
@@ -107,7 +107,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `EmailAddress[]`
 
-The header is parsed as an `address-list` value, as specified in [@!RFC5322], Section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each `mailbox` parsed from the `address-list`. Group and comment information is discarded.
+The header is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each *mailbox* parsed from the *address-list*. Group and comment information is discarded.
 
 An **EmailAddress** object has the following properties:
 
@@ -130,7 +130,7 @@ Parsing SHOULD be best effort in the face of invalid structure to
 accommodate invalid messages and semi-complete drafts. EmailAddress objects
 MAY have an *email* property that does not conform to the *addr-spec* form (for example, may not contain an @ symbol).
 
-For example, the following `address-list` string:
+For example, the following *address-list* string:
 
     "  James Smythe" <james@example.com>, Friends:
       jane@example.com, =?UTF-8?Q?John_Sm=C3=AEth?=
@@ -164,7 +164,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `EmailAddressGroup[]`
 
-This is similar to the Addresses form but preserves group information. The header is parsed as an `address-list` value, as specified in [@!RFC5322], Section 3.4, into the `GroupedAddresses[]` type. Consecutive mailboxes that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
+This is similar to the Addresses form but preserves group information. The header is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `GroupedAddresses[]` type. Consecutive *mailbox*es that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
 
 An **EmailAddressGroup** object has the following properties:
 
@@ -179,7 +179,7 @@ Any syntactically correct encoded sections [@!RFC2047] with a known encoding MUS
 Parsing SHOULD be best effort in the face of invalid structure to
 accommodate invalid messages and semi-complete drafts.
 
-For example, the following `address-list` string:
+For example, the following *address-list* string:
 
     "  James Smythe" <james@example.com>, Friends:
       jane@example.com, =?UTF-8?Q?John_Sm=C3=AEth?=
@@ -203,7 +203,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `String[]|null`
 
-The header is parsed as a list of `msg-id` values, as specified in [@!RFC5322], Section 3.6.4, into the `String[]` type. Comments and/or folding white space (CFWS) and surrounding angle brackets (`<>`) are removed. If parsing fails, the value is `null`.
+The header is parsed as a list of *msg-id* values, as specified in [@!RFC5322], Section 3.6.4, into the `String[]` type. Comments and/or folding white space (CFWS) and surrounding angle brackets (`<>`) are removed. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
@@ -217,7 +217,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `Date|null`
 
-The header is parsed as a `date-time` value, as specified in [@!RFC5322], Section 3.3, into the `Date` type. If parsing fails, the value is `null`.
+The header is parsed as a *date-time* value, as specified in [@!RFC5322], Section 3.3, into the `Date` type. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
@@ -378,7 +378,7 @@ The following **Email** properties are specified for access to the body data of 
     The server MAY set hasAttachment based on implementation-defined or site-configurable heuristics.
 
 - **preview**: `String` (immutable; server-set)
-  A plaintext fragment of the message body. This is intended to be shown as a preview line on a mailbox listing and may be truncated when shown. The server may choose which part of the message to include in the preview; skipping quoted sections and salutations and collapsing white space can result in a more useful preview.
+  A plaintext fragment of the message body. This is intended to be shown as a preview line when listing messages in the mail store and may be truncated when shown. The server may choose which part of the message to include in the preview; skipping quoted sections and salutations and collapsing white space can result in a more useful preview.
 
     This MUST NOT be more than 256 characters in length.
 
@@ -642,9 +642,9 @@ In quality implementations, the query "total" property is expected to be fast to
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
 - **inMailbox**: `Id`
-  A mailbox id. An email must be in this mailbox to match the condition.
+  A Mailbox id. An email must be in this Mailbox to match the condition.
 - **inMailboxOtherThan**: `Id[]`
-  A list of mailbox ids. An email must be in at least one mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.
+  A list of Mailbox ids. An email must be in at least one Mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.
 - **before**: `UTCDate`
   The *receivedAt* date-time of the email must be before this date-time to match the condition.
 - **after**: `UTCDate`
@@ -750,10 +750,10 @@ Standard "/set" method as described in [@!RFC8620], Section 5.3. The *Email/set*
 
 - Creating a draft
 - Changing the keywords of an email (e.g., unread/flagged status)
-- Adding/removing an email to/from mailboxes (moving a message)
+- Adding/removing an email to/from Mailboxes (moving a message)
 - Deleting emails
 
-The format of the keywords/mailboxIds properties means that when updating an email, you can either replace the entire set of keywords/mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see [@!RFC8620], Section 5.3 for the specification and Section 5.7 for an example).
+The format of the keywords/mailboxIds properties means that when updating an email, you can either replace the entire set of keywords/Mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see [@!RFC8620], Section 5.3 for the specification and Section 5.7 for an example).
 
 Due to the format of the Email object, when creating an email there are a number of ways to specify the same information. To ensure that the email to create per RFC5322 is unambiguous, the following constraints apply to Email objects submitted for creation:
 
@@ -794,9 +794,9 @@ The server MAY also choose to set additional headers. If not included, the serve
 
 The final email generated per RFC 5322 may be invalid. For example, if it is a half-finished draft, the "To" field may have a value that does not conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 
-Destroying an email removes it from all mailboxes to which it belonged. To  just delete an email to trash, simply change the `mailboxIds` property, so it is now in the mailbox with a *role* property equal to `trash`, and remove all other mailbox ids.
+Destroying an email removes it from all Mailboxes to which it belonged. To  just delete an email to trash, simply change the `mailboxIds` property, so it is now in the Mailbox with a *role* property equal to `trash`, and remove all other Mailbox ids.
 
-When emptying the trash, clients SHOULD NOT destroy emails that are also in a mailbox other than trash. For those emails, they SHOULD just remove the trash mailbox from the email.
+When emptying the trash, clients SHOULD NOT destroy emails that are also in a Mailbox other than trash. For those emails, they SHOULD just remove the trash Mailbox from the email.
 
 For successfully created Email objects, the *created* response contains the *id*, *blobId*, *threadId*, and *size* properties of the object.
 
@@ -811,7 +811,7 @@ For **create** and **update**:
 
 - `tooManyKeywords`: The change to the email's keywords would exceed a
   server-defined maximum.
-- `tooManyMailboxes`: The change to the email's mailboxes would exceed a
+- `tooManyMailboxes`: The change to the email's Mailboxes would exceed a
   server-defined maximum.
 
 ## Email/copy
@@ -839,13 +839,13 @@ An **EmailImport** object has the following properties:
 - **blobId**: `Id`
   The id of the blob containing the raw message [@!RFC5322].
 - **mailboxIds**: `Id[Boolean]`
-  The ids of the mailboxes to assign this email to. At least one mailbox MUST be given.
+  The ids of the Mailboxes to assign this email to. At least one Mailbox MUST be given.
 - **keywords**: `String[Boolean]` (default: \{\})
   The keywords to apply to the email.
 - **receivedAt**: `UTCDate` (default: time of most recent Received header, or time of import on server if none)
   The *receivedAt* date to set on the email.
 
-Each email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given mailboxes, keywords, and receivedAt date.
+Each email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given Mailboxes, keywords, and receivedAt date.
 
 The server MAY forbid two Email objects with the same exact content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account. In this case, it MUST reject attempts to import an email considered to be a duplicate with an `alreadyExists` SetError. An *existingId* property of type `Id` MUST be included on the error object with the id of the existing email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
 
@@ -927,7 +927,7 @@ Where a specific header is requested as a property, the capitalization of the pr
 
 ## Examples
 
-A client logs in for the first time. It first fetches the set of mailboxes. Now it will display the inbox to the user, which we will presume has mailbox id "fb666a55". The inbox may be (very!) large, but the user's screen is only so big, so the client can just load the threads it needs to fill the screen and then load in more only when the user scrolls. The client sends this request:
+A client logs in for the first time. It first fetches the set of Mailboxes. Now it will display the inbox to the user, which we will presume has Mailbox id "fb666a55". The inbox may be (very!) large, but the user's screen is only so big, so the client can just load the threads it needs to fill the screen and then load in more only when the user scrolls. The client sends this request:
 
     [[ "Email/query",{
       "accountId": "ue150411c",
@@ -984,13 +984,13 @@ A client logs in for the first time. It first fetches the set of mailboxes. Now 
 
 Let's break down the 4 method calls to see what they're doing:
 
-"0": This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same thread as a newer message in the mailbox (i.e., it is the first 30 unique threads).
+"0": This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same thread as a newer message in the Mailbox (i.e., it is the first 30 unique threads).
 
 "1": Now we use a back-reference to fetch the thread ids for each of these email ids.
 
 "2": Another back-reference fetches the Thread object for each of these thread ids.
 
-"3": Finally, we fetch the information we need to display the mailbox listing (but no more!) for every message in each of these 30 threads. The client may aggregate this data for display, for example, by showing the thread as "flagged" if any of the messages in it contain the `$flagged` keyword.
+"3": Finally, we fetch the information we need to display the Mailbox listing (but no more!) for every message in each of these 30 threads. The client may aggregate this data for display, for example, by showing the thread as "flagged" if any of the messages in it contain the `$flagged` keyword.
 
 The response from the server may look something like this:
 
@@ -1131,7 +1131,7 @@ The response:
 
 The client can update its local cache of the query results by removing "M9bd17497e2a99cb345fc1d0a" and then splicing in "Me8de6c9f6de198239b982ea2" at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using back-references).
 
-It knows something has changed about "Ma783e5cdf5f2deffbc97930a", so it will refetch the mailboxes and keywords (the only mutable properties) for this email too.
+It knows something has changed about "Ma783e5cdf5f2deffbc97930a", so it will refetch the Mailbox ids and keywords (the only mutable properties) for this Email too.
 
 The user composes a new message and saves a draft. The client sends:
 
@@ -1202,7 +1202,7 @@ The server creates the message and sends the success response:
       ...
     }, "0" ]]
 
-The client moves this draft to a different account. The only way to do this is via the `Email/copy` method. It MUST set a new mailboxIds property, since the current value will not be valid mailbox ids in the destination account:
+The client moves this draft to a different account. The only way to do this is via the `Email/copy` method. It MUST set a new mailboxIds property, since the current value will not be valid Mailbox ids in the destination account:
 
     [[ "Email/copy", {
       "fromAccountId": "ue150411c",

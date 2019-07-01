@@ -97,7 +97,7 @@ must belong to a mailbox; however, in JMAP, its id does not change if you move i
 between mailboxes, and the server may allow it to belong to multiple mailboxes
 simultaneously (often exposed in a user agent as labels rather than folders).
 </t>
-<t>As in IMAP, emails may also be assigned zero or more keywords: short arbitrary
+<t>As in IMAP, messages may also be assigned zero or more keywords: short arbitrary
 strings. These are primarily intended to store metadata to inform client
 display, such as unread status or whether a message has been replied to. An
 IANA registry allows common semantics to be shared between clients and extended
@@ -128,6 +128,8 @@ user's inbox has been shared as read-only with them.
 <section anchor="terminology" title="Terminology">
 <t>This document uses the same terminology as in the core JMAP specification.
 </t>
+<t>The camel-cased terms Mailbox, Thread, Email, SearchSnippet, EmailSubmission and VacationResponse are used to refer to the data types defined in this document, and instances of those data types.</t>
+<t>The lowercase term message refers to a document in Internet Message Format, as described in <xref target="RFC5322"/>.</t>
 </section>
 
 <section anchor="additions-to-the-capabilities-object" title="Additions to the Capabilities Object">
@@ -144,20 +146,20 @@ user's inbox has been shared as read-only with them.
 <t>
 <list style="symbols">
 <t>maxMailboxesPerEmail: <spanx style="verb">UnsignedInt|null</spanx><vspace blankLines="1" />
-The maximum number of mailboxes that can be can assigned to a single Email object (see <xref target="emails"/>). This MUST be an integer &gt;=&nbsp;1, or null for no limit (or rather, the limit is always the number of mailboxes in the account).</t>
+The maximum number of Mailboxes (see <xref target="mailboxes"/>) that can be can assigned to a single Email object (see <xref target="emails"/>). This MUST be an integer &gt;=&nbsp;1, or null for no limit (or rather, the limit is always the number of Mailboxes in the account).</t>
 
 <t>maxMailboxDepth: <spanx style="verb">UnsignedInt|null</spanx><vspace blankLines="1" />
-The maximum depth of the mailbox hierarchy (i.e., one more than the maximum number of ancestors a mailbox may have), or null for no limit.</t>
+The maximum depth of the Mailbox hierarchy (i.e., one more than the maximum number of ancestors a Mailbox may have), or null for no limit.</t>
 
 <t>maxSizeMailboxName: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
-The maximum length, in (UTF-8) octets, allowed for the name of a mailbox. This MUST be at least 100, although it is recommended servers allow more.</t>
+The maximum length, in (UTF-8) octets, allowed for the name of a Mailbox. This MUST be at least 100, although it is recommended servers allow more.</t>
 
 <t>maxSizeAttachmentsPerEmail: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
-The maximum total size of attachments, in octets, allowed for a single Email object. A server MAY still reject the import or creation of emails with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
+The maximum total size of attachments, in octets, allowed for a single Email object. A server MAY still reject the import or creation of an Email with a lower attachment size total (for example, if the body includes several megabytes of text, causing the size of the encoded MIME structure to be over some server-defined limit).
 <vspace blankLines="1" />
 Note that this limit is for the sum of unencoded attachment sizes. Users are generally not knowledgeable about encoding overhead, etc., nor should they need to be, so marketing and help materials normally tell them the &quot;max size attachments&quot;. This is the unencoded size they see on their hard drive, so this capability matches that and allows the client to consistently enforce what the user understands as the limit.
 <vspace blankLines="1" />
-The server may separately have a limit for the total size of the message, created by combining the attachments (often base64 encoded) with the message headers and bodies as per RFC 5322. For example, suppose the server advertises <spanx style="verb">maxSizeAttachmentsPerEmail: 50000000</spanx> (50 MB). The enforced server limit may be for a message size of 70000000 octets. Even with base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.</t>
+The server may separately have a limit for the total size of the message <xref target="RFC5322"/>, created by combining the attachments (often base64 encoded) with the message headers and bodies. For example, suppose the server advertises <spanx style="verb">maxSizeAttachmentsPerEmail: 50000000</spanx> (50 MB). The enforced server limit may be for a message size of 70000000 octets. Even with base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.</t>
 
 <t>emailQuerySortOptions: <spanx style="verb">String[]</spanx><vspace blankLines="1" />
 
@@ -175,8 +177,8 @@ neilj: Thanks, fixed.
 A list of all the values the server supports for the &quot;property&quot; field of the Comparator object in an Email/query sort (see <xref target="sorting" />). This MAY include properties the client does not recognise (for example, custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.</t>
 
 <t>mayCreateTopLevelMailbox: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, the user may create a mailbox (see <xref target="mailboxes"/>) in this account with
-a null parentId. (Permission for creating a child of an existing mailbox is given by the myRights property on that mailbox.)</t>
+If <spanx style="verb">true</spanx>, the user may create a Mailbox (see <xref target="mailboxes"/>) in this account with
+a null parentId. (Permission for creating a child of an existing Mailbox is given by the <spanx style="verb">myRights</spanx> property on that Mailbox.)</t>
 </list>
 </t>
 </section>
@@ -230,125 +232,125 @@ The full IANA registry of submission extensions can be found at
 </t>
 <t>In addition, servers that implement the &quot;urn:ietf:params:jmap:mail&quot; capability MUST support pushing state changes for a type called &quot;EmailDelivery&quot;. There are no methods to act on this type; it only exists as part of the push mechanism. The state string for this MUST change whenever a new Email is added to the store, but it SHOULD NOT change upon any other change to the Email objects, for example, if one is marked as read or deleted.
 </t>
-<t>Clients in battery-constrained environments may wish to delay fetching changes initiated by the user but fetch new messages immediately so they can notify the user. To do this, they can register for pushes for the EmailDelivery type rather than the Email type (as defined in <xref target="emails"/>).
+<t>Clients in battery-constrained environments may wish to delay fetching changes initiated by the user but fetch new Emails immediately so they can notify the user. To do this, they can register for pushes for the EmailDelivery type rather than the Email type (as defined in <xref target="emails"/>).
 </t>
 
 <section anchor="example" title="Example">
-<t>The client has registered for push notifications (see <xref target="RFC8620"/>) just for the EmailDelivery type. The user marks an email as read on another device, causing the state string for the Email type to change; however, as nothing new was added to the store, the EmailDelivery state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the Email state to change. This time, the EmailDelivery state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new message immediately.
+<t>The client has registered for push notifications (see <xref target="RFC8620"/>) just for the EmailDelivery type. The user marks an Email as read on another device, causing the state string for the Email type to change; however, as nothing new was added to the store, the EmailDelivery state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the Email state to change. This time, the EmailDelivery state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new Email immediately.
 </t>
 </section>
 </section>
 
 <section anchor="ids" title="Ids">
-<t>If a JMAP Mail server also provides an IMAP interface to the data and supports IMAP Extension for Object Identifiers <xref target="RFC8474"/>, the ids SHOULD be the same for mailbox, thread, and Email objects in JMAP.
+<t>If a JMAP Mail server also provides an IMAP interface to the data and supports IMAP Extension for Object Identifiers <xref target="RFC8474"/>, the ids SHOULD be the same for Mailbox, Thread, and Email objects in JMAP.
 </t>
 </section>
 </section>
 
 <section anchor="mailboxes" title="Mailboxes">
-<t>A mailbox represents a named set of emails. This is the primary mechanism
-for organising emails within an account. It is analogous to a folder or a
-label in other systems. A mailbox may perform a certain role in the system;
+<t>A Mailbox represents a named set of Email objects. This is the primary mechanism
+for organising messages within an account. It is analogous to a folder or a
+label in other systems. A Mailbox may perform a certain role in the system;
 see below for more details.
 </t>
-<t>For compatibility with IMAP, an email MUST belong to one or more mailboxes. The email id does not change if the email changes mailboxes.
+<t>For compatibility with IMAP, an Email MUST belong to one or more Mailboxes. The Email id does not change if the Email changes Mailboxes.
 </t>
 <t>A <spanx style="strong">Mailbox</spanx> object has the following properties:
 </t>
 <t>
 <list style="symbols">
 <t>id: <spanx style="verb">Id</spanx> (immutable; server-set)<vspace blankLines="1" />
-The id of the mailbox.</t>
+The id of the Mailbox.</t>
 
 <t>name: <spanx style="verb">String</spanx><vspace blankLines="1" />
-User-visible name for the mailbox, e.g., &quot;Inbox&quot;. This MUST be a Net-Unicode string <xref target="RFC5198"/> of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing a slash (/) or control characters).</t>
+User-visible name for the Mailbox, e.g., &quot;Inbox&quot;. This MUST be a Net-Unicode string <xref target="RFC5198"/> of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling Mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing a slash (/) or control characters).</t>
 
 <t>parentId: <spanx style="verb">Id|null</spanx> (default: null)<vspace blankLines="1" />
-The mailbox id for the parent of this mailbox, or null if this mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.</t>
+The Mailbox id for the parent of this Mailbox, or null if this Mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.</t>
 
 <t>role: <spanx style="verb">String|null</spanx> (default: null)<vspace blankLines="1" />
-Identifies mailboxes that have a particular common purpose (e.g., the &quot;inbox&quot;), regardless of the <spanx style="verb">name</spanx> property (which may be localised).
+Identifies Mailboxes that have a particular common purpose (e.g., the &quot;inbox&quot;), regardless of the <spanx style="verb">name</spanx> property (which may be localised).
 <vspace blankLines="1" />
-This value is shared with IMAP (exposed in IMAP via the SPECIAL-USE extension <xref target="RFC6154"/>). However, unlike in IMAP, a mailbox MUST only have a single role, and there MUST NOT be two mailboxes in the same account with the same role. Servers providing IMAP access to the same data are encouraged to enforce these extra restrictions in IMAP as well. Otherwise, modifying the IMAP attributes to ensure compliance when exposing the data over JMAP is implementation dependent.
+This value is shared with IMAP (exposed in IMAP via the SPECIAL-USE extension <xref target="RFC6154"/>). However, unlike in IMAP, a Mailbox MUST only have a single role, and there MUST NOT be two Mailboxes in the same account with the same role. Servers providing IMAP access to the same data are encouraged to enforce these extra restrictions in IMAP as well. Otherwise, modifying the IMAP attributes to ensure compliance when exposing the data over JMAP is implementation dependent.
 <vspace blankLines="1" />
-The value MUST be one of the mailbox attribute names listed in the IANA "IMAP
+The value MUST be one of the Mailbox attribute names listed in the IANA "IMAP
 Mailbox Name Attributes" registry at
 &lt;https://www.iana.org/assignments/imap-mailbox-name-attributes/&gt;, as
 established in <xref target="RFC8457"/>, converted to lowercase. New roles may
 be established here in the future.
 <vspace blankLines="1" />
-An account is not required to have mailboxes with any particular roles.</t>
+An account is not required to have Mailboxes with any particular roles.</t>
 
 <t>sortOrder: <spanx style="verb">UnsignedInt</spanx> (default: 0)<vspace blankLines="1" />
-Defines the sort order of mailboxes when presented in the client's UI, so it
+Defines the sort order of Mailboxes when presented in the client's UI, so it
 is consistent between devices. The number MUST be an integer in the range
 0 &lt;= sortOrder &lt; 2^31.
 <vspace blankLines="1" />
-A mailbox with a lower order should be displayed before a mailbox with a higher order (that has the same parent) in any mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.</t>
+A Mailbox with a lower order should be displayed before a Mailbox with a higher order (that has the same parent) in any Mailbox listing in the client's UI. Mailboxes with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.</t>
 <t>totalEmails: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
-The number of emails in this mailbox.</t>
+The number of emails in this Mailbox.</t>
 
 <t>unreadEmails: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
-The number of emails in this mailbox that have neither the <spanx style="verb">$seen</spanx> keyword nor the <spanx style="verb">$draft</spanx> keyword.</t>
+The number of emails in this Mailbox that have neither the <spanx style="verb">$seen</spanx> keyword nor the <spanx style="verb">$draft</spanx> keyword.</t>
 
 <t>totalThreads: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
-The number of threads where at least one email in the thread is in this mailbox.</t>
+The number of threads where at least one email in the thread is in this Mailbox.</t>
 
 <t>unreadThreads: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
-An indication of the number of &quot;unread&quot; threads in the mailbox.
+An indication of the number of &quot;unread&quot; threads in the Mailbox.
 <vspace blankLines="1" />
 For compatibility with existing implementations, the way &quot;unread threads&quot; is
-determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this mailbox and has neither the <spanx style="verb">$seen</spanx> nor <spanx style="verb">$draft</spanx> keywords.
+determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this Mailbox and has neither the <spanx style="verb">$seen</spanx> nor <spanx style="verb">$draft</spanx> keywords.
 <vspace blankLines="1" />
-However, a quality implementation will return the number of unread items the user would see if they opened that mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of threads where at least one email in the thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one email in the thread is in this mailbox. Note that the unread email does not need to be the one in this mailbox. In addition, the trash mailbox (that is, a mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
+However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of threads where at least one email in the thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one email in the thread is in this Mailbox. Note that the unread email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
 <list style="numbers">
-<t>Emails that are <spanx style="strong">only</spanx> in the trash (and no other mailbox) are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count of other mailboxes.</t>
-<t>Emails that are <spanx style="strong">not</spanx> in the trash are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count for the trash mailbox.</t>
+<t>Emails that are <spanx style="strong">only</spanx> in the trash (and no other Mailbox) are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count of other Mailboxes.</t>
+<t>Emails that are <spanx style="strong">not</spanx> in the trash are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count for the trash Mailbox.</t>
 </list>
-The result of this is that emails in the trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a thread in another mailbox, and vice versa. This allows you to delete a single email to the trash out of a thread.
+The result of this is that emails in the trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a thread in another Mailbox, and vice versa. This allows you to delete a single email to the trash out of a thread.
 <vspace blankLines="1" />
 For example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the trash and a read email in the inbox. The <spanx style="verb">unreadThreads</spanx> count would be <spanx style="verb">1</spanx> for the trash and <spanx style="verb">0</spanx> for the inbox.</t>
 
 <t>myRights: <spanx style="verb">MailboxRights</spanx> (server-set)<vspace blankLines="1" />
-The set of rights (Access Control Lists (ACLs)) the user has in relation to this mailbox. These are backwards compatible with IMAP ACLs, as defined in <xref target="RFC4314"/>. A <spanx style="strong">MailboxRights</spanx> object has the following properties:
+The set of rights (Access Control Lists (ACLs)) the user has in relation to this Mailbox. These are backwards compatible with IMAP ACLs, as defined in <xref target="RFC4314"/>. A <spanx style="strong">MailboxRights</spanx> object has the following properties:
 <list style="symbols">
 <t>mayReadItems: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-If true, the user may use this mailbox as part of a filter in an <spanx style="verb">Email/query</spanx> call, and the mailbox may be included in the <spanx style="verb">mailboxIds</spanx> property of Email objects. Email objects may be fetched if they are in <spanx style="strong">at least one</spanx> mailbox with this permission. If a sub-mailbox is shared but not the parent mailbox, this may be <spanx style="verb">false</spanx>. Corresponds to IMAP ACLs <spanx style="verb">lr</spanx> (if mapping from IMAP, both are required for this to be <spanx style="verb">true</spanx>).</t>
+If true, the user may use this Mailbox as part of a filter in an <spanx style="verb">Email/query</spanx> call, and the Mailbox may be included in the <spanx style="verb">mailboxIds</spanx> property of Email objects. Email objects may be fetched if they are in <spanx style="strong">at least one</spanx> Mailbox with this permission. If a sub-Mailbox is shared but not the parent Mailbox, this may be <spanx style="verb">false</spanx>. Corresponds to IMAP ACLs <spanx style="verb">lr</spanx> (if mapping from IMAP, both are required for this to be <spanx style="verb">true</spanx>).</t>
 
 <t>mayAddItems: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may add mail to this mailbox (by either creating a new email or moving an existing one). Corresponds to IMAP ACL <spanx style="verb">i</spanx>.</t>
+The user may add mail to this Mailbox (by either creating a new email or moving an existing one). Corresponds to IMAP ACL <spanx style="verb">i</spanx>.</t>
 
 <t>mayRemoveItems: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may remove mail from this mailbox (by either changing the mailboxes of an email or deleting it). Corresponds to IMAP ACLs <spanx style="verb">te</spanx> (if mapping from IMAP, both are required for this to be <spanx style="verb">true</spanx>).</t>
+The user may remove mail from this Mailbox (by either changing the Mailboxes of an email or deleting it). Corresponds to IMAP ACLs <spanx style="verb">te</spanx> (if mapping from IMAP, both are required for this to be <spanx style="verb">true</spanx>).</t>
 
 <t>maySetSeen: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may add or remove the <spanx style="verb">$seen</spanx> keyword to/from an email. If an email belongs to multiple mailboxes, the user may only modify <spanx style="verb">$seen</spanx> if they have this permission for <spanx style="strong">all</spanx> of the mailboxes. Corresponds to IMAP ACL <spanx style="verb">s</spanx>.</t>
+The user may add or remove the <spanx style="verb">$seen</spanx> keyword to/from an email. If an email belongs to multiple Mailboxes, the user may only modify <spanx style="verb">$seen</spanx> if they have this permission for <spanx style="strong">all</spanx> of the Mailboxes. Corresponds to IMAP ACL <spanx style="verb">s</spanx>.</t>
 
 <t>maySetKeywords: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may add or remove any keyword other than <spanx style="verb">$seen</spanx> to/from an email. If an email belongs to multiple mailboxes, the user may only modify keywords if they have this permission for <spanx style="strong">all</spanx> of the mailboxes. Corresponds to IMAP ACL <spanx style="verb">w</spanx>.</t>
+The user may add or remove any keyword other than <spanx style="verb">$seen</spanx> to/from an email. If an email belongs to multiple Mailboxes, the user may only modify keywords if they have this permission for <spanx style="strong">all</spanx> of the Mailboxes. Corresponds to IMAP ACL <spanx style="verb">w</spanx>.</t>
 
 <t>mayCreateChild: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may create a mailbox with this mailbox as its parent. Corresponds to IMAP ACL <spanx style="verb">k</spanx>.</t>
+The user may create a Mailbox with this Mailbox as its parent. Corresponds to IMAP ACL <spanx style="verb">k</spanx>.</t>
 
 <t>mayRename: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may rename the mailbox or make it a child of another mailbox. Corresponds to IMAP ACL <spanx style="verb">x</spanx> (although this covers both rename and delete permissions).</t>
+The user may rename the Mailbox or make it a child of another Mailbox. Corresponds to IMAP ACL <spanx style="verb">x</spanx> (although this covers both rename and delete permissions).</t>
 
 <t>mayDelete: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The user may delete the mailbox itself. Corresponds to IMAP ACL <spanx style="verb">x</spanx> (although this covers both rename and delete permissions).</t>
+The user may delete the Mailbox itself. Corresponds to IMAP ACL <spanx style="verb">x</spanx> (although this covers both rename and delete permissions).</t>
 
 <t>maySubmit: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-Messages may be submitted directly to this mailbox. Corresponds to IMAP ACL <spanx style="verb">p</spanx>.</t>
+Messages may be submitted directly to this Mailbox. Corresponds to IMAP ACL <spanx style="verb">p</spanx>.</t>
 </list></t>
 
 <t>isSubscribed: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-Has the user indicated they wish to see this mailbox in their client? This SHOULD default to <spanx style="verb">false</spanx> for mailboxes in shared accounts the user has access to and <spanx style="verb">true</spanx> for any new mailboxes created by the user themself. This MUST be stored separately per user where multiple users have access to a shared mailbox.
+Has the user indicated they wish to see this Mailbox in their client? This SHOULD default to <spanx style="verb">false</spanx> for Mailboxes in shared accounts the user has access to and <spanx style="verb">true</spanx> for any new Mailboxes created by the user themself. This MUST be stored separately per user where multiple users have access to a shared Mailbox.
 <vspace blankLines="1" />
-A user may have permission to access a large number of shared accounts, or a shared account with a very large set of mailboxes, but only be interested in the contents of a few of these. Clients may choose to only display mailboxes where the <spanx style="verb">isSubscribed</spanx> property is set to <spanx style="verb">true</spanx>, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation or just for an account where <spanx style="verb">isPersonal</spanx> is <spanx style="verb">true</spanx> (indicating it is the user's own rather than a shared account).
+A user may have permission to access a large number of shared accounts, or a shared account with a very large set of Mailboxes, but only be interested in the contents of a few of these. Clients may choose to only display Mailboxes where the <spanx style="verb">isSubscribed</spanx> property is set to <spanx style="verb">true</spanx>, and offer a separate UI to allow the user to see and subscribe/unsubscribe from the full set of Mailboxes. However, clients MAY choose to ignore this property, either entirely for ease of implementation or just for an account where <spanx style="verb">isPersonal</spanx> is <spanx style="verb">true</spanx> (indicating it is the user's own rather than a shared account).
 <vspace blankLines="1" />
 This property corresponds to IMAP <xref target="RFC3501"/> mailbox subscriptions.</t>
 </list>
 </t>
-<t>For IMAP compatibility, an email in both the trash and another mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash mailbox and leave it in the other mailbox).
+<t>For IMAP compatibility, an email in both the trash and another Mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash Mailbox and leave it in the other Mailbox).
 </t>
 <t>The following JMAP methods are supported.
 </t>
@@ -386,7 +388,7 @@ style="verb">null</spanx> to fetch all at once.
 <t>
 <list style="symbols">
 <t>updatedProperties: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
-If only the mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e., ["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
+If only the Mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e., ["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
 </list>
 </t>
 
@@ -435,20 +437,20 @@ Original:
 
 neilj: Yes, thanks I think that's better.
 -->
-If <spanx style="verb">true</spanx>, when sorting the query results and comparing mailboxes A and B:
+If <spanx style="verb">true</spanx>, when sorting the query results and comparing Mailboxes A and B:
 <list style="symbols">
 <t>If A is an ancestor of B, it always comes first regardless of the sort comparators. Similarly, if A is descendant of B, then B always comes
 first.</t>
 
 <t>Otherwise, if A and B do not share a <spanx style="verb">parentId</spanx>, find the nearest
 ancestors of each that do have the same <spanx style="verb">parentId</spanx> and compare the sort
-properties on those mailboxes instead.</t>
+properties on those Mailboxes instead.</t>
 
 </list>
-The result of this is that the mailboxes are sorted as a tree according to the parentId properties, with each set of children with a common parent sorted according to the standard sort comparators.</t>
+The result of this is that the Mailboxes are sorted as a tree according to the parentId properties, with each set of children with a common parent sorted according to the standard sort comparators.</t>
 
 <t>filterAsTree: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, a mailbox is only included in the query if all its ancestors are
+If <spanx style="verb">true</spanx>, a Mailbox is only included in the query if all its ancestors are
 also included in the query according to the filter.</t>
 </list>
 </t>
@@ -469,7 +471,7 @@ The Mailbox <spanx style="verb">role</spanx> property must match the given value
 If <spanx style="verb">true</spanx>, a Mailbox matches if it has any non-null value for its <spanx style="verb">role</spanx> property.</t>
 
 <t>isSubscribed: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
-The <spanx style="verb">isSubscribed</spanx> property of the mailbox must be identical to the value given to match the condition.</t>
+The <spanx style="verb">isSubscribed</spanx> property of the Mailbox must be identical to the value given to match the condition.</t>
 </list>
 </t>
 
@@ -496,7 +498,7 @@ The <spanx style="verb">isSubscribed</spanx> property of the mailbox must be ide
 <t>
 <list style="symbols">
 <t>onDestroyRemoveMessages: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">false</spanx>, any attempt to destroy a mailbox that still has messages in it will be rejected with a <spanx style="verb">mailboxHasEmail</spanx> SetError. If <spanx style="verb">true</spanx>, any messages that were in the mailbox will be removed from it, and if in no other mailboxes, they will be destroyed when the mailbox is destroyed.</t>
+If <spanx style="verb">false</spanx>, any attempt to destroy a Mailbox that still has messages in it will be rejected with a <spanx style="verb">mailboxHasEmail</spanx> SetError. If <spanx style="verb">true</spanx>, any messages that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.</t>
 </list>
 </t>
 <t>The following extra SetError types are defined:
@@ -505,17 +507,17 @@ If <spanx style="verb">false</spanx>, any attempt to destroy a mailbox that stil
 </t>
 <t>
 <list style="symbols">
-<t><spanx style="verb">mailboxHasChild</spanx>: The mailbox still has at least one child mailbox. The
-client MUST remove these before it can delete the parent mailbox.</t>
+<t><spanx style="verb">mailboxHasChild</spanx>: The Mailbox still has at least one child Mailbox. The
+client MUST remove these before it can delete the parent Mailbox.</t>
 
-<t><spanx style="verb">mailboxHasEmail</spanx>: The mailbox has at least one message assigned to it, and
+<t><spanx style="verb">mailboxHasEmail</spanx>: The Mailbox has at least one message assigned to it, and
 the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx style="verb">false</spanx>.</t>
 </list>
 </t>
 </section>
 
 <section anchor="example-1" title="Example">
-<t>Fetching all mailboxes in an account:
+<t>Fetching all Mailboxes in an account:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -591,7 +593,7 @@ the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx styl
   }
 }, "2" ]]
 </artwork></figure>
-<t>This fetches the list of ids for created/updated/destroyed mailboxes, then using back-references, it fetches the data for just the created/updated mailboxes in the same request. The response may look something like this:
+<t>This fetches the list of ids for created/updated/destroyed Mailboxes, then using back-references, it fetches the data for just the created/updated Mailboxes in the same request. The response may look something like this:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -627,7 +629,7 @@ the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx styl
   "notFound": []
 }, "2" ]]
 </artwork></figure>
-<t>Here's an example where we try to rename one mailbox and destroy another:
+<t>Here's an example where we try to rename one Mailbox and destroy another:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -642,7 +644,7 @@ the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx styl
   "destroy": [ "MB23cfa8094c0f41e6" ]
 }, "0" ]]
 </artwork></figure>
-<t>Suppose the rename succeeds, but we don't have permission to destroy the mailbox we tried to destroy; we might get back:
+<t>Suppose the rename succeeds, but we don't have permission to destroy the Mailbox we tried to destroy; we might get back:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -780,7 +782,7 @@ The id representing the raw octets of the message <xref target="RFC5322"/>. This
 The id of the Thread to which this Email belongs.</t>
 
 <t>mailboxIds: <spanx style="verb">Id[Boolean]</spanx><vspace blankLines="1" />
-The set of mailbox ids this email belongs to. An email in the mail store MUST belong to one or more mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a Mailbox id.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.</t>
+The set of Mailbox ids this email belongs to. An email in the mail store MUST belong to one or more Mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a Mailbox id.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.</t>
 
 <t>keywords: <spanx style="verb">String[Boolean]</spanx> (default: {})<vspace blankLines="1" />
 A set of keywords that apply to the email. The set is represented as an object, with the keys being the keywords.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.
@@ -792,7 +794,7 @@ Keywords are shared with IMAP. The six system keywords from IMAP get special tre
 <t><spanx style="verb">$flagged</spanx>: The email has been flagged for urgent/special attention.</t>
 <t><spanx style="verb">$answered</spanx>: The email has been replied to.</t>
 </list>
-The IMAP <spanx style="verb">\Recent</spanx> keyword is not exposed via JMAP. The IMAP <spanx style="verb">\Deleted</spanx> keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the <spanx style="verb">\Deleted</spanx> keyword MUST NOT be visible via JMAP (including as part of any mailbox counts).
+The IMAP <spanx style="verb">\Recent</spanx> keyword is not exposed via JMAP. The IMAP <spanx style="verb">\Deleted</spanx> keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the <spanx style="verb">\Deleted</spanx> keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts).
 <vspace blankLines="1" />
 Users may add arbitrary keywords to an email. For compatibility with IMAP, a
 keyword is a case-insensitive string of 1-255 characters in the ASCII subset
@@ -963,7 +965,7 @@ MAY have an <spanx style="verb">email</spanx> property that does not conform to 
 <section anchor="groupedaddresses" title="GroupedAddresses">
 <t>Type: <spanx style="verb">EmailAddressGroup[]</spanx>
 </t>
-<t>This is similar to the Addresses form but preserves group information. The header is parsed as an <spanx style="verb">address-list</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.4, into the <spanx style="verb">GroupedAddresses[]</spanx> type. Consecutive mailboxes that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
+<t>This is similar to the Addresses form but preserves group information. The header is parsed as an <spanx style="verb">address-list</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.4, into the <spanx style="verb">GroupedAddresses[]</spanx> type. Consecutive <spanx style="verb">mailbox</spanx>es that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
 </t>
 <t>An <spanx style="strong">EmailAddressGroup</spanx> object has the following properties:
 </t>
@@ -1288,7 +1290,7 @@ This is <spanx style="verb">true</spanx> if there are one or more parts in the m
 The server MAY set hasAttachment based on implementation-defined or site-configurable heuristics.</t>
 
 <t>preview: <spanx style="verb">String</spanx> (immutable; server-set)<vspace blankLines="1" />
-A plaintext fragment of the message body. This is intended to be shown as a preview line on a mailbox listing and may be truncated when shown. The server may choose which part of the message to include in the preview; skipping quoted sections and salutations and collapsing white space can result in a more useful preview.
+A plaintext fragment of the message body. This is intended to be shown as a preview line when listing messages in the mail store and may be truncated when shown. The server may choose which part of the message to include in the preview; skipping quoted sections and salutations and collapsing white space can result in a more useful preview.
 <vspace blankLines="1" />
 This MUST NOT be more than 256 characters in length.
 <vspace blankLines="1" />
@@ -1583,10 +1585,10 @@ If <spanx style="verb">true</spanx>, emails in the same thread as a previous ema
 <t>
 <list style="symbols">
 <t>inMailbox: <spanx style="verb">Id</spanx><vspace blankLines="1" />
-A mailbox id. An email must be in this mailbox to match the condition.</t>
+A Mailbox id. An email must be in this Mailbox to match the condition.</t>
 
 <t>inMailboxOtherThan: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
-A list of mailbox ids. An email must be in at least one mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.</t>
+A list of Mailbox ids. An email must be in at least one Mailbox not in this list to match the condition. This is to allow messages solely in trash/spam to be easily excluded from a search.</t>
 
 <t>before: <spanx style="verb">UTCDate</spanx><vspace blankLines="1" />
 The <spanx style="verb">receivedAt</spanx> date-time of the email must be before this date-time to match the condition.</t>
@@ -1744,11 +1746,11 @@ The <spanx style="verb">collapseThreads</spanx> argument that was used with <spa
 <list style="symbols">
 <t>Creating a draft</t>
 <t>Changing the keywords of an email (e.g., unread/flagged status)</t>
-<t>Adding/removing an email to/from mailboxes (moving a message)</t>
+<t>Adding/removing an email to/from Mailboxes (moving a message)</t>
 <t>Deleting emails</t>
 </list>
 </t>
-<t>The format of the keywords/mailboxIds properties means that when updating an email, you can either replace the entire set of keywords/mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see <xref target="RFC8620"/>, Section 5.3 for the specification and Section 5.7 for an example).
+<t>The format of the <spanx style="verb">keywords</spanx>/<spanx style="verb">mailboxIds</spanx> properties means that when updating an email, you can either replace the entire set of keywords/Mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see <xref target="RFC8620"/>, Section 5.3 for the specification and Section 5.7 for an example).
 </t>
 <t>Due to the format of the Email object, when creating an email, there are a
 number of ways to specify the same information. To ensure that the email to
@@ -1802,9 +1804,9 @@ either <spanx style="verb">false</spanx> or omitted.</t>
 </t>
 <t>The final email generated per RFC 5322 may be invalid. For example, if it is a half-finished draft, the &quot;To&quot; field may have a value that does not conform to the required syntax for this header field. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 </t>
-<t>Destroying an email removes it from all mailboxes to which it belonged. To  just delete an email to trash, simply change the <spanx style="verb">mailboxIds</spanx> property, so it is now in the mailbox with a <spanx style="verb">role</spanx> property equal to <spanx style="verb">trash</spanx>, and remove all other mailbox ids.
+<t>Destroying an email removes it from all Mailboxes to which it belonged. To  just delete an email to trash, simply change the <spanx style="verb">mailboxIds</spanx> property, so it is now in the Mailbox with a <spanx style="verb">role</spanx> property equal to <spanx style="verb">trash</spanx>, and remove all other Mailbox ids.
 </t>
-<t>When emptying the trash, clients SHOULD NOT destroy emails that are also in a mailbox other than trash. For those emails, they SHOULD just remove the trash mailbox from the email.
+<t>When emptying the trash, clients SHOULD NOT destroy emails that are also in a Mailbox other than trash. For those emails, they SHOULD just remove the trash Mailbox from the email.
 </t>
 <t>For successfully created Email objects, the <spanx style="verb">created</spanx> response contains the <spanx style="verb">id</spanx>, <spanx style="verb">blobId</spanx>, <spanx style="verb">threadId</spanx>, and <spanx style="verb">size</spanx> properties of the object.
 </t>
@@ -1824,7 +1826,7 @@ exist. An extra <spanx style="verb">notFound</spanx> property of type <spanx sty
 <list style="symbols">
 <t><spanx style="verb">tooManyKeywords</spanx>: The change to the email's keywords would exceed a
 server-defined maximum.</t>
-<t><spanx style="verb">tooManyMailboxes</spanx>: The change to the email's mailboxes would exceed a
+<t><spanx style="verb">tooManyMailboxes</spanx>: The change to the email's Mailboxes would exceed a
 server-defined maximum.</t>
 </list>
 </t>
@@ -1862,7 +1864,7 @@ A map of creation id (client specified) to EmailImport objects.</t>
 The id of the blob containing the raw message <xref target="RFC5322"/>.</t>
 
 <t>mailboxIds: <spanx style="verb">Id[Boolean]</spanx><vspace blankLines="1" />
-The ids of the mailboxes to assign this email to. At least one mailbox MUST be given.</t>
+The ids of the Mailboxes to assign this email to. At least one Mailbox MUST be given.</t>
 
 <t>keywords: <spanx style="verb">String[Boolean]</spanx> (default: {})<vspace blankLines="1" />
 The keywords to apply to the email.</t>
@@ -1871,7 +1873,7 @@ The keywords to apply to the email.</t>
 The <spanx style="verb">receivedAt</spanx> date to set on the email.</t>
 </list>
 </t>
-<t>Each email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given mailboxes, keywords, and receivedAt date.
+<t>Each email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given Mailboxes, keywords, and receivedAt date.
 </t>
 <t>The server MAY forbid two Email objects with the same exact content <xref target="RFC5322"/>, or even just with the same Message-ID <xref target="RFC5322"/>, to coexist within an account. In this case, it MUST reject attempts to import an email considered to be a duplicate with an <spanx style="verb">alreadyExists</spanx> SetError. An <spanx style="verb">existingId</spanx> property of type <spanx style="verb">Id</spanx> MUST be included on the error object with the id of the existing email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
 </t>
@@ -1978,7 +1980,7 @@ A list of blob ids given that could not be found, or null if none.</t>
 </section>
 
 <section anchor="examples" title="Examples">
-<t>A client logs in for the first time. It first fetches the set of mailboxes. Now it will display the inbox to the user, which we will presume has mailbox id &quot;fb666a55&quot;. The inbox may be (very!) large, but the user's screen is only so big, so the client can just load the threads it needs to fill the screen and then load in more only when the user scrolls. The client sends this request:
+<t>A client logs in for the first time. It first fetches the set of Mailboxes. Now it will display the inbox to the user, which we will presume has Mailbox id &quot;fb666a55&quot;. The inbox may be (very!) large, but the user's screen is only so big, so the client can just load the threads it needs to fill the screen and then load in more only when the user scrolls. The client sends this request:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2037,13 +2039,13 @@ A list of blob ids given that could not be found, or null if none.</t>
 </artwork></figure>
 <t>Let's break down the 4 method calls to see what they're doing:
 </t>
-<t>&quot;0&quot;: This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same thread as a newer message in the mailbox (i.e., it is the first 30 unique threads).
+<t>&quot;0&quot;: This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same thread as a newer message in the Mailbox (i.e., it is the first 30 unique threads).
 </t>
 <t>&quot;1&quot;: Now we use a back-reference to fetch the thread ids for each of these email ids.
 </t>
 <t>&quot;2&quot;: Another back-reference fetches the Thread object for each of these thread ids.
 </t>
-<t>&quot;3&quot;: Finally, we fetch the information we need to display the mailbox listing (but no more!) for every message in each of these 30 threads. The client may aggregate this data for display, for example, by showing the thread as &quot;flagged&quot; if any of the messages in it contain the <spanx style="verb">$flagged</spanx> keyword.
+<t>&quot;3&quot;: Finally, we fetch the information we need to display the Mailbox listing (but no more!) for every message in each of these 30 threads. The client may aggregate this data for display, for example, by showing the thread as &quot;flagged&quot; if any of the messages in it contain the <spanx style="verb">$flagged</spanx> keyword.
 </t>
 <t>The response from the server may look something like this:
 </t>
@@ -2194,7 +2196,7 @@ A list of blob ids given that could not be found, or null if none.</t>
 </artwork></figure>
 <t>The client can update its local cache of the query results by removing &quot;M9bd17497e2a99cb345fc1d0a&quot; and then splicing in &quot;Me8de6c9f6de198239b982ea2&quot; at position 0. As it does not have the data for this new email, it will then fetch it (it also could have done this in the same request using back-references).
 </t>
-<t>It knows something has changed about &quot;Ma783e5cdf5f2deffbc97930a&quot;, so it will refetch the mailboxes and keywords (the only mutable properties) for this email too.
+<t>It knows something has changed about &quot;Ma783e5cdf5f2deffbc97930a&quot;, so it will refetch the Mailbox ids and keywords (the only mutable properties) for this Email too.
 </t>
 <t>The user composes a new message and saves a draft. The client sends:
 </t>
@@ -2269,7 +2271,7 @@ A list of blob ids given that could not be found, or null if none.</t>
   ...
 }, "0" ]]
 </artwork></figure>
-<t>The client moves this draft to a different account. The only way to do this is via the <spanx style="verb">Email/copy</spanx> method. It MUST set a new mailboxIds property, since the current value will not be valid mailbox ids in the destination account:
+<t>The client moves this draft to a different account. The only way to do this is via the <spanx style="verb">Email/copy</spanx> method. It MUST set a new <spanx style="verb">mailboxIds</spanx> property, since the current value will not be valid Mailbox ids in the destination account:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2446,7 +2448,7 @@ The id of the identity.</t>
 The &quot;From&quot; <spanx style="verb">name</spanx> the client SHOULD use when creating a new message from this identity.</t>
 
 <t>email: <spanx style="verb">String</spanx> (immutable)<vspace blankLines="1" />
-The &quot;From&quot; email address the client MUST use when creating a new message from this identity. If the mailbox part of the address (the section before the &quot;@&quot;) is the single character <spanx style="verb">*</spanx> (e.g., <spanx style="verb">*@example.com</spanx>), the client may use any valid address ending in that domain (e.g., <spanx style="verb">foo@example.com</spanx>).</t>
+The &quot;From&quot; email address the client MUST use when creating a new message from this identity. If the <spanx style="verb">mailbox</spanx> part of the address (the section before the &quot;@&quot;) is the single character <spanx style="verb">*</spanx> (e.g., <spanx style="verb">*@example.com</spanx>), the client may use any valid address ending in that domain (e.g., <spanx style="verb">foo@example.com</spanx>).</t>
 
 <t>replyTo: <spanx style="verb">EmailAddress[]|null</spanx> (default: null)<vspace blankLines="1" />
 The Reply-To value the client SHOULD set when creating a new message from this identity.</t>
@@ -2653,14 +2655,14 @@ Represents whether the email has been successfully delivered to the recipient. T
 <list style="symbols">
 <t><spanx style="verb">queued</spanx>: The email is in a local mail queue and the status will change
 once it exits the local mail queues. The <spanx style="verb">smtpReply</spanx> property may still change.</t>
-<t><spanx style="verb">yes</spanx>: The email was successfully delivered to the mailbox of the
+<t><spanx style="verb">yes</spanx>: The email was successfully delivered to the mail store of the
 recipient. The <spanx style="verb">smtpReply</spanx> property is final.</t>
 <t><spanx style="verb">no</spanx>: Delivery to the recipient permanently failed. The <spanx style="verb">smtpReply</spanx>
 property is final.</t>
 <t><spanx style="verb">unknown</spanx>: The final delivery status is unknown, (e.g., it was relayed
 to an external machine and no further information is available). The <spanx style="verb">smtpReply</spanx> property may still change if a DSN arrives.</t>
 </list>
-Note that successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the email has successfully reached the final mailbox. In this case though, the server may receive a DSN response, if requested.
+Note that successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the email has successfully reached the final mail store. In this case though, the server may receive a DSN response, if requested.
 <vspace blankLines="1" />
 If a DSN is received for the recipient with Action equal to &quot;delivered&quot;, as per <xref target="RFC3464"/>, Section 2.3.3, then the <spanx style="verb">delivered</spanx> property SHOULD be set to <spanx style="verb">yes</spanx>; if the Action equals &quot;failed&quot;, the property SHOULD be set to <spanx style="verb">no</spanx>. Receipt of any other DSN SHOULD NOT affect this property.
 <vspace blankLines="1" />
@@ -2806,7 +2808,7 @@ EmailSubmission object from <spanx style="verb">pending</spanx> to <spanx style=
 </t>
 
 <section anchor="example-6" title="Example">
-<t>The following example presumes a draft of the message to be sent has already been saved, and its email id is &quot;M7f6ed5bcfd7e2604d1753f6c&quot;. This call then sends the email immediately, and if successful, removes the draft flag and moves it from the drafts folder (which has mailbox id &quot;7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e&quot;) to the sent folder (which we presume has mailbox id &quot;73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6&quot;).
+<t>The following example presumes a draft of the message to be sent has already been saved, and its email id is &quot;M7f6ed5bcfd7e2604d1753f6c&quot;. This call then sends the email immediately, and if successful, removes the draft flag and moves it from the drafts folder (which has Mailbox id &quot;7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e&quot;) to the sent folder (which we presume has Mailbox id &quot;73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6&quot;).
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2942,7 +2944,7 @@ The HTML body to send in response to emails when the vacation response is enable
 </t>
 
 <section anchor="emailbodypart-value" title="EmailBodyPart Value">
-<t>Service providers typically perform security filtering on incoming email, and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for an EmailBodyValue SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mailbox host.
+<t>Service providers typically perform security filtering on incoming email, and it's important that the detection of content-type and charset for the security filter aligns with the heuristics performed by JMAP servers. Servers that apply heuristics to determine the content-type or charset for an EmailBodyValue SHOULD document the heuristics and provide a mechanism to turn them off in the event they are misaligned with the security filter used at a particular mail host.
 </t>
 <t>Automatic conversion of charsets that allow hidden channels for ASCII text, such as UTF-7, have been problematic for security filters in the past, so server implementations can mitigate this risk by having such conversions  off-by-default and/or separately configurable.
 </t>
@@ -3034,7 +3036,7 @@ target="RFC7677"/>.
 <section anchor="partial-account-access" title="Partial Account Access">
 <t>A user may only have permission to access a subset of the data that exists in an account. To avoid leaking unauthorised information, in such a situation, the server MUST treat any data the user does not have permission to access the same as if it did not exist.
 </t>
-<t>For example, suppose user A has an account with two mailboxes, inbox and sent, but only shares the inbox with user B. In this case, when user B fetches mailboxes for this account, the server MUST behave as though the sent mailbox did not exist. Similarly, when querying or fetching Email objects, it MUST treat any messages that just belong to the sent mailbox as though they did not exist. Fetching Thread objects MUST only return ids for Email objects the user has permission to access; if none, the Thread again MUST be treated the same as if it did not exist.
+<t>For example, suppose user A has an account with two Mailboxes, inbox and sent, but only shares the inbox with user B. In this case, when user B fetches Mailboxes for this account, the server MUST behave as though the sent Mailbox did not exist. Similarly, when querying or fetching Email objects, it MUST treat any messages that just belong to the sent Mailbox as though they did not exist. Fetching Thread objects MUST only return ids for Email objects the user has permission to access; if none, the Thread again MUST be treated the same as if it did not exist.
 </t>
 <t>If the server forbids a single account from having two identical messages, or two messages with the same Message-Id header field, a user with write access can use the error returned by trying to create/import such a message to detect whether it already exists in an inaccessible portion of the account.
 </t>
@@ -3158,8 +3160,8 @@ message as a draft the user is composing. This is the JMAP equivalent of the IMA
 <t>Private or Shared on a server: BOTH
 </t>
 <t>Is it an advisory keyword or may it cause an automatic action:
-Automatic. If the account has a mailbox marked with the \Drafts special
-use <xref target="RFC6154"/>, setting this flag MAY cause the message to appear in that
+Automatic. If the account has an IMAP mailbox marked with the \Drafts special
+use attribute <xref target="RFC6154"/>, setting this flag MAY cause the message to appear in that
 mailbox automatically. Certain JMAP computed values such as
 <spanx style="verb">unreadEmails</spanx> will change as a result of changing this flag. In
 addition, mail clients will typically present draft messages in a
@@ -3179,7 +3181,7 @@ cleared as necessary so it matches the IMAP \Draft flag.
 <t>Security Considerations:
 A server implementing this keyword as a shared keyword may disclose that
 a user considers the message a draft message. This information would be
-exposed to other users with read permission for the mailbox keywords.
+exposed to other users with read permission for the Mailbox keywords.
 </t>
 <t>Published specification: this document
 </t>
@@ -3231,7 +3233,7 @@ matches the IMAP \Seen flag.
 <t>Security Considerations:
 A server implementing this keyword as a shared keyword may disclose that
 a user considers the message to have been read. This information would be
-exposed to other users with read permission for the mailbox keywords.
+exposed to other users with read permission for the Mailbox keywords.
 </t>
 <t>Published specification: this document
 </t>
@@ -3259,9 +3261,8 @@ equivalent of the IMAP \Flagged flag.
 <t>Private or Shared on a server: BOTH
 </t>
 <t>Is it an advisory keyword or may it cause an automatic action:
-Automatic. If the account has a mailbox marked with the \Flagged special
-use <xref target="RFC6154"/>, setting this flag MAY cause the message to appear in that
-mailbox automatically.
+Automatic. If the account has an IMAP mailbox marked with the \Flagged special
+use attribute <xref target="RFC6154"/>, setting this flag MAY cause the message to appear in that mailbox automatically.
 </t>
 <t>When/by whom the keyword is set/cleared:
 JMAP clients typically allow a user to set/clear this flag as desired.
@@ -3276,7 +3277,7 @@ necessary so it matches the IMAP \Flagged flag.
 A server implementing this keyword as a shared keyword may disclose that
 a user considers the message as flagged for urgent/special attention.
 This information would be exposed to other users with read permission
-for the mailbox keywords.
+for the Mailbox keywords.
 </t>
 <t>Published specification: this document
 </t>
@@ -3319,7 +3320,7 @@ this is also set and cleared as necessary so it matches the IMAP
 A server implementing this keyword as a shared keyword may disclose that
 a user has replied to a message.
 This information would be exposed to other users with read permission
-for the mailbox keywords.
+for the Mailbox keywords.
 </t>
 <t>Published specification: this document
 </t>
@@ -3399,7 +3400,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </t>
 <t>Reference: This document, <xref target="mailboxset"/>
 </t>
-<t>Description: The mailbox still has at least one child mailbox. The client MUST remove these before it can delete the parent mailbox.
+<t>Description: The Mailbox still has at least one child Mailbox. The client MUST remove these before it can delete the parent Mailbox.
 </t>
 </section>
 
@@ -3412,7 +3413,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </t>
 <t>Reference: This document, <xref target="mailboxset"/>
 </t>
-<t>Description: The mailbox has at least one message assigned to it, and the onDestroyRemoveMessages argument was false.
+<t>Description: The Mailbox has at least one message assigned to it, and the onDestroyRemoveMessages argument was false.
 </t>
 </section>
 
@@ -3451,7 +3452,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </t>
 <t>Reference: This document, <xref target="emailset"/>
 </t>
-<t>Description: The change to the email's mailboxes would exceed a server-defined maximum.
+<t>Description: The change to set of Mailboxes that this Email is in would exceed a server-defined maximum.
 </t>
 </section>
 
