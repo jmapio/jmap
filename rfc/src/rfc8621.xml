@@ -298,7 +298,7 @@ An indication of the number of &quot;unread&quot; threads in the mailbox.
 For compatibility with existing implementations, the way &quot;unread threads&quot; is
 determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this mailbox and has neither the <spanx style="verb">$seen</spanx> nor <spanx style="verb">$draft</spanx> keywords.
 <vspace blankLines="1" />
-However, a quality implementation will return the number of unread items the user would see if they opened that mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of threads where at least one email in the thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one email in the thread is in this mailbox. Note that the unread email does not need to be the one in this mailbox. In addition, the Trash mailbox (that is, a mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) is treated as special:
+However, a quality implementation will return the number of unread items the user would see if they opened that mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of threads where at least one email in the thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one email in the thread is in this mailbox. Note that the unread email does not need to be the one in this mailbox. In addition, the Trash mailbox (that is, a mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
 <list style="numbers">
 <t>Emails that are <spanx style="strong">only</spanx> in the Trash (and no other mailbox) are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count of other mailboxes.</t>
 <t>Emails that are <spanx style="strong">not</spanx> in the Trash are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count for the Trash mailbox.</t>
@@ -777,7 +777,7 @@ The set of mailbox ids this email belongs to. An email in the mail store MUST be
 <t>keywords: <spanx style="verb">String[Boolean]</spanx> (default: {})<vspace blankLines="1" />
 A set of keywords that apply to the email. The set is represented as an object, with the keys being the keywords.  The value for each key in the object MUST be <spanx style="verb">true</spanx>.
 <vspace blankLines="1" />
-Keywords are shared with IMAP. The six system keywords from IMAP are treated as special. The following four keywords have their first character changed from <spanx style="verb">\</spanx> in IMAP to <spanx style="verb">$</spanx> in JMAP and have particular semantic meaning:
+Keywords are shared with IMAP. The six system keywords from IMAP get special treatment. The following four keywords have their first character changed from <spanx style="verb">\</spanx> in IMAP to <spanx style="verb">$</spanx> in JMAP and have particular semantic meaning:
 <list style="symbols">
 <t><spanx style="verb">$draft</spanx>: The email is a draft the user is composing.</t>
 <t><spanx style="verb">$seen</spanx>: The email has been read.</t>
@@ -1258,7 +1258,7 @@ A list of <spanx style="verb">text/plain</spanx>, <spanx style="verb">text/html<
 A list of <spanx style="verb">text/plain</spanx>, <spanx style="verb">text/html</spanx>, <spanx style="verb">image/*</spanx>, <spanx style="verb">audio/*</spanx>, and/or <spanx style="verb">video/*</spanx> parts to display (sequentially) as the message body, with a preference for <spanx style="verb">text/html</spanx> when alternative versions are available.</t>
 
 <t>attachments: <spanx style="verb">EmailBodyPart[]</spanx> (immutable)<vspace blankLines="1" />
-A list of all parts in <spanx style="verb">bodyStructure</spanx>, traversing depth-first, that satisfies either of the following conditions:
+A list, traversing depth-first, of all parts in <spanx style="verb">bodyStructure</spanx> that satisfy either of the following conditions:
 <list style="symbols">
 <t>not of type <spanx style="verb">multipart/*</spanx> and not included in <spanx style="verb">textBody</spanx> or <spanx style="verb">htmlBody</spanx></t>
 
@@ -1681,9 +1681,9 @@ Within a phrase, to match one of the following characters you MUST escape it by 
 <t><spanx style="verb">sentAt</spanx> - The <spanx style="verb">sentAt</spanx> property on the Email object.</t>
 <t><spanx style="verb">hasKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> if the email has the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object, or <spanx style="verb">false</spanx> otherwise.</t>
 
-<t><spanx style="verb">allInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">all</spanx> of the emails in the same thread (regardless of the mailbox) have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
+<t><spanx style="verb">allInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">all</spanx> of the emails in the same thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
 
-<t><spanx style="verb">someInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">any</spanx> of the emails in the same thread (regardless of the mailbox) have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
+<t><spanx style="verb">someInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">any</spanx> of the emails in the same thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
 </list>
 </t>
 <t>The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's <spanx style="verb">capabilities</spanx> object (see <xref target="additions-to-the-capabilities-object"/>).
@@ -1828,7 +1828,7 @@ server-defined maximum.</t>
 </section>
 
 <section anchor="emailimport" title="Email/import">
-<t>The <spanx style="verb">Email/import</spanx> method adds messages  <xref target="RFC5322"/> to the set of emails in an account. The server MUST support messages with Email Address Internationalization (EAI) headers <xref target="RFC6532"/>. The messages must first be uploaded as blobs using the standard upload mechanism. It takes the following arguments:
+<t>The <spanx style="verb">Email/import</spanx> method adds messages  <xref target="RFC5322"/> to the set of emails in an account. The server MUST support messages with Email Address Internationalization (EAI) headers <xref target="RFC6532"/>. The messages must first be uploaded as blobs using the standard upload mechanism. The method takes the following arguments:
 </t>
 <t>
 <list style="symbols">
@@ -1966,7 +1966,7 @@ A list of blob ids given that could not be found, or <spanx style="verb">null</s
 </section>
 
 <section anchor="examples" title="Examples">
-<t>A client logs in for the first time. It first fetches the set of mailboxes. Now it will display the inbox to the user, which we will presume has mailbox id &quot;fb666a55&quot;. The inbox may be (very!) large, but the user's screen is only so big, so the client will just load the start and then load in more as necessary. The client sends this request:
+<t>A client logs in for the first time. It first fetches the set of mailboxes. Now it will display the inbox to the user, which we will presume has mailbox id &quot;fb666a55&quot;. The inbox may be (very!) large, but the user's screen is only so big, so the client can just load the threads it needs to fill the screen and then load in more only when the user scrolls. The client sends this request:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2572,7 +2572,7 @@ Any parameters to send with the email (either mail-parameter or rcpt-parameter a
 </list>
 If the <spanx style="verb">envelope</spanx> property is <spanx style="verb">null</spanx> or omitted on creation, the server MUST generate this from the referenced email as follows:
 <list style="symbols">
-<t><spanx style="verb">mailFrom</spanx>: The email in the Sender header, if present; otherwise, it's the From header, if present, and no parameters.
+<t><spanx style="verb">mailFrom</spanx>: The email address in the Sender header, if present; otherwise, it's the email address in the From header, if present. In either case, no parameters are added.
 <vspace blankLines="1" />
 If multiple addresses are present in one of these headers, or there is more than one Sender/From header, the server SHOULD reject the email as invalid; otherwise, it MUST take the first address in the last Sender/From header in the version of the message described in <xref target="RFC5322"/>.
 <vspace blankLines="1" />
@@ -2973,7 +2973,7 @@ Section 4.7.6, can help mitigate a number of risks. This will:
 <list style="symbols">
 <t>Disable JavaScript.</t>
 <t>Disable form submission.</t>
-<t>Prevent drawing outside of its bounds or conflicting with interface CSS.</t>
+<t>Prevent drawing outside of its bounds or conflicts between message CSS and interface CSS.</t>
 <t>Establish a unique anonymous origin, separate to the containing origin.</t>
 </list></t>
 
@@ -3001,7 +3001,7 @@ redirect the user to a phishing site.</t>
 </section>
 
 <section anchor="email-submission-1" title="Email Submission">
-<t>SMTP submission servers <xref target="RFC6409"/> use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters (mail filters), and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de facto extension to SMTP <xref target="XCLIENT"/> can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorised proxies.
+<t>SMTP submission servers <xref target="RFC6409"/> use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters (mail filters), and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de facto XCLIENT extension to SMTP <xref target="XCLIENT"/> can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorised proxies.
 </t>
 <t>JMAP servers that proxy to an SMTP submission server SHOULD allow use of
 the submissions port <xref
