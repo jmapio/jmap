@@ -169,8 +169,10 @@ Original:
    *emailQuerySortOptions*: "String[]" A list of all the values the
    server supports for the "property" field of the Comparator object
    in an Email/query sort (see section 5.5).
+
+neilj: Thanks, fixed.
 -->
-A list of all the values the server supports for the &quot;property&quot; field of the Comparator object in an Email/query sort (see Section 5.5). This MAY include properties the client does not recognise (for example, custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.</t>
+A list of all the values the server supports for the &quot;property&quot; field of the Comparator object in an Email/query sort (see <xref target="sorting" />). This MAY include properties the client does not recognise (for example, custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.</t>
 
 <t>mayCreateTopLevelMailbox: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
 If <spanx style="verb">true</spanx>, the user may create a mailbox (see <xref target="mailboxes"/>) in this account with
@@ -367,6 +369,8 @@ Here are a few examples:
 
    Standard "/get" method as described in [RFC8620], Section 5.1 with
    the following additional request arguments:
+
+neilj: How would you like to update this? "This is a standard..."?
 -->
 
 <section anchor="mailboxget" title="Mailbox/get">
@@ -401,8 +405,10 @@ Perhaps:
    only rarely changed, the server can help the client optimise data
    transfer by keeping track of changes to email/thread counts
    separate from other state changes.
+
+neilj: Sure, done.
 -->
-<t>Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separately to other state changes. The <spanx style="verb">updatedProperties</spanx> array may be used directly via a back-reference in a subsequent <spanx style="verb">Mailbox/get</spanx> call in the same single request, so only these properties are returned if nothing else has changed.
+<t>Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separate from other state changes. The <spanx style="verb">updatedProperties</spanx> array may be used directly via a back-reference in a subsequent <spanx style="verb">Mailbox/get</spanx> call in the same single request, so only these properties are returned if nothing else has changed.
 </t>
 </section>
 
@@ -426,13 +432,15 @@ Original:
 *  Otherwise, if a and b do not share a _parentId_, find the
    nearest ancestors of each that do have the same _parentId_ and
    compare the sort properties on those mailboxes instead.
+
+neilj: Yes, thanks I think that's better.
 -->
-If <spanx style="verb">true</spanx>, when sorting the query results and comparing mailboxes a and b:
+If <spanx style="verb">true</spanx>, when sorting the query results and comparing mailboxes A and B:
 <list style="symbols">
-<t>If a is an ancestor of b, it always comes first regardless of the sort comparators. Similarly, if a is descendant of b, then b always comes
+<t>If A is an ancestor of B, it always comes first regardless of the sort comparators. Similarly, if A is descendant of B, then B always comes
 first.</t>
 
-<t>Otherwise, if a and b do not share a <spanx style="verb">parentId</spanx>, find the nearest
+<t>Otherwise, if A and B do not share a <spanx style="verb">parentId</spanx>, find the nearest
 ancestors of each that do have the same <spanx style="verb">parentId</spanx> and compare the sort
 properties on those mailboxes instead.</t>
 
@@ -1104,9 +1112,11 @@ Perhaps:
    requested name, the value is "null" if fetching a
    single instance or "empty array" if requesting
    :all.
+
+neilj: No, that would imply a string or literal value and it's a description: an empty array. I have changed "the" to "an" because I think that's clearer, and I will remove the `verb` style from `null` to prevent confusion with the string "null".
 -->
 
-If no header fields exist in the message with the requested name, the value is <spanx style="verb">null</spanx> if fetching a single instance or the empty array if requesting :all.
+If no header fields exist in the message with the requested name, the value is <spanx style="verb">null</spanx> if fetching a single instance or an empty array if requesting :all.
 </t>
 <t>As a simple example, if the client requests a property called <spanx style="verb">header:subject</spanx>, this means find the <spanx style="strong">last</spanx> header field in the message named &quot;subject&quot; (matched case insensitively) and return the value in Raw form, or <spanx style="verb">null</spanx> if no header of this name is found.
 </t>
@@ -3167,7 +3177,7 @@ A server implementing this keyword as a shared keyword may disclose that
 a user considers the message a draft message. This information would be
 exposed to other users with read permission for the mailbox keywords.
 </t>
-<t>Published specification (recommended): this document
+<t>Published specification: this document
 </t>
 <!-- [rfced] Should contact information be added here?  If so, please provide
 the approprite information.
@@ -3176,9 +3186,10 @@ Sections 10.4.1 - 10.4.5:
    Person & email address to contact for further information: (editor-
    contact-goes-here)
 
+neilj: Thanks, updated.
 -->
 <t>Person &amp; email address to contact for further information:
-(editor-contact-goes-here)
+IETF Applications and Real-Time Area &lt;art@ietf.org&gt;
 </t>
 <t>Intended usage: COMMON
 </t>
@@ -3218,10 +3229,10 @@ A server implementing this keyword as a shared keyword may disclose that
 a user considers the message to have been read. This information would be
 exposed to other users with read permission for the mailbox keywords.
 </t>
-<t>Published specification (recommended): this document
+<t>Published specification: this document
 </t>
 <t>Person &amp; email address to contact for further information:
-(editor-contact-goes-here)
+IETF Applications and Real-Time Area &lt;art@ietf.org&gt;
 </t>
 <t>Intended usage: COMMON
 </t>
@@ -3263,10 +3274,10 @@ a user considers the message as flagged for urgent/special attention.
 This information would be exposed to other users with read permission
 for the mailbox keywords.
 </t>
-<t>Published specification (recommended): this document
+<t>Published specification: this document
 </t>
 <t>Person &amp; email address to contact for further information:
-(editor-contact-goes-here)
+IETF Applications and Real-Time Area &lt;art@ietf.org&gt;
 </t>
 <t>Intended usage: COMMON
 </t>
@@ -3306,10 +3317,10 @@ a user has replied to a message.
 This information would be exposed to other users with read permission
 for the mailbox keywords.
 </t>
-<t>Published specification (recommended): this document
+<t>Published specification: this document
 </t>
 <t>Person &amp; email address to contact for further information:
-(editor-contact-goes-here)
+IETF Applications and Real-Time Area &lt;art@ietf.org&gt;
 </t>
 <t>Intended usage: COMMON
 </t>
@@ -3327,10 +3338,10 @@ for the mailbox keywords.
 <t>Purpose (description): This keyword is not used to avoid confusion with
 the IMAP \Recent system flag.
 </t>
-<t>Published specification (recommended): this document
+<t>Published specification: this document
 </t>
 <t>Person &amp; email address to contact for further information:
-(editor-contact-goes-here)
+IETF Applications and Real-Time Area &lt;art@ietf.org&gt;
 </t>
 <t>Owner/Change controller: IESG
 </t>

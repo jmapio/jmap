@@ -445,9 +445,9 @@ The response has the following arguments:
     When a client receives a response with a different state string to a previous call, it MUST either throw away all currently cached objects for the type or call *Foo/changes* to get the exact changes.
 
 - **list**: `Foo[]`
-  An array of the Foo objects requested. This is the **empty array** if no objects were found or if the *ids* argument passed in was also the empty array. The results MAY be in a different order to the *ids* in the request arguments. If an identical id is included more than once in the request, the server MUST only include it once in either the *list* or the *notFound* argument of the response.
+  An array of the Foo objects requested. This is the **empty array** if no objects were found or if the *ids* argument passed in was also an empty array. The results MAY be in a different order to the *ids* in the request arguments. If an identical id is included more than once in the request, the server MUST only include it once in either the *list* or the *notFound* argument of the response.
 - **notFound**: `Id[]`
-  This array contains the ids passed to the method for records that do not exist. The array is empty if all requested ids were found or if the *ids* argument passed in was either `null` or the empty array.
+  This array contains the ids passed to the method for records that do not exist. The array is empty if all requested ids were found or if the *ids* argument passed in was either `null` or an empty array.
 
 The following additional error may be returned instead of the *Foo/get* response:
 

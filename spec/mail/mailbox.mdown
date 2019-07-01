@@ -93,19 +93,19 @@ Standard "/changes" method as described in [@!RFC8620], Section 5.2 but with one
 - **updatedProperties**: `String[]|null`
   If only the mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e., `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
-Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separately to other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same single request, so only these properties are returned if nothing else has changed.
+Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separate from other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same single request, so only these properties are returned if nothing else has changed.
 
 ## Mailbox/query
 
 Standard "/query" method as described in [@!RFC8620], Section 5.5, but with the following additional request argument:
 
 - **sortAsTree**: `Boolean` (default: false)
-  If `true`, when sorting the query results and comparing mailboxes a and b:
+  If `true`, when sorting the query results and comparing mailboxes A and B:
 
-    - If a is an ancestor of b, it always comes first regardless of the *sort*
-      comparators. Similarly, if a is descendant of b, then b always comes
+    - If A is an ancestor of B, it always comes first regardless of the *sort*
+      comparators. Similarly, if A is descendant of B, then B always comes
       first.
-    - Otherwise, if a and b do not share a *parentId*, find the nearest
+    - Otherwise, if A and B do not share a *parentId*, find the nearest
       ancestors of each that do have the same *parentId* and compare the sort
       properties on those mailboxes instead.
 
