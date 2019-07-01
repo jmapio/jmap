@@ -190,7 +190,7 @@ Standard "/set" method as described in [@!RFC8620], Section 5.3 with the followi
 - **onSuccessDestroyEmail**: `Id[]|null`
   A list of *EmailSubmission ids* for which the email with the corresponding emailId should be destroyed if the create/update/destroy succeeds. (For references to EmailSubmission creations, this is equivalent to a creation-reference so the id will be the creation id prefixed with a `#`.)
 
-A single implicit *Email/set* call MUST be made after all EmailSubmissions credentials in the same "/set" invocation/update/destroy requests have been processed to perform any changes requested in these two arguments. The response to this MUST be returned after the *EmailSubmission/set* response.
+After all create/update/destroy items in the *EmailSubmission/set* invocation  have been processed, a single implicit *Email/set* call MUST be made to perform any changes requested in these two arguments. The response to this MUST be returned after the *EmailSubmission/set* response.
 
 An email is sent by creating an EmailSubmission object. When processing each create, the server must check that the email is valid, and the user has sufficient authorisation to send it. If the creation succeeds, the email will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the email during delivery. The server MAY add or remove other headers from the submitted email or make further alterations in accordance with the server's policy during delivery.
 
