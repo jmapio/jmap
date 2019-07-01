@@ -302,7 +302,7 @@ An indication of the number of &quot;unread&quot; Threads in the Mailbox.
 For compatibility with existing implementations, the way &quot;unread Threads&quot; is
 determined is not mandated in this document. The simplest solution to implement is simply the number of Threads where at least one Email in the Thread is both in this Mailbox and has neither the <spanx style="verb">$seen</spanx> nor <spanx style="verb">$draft</spanx> keywords.
 <vspace blankLines="1" />
-However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread messages that will be displayed when the Thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of Threads where at least one Email in the Thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one Email in the Thread is in this Mailbox. Note that the unread Email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
+However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread Emails that will be displayed when the Thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of Threads where at least one Email in the Thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one Email in the Thread is in this Mailbox. Note that the unread Email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
 <list style="numbers">
 <t>Emails that are <spanx style="strong">only</spanx> in the trash (and no other Mailbox) are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count of other Mailboxes.</t>
 <t>Emails that are <spanx style="strong">not</spanx> in the trash are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count for the trash Mailbox.</t>
@@ -498,7 +498,7 @@ The <spanx style="verb">isSubscribed</spanx> property of the Mailbox must be ide
 <t>
 <list style="symbols">
 <t>onDestroyRemoveMessages: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">false</spanx>, any attempt to destroy a Mailbox that still has messages in it will be rejected with a <spanx style="verb">mailboxHasEmail</spanx> SetError. If <spanx style="verb">true</spanx>, any messages that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.</t>
+If <spanx style="verb">false</spanx>, any attempt to destroy a Mailbox that still has Emails in it will be rejected with a <spanx style="verb">mailboxHasEmail</spanx> SetError. If <spanx style="verb">true</spanx>, any Emails that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.</t>
 </list>
 </t>
 <t>The following extra SetError types are defined:
@@ -510,7 +510,7 @@ If <spanx style="verb">false</spanx>, any attempt to destroy a Mailbox that stil
 <t><spanx style="verb">mailboxHasChild</spanx>: The Mailbox still has at least one child Mailbox. The
 client MUST remove these before it can delete the parent Mailbox.</t>
 
-<t><spanx style="verb">mailboxHasEmail</spanx>: The Mailbox has at least one message assigned to it, and
+<t><spanx style="verb">mailboxHasEmail</spanx>: The Mailbox has at least one Email assigned to it, and
 the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx style="verb">false</spanx>.</t>
 </list>
 </t>
@@ -563,7 +563,7 @@ the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx styl
   "notFound": []
 }, "0" ]]
 </artwork></figure>
-<t>Now suppose a message is marked read, and we get a push update that the Mailbox state has changed. You might fetch the updates like this:
+<t>Now suppose an Email is marked read, and we get a push update that the Mailbox state has changed. You might fetch the updates like this:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2444,16 +2444,16 @@ ids were found.</t>
 The id of the Identity.</t>
 
 <t>name: <spanx style="verb">String</spanx> (default: &quot;&quot;)<vspace blankLines="1" />
-The &quot;From&quot; <spanx style="verb">name</spanx> the client SHOULD use when creating a new message from this Identity.</t>
+The &quot;From&quot; <spanx style="verb">name</spanx> the client SHOULD use when creating a new Email from this Identity.</t>
 
 <t>email: <spanx style="verb">String</spanx> (immutable)<vspace blankLines="1" />
-The &quot;From&quot; email address the client MUST use when creating a new message from this Identity. If the <spanx style="verb">mailbox</spanx> part of the address (the section before the &quot;@&quot;) is the single character <spanx style="verb">*</spanx> (e.g., <spanx style="verb">*@example.com</spanx>), the client may use any valid address ending in that domain (e.g., <spanx style="verb">foo@example.com</spanx>).</t>
+The &quot;From&quot; email address the client MUST use when creating a new Email from this Identity. If the <spanx style="verb">mailbox</spanx> part of the address (the section before the &quot;@&quot;) is the single character <spanx style="verb">*</spanx> (e.g., <spanx style="verb">*@example.com</spanx>), the client may use any valid address ending in that domain (e.g., <spanx style="verb">foo@example.com</spanx>).</t>
 
 <t>replyTo: <spanx style="verb">EmailAddress[]|null</spanx> (default: null)<vspace blankLines="1" />
-The Reply-To value the client SHOULD set when creating a new message from this Identity.</t>
+The Reply-To value the client SHOULD set when creating a new Email from this Identity.</t>
 
 <t>bcc: <spanx style="verb">EmailAddress[]|null</spanx> (default: null)<vspace blankLines="1" />
-The Bcc value the client SHOULD set when creating a new message from this Identity.</t>
+The Bcc value the client SHOULD set when creating a new Email from this Identity.</t>
 
 <t>textSignature: <spanx style="verb">String</spanx> (default: &quot;&quot;)<vspace blankLines="1" />
 Signature the client SHOULD insert into new plaintext messages that will be sent from this Identity. Clients MAY ignore this and/or combine this with a client-specific signature preference.</t>

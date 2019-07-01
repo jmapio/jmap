@@ -40,7 +40,7 @@ A **Mailbox** object has the following properties:
     For compatibility with existing implementations, the way "unread Threads" is
     determined is not mandated in this document. The simplest solution to implement is simply the number of Threads where at least one Email in the Thread is both in this Mailbox and has neither the `$seen` nor `$draft` keywords.
 
-    However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread messages that will be displayed when the Thread is opened. Therefore, `unreadThreads` should be the number of Threads where at least one Email in the Thread has neither the `$seen` nor the `$draft` keyword AND at least one Email in the Thread is in this Mailbox. Note that the unread Email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose `role` is `trash`) requires special treatment:
+    However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread Emails that will be displayed when the Thread is opened. Therefore, `unreadThreads` should be the number of Threads where at least one Email in the Thread has neither the `$seen` nor the `$draft` keyword AND at least one Email in the Thread is in this Mailbox. Note that the unread Email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose `role` is `trash`) requires special treatment:
 
     1. Emails that are **only** in the trash (and no other Mailbox) are ignored when calculating the `unreadThreads` count of other Mailboxes.
     2. Emails that are **not** in the trash are ignored when calculating the `unreadThreads` count for the trash Mailbox.
@@ -143,7 +143,7 @@ Standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
 Standard "/set" method as described in [@!RFC8620], Section 5.3, but with the following additional request argument:
 
 - **onDestroyRemoveMessages**: `Boolean` (default: false)
-  If `false`, any attempt to destroy a Mailbox that still has messages in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any messages that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.
+  If `false`, any attempt to destroy a Mailbox that still has Emails in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any Emails that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.
 
 The following extra *SetError* types are defined:
 
@@ -151,7 +151,7 @@ For **destroy**:
 
 - `mailboxHasChild`: The Mailbox still has at least one child Mailbox. The
   client MUST remove these before it can delete the parent Mailbox.
-- `mailboxHasEmail`: The Mailbox has at least one message assigned to it, and
+- `mailboxHasEmail`: The Mailbox has at least one Email assigned to it, and
   the *onDestroyRemoveMessages* argument was `false`.
 
 ## Example
@@ -198,7 +198,7 @@ And the response:
       "notFound": []
     }, "0" ]]
 
-Now suppose a message is marked read, and we get a push update that the Mailbox state has changed. You might fetch the updates like this:
+Now suppose an Email is marked read, and we get a push update that the Mailbox state has changed. You might fetch the updates like this:
 
     [[ "Mailbox/changes", {
       "accountId": "u33084183",
