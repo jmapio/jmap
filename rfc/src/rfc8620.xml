@@ -1518,10 +1518,10 @@ This is <spanx style="verb">true</spanx> if the server supports calling <spanx s
 The zero-based index of the first result in the <spanx style="verb">ids</spanx> array within the complete list of query results.</t>
 
 <t>ids: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
-The list of ids for each foo in the query results, starting at the index given by the <spanx style="verb">position</spanx> argument of this response and continuing until it hits the end of the results or reaches the <spanx style="verb">limit</spanx> number of ids. If <spanx style="verb">position</spanx> is &gt;= <spanx style="verb">total</spanx>, this MUST be the empty list.</t>
+The list of ids for each Foo in the query results, starting at the index given by the <spanx style="verb">position</spanx> argument of this response and continuing until it hits the end of the results or reaches the <spanx style="verb">limit</spanx> number of ids. If <spanx style="verb">position</spanx> is &gt;= <spanx style="verb">total</spanx>, this MUST be the empty list.</t>
 
 <t>total: <spanx style="verb">UnsignedInt</spanx> (only if requested)<vspace blankLines="1" />
-The total number of foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not <spanx style="verb">true</spanx>.</t>
+The total number of Foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not <spanx style="verb">true</spanx>.</t>
 
 <t>limit: <spanx style="verb">UnsignedInt</spanx> (if set by the server)<vspace blankLines="1" />
 The limit enforced by the server on the maximum number of results to return.
@@ -1582,23 +1582,23 @@ This is the <spanx style="verb">sinceQueryState</spanx> argument echoed back; th
 This is the state the query will be in after applying the set of changes to the old state.</t>
 
 <t>total: <spanx style="verb">UnsignedInt</spanx> (only if requested)<vspace blankLines="1" />
-The total number of foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not <spanx style="verb">true</spanx>.</t>
+The total number of Foos in the results (given the <spanx style="verb">filter</spanx>). This argument MUST be omitted if the <spanx style="verb">calculateTotal</spanx> request argument is not <spanx style="verb">true</spanx>.</t>
 
 <t>removed: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
-The <spanx style="verb">id</spanx> for every foo that was in the query results in the old state and that is not in the results in the new state.
+The <spanx style="verb">id</spanx> for every Foo that was in the query results in the old state and that is not in the results in the new state.
 
 <vspace blankLines="1" />
-If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old results but are not in the new results.
+If the server cannot calculate this exactly, the server MAY return the ids of extra Foos in addition that may have been in the old results but are not in the new results.
 <vspace blankLines="1" />
 
 If the sort and filter are both only on immutable properties and an <spanx style="verb">upToId</spanx> is supplied and exists in the results, any ids that were removed but have a higher index than <spanx style="verb">upToId</spanx> SHOULD be omitted.
 <vspace blankLines="1" />
 
-If the <spanx style="verb">filter</spanx> or <spanx style="verb">sort</spanx> includes a mutable property, the server MUST include all foos in the current results for which this property may have changed. The position of these may have moved in the results, so they must be
+If the <spanx style="verb">filter</spanx> or <spanx style="verb">sort</spanx> includes a mutable property, the server MUST include all Foos in the current results for which this property may have changed. The position of these may have moved in the results, so they must be
 reinserted by the client to ensure its query cache is correct.</t>
 
 <t>added: <spanx style="verb">AddedItem[]</spanx><vspace blankLines="1" />
-The id and index in the query results (in the new state) for every foo that has been added to the results since the old state AND every foo in the current results that was included in the <spanx style="verb">removed</spanx> array (due to a filter or sort based upon a mutable property).
+The id and index in the query results (in the new state) for every Foo that has been added to the results since the old state AND every Foo in the current results that was included in the <spanx style="verb">removed</spanx> array (due to a filter or sort based upon a mutable property).
 
 <vspace blankLines="1" />
 If the sort and filter are both only on immutable properties and an <spanx style="verb">upToId</spanx> is supplied and exists in the results, any ids that were added but have a higher index than <spanx style="verb">upToId</spanx> SHOULD be omitted.

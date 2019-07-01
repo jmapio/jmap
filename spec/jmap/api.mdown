@@ -808,9 +808,9 @@ The response has the following arguments:
 - **position**: `UnsignedInt`
   The zero-based index of the first result in the `ids` array within the complete list of query results.
 - **ids**: `Id[]`
-  The list of ids for each foo in the query results, starting at the index given by the *position* argument of this response and continuing until it hits the end of the results or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
+  The list of ids for each Foo in the query results, starting at the index given by the *position* argument of this response and continuing until it hits the end of the results or reaches the `limit` number of ids. If *position* is >= *total*, this MUST be the empty list.
 - **total**: `UnsignedInt` (only if requested)
-  The total number of foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
+  The total number of Foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
 - **limit**: `UnsignedInt` (if set by the server)
   The limit enforced by the server on the maximum number of results to return.
   This is only returned if the server set a limit or used a different limit than
@@ -854,19 +854,19 @@ The response has the following arguments:
 - **newQueryState**: `String`
   This is the state the query will be in after applying the set of changes to the old state.
 - **total**: `UnsignedInt` (only if requested)
-  The total number of foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
+  The total number of Foos in the results (given the *filter*). This argument MUST be omitted if the *calculateTotal* request argument is not `true`.
 - **removed**: `Id[]`
-  The *id* for every foo that was in the query results in the old state and that is not in the results in the new state.
+  The *id* for every Foo that was in the query results in the old state and that is not in the results in the new state.
 
-    If the server cannot calculate this exactly, the server MAY return extra foos in addition that may have been in the old results but are not in the new results.
+    If the server cannot calculate this exactly, the server MAY return the ids of extra Foos in addition that may have been in the old results but are not in the new results.
 
     If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were removed but have a higher index than *upToId* SHOULD be omitted.
 
-    If the *filter* or *sort* includes a mutable property, the server MUST include all foos in the current results for which this property may have changed. The position of these may have moved in the results, so must be
+    If the *filter* or *sort* includes a mutable property, the server MUST include all Foos in the current results for which this property may have changed. The position of these may have moved in the results, so must be
     reinserted by the client to ensure its query cache is correct.
 
 - **added**: `AddedItem[]`
-  The id and index in the query results (in the new state) for every foo that has been added to the results since the old state AND every foo in the current results that was included in the *removed* array (due to a filter or sort based upon a mutable property).
+  The id and index in the query results (in the new state) for every Foo that has been added to the results since the old state AND every Foo in the current results that was included in the *removed* array (due to a filter or sort based upon a mutable property).
 
     If the sort and filter are both only on immutable properties and an *upToId* is supplied and exists in the results, any ids that were added but have a higher index than *upToId* SHOULD be omitted.
 
