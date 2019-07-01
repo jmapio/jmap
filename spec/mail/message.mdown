@@ -633,7 +633,7 @@ Standard "/changes" method as described in [@!RFC8620], Section 5.2. If generati
 Standard "/query" method as described in [@!RFC8620], Section 5.5, but with the following additional request arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
-  If `true`, emails in the same thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means only one email at most will be included in the list for any given thread.
+  If `true`, emails in the same Thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means only one email at most will be included in the list for any given Thread.
 
 In quality implementations, the query "total" property is expected to be fast to calculate when the filter consists solely of a single `inMailbox` property, as it is the same as the totalEmails or totalThreads properties (depending on whether collapseThreads is true) of the associated Mailbox object.
 
@@ -654,11 +654,11 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **maxSize**: `UnsignedInt`
   The *size* of the email in octets must be less than this number to match the condition.
 - **allInThreadHaveKeyword**: `String`
-  All emails (including this one) in the same thread as this email must have the given keyword to match the condition.
+  All emails (including this one) in the same Thread as this email must have the given keyword to match the condition.
 - **someInThreadHaveKeyword**: `String`
-  At least one email (possibly this one) in the same thread as this email must have the given keyword to match the condition.
+  At least one email (possibly this one) in the same Thread as this email must have the given keyword to match the condition.
 - **noneInThreadHaveKeyword**: `String`
-  All emails (including this one) in the same thread as this email must **not** have the given keyword to match the condition.
+  All emails (including this one) in the same Thread as this email must **not** have the given keyword to match the condition.
 - **hasKeyword**: `String`
   This email must have the given keyword to match the condition.
 - **notKeyword**: `String`
@@ -712,8 +712,8 @@ The following values for the *property* field on the Comparator object SHOULD be
 - **subject** - This is taken to be the base subject of the email, as defined in Section 2.1 of [@!RFC5256].
 - **sentAt** - The *sentAt* property on the Email object.
 - **hasKeyword** - This value MUST be considered `true` if the email has the keyword given as an additional *keyword* property on the *Comparator* object, or `false` otherwise.
-- **allInThreadHaveKeyword** - This value MUST be considered `true` for the email if **all** of the emails in the same thread have the keyword given as an additional *keyword* property on the *Comparator* object.
-- **someInThreadHaveKeyword** - This value MUST be considered `true` for the email if **any** of the emails in the same thread have the keyword given as an additional *keyword* property on the *Comparator* object.
+- **allInThreadHaveKeyword** - This value MUST be considered `true` for the email if **all** of the emails in the same Thread have the keyword given as an additional *keyword* property on the *Comparator* object.
+- **someInThreadHaveKeyword** - This value MUST be considered `true` for the email if **any** of the emails in the same Thread have the keyword given as an additional *keyword* property on the *Comparator* object.
 
 The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's *capabilities* object (see Section 1.3).
 
@@ -731,11 +731,11 @@ Example sort:
       "isAscending": false
     }]
 
-This would sort emails in flagged threads first (the thread is considered flagged if any email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails have identical values for all three properties, then the order is server dependent but must be stable.
+This would sort Emails in flagged Threads first (the Thread is considered flagged if any Email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails have identical values for all three properties, then the order is server dependent but must be stable.
 
 ### Thread Collapsing
 
-When *collapseThreads* is `true`, then after filtering and sorting the email list, the list is further winnowed by removing any emails for a thread id that has already been seen (when passing through the list sequentially). A thread will therefore only appear **once** in the result, at the position of the first email in the list that belongs to the thread (given the current sort/filter).
+When *collapseThreads* is `true`, then after filtering and sorting the email list, the list is further winnowed by removing any emails for a Thread id that has already been seen (when passing through the list sequentially). A Thread will therefore only appear **once** in the result, at the position of the first email in the list that belongs to the Thread (given the current sort/filter).
 
 ## Email/queryChanges
 
@@ -883,7 +883,7 @@ The following metadata properties on the Email objects will be `null` if request
 - keywords
 - receivedAt
 
-The *threadId* property of the Email MAY be present if the server can calculate which thread the Email would be assigned to were it to be imported. Otherwise, this too is `null` if fetched.
+The *threadId* property of the Email MAY be present if the server can calculate which Thread the Email would be assigned to were it to be imported. Otherwise, this too is `null` if fetched.
 
 The *Email/parse* method takes the following arguments:
 
@@ -927,7 +927,7 @@ Where a specific header is requested as a property, the capitalization of the pr
 
 ## Examples
 
-A client logs in for the first time. It first fetches the set of Mailboxes. Now it will display the inbox to the user, which we will presume has Mailbox id "fb666a55". The inbox may be (very!) large, but the user's screen is only so big, so the client can just load the threads it needs to fill the screen and then load in more only when the user scrolls. The client sends this request:
+A client logs in for the first time. It first fetches the set of Mailboxes. Now it will display the inbox to the user, which we will presume has Mailbox id "fb666a55". The inbox may be (very!) large, but the user's screen is only so big, so the client can just load the Threads it needs to fill the screen and then load in more only when the user scrolls. The client sends this request:
 
     [[ "Email/query",{
       "accountId": "ue150411c",
@@ -984,13 +984,13 @@ A client logs in for the first time. It first fetches the set of Mailboxes. Now 
 
 Let's break down the 4 method calls to see what they're doing:
 
-"0": This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same thread as a newer message in the Mailbox (i.e., it is the first 30 unique threads).
+"0": This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same Thread as a newer Email in the Mailbox (i.e., it is the first 30 unique Threads).
 
-"1": Now we use a back-reference to fetch the thread ids for each of these email ids.
+"1": Now we use a back-reference to fetch the Thread ids for each of these email ids.
 
-"2": Another back-reference fetches the Thread object for each of these thread ids.
+"2": Another back-reference fetches the Thread object for each of these Thread ids.
 
-"3": Finally, we fetch the information we need to display the Mailbox listing (but no more!) for every message in each of these 30 threads. The client may aggregate this data for display, for example, by showing the thread as "flagged" if any of the messages in it contain the `$flagged` keyword.
+"3": Finally, we fetch the information we need to display the Mailbox listing (but no more!) for every message in each of these 30 Threads. The client may aggregate this data for display, for example, by showing the Thread as "flagged" if any of the messages in it contain the `$flagged` keyword.
 
 The response from the server may look something like this:
 

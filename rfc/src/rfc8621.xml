@@ -103,8 +103,8 @@ display, such as unread status or whether a message has been replied to. An
 IANA registry allows common semantics to be shared between clients and extended
 easily in the future.
 </t>
-<t>A message and its replies are linked on the server by a common thread id.
-Clients may fetch the list of messages with a particular thread id to more
+<t>A message and its replies are linked on the server by a common Thread id.
+Clients may fetch the list of messages with a particular Thread id to more
 easily present a threaded or conversational interface.
 </t>
 <t>Permissions for message access happen on a per-mailbox basis. Servers may give
@@ -294,22 +294,22 @@ The number of emails in this Mailbox.</t>
 The number of emails in this Mailbox that have neither the <spanx style="verb">$seen</spanx> keyword nor the <spanx style="verb">$draft</spanx> keyword.</t>
 
 <t>totalThreads: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
-The number of threads where at least one email in the thread is in this Mailbox.</t>
+The number of Threads where at least one email in the Thread is in this Mailbox.</t>
 
 <t>unreadThreads: <spanx style="verb">UnsignedInt</spanx> (server-set)<vspace blankLines="1" />
-An indication of the number of &quot;unread&quot; threads in the Mailbox.
+An indication of the number of &quot;unread&quot; Threads in the Mailbox.
 <vspace blankLines="1" />
-For compatibility with existing implementations, the way &quot;unread threads&quot; is
-determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this Mailbox and has neither the <spanx style="verb">$seen</spanx> nor <spanx style="verb">$draft</spanx> keywords.
+For compatibility with existing implementations, the way &quot;unread Threads&quot; is
+determined is not mandated in this document. The simplest solution to implement is simply the number of Threads where at least one email in the Thread is both in this Mailbox and has neither the <spanx style="verb">$seen</spanx> nor <spanx style="verb">$draft</spanx> keywords.
 <vspace blankLines="1" />
-However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of threads where at least one email in the thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one email in the thread is in this Mailbox. Note that the unread email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
+However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread messages that will be displayed when the Thread is opened. Therefore, <spanx style="verb">unreadThreads</spanx> should be the number of Threads where at least one email in the Thread has neither the <spanx style="verb">$seen</spanx> nor the <spanx style="verb">$draft</spanx> keyword AND at least one email in the Thread is in this Mailbox. Note that the unread email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose <spanx style="verb">role</spanx> is <spanx style="verb">trash</spanx>) requires special treatment:
 <list style="numbers">
 <t>Emails that are <spanx style="strong">only</spanx> in the trash (and no other Mailbox) are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count of other Mailboxes.</t>
 <t>Emails that are <spanx style="strong">not</spanx> in the trash are ignored when calculating the <spanx style="verb">unreadThreads</spanx> count for the trash Mailbox.</t>
 </list>
-The result of this is that emails in the trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a thread in another Mailbox, and vice versa. This allows you to delete a single email to the trash out of a thread.
+The result of this is that emails in the trash are treated as though they are in a separate Thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a Thread in another Mailbox, and vice versa. This allows you to delete a single email to the trash out of a Thread.
 <vspace blankLines="1" />
-For example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the trash and a read email in the inbox. The <spanx style="verb">unreadThreads</spanx> count would be <spanx style="verb">1</spanx> for the trash and <spanx style="verb">0</spanx> for the inbox.</t>
+For example, suppose you have an account where the entire contents is a single Thread with 2 emails: an unread email in the trash and a read email in the inbox. The <spanx style="verb">unreadThreads</spanx> count would be <spanx style="verb">1</spanx> for the trash and <spanx style="verb">0</spanx> for the inbox.</t>
 
 <t>myRights: <spanx style="verb">MailboxRights</spanx> (server-set)<vspace blankLines="1" />
 The set of rights (Access Control Lists (ACLs)) the user has in relation to this Mailbox. These are backwards compatible with IMAP ACLs, as defined in <xref target="RFC4314"/>. A <spanx style="strong">MailboxRights</spanx> object has the following properties:
@@ -388,7 +388,7 @@ style="verb">null</spanx> to fetch all at once.
 <t>
 <list style="symbols">
 <t>updatedProperties: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
-If only the Mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e., ["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
+If only the Mailbox counts (unread/total emails/Threads) have changed since the old state, this will be the list of properties that may have changed, i.e., ["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
 </list>
 </t>
 
@@ -410,7 +410,7 @@ Perhaps:
 
 neilj: Sure, done.
 -->
-<t>Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separate from other state changes. The <spanx style="verb">updatedProperties</spanx> array may be used directly via a back-reference in a subsequent <spanx style="verb">Mailbox/get</spanx> call in the same single request, so only these properties are returned if nothing else has changed.
+<t>Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/Thread counts separate from other state changes. The <spanx style="verb">updatedProperties</spanx> array may be used directly via a back-reference in a subsequent <spanx style="verb">Mailbox/get</spanx> call in the same single request, so only these properties are returned if nothing else has changed.
 </t>
 </section>
 
@@ -666,9 +666,9 @@ the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx styl
 </section>
 
 <section anchor="threads" title="Threads">
-<t>Replies are grouped together with the original message to form a thread. In JMAP, a thread is simply a flat list of emails, ordered by date. Every email MUST belong to a thread, even if it is the only email in the thread.
+<t>Replies are grouped together with the original message to form a Thread. In JMAP, a Thread is simply a flat list of Emails, ordered by date. Every Email MUST belong to a Thread, even if it is the only Email in the Thread.
 </t>
-<t>The exact algorithm for determining whether two emails belong to the same thread is not mandated in this spec to allow for compatibility with different existing systems. For new implementations, it is suggested that two messages belong in the same thread if both of the following conditions apply:
+<t>The exact algorithm for determining whether two emails belong to the same Thread is not mandated in this spec to allow for compatibility with different existing systems. For new implementations, it is suggested that two messages belong in the same Thread if both of the following conditions apply:
 </t>
 <t>
 <list style="numbers">
@@ -679,17 +679,17 @@ the <spanx style="verb">onDestroyRemoveMessages</spanx> argument was <spanx styl
  &quot;[List-Tag]&quot;, etc., and ignoring white space, the subjects are the same. This avoids the situation where a person replies to an old message as a convenient way of finding the right recipient to send to but changes the subject and starts a new conversation.</t>
 </list>
 </t>
-<t>If emails are delivered out of order for some reason, a user may receive two emails in the same thread but without headers that associate them with each other. The arrival of a third email in the thread may provide the missing references to join them all together into a single thread. Since the <spanx style="verb">threadId</spanx> of an email is immutable, if the server wishes to merge the threads, it MUST handle this by deleting and reinserting (with a new email id) the emails that change threadId.
+<t>If emails are delivered out of order for some reason, a user may receive two emails in the same Thread but without headers that associate them with each other. The arrival of a third email may provide the missing references to join them all together into a single Thread. Since the <spanx style="verb">threadId</spanx> of an email is immutable, if the server wishes to merge the Threads, it MUST handle this by deleting and reinserting (with a new email id) the emails that change <spanx style="verb">threadId</spanx>.
 </t>
 <t>A <spanx style="strong">Thread</spanx> object has the following properties:
 </t>
 <t>
 <list style="symbols">
 <t>id: <spanx style="verb">Id</spanx> (immutable; server-set)<vspace blankLines="1" />
-The id of the thread.</t>
+The id of the Thread.</t>
 
 <t>emailIds: <spanx style="verb">Id[]</spanx> (server-set)<vspace blankLines="1" />
-The ids of the emails in the thread, sorted by the <spanx style="verb">receivedAt</spanx> date of the email, oldest first. If two emails have an identical date, the sort is server dependent but MUST be stable (sorting by id is recommended).</t>
+The ids of the Emails in the Thread, sorted by the <spanx style="verb">receivedAt</spanx> date of the email, oldest first. If two emails have an identical date, the sort is server dependent but MUST be stable (sorting by id is recommended).</t>
 </list>
 </t>
 <t>The following JMAP methods are supported.
@@ -1573,7 +1573,7 @@ The server MUST ensure the truncation results in valid UTF-8 and does not occur 
 <t>
 <list style="symbols">
 <t>collapseThreads: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-If <spanx style="verb">true</spanx>, emails in the same thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means only one email at most will be included in the list for any given thread.</t>
+If <spanx style="verb">true</spanx>, emails in the same Thread as a previous email in the list (given the filter and sort order) will be removed from the list. This means only one email at most will be included in the list for any given Thread.</t>
 </list>
 </t>
 <t>In quality implementations, the query &quot;total&quot; property is expected to be fast to calculate when the filter consists solely of a single <spanx style="verb">inMailbox</spanx> property, as it is the same as the totalEmails or totalThreads properties (depending on whether collapseThreads is true) of the associated Mailbox object.
@@ -1603,13 +1603,13 @@ The <spanx style="verb">size</spanx> of the email in octets must be equal to or 
 The <spanx style="verb">size</spanx> of the email in octets must be less than this number to match the condition.</t>
 
 <t>allInThreadHaveKeyword: <spanx style="verb">String</spanx><vspace blankLines="1" />
-All emails (including this one) in the same thread as this email must have the given keyword to match the condition.</t>
+All emails (including this one) in the same Thread as this email must have the given keyword to match the condition.</t>
 
 <t>someInThreadHaveKeyword: <spanx style="verb">String</spanx><vspace blankLines="1" />
-At least one email (possibly this one) in the same thread as this email must have the given keyword to match the condition.</t>
+At least one email (possibly this one) in the same Thread as this email must have the given keyword to match the condition.</t>
 
 <t>noneInThreadHaveKeyword: <spanx style="verb">String</spanx><vspace blankLines="1" />
-All emails (including this one) in the same thread as this email must <spanx style="strong">not</spanx> have the given keyword to match the condition.</t>
+All emails (including this one) in the same Thread as this email must <spanx style="strong">not</spanx> have the given keyword to match the condition.</t>
 
 <t>hasKeyword: <spanx style="verb">String</spanx><vspace blankLines="1" />
 This email must have the given keyword to match the condition.</t>
@@ -1695,9 +1695,9 @@ Within a phrase, to match one of the following characters you MUST escape it by 
 <t><spanx style="verb">sentAt</spanx> - The <spanx style="verb">sentAt</spanx> property on the Email object.</t>
 <t><spanx style="verb">hasKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> if the email has the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object, or <spanx style="verb">false</spanx> otherwise.</t>
 
-<t><spanx style="verb">allInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">all</spanx> of the emails in the same thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
+<t><spanx style="verb">allInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">all</spanx> of the emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
 
-<t><spanx style="verb">someInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">any</spanx> of the emails in the same thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
+<t><spanx style="verb">someInThreadHaveKeyword</spanx> - This value MUST be considered <spanx style="verb">true</spanx> for the email if <spanx style="strong">any</spanx> of the emails in the same Thread have the keyword given as an additional <spanx style="verb">keyword</spanx> property on the Comparator object.</t>
 </list>
 </t>
 <t>The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's <spanx style="verb">capabilities</spanx> object (see <xref target="additions-to-the-capabilities-object"/>).
@@ -1718,12 +1718,12 @@ Within a phrase, to match one of the following characters you MUST escape it by 
   "isAscending": false
 }]
 </artwork></figure>
-<t>This would sort emails in flagged threads first (the thread is considered flagged if any email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails have identical values for all three properties, then the order is server dependent but must be stable.
+<t>This would sort emails in flagged Threads first (the Thread is considered flagged if any email within it is flagged), in subject order second, and then from newest first for messages with the same subject. If two emails have identical values for all three properties, then the order is server dependent but must be stable.
 </t>
 </section>
 
 <section anchor="thread-collapsing" title="Thread Collapsing">
-<t>When <spanx style="verb">collapseThreads</spanx> is <spanx style="verb">true</spanx>, then after filtering and sorting the email list, the list is further winnowed by removing any emails for a thread id that has already been seen (when passing through the list sequentially). A thread will therefore only appear <spanx style="strong">once</spanx> in the result, at the position of the first email in the list that belongs to the thread (given the current sort/filter).
+<t>When <spanx style="verb">collapseThreads</spanx> is <spanx style="verb">true</spanx>, then after filtering and sorting the email list, the list is further winnowed by removing any emails for a Thread id that has already been seen (when passing through the list sequentially). A Thread will therefore only appear <spanx style="strong">once</spanx> in the result, at the position of the first email in the list that belongs to the Thread (given the current sort/filter).
 </t>
 </section>
 </section>
@@ -1922,7 +1922,7 @@ A map of the creation id to a SetError object for each Email that failed to be c
 <t>receivedAt</t>
 </list>
 </t>
-<t>The <spanx style="verb">threadId</spanx> property of the Email MAY be present if the server can calculate which thread the Email would be assigned to were it to be imported. Otherwise, this too is null if fetched.
+<t>The <spanx style="verb">threadId</spanx> property of the Email MAY be present if the server can calculate which Thread the Email would be assigned to were it to be imported. Otherwise, this too is null if fetched.
 </t>
 <t>The <spanx style="verb">Email/parse</spanx> method takes the following arguments:
 </t>
@@ -1980,7 +1980,7 @@ A list of blob ids given that could not be found, or null if none.</t>
 </section>
 
 <section anchor="examples" title="Examples">
-<t>A client logs in for the first time. It first fetches the set of Mailboxes. Now it will display the inbox to the user, which we will presume has Mailbox id &quot;fb666a55&quot;. The inbox may be (very!) large, but the user's screen is only so big, so the client can just load the threads it needs to fill the screen and then load in more only when the user scrolls. The client sends this request:
+<t>A client logs in for the first time. It first fetches the set of Mailboxes. Now it will display the inbox to the user, which we will presume has Mailbox id &quot;fb666a55&quot;. The inbox may be (very!) large, but the user's screen is only so big, so the client can just load the Threads it needs to fill the screen and then load in more only when the user scrolls. The client sends this request:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2039,13 +2039,13 @@ A list of blob ids given that could not be found, or null if none.</t>
 </artwork></figure>
 <t>Let's break down the 4 method calls to see what they're doing:
 </t>
-<t>&quot;0&quot;: This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same thread as a newer message in the Mailbox (i.e., it is the first 30 unique threads).
+<t>&quot;0&quot;: This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same Thread as a newer message in the Mailbox (i.e., it is the first 30 unique Threads).
 </t>
-<t>&quot;1&quot;: Now we use a back-reference to fetch the thread ids for each of these email ids.
+<t>&quot;1&quot;: Now we use a back-reference to fetch the Thread ids for each of these email ids.
 </t>
-<t>&quot;2&quot;: Another back-reference fetches the Thread object for each of these thread ids.
+<t>&quot;2&quot;: Another back-reference fetches the Thread object for each of these Thread ids.
 </t>
-<t>&quot;3&quot;: Finally, we fetch the information we need to display the Mailbox listing (but no more!) for every message in each of these 30 threads. The client may aggregate this data for display, for example, by showing the thread as &quot;flagged&quot; if any of the messages in it contain the <spanx style="verb">$flagged</spanx> keyword.
+<t>&quot;3&quot;: Finally, we fetch the information we need to display the Mailbox listing (but no more!) for every message in each of these 30 Threads. The client may aggregate this data for display, for example, by showing the Thread as &quot;flagged&quot; if any of the messages in it contain the <spanx style="verb">$flagged</spanx> keyword.
 </t>
 <t>The response from the server may look something like this:
 </t>
@@ -2559,7 +2559,7 @@ The id of the Identity to associate with this submission.</t>
 The id of the email to send. The email being sent does not have to be a draft, for example, when &quot;redirecting&quot; an existing email to a different address.</t>
 
 <t>threadId: <spanx style="verb">Id</spanx> (immutable; server-set)<vspace blankLines="1" />
-The thread id of the email to send. This is set by the server to the <spanx style="verb">threadId</spanx> property of the email referenced by the <spanx style="verb">emailId</spanx>.</t>
+The Thread id of the email to send. This is set by the server to the <spanx style="verb">threadId</spanx> property of the email referenced by the <spanx style="verb">emailId</spanx>.</t>
 
 <t>envelope: <spanx style="verb">Envelope|null</spanx> (immutable)<vspace blankLines="1" />
 Information for use when sending via SMTP.

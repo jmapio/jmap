@@ -33,21 +33,21 @@ A **Mailbox** object has the following properties:
 - **unreadEmails**: `UnsignedInt` (server-set)
   The number of emails in this Mailbox that have neither the `$seen` keyword nor the `$draft` keyword.
 - **totalThreads**: `UnsignedInt` (server-set)
-  The number of threads where at least one email in the thread is in this Mailbox.
+  The number of Threads where at least one email in the Thread is in this Mailbox.
 - **unreadThreads**: `UnsignedInt` (server-set)
-  An indication of the number of "unread" threads in the Mailbox.
+  An indication of the number of "unread" Threads in the Mailbox.
 
-    For compatibility with existing implementations, the way "unread threads" is
-    determined is not mandated in this document. The simplest solution to implement is simply the number of threads where at least one email in the thread is both in this Mailbox and has neither the `$seen` nor `$draft` keywords.
+    For compatibility with existing implementations, the way "unread Threads" is
+    determined is not mandated in this document. The simplest solution to implement is simply the number of Threads where at least one Email in the Thread is both in this Mailbox and has neither the `$seen` nor `$draft` keywords.
 
-    However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A thread is shown as unread if it contains any unread messages that will be displayed when the thread is opened. Therefore, `unreadThreads` should be the number of threads where at least one email in the thread has neither the `$seen` nor the `$draft` keyword AND at least one email in the thread is in this Mailbox. Note that the unread email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose `role` is `trash`) requires special treatment:
+    However, a quality implementation will return the number of unread items the user would see if they opened that Mailbox. A Thread is shown as unread if it contains any unread messages that will be displayed when the Thread is opened. Therefore, `unreadThreads` should be the number of Threads where at least one Email in the Thread has neither the `$seen` nor the `$draft` keyword AND at least one Email in the Thread is in this Mailbox. Note that the unread email does not need to be the one in this Mailbox. In addition, the trash Mailbox (that is, a Mailbox whose `role` is `trash`) requires special treatment:
 
     1. Emails that are **only** in the trash (and no other Mailbox) are ignored when calculating the `unreadThreads` count of other Mailboxes.
     2. Emails that are **not** in the trash are ignored when calculating the `unreadThreads` count for the trash Mailbox.
 
-    The result of this is that emails in the trash are treated as though they are in a separate thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a thread in another Mailbox, and vice versa. This allows you to delete a single email to the trash out of a thread.
+    The result of this is that emails in the trash are treated as though they are in a separate Thread for the purposes of unread counts. It is expected that clients will hide emails in the trash when viewing a Thread in another Mailbox, and vice versa. This allows you to delete a single email to the trash out of a Thread.
 
-    For example, suppose you have an account where the entire contents is a single thread with 2 emails: an unread email in the trash and a read email in the inbox. The `unreadThreads` count would be `1` for the trash and `0` for the inbox.
+    For example, suppose you have an account where the entire contents is a single Thread with 2 emails: an unread email in the trash and a read email in the inbox. The `unreadThreads` count would be `1` for the trash and `0` for the inbox.
 
 - **myRights**: `MailboxRights` (server-set)
   The set of rights (Access Control Lists (ACLs)) the user has in relation to this Mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A **MailboxRights** object has the following properties:
@@ -91,9 +91,9 @@ Standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argum
 Standard "/changes" method as described in [@!RFC8620], Section 5.2 but with one extra argument to the response:
 
 - **updatedProperties**: `String[]|null`
-  If only the Mailbox counts (unread/total emails/threads) have changed since the old state, this will be the list of properties that may have changed, i.e., `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
+  If only the Mailbox counts (unread/total Emails/Threads) have changed since the old state, this will be the list of properties that may have changed, i.e., `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
-Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to email/thread counts separate from other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same single request, so only these properties are returned if nothing else has changed.
+Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to Email/Thread counts separate from other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same single request, so only these properties are returned if nothing else has changed.
 
 ## Mailbox/query
 
