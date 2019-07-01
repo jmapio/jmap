@@ -129,7 +129,7 @@ user's inbox has been shared as read-only with them.
 <t>This document uses the same terminology as in the core JMAP specification.
 </t>
 <t>The camel-cased terms Mailbox, Thread, Email, SearchSnippet, EmailSubmission and VacationResponse are used to refer to the data types defined in this document, and instances of those data types.</t>
-<t>The lowercase term message refers to a document in Internet Message Format, as described in <xref target="RFC5322"/>.</t>
+<t>The term message refers to a document in Internet Message Format, as described in <xref target="RFC5322"/>.</t>
 </section>
 
 <section anchor="additions-to-the-capabilities-object" title="Additions to the Capabilities Object">
@@ -2442,28 +2442,28 @@ ids were found.</t>
 <t>
 <list style="symbols">
 <t>id: <spanx style="verb">Id</spanx> (immutable; server-set)<vspace blankLines="1" />
-The id of the identity.</t>
+The id of the Identity.</t>
 
 <t>name: <spanx style="verb">String</spanx> (default: &quot;&quot;)<vspace blankLines="1" />
-The &quot;From&quot; <spanx style="verb">name</spanx> the client SHOULD use when creating a new message from this identity.</t>
+The &quot;From&quot; <spanx style="verb">name</spanx> the client SHOULD use when creating a new message from this Identity.</t>
 
 <t>email: <spanx style="verb">String</spanx> (immutable)<vspace blankLines="1" />
-The &quot;From&quot; email address the client MUST use when creating a new message from this identity. If the <spanx style="verb">mailbox</spanx> part of the address (the section before the &quot;@&quot;) is the single character <spanx style="verb">*</spanx> (e.g., <spanx style="verb">*@example.com</spanx>), the client may use any valid address ending in that domain (e.g., <spanx style="verb">foo@example.com</spanx>).</t>
+The &quot;From&quot; email address the client MUST use when creating a new message from this Identity. If the <spanx style="verb">mailbox</spanx> part of the address (the section before the &quot;@&quot;) is the single character <spanx style="verb">*</spanx> (e.g., <spanx style="verb">*@example.com</spanx>), the client may use any valid address ending in that domain (e.g., <spanx style="verb">foo@example.com</spanx>).</t>
 
 <t>replyTo: <spanx style="verb">EmailAddress[]|null</spanx> (default: null)<vspace blankLines="1" />
-The Reply-To value the client SHOULD set when creating a new message from this identity.</t>
+The Reply-To value the client SHOULD set when creating a new message from this Identity.</t>
 
 <t>bcc: <spanx style="verb">EmailAddress[]|null</spanx> (default: null)<vspace blankLines="1" />
-The Bcc value the client SHOULD set when creating a new message from this identity.</t>
+The Bcc value the client SHOULD set when creating a new message from this Identity.</t>
 
 <t>textSignature: <spanx style="verb">String</spanx> (default: &quot;&quot;)<vspace blankLines="1" />
-Signature the client SHOULD insert into new plaintext messages that will be sent from this identity. Clients MAY ignore this and/or combine this with a client-specific signature preference.</t>
+Signature the client SHOULD insert into new plaintext messages that will be sent from this Identity. Clients MAY ignore this and/or combine this with a client-specific signature preference.</t>
 
 <t>htmlSignature: <spanx style="verb">String</spanx> (default: &quot;&quot;)<vspace blankLines="1" />
-Signature the client SHOULD insert into new HTML messages that will be sent from this identity. This text MUST be an HTML snippet to be inserted into the <spanx style="verb">&lt;body&gt;&lt;/body&gt;</spanx> section of the new email. Clients MAY ignore this and/or combine this with a client-specific signature preference.</t>
+Signature the client SHOULD insert into new HTML messages that will be sent from this Identity. This text MUST be an HTML snippet to be inserted into the <spanx style="verb">&lt;body&gt;&lt;/body&gt;</spanx> section of the new email. Clients MAY ignore this and/or combine this with a client-specific signature preference.</t>
 
 <t>mayDelete: <spanx style="verb">Boolean</spanx> (server-set)<vspace blankLines="1" />
-Is the user allowed to delete this identity? Servers may wish to set this to <spanx style="verb">false</spanx> for the user's username or other default address. Attempts to destroy an identity with <spanx style="verb">mayDelete: false</spanx> will be rejected with a standard <spanx style="verb">forbidden</spanx> SetError.</t>
+Is the user allowed to delete this Identity? Servers may wish to set this to <spanx style="verb">false</spanx> for the user's username or other default address. Attempts to destroy an Identity with <spanx style="verb">mayDelete: false</spanx> will be rejected with a standard <spanx style="verb">forbidden</spanx> SetError.</t>
 </list>
 </t>
 <t>See the &quot;Addresses&quot; header form description in the Email object for the definition of EmailAddress.
@@ -2491,7 +2491,7 @@ Is the user allowed to delete this identity? Servers may wish to set this to <sp
 <t>
 <list style="symbols">
 <t><spanx style="verb">forbiddenFrom</spanx>: The user is not allowed to send from the address given as
-the <spanx style="verb">email</spanx> property of the identity.</t>
+the <spanx style="verb">email</spanx> property of the Identity.</t>
 </list>
 </t>
 </section>
@@ -2553,7 +2553,7 @@ the <spanx style="verb">email</spanx> property of the identity.</t>
 The id of the email submission.</t>
 
 <t>identityId: <spanx style="verb">Id</spanx> (immutable)<vspace blankLines="1" />
-The id of the identity to associate with this submission.</t>
+The id of the Identity to associate with this submission.</t>
 
 <t>emailId: <spanx style="verb">Id</spanx> (immutable)<vspace blankLines="1" />
 The id of the email to send. The email being sent does not have to be a draft, for example, when &quot;redirecting&quot; an existing email to a different address.</t>
@@ -2590,7 +2590,7 @@ If the <spanx style="verb">envelope</spanx> property is null or omitted on creat
 <vspace blankLines="1" />
 If multiple addresses are present in one of these headers, or there is more than one Sender/From header, the server SHOULD reject the email as invalid; otherwise, it MUST take the first address in the last Sender/From header in the version of the message described in <xref target="RFC5322"/>.
 <vspace blankLines="1" />
-If the address found from this is not allowed by the identity associated with this submission, the <spanx style="verb">email</spanx> property from the identity MUST be used instead.</t>
+If the address found from this is not allowed by the Identity associated with this submission, the <spanx style="verb">email</spanx> property from the Identity MUST be used instead.</t>
 
 <t><spanx style="verb">rcptTo</spanx>: The deduplicated set of email addresses from the To, Cc, and Bcc headers, if present, with no parameters for any of them.</t>
 </list></t>
@@ -2768,7 +2768,7 @@ A list of EmailSubmission ids for which the email with the corresponding emailId
 </t>
 <t>If the email to be sent is larger than the server supports sending, a standard <spanx style="verb">tooLarge</spanx> SetError MUST be returned. A <spanx style="verb">maxSize</spanx> <spanx style="verb">UnsignedInt</spanx> property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
 </t>
-<t>If the email or identity id given cannot be found, the submission creation is rejected with a standard <spanx style="verb">invalidProperties</spanx> SetError.
+<t>If the email or Identity id given cannot be found, the submission creation is rejected with a standard <spanx style="verb">invalidProperties</spanx> SetError.
 </t>
 <t>The following extra SetError types are defined:
 </t>
@@ -3045,7 +3045,7 @@ target="RFC7677"/>.
 <section anchor="permission-to-send-from-an-address" title="Permission to Send from an Address">
 <t>In recent years, the email ecosystem has moved towards associating trust with the From address in the message <xref target="RFC5322"/>, particularly with schemes such as Domain-based Message Authentication, Reporting, and Conformance (DMARC) <xref target="RFC7489"/>.
 </t>
-<t>The set of Identity objects (see <xref target="identities"/>) in an account lets the client know which email addresses the user has permission to send from. Each email submission is associated with an identity, and servers SHOULD reject submissions where the From header field of the email does not correspond to the associated identity.
+<t>The set of Identity objects (see <xref target="identities"/>) in an account lets the client know which email addresses the user has permission to send from. Each email submission is associated with an Identity, and servers SHOULD reject submissions where the From header field of the email does not correspond to the associated Identity.
 </t>
 <t>The server MAY allow an exception to send an exact copy of an existing message received into the mail store to another address (otherwise known as &quot;redirecting&quot; or &quot;bouncing&quot;), although it is RECOMMENDED the server limit this to destinations the user has verified they also control.
 </t>
@@ -3528,7 +3528,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </t>
 <t>Change controller: IETF
 </t>
-<t>Reference: This document, Sections <xref target="identityset" format="counter"/> and <xref target="emailsubmissionset" format="counter"/>
+<t>Reference: This document, Sections <xref target="Identityset" format="counter"/> and <xref target="emailsubmissionset" format="counter"/>
 </t>
 <t>Description: The server does not permit the user to send an email with the From header field per RFC 5322 of the email to be sent.
 </t>

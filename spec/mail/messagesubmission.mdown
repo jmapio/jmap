@@ -5,7 +5,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
 - **id**: `Id` (immutable; server-set)
   The id of the email submission.
 - **identityId**: `Id` (immutable)
-  The id of the identity to associate with this submission.
+  The id of the Identity to associate with this submission.
 - **emailId**: `Id` (immutable)
   The id of the email to send. The email being sent does not have to be a draft, for example, when "redirecting" an existing email to a different address.
 - **threadId**: `Id` (immutable; server-set)
@@ -40,7 +40,7 @@ An **EmailSubmission** object represents the submission of an email for delivery
 
         If multiple addresses are present in one of these headers, or there is more than one *Sender*/*From* header, the server SHOULD reject the email as invalid; otherwise, it MUST take the first address in the last *Sender*/*From* header in the  version of the message described in [@!RFC5322].
 
-        If the address found from this is not allowed by the identity associated with this submission, the *email* property from the identity MUST be used instead.
+        If the address found from this is not allowed by the Identity associated with this submission, the *email* property from the Identity MUST be used instead.
 
     - **rcptTo**: The deduplicated set of email addresses from the *To*, *Cc*,
       and *Bcc* headers, if present, with no parameters for any of them.
@@ -200,7 +200,7 @@ Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries i
 
 If the email to be sent is larger than the server supports sending, a standard `tooLarge` SetError MUST be returned. A *maxSize* `UnsignedInt` property MUST be present on the SetError specifying the maximum size of an email that may be sent, in octets.
 
-If the email or identity id given cannot be found, the submission creation is rejected with a standard `invalidProperties` SetError.
+If the email or Identity id given cannot be found, the submission creation is rejected with a standard `invalidProperties` SetError.
 
 The following extra *SetError* types are defined:
 
