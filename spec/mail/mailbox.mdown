@@ -142,7 +142,7 @@ Standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
 
 Standard "/set" method as described in [@!RFC8620], Section 5.3, but with the following additional request argument:
 
-- **onDestroyRemoveMessages**: `Boolean` (default: false)
+- **onDestroyRemoveEmails**: `Boolean` (default: false)
   If `false`, any attempt to destroy a Mailbox that still has Emails in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any Emails that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.
 
 The following extra *SetError* types are defined:
@@ -152,7 +152,7 @@ For **destroy**:
 - `mailboxHasChild`: The Mailbox still has at least one child Mailbox. The
   client MUST remove these before it can delete the parent Mailbox.
 - `mailboxHasEmail`: The Mailbox has at least one Email assigned to it, and
-  the *onDestroyRemoveMessages* argument was `false`.
+  the *onDestroyRemoveEmails* argument was `false`.
 
 ## Example
 
