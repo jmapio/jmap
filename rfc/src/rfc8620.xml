@@ -791,11 +791,11 @@ If the result of applying the rest of the pointer tokens to a value was itself a
     "destroyed": []
 }, "t0" ]]
 </artwork></figure>
-<t>To execute the Foo/get call, we look through the arguments and find there is one with a <spanx style="verb">#</spanx> prefix. To resolve this, we apply the algorithm above:
+<t>To execute the <spanx style="verb">Foo/get</spanx> call, we look through the arguments and find there is one with a <spanx style="verb">#</spanx> prefix. To resolve this, we apply the algorithm above:
 </t>
 <t>
 <list style="numbers">
-<t>Find the first response with method call id &quot;t0&quot;. The Foo/changes response
+<t>Find the first response with method call id &quot;t0&quot;. The <spanx style="verb">Foo/changes</spanx> response
 fulfils this criterion.</t>
 
 <t>Check that the response name is the same as in the result reference. It is, so
@@ -805,7 +805,7 @@ selects the &quot;created&quot; property, so the result of evaluating is:
 [ "f1", "f4" ].</t>
 </list>
 </t>
-<t>The JMAP server now continues to process the Foo/get call as though the arguments were:
+<t>The JMAP server now continues to process the <spanx style="verb">Foo/get</spanx> call as though the arguments were:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -896,7 +896,7 @@ selects the &quot;created&quot; property, so the result of evaluating is:
     "notFound": []
 }, "t2" ]]
 </artwork></figure>
-<t>To execute the final Email/get call, we look through the arguments and find there is one with a <spanx style="verb">#</spanx> prefix. To resolve this, we apply the algorithm:
+<t>To execute the final <spanx style="verb">Email/get</spanx> call, we look through the arguments and find there is one with a <spanx style="verb">#</spanx> prefix. To resolve this, we apply the algorithm:
 </t>
 <t>
 <list style="numbers">
@@ -914,7 +914,7 @@ fulfils this criterion.</t>
 </list></t>
 </list>
 </t>
-<t>The JMAP server now continues to process the Email/get call as though the arguments were:
+<t>The JMAP server now continues to process the <spanx style="verb">Email/get</spanx> call as though the arguments were:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -962,7 +962,7 @@ Content-Language: de
 </section>
 
 <section anchor="the-coreecho-method" title="The Core/echo Method">
-<t>The Core/echo method returns exactly the same arguments as it is given. It is useful for testing if you have a valid authenticated connection to a JMAP API endpoint.
+<t>The <spanx style="verb">Core/echo</spanx> method returns exactly the same arguments as it is given. It is useful for testing if you have a valid authenticated connection to a JMAP API endpoint.
 </t>
 
 <section anchor="example-2" title="Example">
@@ -1382,7 +1382,7 @@ A map of the creation id to a SetError object for each record that failed to be 
 </t>
 <t>The SetError may be any of the standard set errors returned for a create or update.  In addition, the following SetError is defined:
 </t>
-<t><spanx style="verb">alreadyExists</spanx>: The server forbids duplicates, and the record already exists in the target account. An <spanx style="verb">existingId</spanx> property of type <spanx style="verb">Id</spanx> MUST be included on the error object with the id of the existing record.
+<t><spanx style="verb">alreadyExists</spanx>: The server forbids duplicates, and the record already exists in the target account. An <spanx style="verb">existingId</spanx> property of type <spanx style="verb">Id</spanx> MUST be included on the SetError object with the id of the existing record.
 </t>
 
 <t>The following additional errors may be returned instead of the <spanx style="verb">Foo/copy</spanx> response:
@@ -1429,7 +1429,7 @@ The conditions to evaluate against each record.</t>
 A <spanx style="strong">FilterCondition</spanx> is an <spanx style="verb">object</spanx> whose allowed properties and semantics depend on the data type and is defined in the /query method specification for that type. It MUST NOT have an <spanx style="verb">operator</spanx> property.</t>
 
 <t>sort: <spanx style="verb">Comparator[]|null</spanx><vspace blankLines="1" />
-Lists the names of properties to compare between two Foo records, and how to compare them, to determine which comes first in the sort. If two Foo records have an identical value for the first comparator, the next comparator will be considered, and so on. If all comparators are the same (this includes the case where an empty array or null is given as the <spanx style="verb">sort</spanx> argument), the sort order is server dependent, but it MUST be stable between calls to Foo/query.
+Lists the names of properties to compare between two Foo records, and how to compare them, to determine which comes first in the sort. If two Foo records have an identical value for the first comparator, the next comparator will be considered, and so on. If all comparators are the same (this includes the case where an empty array or null is given as the <spanx style="verb">sort</spanx> argument), the sort order is server dependent, but it MUST be stable between calls to <spanx style="verb">Foo/query</spanx>.
 A <spanx style="strong">Comparator</spanx> has the following properties:
 
 <list style="symbols">
@@ -2157,7 +2157,7 @@ A list of types the client is interested in (using the same names as the keys in
 <section anchor="pushsubscriptionget" title="PushSubscription/get">
 <t>Standard /get method as described in <xref target="get"/>, except it does <spanx style="strong">not</spanx> take or return an <spanx style="verb">accountId</spanx> argument, as push subscriptions are not tied to specific accounts. It also does <spanx style="strong">not</spanx> return a <spanx style="verb">state</spanx> argument. The <spanx style="verb">ids</spanx> argument may be null to fetch all at once.
 </t>
-<t>The server MUST only return push subscriptions that were created using the same authentication credentials as for this PushSubscription/get request.
+<t>The server MUST only return push subscriptions that were created using the same authentication credentials as for this <spanx style="verb">PushSubscription/get</spanx> request.
 </t>
 <t>As the <spanx style="verb">url</spanx> and <spanx style="verb">keys</spanx> properties may contain data that is private to a particular device, the values for these properties MUST NOT be returned. If the <spanx style="verb">properties</spanx> argument is null or omitted, the server MUST default to all properties excluding these two. If one of them is explicitly requested, the method call MUST be rejected with a <spanx style="verb">forbidden</spanx> error.
 </t>
@@ -2783,7 +2783,7 @@ Description: An anchor argument was supplied, but it cannot be found in the resu
 Intended Use: Common <vspace/>
 Change Controller: IETF <vspace/>
 Reference: RFC 8620, <xref target="copy"/><vspace/>
-Description: The server forbids duplicates, and the record already exists in the target account. An existingId property of type Id MUST be included on the error object with the id of the existing record.</t>
+Description: The server forbids duplicates, and the record already exists in the target account. An existingId property of type Id MUST be included on the SetError object with the id of the existing record.</t>
 </list></t>
 
 <t><list style="symbols">

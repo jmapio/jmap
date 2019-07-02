@@ -46,7 +46,7 @@ These properties represent metadata about the message in the mail store and are 
     - `$flagged`: The Email has been flagged for urgent/special attention.
     - `$answered`: The Email has been replied to.
 
-    The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts).
+    The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts properties).
 
     Users may add arbitrary keywords to an Email. For compatibility with IMAP, a keyword is a case-insensitive string of 1–255 characters in the ASCII subset %x21–%x7e (excludes control chars and space), and it MUST NOT include any of these characters:
 
@@ -805,7 +805,7 @@ The following extra *SetError* types are defined:
 For **create**:
 
 - `blobNotFound`: At least one blob id given for an EmailBodyPart doesn't
-  exist. An extra *notFound* property of type `Id[]` MUST be included in the error object containing every *blobId* referenced by an EmailBodyPart that could not be found on the server.
+  exist. An extra *notFound* property of type `Id[]` MUST be included in the SetError object containing every *blobId* referenced by an EmailBodyPart that could not be found on the server.
 
 For **create** and **update**:
 
@@ -846,7 +846,7 @@ An **EmailImport** object has the following properties:
 
 Each Email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given Mailboxes, keywords, and receivedAt date.
 
-The server MAY forbid two Email objects with the same exact content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account. In this case, it MUST reject attempts to import an Email considered to be a duplicate with an `alreadyExists` SetError. An *existingId* property of type `Id` MUST be included on the error object with the id of the existing Email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
+The server MAY forbid two Email objects with the same exact content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account. In this case, it MUST reject attempts to import an Email considered to be a duplicate with an `alreadyExists` SetError. An *existingId* property of type `Id` MUST be included on the SetError object with the id of the existing Email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
 
 If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g., missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
 

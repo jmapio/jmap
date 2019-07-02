@@ -174,7 +174,7 @@ Original:
 
 neilj: Thanks, fixed.
 -->
-A list of all the values the server supports for the &quot;property&quot; field of the Comparator object in an Email/query sort (see <xref target="sorting" />). This MAY include properties the client does not recognise (for example, custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.</t>
+A list of all the values the server supports for the &quot;property&quot; field of the Comparator object in an <spanx style="verb">Email/query</spanx> sort (see <xref target="sorting" />). This MAY include properties the client does not recognise (for example, custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.</t>
 
 <t>mayCreateTopLevelMailbox: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
 If true, the user may create a Mailbox (see <xref target="mailboxes"/>) in this account with
@@ -388,7 +388,7 @@ style="verb">null</spanx> to fetch all at once.
 <t>
 <list style="symbols">
 <t>updatedProperties: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
-If only the Mailbox counts (unread/total Emails/Threads) have changed since the old state, this will be the list of properties that may have changed, i.e., ["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
+If only the Mailbox counts properties (unread/total Emails/Threads) have changed since the old state, this will be the list of properties that may have changed, i.e., ["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
 </list>
 </t>
 
@@ -794,7 +794,7 @@ Keywords are shared with IMAP. The six system keywords from IMAP get special tre
 <t><spanx style="verb">$flagged</spanx>: The Email has been flagged for urgent/special attention.</t>
 <t><spanx style="verb">$answered</spanx>: The Email has been replied to.</t>
 </list>
-The IMAP <spanx style="verb">\Recent</spanx> keyword is not exposed via JMAP. The IMAP <spanx style="verb">\Deleted</spanx> keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the <spanx style="verb">\Deleted</spanx> keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts).
+The IMAP <spanx style="verb">\Recent</spanx> keyword is not exposed via JMAP. The IMAP <spanx style="verb">\Deleted</spanx> keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the <spanx style="verb">\Deleted</spanx> keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts properties).
 <vspace blankLines="1" />
 Users may add arbitrary keywords to an Email. For compatibility with IMAP, a
 keyword is a case-insensitive string of 1-255 characters in the ASCII subset
@@ -1280,7 +1280,7 @@ A list, traversing depth-first, of all parts in <spanx style="verb">bodyStructur
 <spanx style="verb">htmlBody</spanx></t>
 </list>
 
-None of these parts include subParts, including <spanx style="verb">message/*</spanx> types. Attached messages may be fetched using the Email/parse method and the blobId.
+None of these parts include subParts, including <spanx style="verb">message/*</spanx> types. Attached messages may be fetched using the <spanx style="verb">Email/parse</spanx> method and the <spanx style="verb">blobId</spanx>.
 <vspace blankLines="1" />
 Note that a <spanx style="verb">text/html</spanx> body part <xref target="HTML"/> may reference image parts in attachments by using <spanx style="verb">cid:</spanx> links to reference the Content-Id, as defined in <xref target="RFC2392"/>, or by referencing the Content-Location.</t>
 
@@ -1817,7 +1817,7 @@ either false or omitted.</t>
 <t>
 <list style="symbols">
 <t><spanx style="verb">blobNotFound</spanx>: At least one blob id given for an EmailBodyPart doesn't
-exist. An extra <spanx style="verb">notFound</spanx> property of type <spanx style="verb">Id[]</spanx> MUST be included in the error object containing every <spanx style="verb">blobId</spanx> referenced by an EmailBodyPart that could not be found on the server.</t>
+exist. An extra <spanx style="verb">notFound</spanx> property of type <spanx style="verb">Id[]</spanx> MUST be included in the SetError object containing every <spanx style="verb">blobId</spanx> referenced by an EmailBodyPart that could not be found on the server.</t>
 </list>
 </t>
 <t>For <spanx style="verb">create</spanx> and <spanx style="verb">update</spanx>:
@@ -1874,7 +1874,7 @@ The <spanx style="verb">receivedAt</spanx> date to set on the Email.</t>
 </t>
 <t>Each Email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given Mailboxes, keywords, and receivedAt date.
 </t>
-<t>The server MAY forbid two Email objects with the same exact content <xref target="RFC5322"/>, or even just with the same Message-ID <xref target="RFC5322"/>, to coexist within an account. In this case, it MUST reject attempts to import an Email considered to be a duplicate with an <spanx style="verb">alreadyExists</spanx> SetError. An <spanx style="verb">existingId</spanx> property of type <spanx style="verb">Id</spanx> MUST be included on the error object with the id of the existing Email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
+<t>The server MAY forbid two Email objects with the same exact content <xref target="RFC5322"/>, or even just with the same Message-ID <xref target="RFC5322"/>, to coexist within an account. In this case, it MUST reject attempts to import an Email considered to be a duplicate with an <spanx style="verb">alreadyExists</spanx> SetError. An <spanx style="verb">existingId</spanx> property of type <spanx style="verb">Id</spanx> MUST be included on the SetError object with the id of the existing Email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
 </t>
 <t>If the <spanx style="verb">blobId</spanx>, <spanx style="verb">mailboxIds</spanx>, or <spanx style="verb">keywords</spanx> properties are invalid (e.g., missing, wrong type, id not found), the server MUST reject the import with an <spanx style="verb">invalidProperties</spanx> SetError.
 </t>
@@ -1939,7 +1939,7 @@ If supplied, only the properties listed in the array are returned for each Email
 [ &quot;messageId&quot;, &quot;inReplyTo&quot;, &quot;references&quot;, &quot;sender&quot;, &quot;from&quot;, &quot;to&quot;, &quot;cc&quot;, &quot;bcc&quot;, &quot;replyTo&quot;, &quot;subject&quot;, &quot;sentAt&quot;, &quot;hasAttachment&quot;, &quot;preview&quot;, &quot;bodyValues&quot;, &quot;textBody&quot;, &quot;htmlBody&quot;, &quot;attachments&quot; ]</t>
 
 <t>bodyProperties: <spanx style="verb">String[]</spanx><vspace blankLines="1" />
-A list of properties to fetch for each EmailBodyPart returned. If omitted, defaults to the same value as the Email/get &quot;bodyProperties&quot; default argument.</t>
+A list of properties to fetch for each EmailBodyPart returned. If omitted, defaults to the same value as the <spanx style="verb">Email/get</spanx> <spanx style="verb">bodyProperties</spanx> default argument.</t>
 <t>fetchTextBodyValues: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
 If true, the <spanx style="verb">bodyValues</spanx> property includes any <spanx style="verb">text/*</spanx> part in the <spanx style="verb">textBody</spanx> property.</t>
 
@@ -2357,7 +2357,7 @@ If text from the filter matches the plaintext or HTML body, this is the relevant
 The id of the account to use.</t>
 
 <t>filter: <spanx style="verb">FilterOperator|FilterCondition|null</spanx><vspace blankLines="1" />
-The same filter as passed to Email/query; see the description of this method in <xref target="emailquery"/> for details.</t>
+The same filter as passed to <spanx style="verb">Email/query</spanx>; see the description of this method in <xref target="emailquery"/> for details.</t>
 
 <t>emailIds: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
 The ids of the Emails to fetch snippets for.</t>
@@ -2389,7 +2389,7 @@ ids were found.</t>
 </section>
 
 <section anchor="example-4" title="Example">
-<t>Here, we did an Email/query to search for any Email in the account containing the word &quot;foo&quot;; now, we are fetching the search snippets for some of the ids that were returned in the results:
+<t>Here, we did an <spanx style="verb">Email/query</spanx> to search for any Email in the account containing the word &quot;foo&quot;; now, we are fetching the search snippets for some of the ids that were returned in the results:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -2761,7 +2761,7 @@ A list of EmailSubmission ids for which the Email with the corresponding <spanx 
 </t>
 <t>An Email is sent by creating an EmailSubmission object. When processing each create, the server must check that the message is valid, and the user has sufficient authorisation to send it. If the creation succeeds, the message will be sent to the recipients given in the envelope <spanx style="verb">rcptTo</spanx> parameter. The server MUST remove any Bcc header present on the message during delivery. The server MAY add or remove other headers from the submitted message or make further alterations in accordance with the server's policy during delivery.
 </t>
-<t>If the referenced Email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the submission (i.e., it does not cancel a future send). The <spanx style="verb">emailId</spanx> and <spanx style="verb">threadId</spanx> properties of the submission object remain, but trying to fetch them (with a standard Email/get call) will return a <spanx style="verb">notFound</spanx> error if the corresponding objects have been destroyed.
+<t>If the referenced Email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the submission (i.e., it does not cancel a future send). The <spanx style="verb">emailId</spanx> and <spanx style="verb">threadId</spanx> properties of the EmailSubmission object remain, but trying to fetch them (with a standard <spanx style="verb">Email/get</spanx> call) will return a <spanx style="verb">notFound</spanx> error if the corresponding objects have been destroyed.
 </t>
 <t>Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the submission. The server MAY automatically destroy EmailSubmission objects after some time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
 </t>
@@ -2840,7 +2840,7 @@ EmailSubmission object from <spanx style="verb">pending</spanx> to <spanx style=
   }
 }, "0" ]]
 </artwork></figure>
-<t>A successful response might look like this. Note that there are two responses due to the implicit Email/set call, but both have the same method call id as they are due to the same call in the request:
+<t>A successful response might look like this. Note that there are two responses due to the implicit <spanx style="verb">Email/set</spanx> call, but both have the same method call id as they are due to the same call in the request:
 </t>
 
 <figure align="center"><artwork align="center">
@@ -3145,8 +3145,8 @@ appropriate for use in IMAP. These keywords cannot be subsequently
 registered for use in IMAP except via standards action.
 </t>
 
-<section anchor="registration-of-jmap-keyword-draft" title="Registration of JMAP Keyword '$draft'">
-<t>This registers the "JMAP-only" keyword '$draft' in the &quot;IMAP and JMAP Keywords&quot; registry.
+<section anchor="registration-of-jmap-keyword-draft" title="Registration of JMAP Keyword &quot;$draft&quot;">
+<t>This registers the "JMAP-only" keyword <spanx style="verb">$draft</spanx> in the &quot;IMAP and JMAP Keywords&quot; registry.
 </t>
 <t>Keyword name: $draft
 </t>
@@ -3201,8 +3201,8 @@ IETF Applications and Real-Time Area &lt;art@ietf.org&gt;
 </t>
 </section>
 
-<section anchor="registration-of-jmap-keyword-seen" title="Registration of JMAP Keyword '$seen'">
-<t>This registers the "JMAP-only" keyword '$seen' in the &quot;IMAP and JMAP
+<section anchor="registration-of-jmap-keyword-seen" title="Registration of JMAP Keyword &quot;$seen&quot;">
+<t>This registers the "JMAP-only" keyword <spanx style="verb">$seen</spanx> in the &quot;IMAP and JMAP
 Keywords&quot; registry.
 </t>
 <t>Keyword name: $seen
@@ -3244,8 +3244,8 @@ IETF Applications and Real-Time Area &lt;art@ietf.org&gt;
 </t>
 </section>
 
-<section anchor="registration-of-jmap-keyword-flagged" title="Registration of JMAP Keyword '$flagged'">
-<t>This registers the "JMAP-only" keyword '$flagged' in the &quot;IMAP and JMAP
+<section anchor="registration-of-jmap-keyword-flagged" title="Registration of JMAP Keyword &quot;$flagged&quot;">
+<t>This registers the "JMAP-only" keyword <spanx style="verb">$flagged</spanx> in the &quot;IMAP and JMAP
 Keywords&quot; registry.
 </t>
 <t>Keyword name: $flagged
@@ -3288,8 +3288,8 @@ IETF Applications and Real-Time Area &lt;art@ietf.org&gt;
 </t>
 </section>
 
-<section anchor="registration-of-jmap-keyword-answered" title="Registration of JMAP Keyword '$answered'">
-<t>This registers the "JMAP-only" keyword '$answered' in the &quot;IMAP and JMAP
+<section anchor="registration-of-jmap-keyword-answered" title="Registration of JMAP Keyword &quot;$answered&quot;">
+<t>This registers the "JMAP-only" keyword <spanx style="verb">$answered</spanx> in the &quot;IMAP and JMAP
 Keywords&quot; registry.
 </t>
 <t>Keyword name: $answered
@@ -3331,8 +3331,8 @@ IETF Applications and Real-Time Area &lt;art@ietf.org&gt;
 </t>
 </section>
 
-<section anchor="registration-of-recent-keyword" title="Registration of '$recent' Keyword">
-<t>This registers the keyword '$recent' in the &quot;IMAP and JMAP Keywords&quot; registry.
+<section anchor="registration-of-recent-keyword" title="Registration of &quot;$recent&quot; Keyword">
+<t>This registers the keyword <spanx style="verb">$recent</spanx> in the &quot;IMAP and JMAP Keywords&quot; registry.
 </t>
 <t>Keyword name: $recent
 </t>
