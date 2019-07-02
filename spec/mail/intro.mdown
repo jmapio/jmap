@@ -38,7 +38,7 @@ Servers MUST support all properties specified for the new data types defined in 
 
 This document uses the same terminology as in the core JMAP specification.
 
-The camel-cased terms Mailbox, Thread, Email, SearchSnippet, EmailSubmission and VacationResponse are used to refer to the data types defined in this document, and instances of those data types.
+The terms Mailbox, Thread, Email, SearchSnippet, EmailSubmission and VacationResponse (with that specific capitalisation) are used to refer to the data types defined in this document and instances of those data types.
 
 The term message refers to a document in Internet Message Format, as described in [@!RFC5322]. The Email data type represents messages in the mail store and associated metadata.
 
@@ -50,7 +50,7 @@ This document defines three additional capability URIs.
 
 ### urn:ietf:params:jmap:mail
 
-This represents support for the Mailbox, Thread, Email, and SearchSnippet data types and associated API methods. The value of this property in the JMAP session *capabilities* property is the empty object.
+This represents support for the Mailbox, Thread, Email, and SearchSnippet data types and associated API methods. The value of this property in the JMAP session *capabilities* property is an empty object.
 
 The value of this property in an account's *accountCapabilities* property is an object that MUST contain the following information on server capabilities and permissions for that account:
 
@@ -75,7 +75,7 @@ The value of this property in an account's *accountCapabilities* property is an 
 
 ### urn:ietf:params:jmap:submission
 
-This represents support for the Identity and EmailSubmission data types and associated API methods. The value of this property in the JMAP session *capabilities* property is the empty object.
+This represents support for the Identity and EmailSubmission data types and associated API methods. The value of this property in the JMAP session *capabilities* property is an empty object.
 
 The value of this property in an account's *accountCapabilities* property is an object that MUST contain the following information on server capabilities and permissions for that account:
 
@@ -86,7 +86,7 @@ The value of this property in an account's *accountCapabilities* property is an 
 - **submissionExtensions**: `String[String[]]`
   The set of SMTP submission extensions supported by the server, which the client may use when creating an EmailSubmission object (see Section 7). Each key in the object is the *ehlo-name*, and the value is a list of *ehlo-args*.
 
-    A JMAP implementation that talks to a Submission server [@!RFC6409] SHOULD have a configuration setting that allows an administrator to modify the set of submission EHLO capabilities it may expose on this property. This allows a JMAP server to easily add access to a new submission extension without code changes. By default, the JMAP server should hide EHLO capabilities that have to do with the transport mechanism and thus are only relevant to the JMAP server (for example, PIPELINING, CHUNKING, or STARTTLS).
+    A JMAP implementation that talks to a submission server [@!RFC6409] SHOULD have a configuration setting that allows an administrator to modify the set of submission EHLO capabilities it may expose on this property. This allows a JMAP server to easily add access to a new submission extension without code changes. By default, the JMAP server should hide EHLO capabilities that have to do with the transport mechanism and thus are only relevant to the JMAP server (for example, PIPELINING, CHUNKING, or STARTTLS).
 
     Examples of Submission extensions to include:
 

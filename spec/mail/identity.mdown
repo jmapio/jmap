@@ -1,6 +1,6 @@
 # Identities
 
-An **Identity** object stores information about an email address (or domain) the user may send from. It has the following properties:
+An **Identity** object stores information about an email address or domain the user may send from. It has the following properties:
 
 - **id**: `Id` (immutable; server-set)
   The id of the Identity.
@@ -13,9 +13,9 @@ An **Identity** object stores information about an email address (or domain) the
 - **bcc**: `EmailAddress[]|null` (default: null)
   The Bcc value the client SHOULD set when creating a new Email from this Identity.
 - **textSignature**: `String` (default: "")
-  Signature the client SHOULD insert into new plaintext messages that will be sent from this Identity. Clients MAY ignore this and/or combine this with a client-specific signature preference.
+  A signature the client SHOULD insert into new plaintext messages that will be sent from this Identity. Clients MAY ignore this and/or combine this with a client-specific signature preference.
 - **htmlSignature**: `String` (default: "")
-  Signature the client SHOULD insert into new HTML messages that will be sent from this Identity. This text MUST be an HTML snippet to be inserted into the `<body></body>` section of the HTML. Clients MAY ignore this and/or combine this with a client-specific signature preference.
+  A signature the client SHOULD insert into new HTML messages that will be sent from this Identity. This text MUST be an HTML snippet to be inserted into the `<body></body>` section of the HTML. Clients MAY ignore this and/or combine this with a client-specific signature preference.
 - **mayDelete**: `Boolean` (server-set)
   Is the user allowed to delete this Identity? Servers may wish to set this to `false` for the user's username or other default address. Attempts to destroy an Identity with `mayDelete: false` will be rejected with a standard `forbidden` SetError.
 

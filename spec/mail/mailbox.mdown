@@ -57,7 +57,7 @@ A **Mailbox** object has the following properties:
     - **mayAddItems**: `Boolean`
       The user may add mail to this Mailbox (by either creating a new Email or moving an existing one). Corresponds to IMAP ACL `i`.
     - **mayRemoveItems**: `Boolean`
-      The user may remove mail from this Mailbox (by either changing the Mailboxes of an Email or deleting it). Corresponds to IMAP ACLs `te` (if mapping from IMAP, both are required for this to be `true`).
+      The user may remove mail from this Mailbox (by either changing the Mailboxes of an Email or destroying the Email). Corresponds to IMAP ACLs `te` (if mapping from IMAP, both are required for this to be `true`).
     - **maySetSeen**: `Boolean`
       The user may add or remove the `$seen` keyword to/from an Email. If an Email belongs to multiple Mailboxes, the user may only modify `$seen` if they have this permission for **all** of the Mailboxes. Corresponds to IMAP ACL `s`.
     - **maySetKeywords**: `Boolean`
@@ -78,7 +78,7 @@ A **Mailbox** object has the following properties:
 
     This property corresponds to IMAP [@?RFC3501] Mailbox subscriptions.
 
-For IMAP compatibility, an Email in both the trash and another Mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove the trash Mailbox and leave it in the other Mailbox).
+For IMAP compatibility, an Email in both the trash and another Mailbox SHOULD be treated by the client as existing in both places (i.e., when emptying the trash, the client should just remove it from the trash Mailbox and leave it in the other Mailbox).
 
 The following JMAP methods are supported.
 
@@ -93,7 +93,7 @@ Standard "/changes" method as described in [@!RFC8620], Section 5.2 but with one
 - **updatedProperties**: `String[]|null`
   If only the Mailbox counts (unread/total Emails/Threads) have changed since the old state, this will be the list of properties that may have changed, i.e., `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
-Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to Email/Thread counts separate from other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same single request, so only these properties are returned if nothing else has changed.
+Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to Email/Thread counts separate from other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same request, so only these properties are returned if nothing else has changed.
 
 ## Mailbox/query
 

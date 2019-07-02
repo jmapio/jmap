@@ -38,7 +38,7 @@ An **EmailSubmission** object represents the submission of an Email for delivery
     - **mailFrom**: The email address in the *Sender* header, if present;
       otherwise, it's the email address in the *From* header, if present. In either case, no parameters are added.
 
-        If multiple addresses are present in one of these headers, or there is more than one *Sender*/*From* header, the server SHOULD reject the EmailSubmission as invalid; otherwise, it MUST take the first address in the last *Sender*/*From* header in the  version of the message described in [@!RFC5322].
+        If multiple addresses are present in one of these headers, or there is more than one *Sender*/*From* header, the server SHOULD reject the EmailSubmission as invalid; otherwise, it MUST take the first address in the last *Sender*/*From* header.
 
         If the address found from this is not allowed by the Identity associated with this submission, the *email* property from the Identity MUST be used instead.
 
@@ -51,7 +51,7 @@ An **EmailSubmission** object represents the submission of an Email for delivery
     If the client successfully used FUTURERELEASE [@!RFC4865] with the submission, this MUST be the time when the server will release the message; otherwise, it MUST be the time the EmailSubmission was created.
 
 - **undoStatus**: `String`
-  This represents whether the submission may be canceled. This is server set and MUST be one of the following values:
+  This represents whether the submission may be canceled. This is server set on create and MUST be one of the following values:
 
     - `pending`: It may be possible to cancel this submission.
     - `final`: The message has been relayed to at least one recipient in a
@@ -129,9 +129,9 @@ An **EmailSubmission** object represents the submission of an Email for delivery
         The server MAY also set this property based on other feedback channels.
 
 - **dsnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for DSNs [@!RFC3464] received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
+  A list of blob ids for DSNs [@!RFC3464] received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of `multipart/report`), as received.
 - **mdnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for MDNs [@!RFC8098] received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of multipart/report), as received.
+  A list of blob ids for MDNs [@!RFC8098] received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of `multipart/report`), as received.
 
 JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to an EmailSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and it expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
 
@@ -196,9 +196,9 @@ An Email is sent by creating an EmailSubmission object. When processing each cre
 
 If the referenced Email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the submission (i.e., it does not cancel a future send). The *emailId* and *threadId* properties of the submission object remain, but trying to fetch them (with a standard Email/get call) will return a `notFound` error if the corresponding objects have been destroyed.
 
-Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the submission. The server MAY automatically destroy EmailSubmission objects after a certain time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
+Similarly, destroying an EmailSubmission object MUST NOT affect the deliveries it represents. It purely removes the record of the submission. The server MAY automatically destroy EmailSubmission objects after some time or in response to other triggers, and MAY forbid the client from manually destroying EmailSubmission objects.
 
-If the Email to be sent is larger than the server supports sending, a standard `tooLarge` SetError MUST be returned. A *maxSize* `UnsignedInt` property MUST be present on the SetError specifying the maximum size of an Email that may be sent, in octets.
+If the message to be sent is larger than the server supports sending, a standard `tooLarge` SetError MUST be returned. A *maxSize* `UnsignedInt` property MUST be present on the SetError specifying the maximum size of an message that may be sent, in octets.
 
 If the Email or Identity id given cannot be found, the submission creation is rejected with a standard `invalidProperties` SetError.
 
@@ -229,7 +229,7 @@ For **update**:
 
 ### Example
 
-The following example presumes a draft of the Email to be sent has already been saved, and its Email id is "M7f6ed5bcfd7e2604d1753f6c". This call then sends the Email immediately, and if successful, removes the draft flag and moves it from the drafts folder (which has Mailbox id "7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e") to the sent folder (which we presume has Mailbox id "73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6").
+The following example presumes a draft of the Email to be sent has already been saved, and its Email id is "M7f6ed5bcfd7e2604d1753f6c". This call then sends the Email immediately, and if successful, removes the `$draft` flag and moves it from the drafts folder (which has Mailbox id "7cb4e8ee-df87-4757-b9c4-2ea1ca41b38e") to the sent folder (which we presume has Mailbox id "73dbcb4b-bffc-48bd-8c2a-a2e91ca672f6").
 
     [[ "EmailSubmission/set", {
       "accountId": "ue411d190",
@@ -260,7 +260,7 @@ The following example presumes a draft of the Email to be sent has already been 
       }
     }, "0" ]]
 
-A successful response might look like this. Note there are two responses due to the implicit Email/set call, but both have the same method call id as they are due to the same call in the request:
+A successful response might look like this. Note that there are two responses due to the implicit Email/set call, but both have the same method call id as they are due to the same call in the request:
 
     [[ "EmailSubmission/set", {
       "accountId": "ue411d190",

@@ -1,10 +1,10 @@
 # Emails
 
-An **Email** object is a representation of a message per [@!RFC5322], which allows clients to avoid the complexities of MIME parsing, transfer encoding, and character encoding.
+An **Email** object is a representation of a message [@!RFC5322], which allows clients to avoid the complexities of MIME parsing, transfer encoding, and character encoding.
 
 ## Properties of the Email Object
 
-Broadly, a message consists of two parts: a list of header fields and then a body. The JMAP Email object provides a way to access the full structure or to use simplified properties and avoid some complexity if this is sufficient for the client application.
+Broadly, a message consists of two parts: a list of header fields and then a body. The Email data type provides a way to access the full structure or to use simplified properties and avoid some complexity if this is sufficient for the client application.
 
 While raw headers can be fetched and set, the vast majority of clients should use an appropriate parsed form for each of the headers it wants to process, as this allows it to avoid the complexities of various encodings that are required in a valid message per RFC 5322.
 
@@ -26,16 +26,16 @@ Due to the number of properties involved, the set of *Email* properties is speci
 
 ### Metadata
 
-These properties represent metadata about the message [@!RFC5322], and are not derived from parsing the message itself.
+These properties represent metadata about the message in the mail store and are not derived from parsing the message itself.
 
 - **id**: `Id` (immutable; server-set)
-  The id of the Email object. Note that this is the JMAP object id, NOT the Message-ID header field value [@!RFC5322].
+  The id of the Email object. Note that this is the JMAP object id, NOT the Message-ID header field value of the message [@!RFC5322].
 - **blobId**: `Id` (immutable; server-set)
-  The id representing the raw octets of the message [@!RFC5322]. This may be used to download the raw original message or to attach it directly to another Email, etc.
+  The id representing the raw octets of the message [@!RFC5322] for this Email. This may be used to download the raw original message or to attach it directly to another Email, etc.
 - **threadId**: `Id` (immutable; server-set)
   The id of the Thread to which this Email belongs.
 - **mailboxIds**: `Id[Boolean]`
-  The set of Mailbox ids this Email belongs to. An Email in the mail store MUST belong to one or more Mailboxes at all times (until it is deleted). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
+  The set of Mailbox ids this Email belongs to. An Email in the mail store MUST belong to one or more Mailboxes at all times (until it is destroyed). The set is represented as an object, with each key being a *Mailbox id*. The value for each key in the object MUST be `true`.
 - **keywords**: `String[Boolean]` (default: \{\})
   A set of keywords that apply to the Email. The set is represented as an object, with the keys being the *keywords*. The value for each key in the object MUST be `true`.
 
@@ -257,7 +257,7 @@ In addition, the client may request/send properties representing individual head
 
     header:{header-field-name}
 
-Where `{header-field-name}` means any series of one or more printable ASCII characters (i.e., characters that have values between 33 and 126, inclusive), except the colon. The property may also have the following suffixes:
+Where `{header-field-name}` means any series of one or more printable ASCII characters (i.e., characters that have values between 33 and 126, inclusive), except for colon (:). The property may also have the following suffixes:
 
   - **:as{header-form}**
     This means the value is in a parsed form, where `{header-form}` is one of the parsed-form names specified above. If not given, the value is in *Raw* form.
@@ -338,7 +338,7 @@ In addition, the client may request/send EmailBodyPart properties representing i
 The following **Email** properties are specified for access to the body data of the message:
 
 - **bodyStructure**: `EmailBodyPart` (immutable)
-  This is the full MIME structure of the message body, represented as an array of the message's top-level MIME parts, without recursing into `message/rfc822` or `message/global` parts. Note that EmailBodyParts may have subParts if they are of type `multipart/*`.
+  This is the full MIME structure of the message body, without recursing into `message/rfc822` or `message/global` parts. Note that EmailBodyParts may have subParts if they are of type `multipart/*`.
 - **bodyValues**: `String[EmailBodyValue]` (immutable)
   This is a map of *partId* to an **EmailBodyValue** object for none, some, or all `text/*` parts. Which parts are included and whether the value is truncated is determined by various arguments to *Email/get* and *Email/parse*.
 
@@ -484,7 +484,7 @@ The exact algorithm for decomposing bodyStructure into textBody, htmlBody, and a
         htmlBody, textBody, attachments );
 
 For instance, consider a message with both text and HTML versions that has
-gone through a list software manager that attaches a header/footer. It might have a MIME structure something like:
+gone through a list software manager that attaches a header and footer. It might have a MIME structure something like:
 
     multipart/mixed
       text/plain, content-disposition=inline - A
@@ -715,7 +715,7 @@ The following values for the *property* field on the Comparator object SHOULD be
 - **allInThreadHaveKeyword** - This value MUST be considered `true` for the Email if **all** of the Emails in the same Thread have the keyword given as an additional *keyword* property on the *Comparator* object.
 - **someInThreadHaveKeyword** - This value MUST be considered `true` for the Email if **any** of the Emails in the same Thread have the keyword given as an additional *keyword* property on the *Comparator* object.
 
-The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the server's *capabilities* object (see Section 1.3).
+The server MAY support sorting based on other properties as well. A client can discover which properties are supported by inspecting the account's *capabilities* object (see Section 1.3).
 
 Example sort:
 
@@ -817,7 +817,7 @@ For **create** and **update**:
 
 Standard "/copy" method as described in [@!RFC8620], Section 5.4, except only the *mailboxIds*, *keywords*, and *receivedAt* properties may be set during the copy. This method cannot modify the message represented by the Email.
 
-The server MAY forbid two Email objects with the same exact content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account; if the target account already has the Email, the copy will be rejected with a standard `alreadyExists` error.
+The server MAY forbid two Email objects with identical message content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account; if the target account already has the Email, the copy will be rejected with a standard `alreadyExists` error.
 
 For successfully copied Email objects, the *created* response contains the *id*, *blobId*, *threadId*, and *size* properties of the new object.
 
@@ -983,13 +983,13 @@ A client logs in for the first time. It first fetches the set of Mailboxes. Now 
 
 Let's break down the 4 method calls to see what they're doing:
 
-"0": This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring messages from the same Thread as a newer Email in the Mailbox (i.e., it is the first 30 unique Threads).
+"0": This asks the server for the ids of the first 30 Email objects in the inbox, sorted newest first, ignoring Emails from the same Thread as a newer Email in the Mailbox (i.e., it is the first 30 unique Threads).
 
 "1": Now we use a back-reference to fetch the Thread ids for each of these Email ids.
 
 "2": Another back-reference fetches the Thread object for each of these Thread ids.
 
-"3": Finally, we fetch the information we need to display the Mailbox listing (but no more!) for every message in each of these 30 Threads. The client may aggregate this data for display, for example, by showing the Thread as "flagged" if any of the messages in it contain the `$flagged` keyword.
+"3": Finally, we fetch the information we need to display the Mailbox listing (but no more!) for every Email in each of these 30 Threads. The client may aggregate this data for display, for example, by showing the Thread as "flagged" if any of the Emails in it has the `$flagged` keyword.
 
 The response from the server may look something like this:
 
@@ -1057,7 +1057,7 @@ The response from the server may look something like this:
       "notFound": []
     }, "3" ]]
 
-Now, on another device, the user marks the first message as unread, sending this API request:
+Now, on another device, the user marks the first Email as unread, sending this API request:
 
     [[ "Email/set", {
       "accountId": "ue150411c",
@@ -1080,7 +1080,7 @@ The server applies this and sends the success response:
       ...
     }, "0" ]]
 
-The user also deletes a few messages, and then a new message arrives.
+The user also deletes a few Emails, and then a new message arrives.
 
 Back on our original machine, we receive a push update that the state string for Email is now "780800". As this does not match the client's current state, it issues a request for the changes:
 
@@ -1132,7 +1132,7 @@ The client can update its local cache of the query results by removing "M9bd1749
 
 It knows something has changed about "Ma783e5cdf5f2deffbc97930a", so it will refetch the Mailbox ids and keywords (the only mutable properties) for this Email too.
 
-The user composes a new message and saves a draft. The client sends:
+The user composes a new Email and saves a draft. The client sends:
 
     [[ "Email/set", {
       "accountId": "ue150411c",
