@@ -41,7 +41,7 @@
 <uri></uri>
 </address>
 </author>
-<date year="2019" month="June"/>
+<date year="2019" month="July"/>
 
 <area>Applications</area>
 <workgroup>JMAP</workgroup>
@@ -2354,7 +2354,7 @@ support TLS 1.3 <xref target="RFC8446"/> or later.
 
 
 </t>
-<t>Clients MUST validate TLS certificate chains to protect against man&nbhy;in&nbhy;the&nbhy;middle attacks.
+<t>Clients MUST validate TLS certificate chains to protect against man&nbhy;in&nbhy;the&nbhy;middle attacks <xref target="RFC5280"/>.
 </t>
 </section>
 
@@ -2478,7 +2478,7 @@ Transport Protocol Port Number Registry" <xref target="RFC6335"/>.
 </t>
 <t>Reference: RFC 8620
 </t>
-<t>Assignment Notes: This service name was previously assigned under the name <spanx style="verb">JSON Mail Access Protocol</spanx>.  This will be de-assigned and re-assigned with the approval of the previous assignee.
+<t>Assignment Notes: This service name was previously assigned under the name <spanx style="verb">JSON Mail Access Protocol</spanx>.  This has been de-assigned and re-assigned with the approval of the previous assignee.
 </t>
 </section>
 
@@ -2703,48 +2703,6 @@ JMAP interoperability to make this a relatively lightweight process.
 </section>
 
 <section anchor="initial-jmap-error-codes-registry" title="Initial Contents for the JMAP Error Codes Registry">
-
-<!--<texttable>
-<ttcol align="center">JMAP Error Code</ttcol>
-<ttcol align="left">Intended Use</ttcol>
-<ttcol align="center">Change Controller</ttcol>
-<ttcol align="left">Reference</ttcol>
-<ttcol align="left">Description</ttcol>
-
-<c>accountNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The accountId does not correspond to a valid account.</c>
-<c>accountNotSupportedByMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The accountId given corresponds to a valid account, but the account does not support this method or data type.</c>
-<c>accountReadOnly</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>This method modifies state, but the account is read-only (as returned on the corresponding Account object in the JMAP Session resource).</c>
-<c>anchorNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.5</c><c>An anchor argument was supplied, but it cannot be found in the results of the query.</c>
-<c>alreadyExists</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.4</c><c>The server forbids duplicates, and the record already exists in the target account. An existingId property of type Id MUST be included on the error object with the id of the existing record.</c>
-<c>cannotCalculateChanges</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.2 and 5.6</c><c>The server cannot calculate the changes from the state string given by the client.</c>
-<c>forbidden</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 3.5.2, 5.3, and 7.2.1</c><c>The action would violate an ACL or other permissions policy.</c>
-<c>fromAccountNotFound</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.4 and 6.3</c><c>The fromAccountId does not correspond to a valid account.</c><c>fromAccountNotSupportedByMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.4</c><c>The fromAccountId given corresponds to a valid account, but the account does not support this data type.</c>
-<c>invalidArguments</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>One of the arguments is of the wrong type or otherwise invalid, or a required argument is missing.</c>
-<c>invalidPatch</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The PatchObject given to update the record was not a valid patch.</c>
-<c>invalidProperties</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The record given is invalid.</c>
-<c>notFound</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The id given cannot be found.</c>
-<c>notJSON</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.1</c><c>The content type of the request was not application/json, or the request did not parse as I-JSON.</c>
-<c>notRequest</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.1</c><c>The request parsed as JSON but did not match the type signature of the Request object.</c>
-<c>overQuota</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The create would exceed a server-defined limit on the number or total size of objects of this type.</c>
-<c>rateLimit</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>Too many objects of this type have been created recently, and a server-defined rate limit has been reached. It may work if tried again later.</c>
-<c>requestTooLarge</c><c>common</c><c>IETF</c><c>RFC 8620, Sections 5.1 and
-5.3</c><c>The total number of actions exceeds the maximum number the server is
-willing to process in a single method call.</c>
-<c>invalidResultReference</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The method used a result reference for one of its arguments, but this failed to resolve.</c>
-<c>serverFail</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>An unexpected or unknown error occurred during the processing of the call. The method call made no changes to the server's state.</c>
-<c>serverPartialFail</c><c>limited</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>Some, but not all, expected changes described by the method occurred. The client MUST resynchronise impacted data to determine the server state. Use of this error is strongly discouraged.</c>
-<c>serverUnavailable</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>Some internal server resource was temporarily unavailable. Attempting the same operation later (perhaps after a backoff with a random factor) may succeed.</c>
-<c>singleton</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>This is a singleton type, so you cannot create another one or destroy the existing one.</c>
-<c>stateMismatch</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>An ifInState argument was supplied, and it does not match the current state.</c>
-<c>tooLarge</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The action would result in an object that exceeds a server-defined limit for the maximum size of a single object of this type.</c>
-<c>tooManyChanges</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.6</c><c>There are more changes than the client's maxChanges argument.</c>
-<c>unknownCapability</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.1</c><c>The client included a capability in the "using" property of the request that the server does not support.</c>
-<c>unknownMethod</c><c>common</c><c>IETF</c><c>RFC 8620, Section 3.6.2</c><c>The server does not recognise this method name.</c>
-<c>unsupportedFilter</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.5</c><c>The filter is syntactically valid, but the server cannot process it.</c>
-<c>unsupportedSort</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.5</c><c>The sort is syntactically valid but includes a property the server does not support sorting on or a collation method it does not recognise.</c>
-
-<c>willDestroy</c><c>common</c><c>IETF</c><c>RFC 8620, Section 5.3</c><c>The client requested an object be both updated and destroyed in the same /set request, and the server has decided to therefore ignore the update.</c>
-</texttable>-->
 
 <t><list style="symbols">
 <t>JMAP Error Code: accountNotFound<vspace/>
@@ -3022,6 +2980,7 @@ Description: The client requested an object be both updated and destroyed in the
 <?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4790.xml"?>
 <?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5051.xml"?>
 <?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5246.xml"?>
+<?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5280.xml"?>
 <?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5322.xml"?>
 <?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8615.xml"?>
 <?rfc include="http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6186.xml"?>
