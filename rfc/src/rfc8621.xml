@@ -388,28 +388,9 @@ style="verb">null</spanx> to fetch all at once.
 <t>
 <list style="symbols">
 <t>updatedProperties: <spanx style="verb">String[]|null</spanx><vspace blankLines="1" />
-If only the Mailbox counts properties (unread/total Emails/Threads) have changed since the old state, this will be the list of properties that may have changed, i.e., ["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
+If only the "totalEmails", "unreadEmails", "totalThreads", and/or "unreadThreads" Mailbox properties have changed since the old state, this will be the list of properties that may have changed. If the server is unable to tell if only counts have changed, it MUST just be null.</t>
 </list>
 </t>
-
-<!--[rfced] For clarity, may we update the following sentence?
-Specifically, is 'separately to' the intended wording or should
-it perhaps be 'separate from'?
-
-Original:
-   Since counts frequently change but other properties are generally
-   only changed rarely, the server can help the client optimise data
-   transfer by keeping track of changes to email/thread counts
-   separately to other state changes.
-
-Perhaps:
-   Since counts frequently change but other properties are generally
-   only rarely changed, the server can help the client optimise data
-   transfer by keeping track of changes to email/thread counts
-   separate from other state changes.
-
-neilj: Sure, done.
--->
 <t>Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to Email/Thread counts separate from other state changes. The <spanx style="verb">updatedProperties</spanx> array may be used directly via a back-reference in a subsequent <spanx style="verb">Mailbox/get</spanx> call in the same request, so only these properties are returned if nothing else has changed.
 </t>
 </section>
@@ -421,22 +402,7 @@ neilj: Sure, done.
 <t>
 <list style="symbols">
 <t>sortAsTree: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
-<!--[rfced] We notice that in the following text, 'a and b' are
-lowercase, but later in the document (Section 9.5), 'A and B' are
-capitalized.  Would you like to capitalize 'a and b' in the
-following for consistency?
 
-Original:
-*  If a is an ancestor of b, it always comes first regardless of
-   the _sort_ comparators.  Similarly, if a is descendant of b,
-   then b always comes first.
-
-*  Otherwise, if a and b do not share a _parentId_, find the
-   nearest ancestors of each that do have the same _parentId_ and
-   compare the sort properties on those mailboxes instead.
-
-neilj: Yes, thanks I think that's better.
--->
 If true, when sorting the query results and comparing Mailboxes A and B:
 <list style="symbols">
 <t>If A is an ancestor of B, it always comes first regardless of the sort comparators. Similarly, if A is descendant of B, then B always comes
@@ -794,7 +760,7 @@ Keywords are shared with IMAP. The six system keywords from IMAP get special tre
 <t><spanx style="verb">$flagged</spanx>: The Email has been flagged for urgent/special attention.</t>
 <t><spanx style="verb">$answered</spanx>: The Email has been replied to.</t>
 </list>
-The IMAP <spanx style="verb">\Recent</spanx> keyword is not exposed via JMAP. The IMAP <spanx style="verb">\Deleted</spanx> keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the <spanx style="verb">\Deleted</spanx> keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts properties).
+The IMAP <spanx style="verb">\Recent</spanx> keyword is not exposed via JMAP. The IMAP <spanx style="verb">\Deleted</spanx> keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the <spanx style="verb">\Deleted</spanx> keyword MUST NOT be visible via JMAP (and so are not counted in the "totalEmails", "unreadEmails", "totalThreads", and "unreadThreads" Mailbox properties).
 <vspace blankLines="1" />
 Users may add arbitrary keywords to an Email. For compatibility with IMAP, a
 keyword is a case-insensitive string of 1-255 characters in the ASCII subset
@@ -965,7 +931,7 @@ MAY have an <spanx style="verb">email</spanx> property that does not conform to 
 <section anchor="groupedaddresses" title="GroupedAddresses">
 <t>Type: <spanx style="verb">EmailAddressGroup[]</spanx>
 </t>
-<t>This is similar to the Addresses form but preserves group information. The header is parsed as an <spanx style="verb">address-list</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.4, into the <spanx style="verb">GroupedAddresses[]</spanx> type. Consecutive <spanx style="verb">mailbox</spanx>es that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
+<t>This is similar to the Addresses form but preserves group information. The header is parsed as an <spanx style="verb">address-list</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.4, into the <spanx style="verb">GroupedAddresses[]</spanx> type. Consecutive <spanx style="verb">mailbox</spanx> values that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
 </t>
 <t>An <spanx style="strong">EmailAddressGroup</spanx> object has the following properties:
 </t>
@@ -975,7 +941,7 @@ MAY have an <spanx style="verb">email</spanx> property that does not conform to 
 The <spanx style="verb">display-name</spanx> of the <spanx style="verb">group</spanx> <xref target="RFC5322"/>, or null if the addresses are not part of a group. If this is a <spanx style="verb">quoted-string</spanx>, it is processed the same as the <spanx style="verb">name</spanx> in the EmailAddress type.</t>
 
 <t>addresses: <spanx style="verb">EmailAddress[]</spanx><vspace blankLines="1" />
-The <spanx style="verb">mailbox</spanx>es that belong to this group, represented as EmailAddress
+The <spanx style="verb">mailbox</spanx> values that belong to this group, represented as EmailAddress
 objects.</t>
 </list>
 </t>
@@ -1233,23 +1199,6 @@ An <spanx style="strong">EmailBodyValue</spanx> object has the following propert
 <t>value: <spanx style="verb">String</spanx><vspace blankLines="1" />
 The value of the body part after decoding Content-Transfer-Encoding and
 the Content-Type charset, if both known to the server, and with any CRLF replaced with a single LF. The server MAY use heuristics to determine the charset to use for decoding if the charset is unknown, no charset is given, or it believes the charset given is incorrect.
-
-<!--[rfced] The following sentence states that 'decoding' should
-insert the unicode replacement character.  Is the intention to
-say that the 'server' should insert the unicode replacement?
-
-Original:
-   Decoding is best-effort and SHOULD insert the unicode
-   replacement character (U+FFFD) and continue when a
-   malformed section is encountered.
-
-Perhaps:
-   Decoding is best effort; the server SHOULD insert the
-   unicode replacement character (U+FFFD) and continue
-   when a malformed section is encountered.
-
-neilj: Yes, that's clearer, thanks.
--->
 
 Decoding is best effort; the server SHOULD insert the unicode replacement character (U+FFFD) and continue when a malformed section is encountered.
 <vspace blankLines="1" />
@@ -2916,10 +2865,10 @@ If <spanx style="verb">isEnabled</spanx> is true, messages that arrive before th
 The subject that will be used by the message sent in response to messages when the vacation response is enabled. If null, an appropriate subject SHOULD be set by the server.</t>
 
 <t>textBody: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-The plaintext body to send in response to messages when the vacation response is enabled. If this is null the server SHOULD generate a plaintext body part from the <spanx style="verb">htmlBody</spanx> when sending vacation responses, but MAY choose to send the response as HTML only. If both <spanx style="verb">textBody</spanx> and <spanx style="verb">htmlBody</spanx> are null, an appropriate default body SHOULD be generated for responses by the server.</t>
+The plaintext body to send in response to messages when the vacation response is enabled. If this is null, the server SHOULD generate a plaintext body part from the <spanx style="verb">htmlBody</spanx> when sending vacation responses but MAY choose to send the response as HTML only. If both <spanx style="verb">textBody</spanx> and <spanx style="verb">htmlBody</spanx> are null, an appropriate default body SHOULD be generated for responses by the server.</t>
 
 <t>htmlBody: <spanx style="verb">String|null</spanx><vspace blankLines="1" />
-The HTML body to send in response to messages when the vacation response is enabled. If this is null the server MAY choose to generate an HTML body part from the <spanx style="verb">textBody</spanx> when sending vacation responses, or MAY choose to send the response as plaintext only.</t>
+The HTML body to send in response to messages when the vacation response is enabled. If this is null, the server MAY choose to generate an HTML body part from the <spanx style="verb">textBody</spanx> when sending vacation responses or MAY choose to send the response as plaintext only.</t>
 </list>
 </t>
 <t>The following JMAP methods are supported.
@@ -3370,7 +3319,7 @@ Registration of the "inbox" Attribute
 neilj: For consistency with others, this should be within a section titled with the name of the registry being updated, so I have done that.
 -->
 <section anchor="imap-mailbox-name-attributes-registry" title="IMAP Mailbox Name Attributes Registry">
-<section anchor="registration-of-inbox-role" title="Registration of &quot;inbox&quot; role">
+<section anchor="registration-of-inbox-role" title="Registration of &quot;inbox&quot; Role">
 <t>This registers the "JMAP-only" &quot;inbox&quot; attribute in the &quot;IMAP Mailbox Name Attributes&quot; registry, as established in <xref target="RFC8457"/>.
 </t>
 <t>Attribute Name: Inbox

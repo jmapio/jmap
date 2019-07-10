@@ -46,7 +46,7 @@ These properties represent metadata about the message in the mail store and are 
     - `$flagged`: The Email has been flagged for urgent/special attention.
     - `$answered`: The Email has been replied to.
 
-    The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP (including as part of any Mailbox counts properties).
+    The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP (and so are not counted in the "totalEmails", "unreadEmails", "totalThreads", and "unreadThreads" Mailbox properties).
 
     Users may add arbitrary keywords to an Email. For compatibility with IMAP, a keyword is a case-insensitive string of 1–255 characters in the ASCII subset %x21–%x7e (excludes control chars and space), and it MUST NOT include any of these characters:
 
@@ -164,14 +164,14 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `EmailAddressGroup[]`
 
-This is similar to the Addresses form but preserves group information. The header is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `GroupedAddresses[]` type. Consecutive *mailbox*es that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
+This is similar to the Addresses form but preserves group information. The header is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `GroupedAddresses[]` type. Consecutive *mailbox* values that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
 
 An **EmailAddressGroup** object has the following properties:
 
 - **name**: `String|null`
   The *display-name* of the  *group* [@!RFC5322], or `null` if the addresses are not part of a group. If this is a *quoted-string*, it is processed the same as the *name* in the *EmailAddress* type.
 - **addresses**: `EmailAddress[]`
-  The *mailbox*es that belong to this group, represented as EmailAddress
+  The *mailbox* values that belong to this group, represented as EmailAddress
   objects.
 
 Any syntactically correct encoded sections [@!RFC2047] with a known encoding MUST be decoded, following the same rules as for the *Text* form.

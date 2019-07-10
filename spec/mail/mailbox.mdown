@@ -91,7 +91,7 @@ Standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argum
 Standard "/changes" method as described in [@!RFC8620], Section 5.2 but with one extra argument to the response:
 
 - **updatedProperties**: `String[]|null`
-  If only the Mailbox counts properties (unread/total Emails/Threads) have changed since the old state, this will be the list of properties that may have changed, i.e., `["totalEmails", "unreadEmails", "totalThreads", "unreadThreads"]`. If the server is unable to tell if only counts have changed, it MUST just be `null`.
+  If only the "totalEmails", "unreadEmails", "totalThreads", and/or "unreadThreads" Mailbox properties have changed since the old state, this will be the list of properties that may have changed. If the server is unable to tell if only counts have changed, it MUST just be `null`.
 
 Since counts frequently change but other properties are generally only changed rarely, the server can help the client optimise data transfer by keeping track of changes to Email/Thread counts separate from other state changes. The *updatedProperties* array may be used directly via a back-reference in a subsequent Mailbox/get call in the same request, so only these properties are returned if nothing else has changed.
 
