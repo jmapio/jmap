@@ -6,7 +6,7 @@ An **Email** object is a representation of a message [@!RFC5322], which allows c
 
 Broadly, a message consists of two parts: a list of header fields and then a body. The Email data type provides a way to access the full structure or to use simplified properties and avoid some complexity if this is sufficient for the client application.
 
-While raw headers can be fetched and set, the vast majority of clients should use an appropriate parsed form for each of the headers it wants to process, as this allows it to avoid the complexities of various encodings that are required in a valid message per RFC 5322.
+While raw headers can be fetched and set, the vast majority of clients should use an appropriate parsed form for each of the header fields it wants to process, as this allows it to avoid the complexities of various encodings that are required in a valid message per RFC 5322.
 
 The body of a message is normally a MIME-encoded set of documents in a tree structure. This may be arbitrarily nested, but the majority of email clients present a flat model of a message body (normally plaintext or HTML) with a set of attachments. Flattening the MIME structure to form this model can be difficult and causes inconsistency between clients. Therefore, in addition to the *bodyStructure* property, which gives the full tree, the Email object contains 3 alternate properties with flat lists of body parts:
 
@@ -68,7 +68,7 @@ These properties represent metadata about the message in the mail store and are 
 
 ### Header Fields Parsed Forms
 
-Header field properties are derived from the message header fields [@!RFC5322]  [@!RFC6532]. All header fields may be fetched in a raw form. Some headers may also be fetched in a parsed form. The structured form that may be fetched depends on the header. The forms are defined in the subsections that follow.
+Header field properties are derived from the message header fields [@!RFC5322]  [@!RFC6532]. All header fields may be fetched in a raw form. Some header fields may also be fetched in a parsed form. The structured form that may be fetched depends on the header. The forms are defined in the subsections that follow.
 
 #### Raw
 
@@ -101,13 +101,13 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 * Comments
 * Keywords
 * List-Id
-* Any header not defined in [@!RFC5322] or [@!RFC2369]
+* Any header field not defined in [@!RFC5322] or [@!RFC2369]
 
 #### Addresses
 
 Type: `EmailAddress[]`
 
-The header is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each *mailbox* parsed from the *address-list*. Group and comment information is discarded.
+The header field is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each *mailbox* parsed from the *address-list*. Group and comment information is discarded.
 
 An **EmailAddress** object has the following properties:
 
@@ -158,13 +158,13 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 * Resent-To
 * Resent-Cc
 * Resent-Bcc
-* Any header not defined in [@!RFC5322] or [@!RFC2369]
+* Any header field not defined in [@!RFC5322] or [@!RFC2369]
 
 #### GroupedAddresses
 
 Type: `EmailAddressGroup[]`
 
-This is similar to the Addresses form but preserves group information. The header is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `GroupedAddresses[]` type. Consecutive *mailbox* values that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
+This is similar to the Addresses form but preserves group information. The header field is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `GroupedAddresses[]` type. Consecutive *mailbox* values that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
 
 An **EmailAddressGroup** object has the following properties:
 
@@ -203,7 +203,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `String[]|null`
 
-The header is parsed as a list of *msg-id* values, as specified in [@!RFC5322], Section 3.6.4, into the `String[]` type. Comments and/or folding white space (CFWS) and surrounding angle brackets (`<>`) are removed. If parsing fails, the value is `null`.
+The header field is parsed as a list of *msg-id* values, as specified in [@!RFC5322], Section 3.6.4, into the `String[]` type. Comments and/or folding white space (CFWS) and surrounding angle brackets (`<>`) are removed. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
@@ -211,25 +211,25 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 * In-Reply-To
 * References
 * Resent-Message-ID
-* Any header not defined in [@!RFC5322] or [@!RFC2369]
+* Any header field not defined in [@!RFC5322] or [@!RFC2369]
 
 #### Date
 
 Type: `Date|null`
 
-The header is parsed as a *date-time* value, as specified in [@!RFC5322], Section 3.3, into the `Date` type. If parsing fails, the value is `null`.
+The header field is parsed as a *date-time* value, as specified in [@!RFC5322], Section 3.3, into the `Date` type. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
 * Date
 * Resent-Date
-* Any header not defined in [@!RFC5322] or [@!RFC2369]
+* Any header field not defined in [@!RFC5322] or [@!RFC2369]
 
 #### URLs
 
 Type: `String[]|null`
 
-The header is parsed as a list of URLs, as described in [@!RFC2369], into the `String[]` type. Values do not include the surrounding angle brackets or any comments in the header with the URLs. If parsing fails, the value is `null`.
+The header field is parsed as a list of URLs, as described in [@!RFC2369], into the `String[]` type. Values do not include the surrounding angle brackets or any comments in the header with the URLs. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
@@ -239,7 +239,7 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 * List-Post
 * List-Owner
 * List-Archive
-* Any header not defined in [@!RFC5322] or [@!RFC2369]
+* Any header field not defined in [@!RFC5322] or [@!RFC2369]
 
 ### Header Fields Properties
 
@@ -267,7 +267,7 @@ Where `{header-field-name}` means any series of one or more printable ASCII char
 
 If both suffixes are used, they MUST be specified in the order above. Header field names are matched case insensitively. The value is typed according to the requested form or to an array of that type if :all is used. If no header fields exist in the message with the requested name, the value is `null` if fetching a single instance or an empty array if requesting :all.
 
-As a simple example, if the client requests a property called `header:subject`, this means find the *last* header field in the message named "subject" (matched case insensitively) and return the value in *Raw* form, or `null` if no header of this name is found.
+As a simple example, if the client requests a property called `header:subject`, this means find the *last* header field in the message named "subject" (matched case insensitively) and return the value in *Raw* form, or `null` if no header field of this name is found.
 
 For a more complex example, consider the client requesting a property called `header:Resent-To:asAddresses:all`. This means:
 
@@ -563,7 +563,7 @@ Clients SHOULD take care when fetching any other properties, as there may be sig
 
 As specified above, parsed forms of headers may only be used on appropriate header fields. Attempting to fetch a form that is forbidden (e.g., `header:From:asDate`) MUST result in the method call being rejected with an `invalidArguments` error.
 
-Where a specific header is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
+Where a specific header field is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
 
 ### Example
 
@@ -921,7 +921,7 @@ The response has the following arguments:
 
 As specified above, parsed forms of headers may only be used on appropriate header fields. Attempting to fetch a form that is forbidden (e.g., `header:From:asDate`) MUST result in the method call being rejected with an `invalidArguments` error.
 
-Where a specific header is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
+Where a specific header field is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
 
 
 ## Examples

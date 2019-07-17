@@ -639,7 +639,7 @@ the <spanx style="verb">onDestroyRemoveEmails</spanx> argument was false.</t>
 <t>
 <list style="numbers">
 <t>An identical message id <xref target="RFC5322" /> appears in both messages in any of the
- Message-Id, In-Reply-To, and References headers.</t>
+ Message-Id, In-Reply-To, and References header fields.</t>
 
 <t>After stripping automatically added prefixes such as &quot;Fwd:&quot;, &quot;Re:&quot;,
  &quot;[List-Tag]&quot;, etc., and ignoring white space, the subjects are the same. This avoids the situation where a person replies to an old message as a convenient way of finding the right recipient to send to but changes the subject and starts a new conversation.</t>
@@ -711,7 +711,7 @@ The ids of the Emails in the Thread, sorted by the <spanx style="verb">receivedA
 <section anchor="properties-of-the-email-object" title="Properties of the Email Object">
 <t>Broadly, a message consists of two parts: a list of header fields and then a body. The Email data type provides a way to access the full structure or to use simplified properties and avoid some complexity if this is sufficient for the client application.
 </t>
-<t>While raw headers can be fetched and set, the vast majority of clients should use an appropriate parsed form for each of the headers it wants to process, as this allows it to avoid the complexities of various encodings that are required in a valid message per RFC 5322.
+<t>While raw headers can be fetched and set, the vast majority of clients should use an appropriate parsed form for each of the header fields it wants to process, as this allows it to avoid the complexities of various encodings that are required in a valid message per RFC 5322.
 </t>
 <t>The body of a message is normally a MIME-encoded set of documents in a tree structure. This may be arbitrarily nested, but the majority of email clients present a flat model of a message body (normally plaintext or HTML) with a set of attachments. Flattening the MIME structure to form this model can be difficult and causes inconsistency between clients. Therefore, in addition to the <spanx style="verb">bodyStructure</spanx> property, which gives the full tree, the Email object contains 3 alternate properties with flat lists of body parts:
 </t>
@@ -814,7 +814,7 @@ The date the Email was received by the message store. This is the <spanx style="
 </section>
 
 <section anchor="header-fields-parsed-forms" title="Header Fields Parsed Forms">
-<t>Header field properties are derived from the message header fields <xref target="RFC5322"/> <xref target="RFC6532"/>. All header fields may be fetched in a raw form. Some headers may also be fetched in a parsed form. The structured form that may be fetched depends on the header. The forms are defined in the subsections that follow.
+<t>Header field properties are derived from the message header fields <xref target="RFC5322"/> <xref target="RFC6532"/>. All header fields may be fetched in a raw form. Some header fields may also be fetched in a parsed form. The structured form that may be fetched depends on the header. The forms are defined in the subsections that follow.
 </t>
 
 <section anchor="raw" title="Raw">
@@ -855,7 +855,7 @@ character (U+FFFD) and attempt to continue as much as possible.
 <t>Comments</t>
 <t>Keywords</t>
 <t>List-Id</t>
-<t>Any header not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
+<t>Any header field not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
 </list>
 </t>
 </section>
@@ -863,7 +863,7 @@ character (U+FFFD) and attempt to continue as much as possible.
 <section anchor="addresses" title="Addresses">
 <t>Type: <spanx style="verb">EmailAddress[]</spanx>
 </t>
-<t>The header is parsed as an <spanx style="verb">address-list</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.4, into the <spanx style="verb">EmailAddress[]</spanx> type. There is an EmailAddress item for each <spanx style="verb">mailbox</spanx> parsed from the <spanx style="verb">address-list</spanx>. Group and comment information is discarded.
+<t>The header field is parsed as an <spanx style="verb">address-list</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.4, into the <spanx style="verb">EmailAddress[]</spanx> type. There is an EmailAddress item for each <spanx style="verb">mailbox</spanx> parsed from the <spanx style="verb">address-list</spanx>. Group and comment information is discarded.
 </t>
 <t>An <spanx style="strong">EmailAddress</spanx> object has the following properties:
 </t>
@@ -923,7 +923,7 @@ MAY have an <spanx style="verb">email</spanx> property that does not conform to 
 <t>Resent-To</t>
 <t>Resent-Cc</t>
 <t>Resent-Bcc</t>
-<t>Any header not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
+<t>Any header field not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
 </list>
 </t>
 </section>
@@ -931,7 +931,7 @@ MAY have an <spanx style="verb">email</spanx> property that does not conform to 
 <section anchor="groupedaddresses" title="GroupedAddresses">
 <t>Type: <spanx style="verb">EmailAddressGroup[]</spanx>
 </t>
-<t>This is similar to the Addresses form but preserves group information. The header is parsed as an <spanx style="verb">address-list</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.4, into the <spanx style="verb">GroupedAddresses[]</spanx> type. Consecutive <spanx style="verb">mailbox</spanx> values that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
+<t>This is similar to the Addresses form but preserves group information. The header field is parsed as an <spanx style="verb">address-list</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.4, into the <spanx style="verb">GroupedAddresses[]</spanx> type. Consecutive <spanx style="verb">mailbox</spanx> values that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
 </t>
 <t>An <spanx style="strong">EmailAddressGroup</spanx> object has the following properties:
 </t>
@@ -979,7 +979,7 @@ accommodate invalid messages and semi-complete drafts.
 <section anchor="messageids" title="MessageIds">
 <t>Type: <spanx style="verb">String[]|null</spanx>
 </t>
-<t>The header is parsed as a list of <spanx style="verb">msg-id</spanx> values, as specified in <xref target="RFC5322"/>, Section 3.6.4, into the <spanx style="verb">String[]</spanx> type. Comments and/or folding white space (CFWS) and surrounding angle brackets (<spanx style="verb">&lt;&gt;</spanx>) are removed. If parsing fails, the value is null.
+<t>The header field is parsed as a list of <spanx style="verb">msg-id</spanx> values, as specified in <xref target="RFC5322"/>, Section 3.6.4, into the <spanx style="verb">String[]</spanx> type. Comments and/or folding white space (CFWS) and surrounding angle brackets (<spanx style="verb">&lt;&gt;</spanx>) are removed. If parsing fails, the value is null.
 </t>
 <t>To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 </t>
@@ -989,7 +989,7 @@ accommodate invalid messages and semi-complete drafts.
 <t>In-Reply-To</t>
 <t>References</t>
 <t>Resent-Message-ID</t>
-<t>Any header not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
+<t>Any header field not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
 </list>
 </t>
 </section>
@@ -997,7 +997,7 @@ accommodate invalid messages and semi-complete drafts.
 <section anchor="date" title="Date">
 <t>Type: <spanx style="verb">Date|null</spanx>
 </t>
-<t>The header is parsed as a <spanx style="verb">date-time</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.3, into the <spanx style="verb">Date</spanx> type. If parsing fails, the value is null.
+<t>The header field is parsed as a <spanx style="verb">date-time</spanx> value, as specified in <xref target="RFC5322"/>, Section 3.3, into the <spanx style="verb">Date</spanx> type. If parsing fails, the value is null.
 </t>
 <t>To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 </t>
@@ -1005,7 +1005,7 @@ accommodate invalid messages and semi-complete drafts.
 <list style="symbols">
 <t>Date</t>
 <t>Resent-Date</t>
-<t>Any header not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
+<t>Any header field not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
 </list>
 </t>
 </section>
@@ -1013,7 +1013,7 @@ accommodate invalid messages and semi-complete drafts.
 <section anchor="urls" title="URLs">
 <t>Type: <spanx style="verb">String[]|null</spanx>
 </t>
-<t>The header is parsed as a list of URLs, as described in <xref target="RFC2369"/>, into the <spanx style="verb">String[]</spanx> type. Values do not include the surrounding angle brackets or any comments in the header with the URLs. If parsing fails, the value is null.
+<t>The header field is parsed as a list of URLs, as described in <xref target="RFC2369"/>, into the <spanx style="verb">String[]</spanx> type. Values do not include the surrounding angle brackets or any comments in the header field with the URLs. If parsing fails, the value is null.
 </t>
 <t>To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 </t>
@@ -1025,7 +1025,7 @@ accommodate invalid messages and semi-complete drafts.
 <t>List-Post</t>
 <t>List-Owner</t>
 <t>List-Archive</t>
-<t>Any header not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
+<t>Any header field not defined in <xref target="RFC5322"/> or <xref target="RFC2369"/></t>
 </list>
 </t>
 </section>
@@ -1086,7 +1086,7 @@ neilj: No, that would imply a string or literal value and it's a description of 
 
 If no header fields exist in the message with the requested name, the value is null if fetching a single instance or an empty array if requesting :all.
 </t>
-<t>As a simple example, if the client requests a property called <spanx style="verb">header:subject</spanx>, this means find the <spanx style="strong">last</spanx> header field in the message named &quot;subject&quot; (matched case insensitively) and return the value in Raw form, or null if no header of this name is found.
+<t>As a simple example, if the client requests a property called <spanx style="verb">header:subject</spanx>, this means find the <spanx style="strong">last</spanx> header field in the message named &quot;subject&quot; (matched case insensitively) and return the value in Raw form, or null if no header field of this name is found.
 </t>
 <t>For a more complex example, consider the client requesting a property called <spanx style="verb">header:Resent-To:asAddresses:all</spanx>. This means:
 </t>
@@ -1444,7 +1444,7 @@ The server MUST ensure the truncation results in valid UTF-8 and does not occur 
 </t>
 <t>As specified above, parsed forms of headers may only be used on appropriate header fields. Attempting to fetch a form that is forbidden (e.g., <spanx style="verb">header:From:asDate</spanx>) MUST result in the method call being rejected with an <spanx style="verb">invalidArguments</spanx> error.
 </t>
-<t>Where a specific header is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
+<t>Where a specific header field is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
 </t>
 
 <section anchor="example-3" title="Example">
@@ -1923,7 +1923,7 @@ A list of blob ids given that could not be found, or null if none.</t>
 </t>
 <t>As specified above, parsed forms of headers may only be used on appropriate header fields. Attempting to fetch a form that is forbidden (e.g., <spanx style="verb">header:From:asDate</spanx>) MUST result in the method call being rejected with an <spanx style="verb">invalidArguments</spanx> error.
 </t>
-<t>Where a specific header is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
+<t>Where a specific header field is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
 </t>
 </section>
 
@@ -2534,13 +2534,13 @@ Any parameters to send with the email address (either mail-parameter or rcpt-par
 </list>
 If the <spanx style="verb">envelope</spanx> property is null or omitted on creation, the server MUST generate this from the referenced Email as follows:
 <list style="symbols">
-<t><spanx style="verb">mailFrom</spanx>: The email address in the Sender header, if present; otherwise, it's the email address in the From header, if present. In either case, no parameters are added.
+<t><spanx style="verb">mailFrom</spanx>: The email address in the Sender header field, if present; otherwise, it's the email address in the From header field, if present. In either case, no parameters are added.
 <vspace blankLines="1" />
-If multiple addresses are present in one of these headers, or there is more than one Sender/From header, the server SHOULD reject the EmailSubmission as invalid; otherwise, it MUST take the first address in the last Sender/From header.
+If multiple addresses are present in one of these header fields, or there is more than one Sender/From header field, the server SHOULD reject the EmailSubmission as invalid; otherwise, it MUST take the first address in the last Sender/From header field.
 <vspace blankLines="1" />
 If the address found from this is not allowed by the Identity associated with this submission, the <spanx style="verb">email</spanx> property from the Identity MUST be used instead.</t>
 
-<t><spanx style="verb">rcptTo</spanx>: The deduplicated set of email addresses from the To, Cc, and Bcc headers, if present, with no parameters for any of them.</t>
+<t><spanx style="verb">rcptTo</spanx>: The deduplicated set of email addresses from the To, Cc, and Bcc header fields, if present, with no parameters for any of them.</t>
 </list></t>
 <t>sendAt: <spanx style="verb">UTCDate</spanx> (immutable; server-set)<vspace blankLines="1" />
 The date the submission was/will be released for delivery.
@@ -2708,7 +2708,7 @@ A list of EmailSubmission ids for which the Email with the corresponding <spanx 
 </t>
 <t>After all create/update/destroy items in the <spanx style="verb">EmailSubmission/set</spanx> invocation  have been processed, a single implicit <spanx style="verb">Email/set</spanx> call MUST be made to perform any changes requested in these two arguments. The response to this MUST be returned after the <spanx style="verb">EmailSubmission/set</spanx> response.
 </t>
-<t>An Email is sent by creating an EmailSubmission object. When processing each create, the server must check that the message is valid, and the user has sufficient authorisation to send it. If the creation succeeds, the message will be sent to the recipients given in the envelope <spanx style="verb">rcptTo</spanx> parameter. The server MUST remove any Bcc header present on the message during delivery. The server MAY add or remove other headers from the submitted message or make further alterations in accordance with the server's policy during delivery.
+<t>An Email is sent by creating an EmailSubmission object. When processing each create, the server must check that the message is valid, and the user has sufficient authorisation to send it. If the creation succeeds, the message will be sent to the recipients given in the envelope <spanx style="verb">rcptTo</spanx> parameter. The server MUST remove any Bcc header field present on the message during delivery. The server MAY add or remove other header fields from the submitted message or make further alterations in accordance with the server's policy during delivery.
 </t>
 <t>If the referenced Email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the submission (i.e., it does not cancel a future send). The <spanx style="verb">emailId</spanx> and <spanx style="verb">threadId</spanx> properties of the EmailSubmission object remain, but trying to fetch them (with a standard <spanx style="verb">Email/get</spanx> call) will return a <spanx style="verb">notFound</spanx> error if the corresponding objects have been destroyed.
 </t>
@@ -2740,7 +2740,7 @@ for sending to. An <spanx style="verb">invalidRecipients</spanx> <spanx style="v
 with the envelope From address <xref target="RFC5321"/>.</t>
 
 <t><spanx style="verb">forbiddenFrom</spanx> - The server does not permit the user to send a message
-with the From header <xref target="RFC5322"/> of the message to be sent.</t>
+with the From header field <xref target="RFC5322"/> of the message to be sent.</t>
 
 <t><spanx style="verb">forbiddenToSend</spanx> - The user does not have permission to send at all right
 now for some reason. A <spanx style="verb">description</spanx> <spanx style="verb">String</spanx> property MAY be present on the SetError object to display to the user why they are not permitted.</t>
@@ -3015,7 +3015,7 @@ neilj: Yes, fine.
 -->
 <t>If the user attempts to create a new Identity object, the server MUST reject it with the appropriate error if the user does not have permission to use that email address to send from.
 </t>
-<t>The SMTP MAIL FROM address <xref target="RFC5321"/> is often confused with the message header <xref target="RFC5322"/>. The user generally only ever sees the message header address, and this is the primary one to enforce. However, the server MUST also enforce appropriate restrictions on the MAIL FROM address <xref target="RFC5321"/> to stop the user from flooding a third-party address with bounces and non-delivery notices.
+<t>The SMTP MAIL FROM address <xref target="RFC5321"/> is often confused with the From message header field <xref target="RFC5322"/>. The user generally only ever sees the address in the message header field, and this is the primary one to enforce. However, the server MUST also enforce appropriate restrictions on the MAIL FROM address <xref target="RFC5321"/> to stop the user from flooding a third-party address with bounces and non-delivery notices.
 </t>
 <t>The JMAP submission model provides separate errors for impermissible addresses in either context.
 </t>
@@ -3478,7 +3478,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </t>
 <t>Reference: This document, Sections <xref target="identityset" format="counter"/> and <xref target="emailsubmissionset" format="counter"/>
 </t>
-<t>Description: The server does not permit the user to send a message with the From header <xref target="RFC5322"/> of the message to be sent.
+<t>Description: The server does not permit the user to send a message with the From header field <xref target="RFC5322"/> of the message to be sent.
 </t>
 </section>
 

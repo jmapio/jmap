@@ -35,15 +35,15 @@ An **EmailSubmission** object represents the submission of an Email for delivery
 
     If the *envelope* property is `null` or omitted on creation, the server MUST generate this from the referenced Email as follows:
 
-    - **mailFrom**: The email address in the *Sender* header, if present;
-      otherwise, it's the email address in the *From* header, if present. In either case, no parameters are added.
+    - **mailFrom**: The email address in the *Sender* header field, if present;
+      otherwise, it's the email address in the *From* header field, if present. In either case, no parameters are added.
 
-        If multiple addresses are present in one of these headers, or there is more than one *Sender*/*From* header, the server SHOULD reject the EmailSubmission as invalid; otherwise, it MUST take the first address in the last *Sender*/*From* header.
+        If multiple addresses are present in one of these header fields, or there is more than one *Sender*/*From* header field, the server SHOULD reject the EmailSubmission as invalid; otherwise, it MUST take the first address in the last *Sender*/*From* header field.
 
         If the address found from this is not allowed by the Identity associated with this submission, the *email* property from the Identity MUST be used instead.
 
     - **rcptTo**: The deduplicated set of email addresses from the *To*, *Cc*,
-      and *Bcc* headers, if present, with no parameters for any of them.
+      and *Bcc* header fields, if present, with no parameters for any of them.
 
 - **sendAt**: `UTCDate` (immutable; server-set)
   The date the submission was/will be released for delivery.
@@ -192,7 +192,7 @@ Standard "/set" method as described in [@!RFC8620], Section 5.3 with the followi
 
 After all create/update/destroy items in the *EmailSubmission/set* invocation  have been processed, a single implicit *Email/set* call MUST be made to perform any changes requested in these two arguments. The response to this MUST be returned after the *EmailSubmission/set* response.
 
-An Email is sent by creating an EmailSubmission object. When processing each create, the server must check that the message is valid, and the user has sufficient authorisation to send it. If the creation succeeds, the message will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header present on the message during delivery. The server MAY add or remove other headers from the submitted message or make further alterations in accordance with the server's policy during delivery.
+An Email is sent by creating an EmailSubmission object. When processing each create, the server must check that the message is valid, and the user has sufficient authorisation to send it. If the creation succeeds, the message will be sent to the recipients given in the envelope *rcptTo* parameter. The server MUST remove any *Bcc* header field present on the message during delivery. The server MAY add or remove other header fields from the submitted message or make further alterations in accordance with the server's policy during delivery.
 
 If the referenced Email is destroyed at any point after the EmailSubmission object is created, this MUST NOT change the behaviour of the submission (i.e., it does not cancel a future send). The *emailId* and *threadId* properties of the EmailSubmission object remain, but trying to fetch them (with a standard Email/get call) will return a `notFound` error if the corresponding objects have been destroyed.
 
@@ -217,7 +217,7 @@ For **create**:
 - `forbiddenMailFrom` – The server does not permit the user to send a message
   with this envelope From address [@!RFC5321].
 - `forbiddenFrom` – The server does not permit the user to send a message
-  with the From header [@!RFC5322] of the message to be sent.
+  with the From header field [@!RFC5322] of the message to be sent.
 - `forbiddenToSend` – The user does not have permission to send at all right
   now for some reason. A *description* `String` property MAY be present on the SetError object to display to the user why they are not permitted.
 
