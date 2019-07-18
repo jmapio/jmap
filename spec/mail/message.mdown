@@ -1132,7 +1132,74 @@ The client can update its local cache of the query results by removing "M9bd1749
 
 It knows something has changed about "Ma783e5cdf5f2deffbc97930a", so it will refetch the Mailbox ids and keywords (the only mutable properties) for this Email too.
 
-The user composes a new Email and saves a draft. The client sends:
+The user starts composing a new Email. The email is plaintext and the client knows the email in in English so adds this metadata to the body part. The user saves a draft while the composition is still in progress. The client sends:
+
+    [[ "Email/set", {
+      "accountId": "ue150411c",
+      "create": {
+        "k192": {
+          "mailboxIds": {
+            "2ea1ca41b38e": true
+          },
+          "keywords": {
+            "$seen": true,
+            "$draft": true
+          },
+          "from": [{
+            "name": "Joe Bloggs",
+            "email": "joe@example.com"
+          }],
+          "subject": "World domination",
+          "receivedAt": "2018-07-10T01:03:11Z",
+          "sentAt": "2018-07-10T11:03:11+10:00",
+          "bodyStructure": {
+            "type": "text/plain",
+            "partId": "bd48",
+            "header:Content-Language": "en"
+          },
+          "bodyValues": {
+            "bd48": {
+              "value": "I have the most brilliant plan. Let me tell you
+                all about it. What we do is, we",
+              "isTruncated": false
+            }
+          }
+        }
+      }
+    }, "0" ]]
+
+The server creates the message and sends the success response:
+
+    [[ "Email/set", {
+      "accountId": "ue150411c",
+      "oldState": "780823",
+      "newState": "780839",
+      "created": {
+        "k192": {
+          "id": "Mf40b5f831efa7233b9eb1c7f",
+          "blobId": "Gf40b5f831efa7233b9eb1c7f8f97d84eeeee64f7",
+          "threadId": "Td957e72e89f516dc",
+          "size": 359
+        }
+      },
+      ...
+    }, "0" ]]
+
+The message created on the server looks something like this:
+
+    Message-Id: <bbce0ae9-58be-4b24-ac82-deb840d58016@sloti7d1t02>
+    User-Agent: Cyrus-JMAP/3.1.6-736-gdfb8e44
+    Mime-Version: 1.0
+    Date: Tue, 10 Jul 2018 11:03:11 +1000
+    From: "Joe Bloggs" <joe@example.com>
+    Subject: World domination
+    Content-Language: en
+    Content-Type: text/plain
+
+    I have the most brilliant plan. Let me tell you all about it. What we do
+    is, we
+
+The user adds a recipient and converts the message to HTML so they can add formatting, then saves an updated draft:
 
     [[ "Email/set", {
       "accountId": "ue150411c",
@@ -1160,10 +1227,12 @@ The user composes a new Email and saves a draft. The client sends:
             "type": "multipart/alternative",
             "subParts": [{
               "partId": "a49d",
-              "type": "text/html"
+              "type": "text/html",
+              "header:Content-Language": "en"
             }, {
               "partId": "bd48",
-              "type": "text/plain"
+              "type": "text/plain",
+              "header:Content-Language": "en"
             }]
           },
           "bodyValues": {
@@ -1172,24 +1241,25 @@ The user composes a new Email and saves a draft. The client sends:
                 all about it. What we do is, we",
               "isTruncated": false
             },
-            "49db": {
+            "a49d": {
               "value": "<!DOCTYPE html><html><head><title></title>
                 <style type=\"text/css\">div{font-size:16px}</style></head>
-                <body><div>I have the most brilliant plan. Let me tell you
-                all about it. What we do is, we</div></body></html>",
+                <body><div>I have the most <b>brilliant</b> plan. Let me tell
+                you all about it. What we do is, we</div></body></html>",
               "isTruncated": false
             }
           }
         }
-      }
+      },
+      "destroy": [ "Mf40b5f831efa7233b9eb1c7f" ]
     }, "0" ]]
 
-The server creates the message and sends the success response:
+The server creates the new draft, deletes the old one, and sends the success response:
 
     [[ "Email/set", {
       "accountId": "ue150411c",
-      "oldState": "780823",
-      "newState": "780839",
+      "oldState": "780839",
+      "newState": "780842",
       "created": {
         "k1546": {
           "id": "Md45b47b4877521042cec0938",
@@ -1198,6 +1268,7 @@ The server creates the message and sends the success response:
           "size": 11721
         }
       },
+      "destroyed": [ "Mf40b5f831efa7233b9eb1c7f" ],
       ...
     }, "0" ]]
 
@@ -1236,7 +1307,7 @@ The server successfully copies the Email and deletes the original. Due to the im
     }, "0" ],
     [ "Email/set", {
       "accountId": "ue150411c",
-      "oldState": "780839",
+      "oldState": "780842",
       "newState": "780871",
       "destroyed": [ "Md45b47b4877521042cec0938" ],
       ...
