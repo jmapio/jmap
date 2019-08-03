@@ -511,7 +511,7 @@ In this case, the above algorithm would decompose this to:
 
 ## Email/get
 
-Standard "/get" method as described in [@!RFC8620], Section 5.1, with the following additional request arguments:
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1, with the following additional request arguments:
 
 - **bodyProperties**: `String[]`
   A list of properties to fetch for each EmailBodyPart returned. If omitted, this defaults to:
@@ -626,11 +626,11 @@ and response:
 
 ## Email/changes
 
-Standard "/changes" method as described in [@!RFC8620], Section 5.2. If generating intermediate states for a large set of changes, it is recommended that newer changes be returned first, as these are generally of more interest to users.
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2. If generating intermediate states for a large set of changes, it is recommended that newer changes be returned first, as these are generally of more interest to users.
 
 ## Email/query
 
-Standard "/query" method as described in [@!RFC8620], Section 5.5, but with the following additional request arguments:
+This is a standard "/query" method as described in [@!RFC8620], Section 5.5, but with the following additional request arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
   If `true`, Emails in the same Thread as a previous Email in the list (given the filter and sort order) will be removed from the list. This means only one Email at most will be included in the list for any given Thread.
@@ -739,14 +739,14 @@ When *collapseThreads* is `true`, then after filtering and sorting the Email lis
 
 ## Email/queryChanges
 
-Standard "/queryChanges" method as described in [@!RFC8620], Section 5.6, with the following additional request argument:
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6, with the following additional request argument:
 
 - **collapseThreads**: `Boolean` (default: false)
   The *collapseThreads* argument that was used with *Email/query*.
 
 ## Email/set
 
-Standard "/set" method as described in [@!RFC8620], Section 5.3. The *Email/set* method encompasses:
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3. The *Email/set* method encompasses:
 
 - Creating a draft
 - Changing the keywords of an Email (e.g., unread/flagged status)
@@ -815,7 +815,7 @@ For **create** and **update**:
 
 ## Email/copy
 
-Standard "/copy" method as described in [@!RFC8620], Section 5.4, except only the *mailboxIds*, *keywords*, and *receivedAt* properties may be set during the copy. This method cannot modify the message represented by the Email.
+This is a standard "/copy" method as described in [@!RFC8620], Section 5.4, except only the *mailboxIds*, *keywords*, and *receivedAt* properties may be set during the copy. This method cannot modify the message represented by the Email.
 
 The server MAY forbid two Email objects with identical message content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account; if the target account already has the Email, the copy will be rejected with a standard `alreadyExists` error.
 
@@ -1244,8 +1244,9 @@ The user adds a recipient and converts the message to HTML so they can add forma
             "a49d": {
               "value": "<!DOCTYPE html><html><head><title></title>
                 <style type=\"text/css\">div{font-size:16px}</style></head>
-                <body><div>I have the most <b>brilliant</b> plan. Let me tell
-                you all about it. What we do is, we</div></body></html>",
+                <body><div>I have the most <b>brilliant</b> plan. Let me
+                tell you all about it. What we do is, we</div></body>
+                </html>",
               "isTruncated": false
             }
           }

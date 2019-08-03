@@ -41,7 +41,7 @@
 <uri></uri>
 </address>
 </author>
-<date year="2019" month="June"/>
+<date year="2019" month="August"/>
 
 <area>Applications</area>
 <workgroup>JMAP</workgroup>
@@ -49,31 +49,12 @@
 <keyword>JSON</keyword>
 <keyword>email</keyword>
 
-<!-- [rfced] We note that the Abstract makes no mention of RFC 5788
-being updated (see Section 3, item D at
-https://www.ietf.org/standards/ids/checklist/).  Please review
-and let us know if/how you would like to update.
-
-neilj: Although it updates this registry, it is not the primary purpose of this document and the authors feel it is not necessary to include a mention in the abstract (and indeed, doing so may lead to confusion).
--->
 
 <abstract>
 <t>This document specifies a data model for synchronising email data with a
 server using the JSON Meta Application Protocol (JMAP).
 
-<!--[rfced] We notice 'pushed' vs. 'push' notification. Since there
-was only 1 instance of 'pushed', we updated it to be 'push' for
-consistency (which matches use in draft-ietf-jmap-core).  If this
-is not correct, please let us know.
 
-Updated:
-   Clients can use this to efficiently search, access, organise, and send
-   messages, and get push notifications for fast resynchronisation
-   when new messages are delivered or a change is made in another
-   client.
-
-neilj: That's fine, thanks.
--->
  Clients can use this to efficiently search, access, organise, and send
  messages, and to get push notifications for fast resynchronisation when new
  messages are delivered or a change is made in another client.
@@ -163,17 +144,6 @@ The server may separately have a limit for the total size of the message <xref t
 
 <t>emailQuerySortOptions: <spanx style="verb">String[]</spanx><vspace blankLines="1" />
 
-<!--[rfced] This document does not contain Section 5.5. Please let us
-know how this reference may be updated (we believe the intension
-is to point to Section 4.4.2).
-
-Original:
-   *emailQuerySortOptions*: "String[]" A list of all the values the
-   server supports for the "property" field of the Comparator object
-   in an Email/query sort (see section 5.5).
-
-neilj: Thanks, fixed.
--->
 A list of all the values the server supports for the &quot;property&quot; field of the Comparator object in an <spanx style="verb">Email/query</spanx> sort (see <xref target="sorting" />). This MAY include properties the client does not recognise (for example, custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.</t>
 
 <t>mayCreateTopLevelMailbox: <spanx style="verb">Boolean</spanx><vspace blankLines="1" />
@@ -376,14 +346,14 @@ neilj: How would you like to update this? "This is a standard..."?
 -->
 
 <section anchor="mailboxget" title="Mailbox/get">
-<t>Standard &quot;/get&quot; method as described in <xref target="RFC8620"/>,
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620"/>,
 Section 5.1. The <spanx style="verb">ids</spanx> argument may be <spanx
 style="verb">null</spanx> to fetch all at once.
 </t>
 </section>
 
 <section anchor="mailboxchanges" title="Mailbox/changes">
-<t>Standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2 but with one extra argument to the response:
+<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2 but with one extra argument to the response:
 </t>
 <t>
 <list style="symbols">
@@ -396,7 +366,7 @@ If only the "totalEmails", "unreadEmails", "totalThreads", and/or "unreadThreads
 </section>
 
 <section anchor="mailboxquery" title="Mailbox/query">
-<t>Standard &quot;/query&quot; method as described in <xref target="RFC8620"/>, Section 5.5 but with the following additional request argument:
+<t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620"/>, Section 5.5 but with the following additional request argument:
 </t>
 
 <t>
@@ -454,12 +424,12 @@ The <spanx style="verb">isSubscribed</spanx> property of the Mailbox must be ide
 </section>
 
 <section anchor="mailboxquerychanges" title="Mailbox/queryChanges">
-<t>Standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620"/>, Section 5.6.
+<t>This is a standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620"/>, Section 5.6.
 </t>
 </section>
 
 <section anchor="mailboxset" title="Mailbox/set">
-<t>Standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3 but with the following additional request argument:
+<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3 but with the following additional request argument:
 </t>
 <t>
 <list style="symbols">
@@ -662,7 +632,7 @@ The ids of the Emails in the Thread, sorted by the <spanx style="verb">receivedA
 </t>
 
 <section anchor="threadget" title="Thread/get">
-<t>Standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1.
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1.
 </t>
 
 <section anchor="example-2" title="Example">
@@ -699,7 +669,7 @@ The ids of the Emails in the Thread, sorted by the <spanx style="verb">receivedA
 </section>
 
 <section anchor="threadchanges" title="Thread/changes">
-<t>Standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2.
+<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2.
 </t>
 </section>
 </section>
@@ -766,26 +736,6 @@ Users may add arbitrary keywords to an Email. For compatibility with IMAP, a
 keyword is a case-insensitive string of 1-255 characters in the ASCII subset
 %x21-%x7e (excludes control chars and space), and it MUST NOT include any of
 these characters:
-<!-- [rfced] xml2rfc turns spanx style="verb" into quotes.  Please consider
-removing/altering the <spanx> element here, as the list of characters includes
-a quote mark.
-
-Original:
-      For compatibility with IMAP, a keyword is a case-insensitive
-      string of 1-255 characters in the ASCII subset %x21-%x7e (excludes
-      control chars and space), and MUST NOT include any of these
-      characters: "( ) { ] % * " \"
-
-Original:
-      Use "\"", "\'" and "\\" to match a
-      literal """, "'" and "\" respectively in a phrase.
-
-Original:
-   ... so it is now in the mailbox with "role ==
-   "trash"", and remove all other mailbox ids
-
-neilj: Done.
--->
 
 <figure align="center"><artwork align="center">( ) { ] % * " \</artwork></figure>
 
@@ -1065,24 +1015,6 @@ This means the value is an array, with the items corresponding to each instance 
 </list>
 </t>
 <t>If both suffixes are used, they MUST be specified in the order above. Header field names are matched case insensitively. The value is typed according to the requested form or to an array of that type if :all is used.
-
-<!--[rfced] Please clarify the following. Is the value called "empty
-array" if requesting :all?
-
-Original:
-   If no header fields exist in the message with the
-   requested name, the value is "null" if fetching a
-   single instance, or the empty array if requesting
-   :all.
-
-Perhaps:
-   If no header fields exist in the message with the
-   requested name, the value is "null" if fetching a
-   single instance or "empty array" if requesting
-   :all.
-
-neilj: No, that would imply a string or literal value and it's a description of the value: an empty array. I have changed "the" to "an" because I think that's clearer, and I have removed the `verb` style from `null` to prevent confusion with the string "null".
--->
 
 If no header fields exist in the message with the requested name, the value is null if fetching a single instance or an empty array if requesting :all.
 </t>
@@ -1380,7 +1312,7 @@ attachments =&gt; [ C, F, G, H, J ]
 </section>
 
 <section anchor="emailget" title="Email/get">
-<t>Standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1 with the following additional request arguments:
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1 with the following additional request arguments:
 </t>
 <t>
 <list style="symbols">
@@ -1512,12 +1444,12 @@ The server MUST ensure the truncation results in valid UTF-8 and does not occur 
 </section>
 
 <section anchor="emailchanges" title="Email/changes">
-<t>Standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2. If generating intermediate states for a large set of changes, it is recommended that newer changes be returned first, as these are generally of more interest to users.
+<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2. If generating intermediate states for a large set of changes, it is recommended that newer changes be returned first, as these are generally of more interest to users.
 </t>
 </section>
 
 <section anchor="emailquery" title="Email/query">
-<t>Standard &quot;/query&quot; method as described in <xref target="RFC8620"/>, Section 5.5 but with the following additional request arguments:
+<t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620"/>, Section 5.5 but with the following additional request arguments:
 </t>
 <t>
 <list style="symbols">
@@ -1678,7 +1610,7 @@ Within a phrase, to match one of the following characters you MUST escape it by 
 </section>
 
 <section anchor="emailquerychanges" title="Email/queryChanges">
-<t>Standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620"/>, Section 5.6 with the following additional request argument:
+<t>This is a standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620"/>, Section 5.6 with the following additional request argument:
 </t>
 <t>
 <list style="symbols">
@@ -1689,7 +1621,7 @@ The <spanx style="verb">collapseThreads</spanx> argument that was used with <spa
 </section>
 
 <section anchor="emailset" title="Email/set">
-<t>Standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3. The <spanx style="verb">Email/set</spanx> method encompasses:
+<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3. The <spanx style="verb">Email/set</spanx> method encompasses:
 </t>
 <t>
 <list style="symbols">
@@ -1781,7 +1713,7 @@ server-defined maximum.</t>
 </section>
 
 <section anchor="emailcopy" title="Email/copy">
-<t>Standard &quot;/copy&quot; method as described in <xref target="RFC8620"/>, Section 5.4, except only the <spanx style="verb">mailboxIds</spanx>, <spanx style="verb">keywords</spanx>, and <spanx style="verb">receivedAt</spanx> properties may be set during the copy. This method cannot modify the message represented by the Email.
+<t>This is a standard &quot;/copy&quot; method as described in <xref target="RFC8620"/>, Section 5.4, except only the <spanx style="verb">mailboxIds</spanx>, <spanx style="verb">keywords</spanx>, and <spanx style="verb">receivedAt</spanx> properties may be set during the copy. This method cannot modify the message represented by the Email.
 </t>
 <t>The server MAY forbid two Email objects with identical message content <xref target="RFC5322"/>, or even just with the same Message-ID <xref target="RFC5322"/>, to coexist within an account; if the target account already has the Email, the copy will be rejected with a standard <spanx style="verb">alreadyExists</spanx> error.
 </t>
@@ -2266,8 +2198,9 @@ is, we
         "a49d": {
           "value": "&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;title&gt;&lt;/title&gt;
             &lt;style type=\"text/css\"&gt;div{font-size:16px}&lt;/style&gt;&lt;/head&gt;
-            &lt;body&gt;&lt;div&gt;I have the most &lt;b&gt;brilliant&lt;/b&gt; plan. Let me tell
-            you all about it. What we do is, we&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;",
+            &lt;body&gt;&lt;div&gt;I have the most &lt;b&gt;brilliant&lt;/b&gt; plan. Let me
+            tell you all about it. What we do is, we&lt;/div&gt;&lt;/body&gt;
+            &lt;/html&gt;",
           "isTruncated": false
         }
       }
@@ -2499,17 +2432,17 @@ Is the user allowed to delete this Identity? Servers may wish to set this to fal
 </t>
 
 <section anchor="identityget" title="Identity/get">
-<t>Standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1. The <spanx style="verb">ids</spanx> argument may be null to fetch all at once.
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1. The <spanx style="verb">ids</spanx> argument may be null to fetch all at once.
 </t>
 </section>
 
 <section anchor="identitychanges" title="Identity/changes">
-<t>Standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2.
+<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2.
 </t>
 </section>
 
 <section anchor="identityset" title="Identity/set">
-<t>Standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3. The following extra SetError types are defined:
+<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3. The following extra SetError types are defined:
 </t>
 <t>For <spanx style="verb">create</spanx>:
 </t>
@@ -2720,17 +2653,17 @@ retrying to send the message. For very basic SMTP proxies, this MAY be immediate
 </t>
 
 <section anchor="emailsubmissionget" title="EmailSubmission/get">
-<t>Standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1.
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1.
 </t>
 </section>
 
 <section anchor="emailsubmissionchanges" title="EmailSubmission/changes">
-<t>Standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2.
+<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620"/>, Section 5.2.
 </t>
 </section>
 
 <section anchor="emailsubmissionquery" title="EmailSubmission/query">
-<t>Standard &quot;/query&quot; method as described in <xref target="RFC8620"/>, Section 5.5.
+<t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620"/>, Section 5.5.
 </t>
 <t>A <spanx style="strong">FilterCondition</spanx> object has the following properties, any of which may be omitted:
 </t>
@@ -2767,12 +2700,12 @@ The <spanx style="verb">sendAt</spanx> property of the EmailSubmission object mu
 </section>
 
 <section anchor="emailsubmissionquerychanges" title="EmailSubmission/queryChanges">
-<t>Standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620"/>, Section 5.6.
+<t>This is a standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620"/>, Section 5.6.
 </t>
 </section>
 
 <section anchor="emailsubmissionset" title="EmailSubmission/set">
-<t>Standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3 with the following two additional request arguments:
+<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3 with the following two additional request arguments:
 </t>
 <t>
 <list style="symbols">
@@ -2952,14 +2885,14 @@ The HTML body to send in response to messages when the vacation response is enab
 </t>
 
 <section anchor="vacationresponseget" title="VacationResponse/get">
-<t>Standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1.
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620"/>, Section 5.1.
 </t>
 <t>There MUST only be exactly one VacationResponse object in an account. It MUST have the id &quot;singleton&quot;.
 </t>
 </section>
 
 <section anchor="vacationresponseset" title="VacationResponse/set">
-<t>Standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3.
+<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620"/>, Section 5.3.
 </t>
 </section>
 </section>
@@ -3074,22 +3007,6 @@ target="RFC7677"/>.
 <t>The server MAY allow an exception to send an exact copy of an existing message received into the mail store to another address (otherwise known as &quot;redirecting&quot; or &quot;bouncing&quot;), although it is RECOMMENDED the server limit this to destinations the user has verified they also control.
 </t>
 
-<!--[rfced] Since 'Identity' is capitalized in the following, we
-believe it is referring to an 'Identity object'; if this is
-correct, may we add 'object' for clarity?
-
-Original:
-   If the user attempts to create a new Identity, the server MUST reject
-   it with the appropriate error if the user does not have permission to
-   use that email address to send from.
-
-Perhaps:
-   If the user attempts to create a new Identity object, the server MUST
-   reject it with the appropriate error if the user does not have
-   permission to use that email address to send from.
-
-neilj: Yes, fine.
--->
 <t>If the user attempts to create a new Identity object, the server MUST reject it with the appropriate error if the user does not have permission to use that email address to send from.
 </t>
 <t>The SMTP MAIL FROM address <xref target="RFC5321"/> is often confused with the From message header field <xref target="RFC5322"/>. The user generally only ever sees the address in the message header field, and this is the primary one to enforce. However, the server MUST also enforce appropriate restrictions on the MAIL FROM address <xref target="RFC5321"/> to stop the user from flooding a third-party address with bounces and non-delivery notices.
@@ -3209,15 +3126,7 @@ exposed to other users with read permission for the Mailbox keywords.
 </t>
 <t>Published specification: this document
 </t>
-<!-- [rfced] Should contact information be added here?  If so, please provide
-the approprite information.
 
-Sections 10.4.1 - 10.4.5:
-   Person & email address to contact for further information: (editor-
-   contact-goes-here)
-
-neilj: Thanks, updated.
--->
 <t>Person &amp; email address to contact for further information:
 JMAP mailing list &lt;jmap@ietf.org&gt;
 </t>
@@ -3377,24 +3286,6 @@ JMAP mailing list &lt;jmap@ietf.org&gt;
 </section>
 </section>
 
-<!--[rfced] Is 'role in' the intended wording for this section title?
-We suggest updating for clarity. Please let us know if one of the
-suggestions below conveys the intended meaning or if you prefer otherwise.
-
-Original:
-Registration of "inbox" role in
-
-Perhaps:
-A)
-Registration of the "inbox" Role in the System
-
-or
-
-B)
-Registration of the "inbox" Attribute
-
-neilj: For consistency with others, this should be within a section titled with the name of the registry being updated, so I have done that.
--->
 <section anchor="imap-mailbox-name-attributes-registry" title="IMAP Mailbox Name Attributes Registry">
 <section anchor="registration-of-inbox-role" title="Registration of &quot;inbox&quot; Role">
 <t>This registers the "JMAP-only" &quot;inbox&quot; attribute in the &quot;IMAP Mailbox Name Attributes&quot; registry, as established in <xref target="RFC8457"/>.
