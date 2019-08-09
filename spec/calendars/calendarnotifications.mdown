@@ -1,0 +1,31 @@
+# Calendar Notifications
+
+- notifications are in account of user that the notification is for. Not expected to be shared; different capability. Calendar systems may not support.
+
+- New event added/updated/destroyed
+- Calendar shared explicitly with you (may not yet be subscribed?)
+- Calendar no longer shared with you
+- Any change on shared calendar or calendar you own made by others (e.g. secretary) (optional; implementors advised to make optional)
+- iTIP RSVP required
+- iTIP event cancelled
+
+- Destroy when acknowledged.
+- Only added when server updates automatically.
+- server may limit max number; automatically deletes old when new created in excess of limit.
+- server may delete notifications after time.
+- Server MAY remove added notification if user sends rsvp.
+- Server MAY/SHOULD/MUST remove associated notifications if user deletes event?
+
+CalendarNotification
+- who did it: {
+    name,
+    email,
+},
+- type: added/updated/removed/reply/counter
+- what: {
+    calendar: accountId, calendarId,
+    event: accountId, eventId, [recurrenceId]?
+    reply: accountId, eventId, [recurrenceId]? participantId
+}
+- comment: (message in iTIP)
+- patch: what changed.

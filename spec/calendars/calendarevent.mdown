@@ -1,4 +1,4 @@
-# Calendar events
+# Calendar Events
 
 A **CalendarEvent** object contains information about an event, or recurring series of events, that takes place at a particular time. It is a JSEvent object, as defined in [@!I-D.ietf-calext-jscalendar], with the following additional properties:
 
@@ -8,12 +8,57 @@ A **CalendarEvent** object contains information about an event, or recurring ser
 - **calendarId**: `Id`
   The id of the calendar this event belongs to.
 
-- **participantId**: `Id|null`
-  The id of the participant in the *participants* object which corresponds to the account this event is in.
+- **inivitedParticipantId**: `Id|null`
+  If this event was added from an iTIP REQUEST message, as per [@!RFC5546], Section 1.4, this is the id of the participant in the *participants* object that the invitation was sent to. Invitations may be added to the calendar by either a client or server. This MUST be set.
+
+- **utcStart**: `UTCDate`
+  For simple clients that do not or cannot implement time zone support. Clients should not use this if not asking server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.
+
+    This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different results if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the event.
+
+    If set, server will convert to the event's current time zone using its current time zone data and write that.
+
+    This is not included by default and must be requested explicitly.
+
+    Floating events will be interpreted as per calendar's time zone property; or if not set, the the calendar user's time zone property; or if not set UTC time.
+
+- **utcEnd**: `UTCDate`
+  The server calculates the end time in UTC from the start/timeZone/duration properties of the event.
+
+
+Attachments
+- Can use blobId instead of href in link. Server MUST translate to embedded URL when sending iTIP. Over CalDAV may translate to managed attachment.
+
+Note that events MUST NOT have method property. This is just for representing iTip messages.
+
+If invited to specific recurrences only, each occurrence is returned with a separate id. They will have the same UID. If invited to master event, will get a single event with the recurrence data and any overrides included.
+
+Some properties are per-user.
+* freeBusyStatus
+* alerts
+* useDefaultAlerts
+
+Users may also add these per-instance per-user, and may add an EXDATE per-user if they have permission to remove the event?
+
+### The "privacy" property
+
+Sharing don't.
 
 ## CalendarEvent/get
 
-Standard "/get" method as described in [@!RFC8620], Section 5.1.
+Standard "/get" method as described in [@!RFC8620], Section 5.1, with one extra argument:
+
+A CalendarEvent object is a JSCalendar object so may have arbitrary properties. If properties: `null`, all are returned; only set properties included. If properties specifically requested, only those are returned.
+
+TODO:
+- An event may be just a single instance, or may be master.
+- may pass in id that includes recurrence id.
+- return just recurrenceOverrides that overlap a time intersection. (before/after props).
+- maxParticipants to return? If too many, just owners + user?
+
+UID + recurrenceId if present uniquely identifies instance. May appear in different accounts. Clients may coalesce view but must be aware the data may be different in the different accounts due to visibility etc.
+
+Privacy property allows owner to override normal sharing. TODO: explain
 
 ## CalendarEvent/changes
 
@@ -22,6 +67,8 @@ Standard "/changes" method as described in [@!RFC8620], Section 5.2
 ## CalendarEvent/set
 
 Standard "/set" method as described in [@!RFC8620], Section 5.3.
+
+TODO: if id includes uid + recurrenceId: update -> updates just that instance. delete -> just deletes that instance.
 
 When an event is created, updated or destroyed, the server MUST also ensure the following:
 
@@ -34,13 +81,27 @@ When an event is created, updated or destroyed, the server MUST also ensure the 
     participants other than you the appropriate iMIP email to inform them that the event has been cancelled. If it is in the past, the server SHOULD NOT send a message.
 - If there is a *participantId*, and the corresponding participant does not have a *role* of `owner`, and the *scheduleStatus* is updated for this participant, send the appropriate iMIP email to the *replyTo* address.
 
+Server MUST reject attempts to add with owner not the user unless the user is ini the invitedParticipantId list.
+
+The *privacy* property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar). The server MUST reject this with an *invalidProperties* error.
+
+Server may enforce ownership, e.g. for group calendars.
+- Create event you are not owner of => may reject.
+- Create event with no participants => add you as sole participant owner (use default identity.)
+
 ## CalendarEvent/copy
 
 Standard "/copy" method as described in [@!RFC8620], Section 5.4.
 
 ## CalendarEvent/query
 
-Standard "/query" method as described in [@!RFC8620], Section 5.5.
+Standard "/query" method as described in [@!RFC8620], Section 5.5, with one extra argument:
+
+- **expandRecurrences**: `Boolean` (default: false)
+  If true, the server will
+- **timeZone**: time zone for before/after (default: 'Etc/UTC')
+
+If expandRecurrences is true will return separate id for each instance. Suggest id format but clients MUST NOT rely on it; is opaque id.
 
 ### Filtering
 
@@ -64,6 +125,14 @@ A **FilterCondition** object has the following properties:
   Looks for the text in the name or email fields of a participant in the *participants* property of the event, or the overridden *participants* property of a recurrence, where the participant has a role of "owner".
 - **attendee**: `String|null`
   Looks for the text in the name or email fields of a participant in the *participants* property of the event, or the overridden *participants* property of a recurrence, where the participant has a role of "attendee".
+- **participationStatus**: Must match. If owner/attendee condition, status must be of that participant. Otherwise any.
+- **uid**: `String`
+  The uid of the event is exactly the given string.
+
+All conditions must match against the same instance of a recurring event for the event to match. For non-recurring events must match against the set.
+
+- If not expanding, match is against text anywhere, not just same instace. And before start of first instance, after end of last instance. Much quicker if we don't expand recurrences, as we can precache.
+- define exactly how time intersection works. (end > event start, start < end?)
 
 If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
 
@@ -79,8 +148,20 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 The following properties MUST be supported for sorting:
 
 - start
-- uid
+
+The following properties SHOULD be supported for sorting:
+
+- created
+- updated
 
 ## CalendarEvent/queryChanges
 
 Standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+
+## Snoozing an alert
+
+Users often want to "snooze" an alert – temporarily dismiss it for a period of time. To do this ...
+
+## Examples
+
+TODO: Add example of how to get event by uid: query uid=foo and backref. Return multiple with recurrenceId set (user invited to specific instances of recurring event).

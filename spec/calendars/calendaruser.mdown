@@ -1,0 +1,73 @@
+# Calendar Users
+
+A CalendarUser represents an individual, group, schedulable location (e.g. a room), bookable resource (e.g. a projector) or other entity in the calendar system. In a shared calendar environment such as a workplace, a user may have access to a large number of calendar users.
+
+Users can query
+
+No set method defined. How directory of calendar users is managed, likely to be vendor-specific.
+
+TODO: How to set your time zone + default calendar? Should calendars even have time zone?
+TODO: Do you always schedule against the email? Other method?
+
+Has the following properties:
+
+- id: Id
+- name: String
+- email: String
+- description: String
+- type: user|group|resource|location|other
+- timeZone: String|null
+- mayGetAvailability: Boolean
+- accountId: Id|null (calendar account id; can fetch calendars/etc.)
+  null if account is null.
+- account: Account|null
+  JMAP account object. null if none (user just for permissions management), or the user does not have access to any data in the account other than free/busy.
+
+## CalendarUser/get
+
+
+---
+
+/changes
+
+Maybe?
+
+---
+
+CalendarUser/query
+- accountIds: [ ... ]
+- email: ...
+- name: ...
+- text ...
+
+CalendarUser/queryChanges
+
+May be possible?
+
+---
+
+Availability
+
+CalendarUser/getAvailability
+- id: Id
+- startTime: UTCDate
+- endTime: UTCDate
+- showDetails: Boolean
+
+This aggregates free-busy + availability from different calendars in the account.
+
+Returns free-busy, ignoring private events, events marked showAsFree, cancelled events. May consider extra data known to the server about the calendar user's availability.
+
+Returns
+
+- freeBusy: FreeBusy[]
+- events: JSEvent[]
+
+If showDetails:false or no mayReadItems permission, must expand, should coalesce if just free busy info. If has mayRead on event, return (possibly overlapping) objects with title/description/location/uid.
+
+- No state strings
+- No push events
+
+Errors
+`forbidden`: You do not have permission to access this user's free-busy.
+`serverUnavailable`: ...

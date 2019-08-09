@@ -1,0 +1,172 @@
+# Handling iTIP Messages
+
+iTIP [@!RFC5546] defines a widely-supported protocol for scheduling between different calendar users, even across different systems. It is likely
+
+### Adding an iTIP Message to a Calendar
+
+An iTIP message is is an iCalendar [@!RFC5545] file with a METHOD property.
+
+1. Convert to JSCalendar.
+2. Add a
+
+### PUBLISH messages
+
+If there is no method, treat this the same.
+
+* Strip method
+* Strip alerts
+* Set useDefaultAlerts: true
+* Strip priority
+* Strip freeBusyStatus (so default for calendar)
+* Strip privacy (unless user has indicated a different default)
+* Strip replyTo/participants? Allows user to edit.
+
+### REQUEST messages
+
+If the user already has
+
+If event with this uid+recurrenceId exists in calendar:
+
+TODO
+
+If event with this uid+recurrenceId does not exist in calendar:
+
+  If event with this uid and no recurrenceId (i.e. the master event) exists in the calendar (and this invitation has a recurrenceId): this is an update to the recurrenceOverride.
+
+  If event with this uid
+
+* Strip method
+* Strip alerts
+* Set useDefaultAlerts: true
+
+
+
+When the method is REQUEST, the
+
+- Add REQUEST with invitedParticipantId. This ensures consistent responses.
+- SHOULD ignore alerts specified in iTIP and just set useDefaultAlerts instead.
+- If just a single occurrence, may just add.
+- If adding from iMIP, should remove overridden components
+- COUNTER and DECLINECOUNTER not documented due to lack of widespread use; their capabilities are superceded by VPOLL.
+- Adding master when previously invited to instances?
+
+Scheduling;
+- document what to do with iTIP messages (server or client).
+  - REQUEST
+    - is user an attendee?
+    - is it already in calendar?
+    - RSVP prop?
+  - ADD
+    - in cal? Add instance. Otherwise, send refresh. Add annotation to ensure not again?
+- document allowed changes that may be made and what iTIP the server should send.
+  - to rsvp
+  - delegate
+  - to create an event
+  - to change organiser
+
+- creating events
+   When an "Organizer" issues
+   the initial iCalendar object, "Attendee" status is typically unknown.
+   The "Organizer" specifies this by setting the "PARTSTAT" parameter to
+   "NEEDS-ACTION".  Each "Attendee" modifies their "ATTENDEE" property
+   "PARTSTAT" parameter to an appropriate value as part of a "REPLY"
+   message sent back to the "Organizer".
+
+- When should SEQUENECE be incremented?
+   o  For the "PUBLISH" and "REQUEST" methods, the "SEQUENCE" property
+      value is incremented according to the rules stated above.
+
+   o  The "SEQUENCE" property value MUST be incremented each time the
+      "Organizer" uses the "ADD" or "CANCEL" methods.
+- Document processing REQUEST/REPLY. (May be done by either client or server).
+  - look up by uid (master event) optionally plus recurrence id (just applies to that event)
+  - should ignore alerts, add useDefault instead.
+  - REPLY ignore all props other than sequence/dtstart/uid/recurrence-id/attendee. Must be single attendee, otherwise bogus.
+  - higher sequence, then more recent dtstamp.
+  - must store sequence/dtstamp from reply. Must not replace with older. if sequence doesn't match, may offer.
+- Recommend prompting user on whether to reset partstate/RSVP needed?
+- Private attendee list for iTIP? Add a new property to JSCalendar?
+
+ADD
+- Add start date to recurrenceOverrides, with properties from event if different to master (or no master)?
+- If event not found OR override already exists, send refresh instead.
+
+REFRESH
+- send request again
+
+CANCEL
+- cancels instance or whole set.
+
+COUNTER
+- A reply that changes props. Do we need explicit support?
+
+Delegate REPLY
+- Set partst=delegated
+- Add participant
+- Set delegatedTo=participantId
+- Send to delegate (REQUEST) and organizer (REPLY
+
+  In response to the request, the "Delegate" MUST send a "REPLY" method
+   to the "Organizer", and optionally to the "Delegator".  The "REPLY"
+   method SHOULD include the "ATTENDEE" property with the "DELEGATED-
+   FROM" parameter value of the "Delegator's" calendar address.
+
+   The "Delegator" may continue to receive updates to the event even
+   though they will not be attending.  This is accomplished by the
+   "Delegator" setting their "role" attribute to "NON-PARTICIPANT" in
+   the "REPLY" to the "Organizer".)
+
+  When delegating an event request to another "Calendar User", the
+   "Delegator" must both update the "Organizer" with a "REPLY" and send
+   a request to the "Delegate".  There is currently no protocol
+   limitation to delegation depth.  It is possible for the original
+   delegate to delegate the meeting to someone else, and so on.  When a
+   request is delegated from one CUA to another, there are a number of
+   responsibilities required of the "Delegator".  The "Delegator" MUST:
+
+   o  Send a "REPLY" to the "Organizer" with the following updates:
+
+      A.  The "Delegator's" "ATTENDEE" property "PARTSTAT" parameter is
+          set to "DELEGATED" and the "DELEGATED-TO" parameter is set to
+          the address of the "Delegate".
+
+      B.  Add an additional "ATTENDEE" property for the "Delegate" with
+          the "DELEGATED-FROM" property parameter set to the
+          "Delegator".
+
+      C.  Indicate whether they want to continue to receive updates when
+          the "Organizer" sends out updated versions of the event.
+          Setting the "RSVP" property parameter to "TRUE" will cause the
+          updates to be sent; setting it to "FALSE" causes no further
+          updates to be sent.  Note that in either case, if the
+          "Delegate" declines the invitation, the "Delegator" will be
+          notified.
+
+   o  The "Delegator" MUST also send a copy of the original "REQUEST"
+      method to the "Delegate", with changes (A) and (B), as detailed
+      above applied.
+
+   If the "Delegate" declines the meeting, the "Organizer" MUST send an
+   update "REQUEST" to the "Delegator" so that the "Delegator" may elect
+   to delegate the "REQUEST" to another CUA.
+
+Gate crashing
+- Receive an invite that you are not participant id in.
+- may still send REPLY
+- organizer may accept/reject (may send CANCEL/REQUEST to confirm)
+
+Processing PUBLISH
+- What to do with organizer? Strip? Add as different property? (Only organizer may update?)
+
+Sending replies
+- Explicit? Implicit?
+- SHOULD NOT send if in past.
+
+iTip
+- Delegating
+
+ITip/send
+- method
+- calendarEventId
+- asParticipantId
+- rsvp?

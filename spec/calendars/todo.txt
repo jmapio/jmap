@@ -1,0 +1,40 @@
+JSCalendar
+
+IANA registry: property names
+[ Context (@jstype etc.)]
+- add type to every sub-object too. @type: "Participant". etc.
+
+IANA registry: enum values
+[ Type name, Property name, value, description, spec ref/]
+- relativeTo#relation
+- locations#relativeTo
+- links#display
+- freeBusyStatus
+- privacy
+- Participant#kind
+- Participant#roles
+- Participant#participationStatus
+- Participant#attendance
+- Alert#action
+- Alert#trigger
+- progress
+- status
+- replyTo/Participant#sendTo
+
+free-busy status: busy-tentative + busy-unavailable etc.
+role: make optional (could be just a participant for informational purposes).
+
+location#type?: Values for this parameter are taken from the values defined in
+      [RFC4589].  New location types SHOULD be registered in the manner
+      laid down in that specification.
+
+---
+
+Fastmail
+- Move todos to their own calendar: supported-calendar-component-set. This should just be a script. But need to test what clients do if it changes.
+- Use Cyrus for generate ICS data for export/publish.
+- Move to managed attachements. Data is embedded (base64) when exported/published as ICS/iMIP messages. Will not move current files but all new ones go via this.
+- Add process iMIP to Cyrus sieve: showAsFreeBusy/private/auto-reply override options.
+- Process default alerts on calendar.
+- Shared: store shadow calendar for each user it's shared with. Per-user properties stored as patches here.
+

@@ -8,8 +8,14 @@ A **Calendar** object has the following properties:
   The id of the calendar.
 - **name**: `String`
   The user-visible name of the calendar. This may be any UTF-8 string of at least 1 character in length and maximum 255 octets in size.
+- **description**: `String|null`
+  An optional longer-form description of the calendar, to provide context in shared environments where users need more than just the name.
 - **color**: `String`
-  Any valid CSS color value. The color to be used when displaying events associated with the calendar. The color SHOULD have sufficient contrast to be used as text on a white background.
+  The color to be used when displaying events associated with the calendar. The value MUST be a case-insensitive color name taken from the CSS3 set of names,
+  defined in Section 4.3 of W3C.REC-css3-color-20110607, or a CSS3 RGB color hex value.
+
+    The color SHOULD have sufficient contrast to be used as text on a white background.
+
 - **sortOrder**: `UnsignedInt` (default: 0)
   Defines the sort order of calendars when presented in the client's UI, so it
   is consistent between devices. The number MUST be an integer in the range
@@ -20,48 +26,96 @@ A **Calendar** object has the following properties:
     equal order should be sorted in alphabetical order by name. The sorting
     should take into locale-specific character order convention.
 
+- **isSubscribed**: `Boolean`
+  If false, the JMAP UI will not show it in the calendar app. If offering data over CalDAV too, only subscribed cals appear.
+- **includeInFreeBusy**: `all|attending|none`
+  TODO: Shared cal allowed??? Server may reject for shared?
 - **isVisible**: `Boolean` (default: true)
-  Should the calendar's events be displayed to the user at the moment?
-- **mayReadFreeBusy**: `Boolean` (server-set)
-  The user may read the free-busy information for this calendar. In JMAP
-  terms, this means the user may use this calendar as part of a filter in a
-  *CalendarEvent/query* call, however unless `mayRead == true`, the events
-  returned for this calendar will only contain free-busy information, and be stripped of any other data.
-  This property MUST be `true` if *mayRead* is `true`.
-- **mayReadItems**: `Boolean` (server-set)
-  The user may fetch the events in this calendar. In JMAP terms, this means
-  the user may use this calendar as part of a filter in a
-  *CalendarEvent/query* call
-- **mayAddItems**: `Boolean` (server-set)
-  The user may add events to this calendar. In JMAP terms, this means the
-  user may call *CalendarEvent/set* to create new events in this calendar or
-  move existing events into this calendar from another calendar.
-  This property MUST be `false` if the account to which this calendar belongs
-  has the *isReadOnly* property set to `true`.
-- **mayModifyItems**: `Boolean` (server-set)
-  The user may edit events in this calendar by calling *CalendarEvent/set* with
-  the *update* argument referencing events in this collection.
-  This property MUST be `false` if the account to which this calendar belongs
-  has the *isReadOnly* property set to `true`.
-- **mayRemoveItems**: `Boolean` (server-set)
-  The user may remove events from this calendar by calling *CalendarEvent/set*
-  with the *destroy* argument referencing events in this collection, or by
-  updating their *calendarId* property to a different calendar.
-  This property MUST be `false` if the account to which this calendar belongs
-  has the *isReadOnly* property set to `true`.
-- **mayRename**: `Boolean` (server-set)
-  The user may rename the calendar.
-  This property MUST be `false` if the account to which this calendar belongs
-  has the *isReadOnly* property set to `true`.
-- **mayDelete**: `Boolean` (server-set)
-  The user may delete the calendar itself.
-  This property MUST be `false` if the account to which this calendar belongs
-  has the *isReadOnly* property set to `true`.
+  Should the calendar's events be displayed to the user at the moment? Ignored if not subscribed.
+- **defaultAlertsWithTime**: `Alert[]`
+  The alerts to apply for timed events that have "useDefaultAlerts" set.
+  See the JSCalendar spec for description of an Alert object.
+- **defaultAlertsWithoutTime**: `Alert[]`
+  The alerts to apply for all-day events that have "useDefaultAlerts" set.
+  See the JSCalendar spec for description of an Alert object.
+- **timeZone**: `String|null`
+  Resolves floating time when server needs (reminders, queries, freebusy). If `null`, server-dependent, recommended to base on associated CalendarUser#timeZone if known.
+- **participantIdentities**: `ParticipantIdentity[]|null` (server-set)
+  The identities that represent the user in this calendar.
 
+  The first item in the array is the default. A **ParticipantIdentity** object has the following properties:
+
+  - **name**: `String`
+    The display name of the participant to use when adding this participant to an event, e.g. "Joe Bloggs"
+  - **type**: `String`
+    Always "imip" for now.
+  - **uri**: `String`
+    The URI for this identity, e.g. "mailto:foo@example.com"
+
+  The user is an **organiser** for an event if the CalendarEvent object has a   "participants" property, and one of the Participant objects has both:
+
+  a) The "owner" role.
+  b) A "sendTo" property that is equal to the "type"/"uri" of one of the
+     ParticipantIdentity objects returned with the calendar.
+
+  For JMAP servers that support JMAP Mail, this MAY be the same as Identities.
+
+- **shareWith**: `Id[CalendarRights]`
+  A map of CalendarUser id to rights for users this calendar is shared with. The owner of the calendar MUST NOT be in this set. This is `null` if the user requesting the object does not have admin rights, or if the calendar is not shared with anyone. May be modified if `mayAdmin == true`.
+
+- **shareesActAs**: `String` (immutable; default server-dependent)
+  This MUST be one of:
+
+    - `owner`
+    - `self`
+
+    If `self`, sharees act as themselves when using this calendar. If `owner`, they act as the owner of the calendar (secretary mode). If omitted, default is server dependent. For example, may be `self` if creating a calendar in a CalendarUser representing a group, and `owner` if creating a calendar for an individual. Users may attempt to set, but server may reject as invalidProperties if not permissible.
+
+- **myRights**: `CalendarRights` (server-set)
+  The set of access right the user has in relation to this Calendar. A **CalendarRights** object has the following properties:
+
+  - **mayReadFreeBusy**: `Boolean`
+    The user may read the free-busy information for this calendar. This means the user may use this calendar as part of a filter in a "CalendarEvent/query" and call, however unless `mayReadItems == true`, the events returned for this calendar will only contain free-busy information, and be stripped of any other data.
+  - **mayReadItems**: `Boolean`
+    The user may fetch the events in this calendar. This means the user may use this calendar as part of a filter in a "CalendarEvent/query" call.
+  - **mayAddItems**: `Boolean`
+    The user may create new events on this calendar or move events to this calendar.
+  - **mayUpdatePrivate**: `Boolean`
+    The user may modify the following properties on all events in the calendar.
+    These properties are all stored per-user, and changes do not affect any other user of the calendar.
+    - keywords
+    - color
+    - freeBusyStatus
+    - useDefaultAlerts
+    - alerts
+  - **mayUpdateOwn**: `Boolean`
+    The user may modify an existing event on this calendar if either they are the organiser or there is no organiser.
+  - **mayUpdateAll**: `Boolean`
+    The user may modify all existing events on this calendar.
+  - **mayRemoveOwn**: `Boolean`
+    The user may delete an event or move it to a different calendar if either they are the organiser or there is no organiser.
+  - **mayRemoveAll**: `Boolean`
+    The user may delete any event or move it to a different calendar.
+  - **mayAdmin**: `Boolean`
+    The user may modify sharing for this calendar.
+  - **mayRename**: `Boolean` (server-set)
+    The user may rename the calendar.
+    This property MUST be `false` if the account to which this calendar belongs
+    has the *isReadOnly* property set to `true`.
+  - **mayDelete**: `Boolean` (server-set)
+    The user may delete the calendar itself.
+    This property MUST be `false` if the account to which this calendar belongs
+    has the *isReadOnly* property set to `true`.
+
+Per-user properties:
+
+All non-server-set or immutable properties(TODO:list explicitly?) except shareWith are overridable by sharees. If set, does not change master. If master changes, does not overwrite sharee's value.
 
 ## Calendar/get
 
 Standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
+
+If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in Calendar/get and Calendar/query; it is just the data is used as part of CalendarUser/getFreeBusy.
 
 ## Calendar/changes
 
