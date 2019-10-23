@@ -1,36 +1,98 @@
 # Introduction
 
-JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
+JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronizing data, such as mail, calendars or contacts, between a client and a server. It is optimized for mobile and web environments, and aims to provide a consistent interface to different data types.
 
-This specification defines a data model for synchronising calendar data between a client and a server using JMAP.
+This specification defines a data model for synchronizing calendar data between a client and a server using JMAP. The data model is designed to allow a server to provide consistent access to the same data via CalDAV [@?RFC4791] as well as JMAP, however the functionality offered over the two protocols may differ. Unlike CalDAV, this specification does not define access to tasks or journal entries (VTODO or VJOURNAL iCalendar components in CalDAV).
 
-## Notational conventions
+## Data Model Overview
+
+A CalendarPrincipal (see Section XXX) represents an individual, team or resource (e.g. a room or projector). The object contains information about the entity being represented, such as a name, description and time zone. A CalendarPrincipal has a 1:1 correspondence with an Account (see [@!RFC8620], Section 1.6.2) that supports the `urn:ietf:params:jmap:calendars` capability.
+
+Each such Account contains zero or more Calendar objects, which is a named collection of CalendarEvents belonging to the CalendarPrincipal. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off.
+
+A CalendarEvent is a representation of an event or recurring series of events in JSEvent [@!draft-ietf-calext-jscalendar-20] format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.
+
+CalendarEventNotification objects keep track of the history of changes made to a calendar by other users, allowing calendar clients to notify the user of changes to their schedule. Similarly, the CalendarShareNotification type notifies the user when their access to another user's calendar is granted or revoked.
+
+## Accounts, Push, and the Session Object
+
+The JMAP Session object (see [@!RFC8620], Section 2) typically includes an object in the `accounts` property for every account that the user has access to. Calendaring systems may share data between a (potentially very) large number of CalendarPrincipals, most of which the user does not care about day-to-day but may occasionally need to query when scheduling events.
+
+Users can normally subscribe to any calendar to which they have access (see Section XXX). This indicates the user wants this calendar to appear in their regular list of calendars. The separate "isVisible" property stores whether the user would currently like to view the events in a subscribed calendar.
+
+The Session object MUST only include Accounts where the user is subscribed to at least one Calendar or they have access to some other data type in the account. StateChange events for changes to CalendarEvent data SHOULD only be sent for events in calendars the user has subscribed to and MUST NOT be sent for any Account where the user is not subscribed to at least one calendar.
+
+The server may reject the user's attempt to subscribe to some calendars, e.g. those representing resources.
+
+A user may query the set of CalendarPrincipals they have access to with "CalendarPrincipal/query" (see Section XXX). The CalendarPrincipal object may have an "accountId" property that can be used to then fetch calendars and events associated with that principal, subject to appropriate permissions.
+
+### UIDs and CalendarEvent Ids
+
+Each CalendarEvent has a `uid` property ([@!draft-ietf-calext-jscalendar-20], Section 4.1.2), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.
+
+An Account MUST NOT contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their `recurrenceId` property. (This situation occurs if the principal is added to one or more specific instances of a recurring event without being invited to the whole series.)
+
+Each CalendarEvent also has an id, which is scoped to the JMAP Account and used for referencing it in JMAP methods. There is no necessary link between the uid property and the CalendarEvent's id. CalendarEvents with the same uid in different Accounts MAY have different ids.
+
+## Notational Conventions
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
 
-Type signatures, examples and property descriptions in this document follow the conventions established in Section 1.1 of [@!RFC8620].
+Type signatures, examples, and property descriptions in this document follow the conventions established in Section 1.1 of [@!RFC8620].  Data types defined in the core specification are also used in this document.
 
-Object properties may also have a set of attributes defined along with the type
-signature. These have the following meanings:
+## The LocalDate Data Type
 
-* **server-set**: Only the server can set the value for this property. The
-  client MUST NOT send this property when creating a new object of this type.
-* **immutable**: The value MUST NOT change after the object is created.
-* **default**: (This is followed by a JSON value). The value that will be used
-  for this property if it is omitted in an argument, or when creating a new object of this type.
-
-Data types defined in the core specification are used in this document.
-
-## The Date datatypes
-
-Where `LocalDate` is given as a type, it means a string in the same format as `Date`, but with the *time-offset* omitted from the end. The interpretation in absolute time depends upon the time zone for the event, which may not be a fixed offset (for example when daylight saving time occurs). For example, `"2014-10-30T14:12:00"`.
+Where `LocalDate` is given as a type, it means a string in the same format as `Date` (see [@!RFC8620], Section 1.4), but with the `time-offset` omitted from the end. The interpretation in absolute time depends upon the time zone for the event, which may not be a fixed offset (for example when daylight saving time occurs). For example, `2014-10-30T14:12:00`.
 
 ## Terminology
 
-The same terminology is used in this document as in the core JMAP specification.
+The same terminology is used in this document as in the core JMAP specification, see [@!RFC8620], Section 1.6.
+
+The terms CalendarPrincipal, Calendar, CalendarEvent, CalendarEventNotification, and CalendarShareNotification  (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.
 
 ## Addition to the capabilities object
 
-The capabilities object is returned as part of the standard JMAP Session object; see the JMAP spec. Servers supporting *this* specification MUST add a property called `urn:ietf:params:jmap:calendars` to the capabilities object.
+The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], Section 2. This document defines two additional capability URIs.
 
-The value of this property is an empty object in both the JMAP session *capabilities* property and an account's *accountCapabilities* property.
+### urn:ietf:params:jmap:calendars
+
+This represents support for the Calendar, CalendarEvent, and CalendarEventNotification data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.
+
+The value of this property in an account’s accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
+
+- **accountIdForCalendarPrincipal**: `String|null`
+  The id of an account with the `urn:ietf:params:jmap:calendarprincipals`
+  capability that contains the corresponding CalendarPrincipal object. This may
+  be the same account id. This is null for single-user systems that do not
+  support the CalendarPrincipal data type.
+- **maxSizeCalendarEvent**: `UnsignedInt`
+  The maximum size in octets of the largest CalendarEvent the server is willing to store. TODO: How can you relate this to what the client knows?
+- **minDateTime**: `LocalDate`
+  The earliest date-time the server is willing to accept for any date stored in a CalendarEvent.
+- **maxDateTime**: `LocalDate`
+  The latest date-time the server is willing to accept for any date stored in a CalendarEvent.
+- **maxExpandedQueryDuration**: `Duration`
+  The maximum duration the user may query over when asking the server to expand recurrences.
+- **maxParticipantsPerEvent**: `Number|null`
+  The maximum number of participants a single event may have, or null for no limit.
+- **maxNumberEventNotifications**: `UnsignedInt`
+  The maximum number of CalendarEventNotification objects the server will
+  store for this account. If new notifications are added in excess of this number, older notifications will be automatically deleted by the server.
+- **mayCreateCalendar**: `Boolean`
+  If true, the user may create a calendar in this account.
+
+### urn:ietf:params:jmap:calendarprincipals
+
+Represents support for the CalendarPrincipal and CalendarShareNotification data types and associated API methods. Single user systems do not need this and MAY choose not to support it.
+
+The value of this property in the JMAP Session capabilities property is an empty object.
+
+The value of this property in an account’s accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
+
+- **currentUserPrincipalId**: `String|null`
+  The id of the principal in this account that corresponds to the user fetching this object, if any.
+- **maxAvailabilityDuration**:
+  The maximum duration over which the server is prepared to calculate availability in a single call (see Section XXX).
+- **maxNumberShareNotifications**: `UnsignedInt`
+  The maximum number of CalendarShareNotification objects the server will store
+  for a principal in this account. If new notifications are added in excess of this number, older notifications will be automatically deleted by the server.

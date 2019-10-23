@@ -1,0 +1,47 @@
+# Alerts
+
+Alerts may be specified on events as described in [@!draft-ietf-calext-jscalendar-20], Section 4.5. If the "useDefaultAlerts" property is true, the alerts are taken from the Calendar "defaultAlertsWithTime" or "defaultAlertsWithoutTime" property, as described in Section XXX. Otherwise, the alerts are taken from the "alerts" property of the CalendarEvent.
+
+Alerts MUST only be triggered for events in calendars where the user is subscribed and either the user owns the calendar or the calendar's "shareesActAs" property is "self".
+
+When an alert with an "email" action is triggered, the server MUST send an email to the user to notify them of the event. The contents of the email is implementation specific. Clients MUST NOT perform an action for these alerts.
+
+When an alert with a "display" action is triggered, clients SHOULD display an alert in a platform-appropriate manner to the user to remind them of the event. Clients with a full offline cache of events may choose to calculate when alerts should trigger locally. Alternatively, they can subscribe to push events from the server.
+
+## Push events
+
+Servers that support the `urn:ietf:params:jmap:calendars` capability MUST support registering for the pseudo-type "CalendarAlert" in push subscriptions and event source connections, as described in [@!RFC8620], Sections 7.2 and 7.3.
+
+If requested, a CalendarAlert notification will be pushed whenever an alert is triggered for the user. For Event Source connections, this notification is pushed as an event called "calendaralert".
+
+A **CalendarAlert** object has the following properties:
+
+- **@type**: `String`
+  This MUST be the string "CalendarAlert".
+- **accountId**: `String`
+  The account id for the calendar in which the alert triggered.
+- **calendarEventId**: `String`
+  The CalendarEvent id for the alert that triggered.
+- **uid**: `String`
+  The uid property of the CalendarEvent for the alert that triggered.
+- **recurrenceId**: `String|null`
+  The recurrenceId for the instance of the event for which this alert is being
+  triggered, or `null` if the event is not recurring.
+- **alertId**: `String`
+  The id for the alert that triggered.
+
+
+## Acknowledging an alert
+
+To dismiss an alert, clients set the "acknowledged" property of the Alert object to the current date-time. When other clients fetch the CalendarEvent with the updated Alert they SHOULD automatically dismiss or suppress duplicate alerts (alerts with the same alert id that triggered on or before this date-time).
+
+Setting the "acknowledged" property MUST NOT create a new recurrence override. For a recurring calendar object, the "acknowledged" property of the parent object MUST be updated, unless the alert is already overridden in the "recurrenceOverrides" property.
+
+## Snoozing an alert
+
+Users may wish to dismiss an alert temporarily and have it come back after a specific period of time. To do this, clients MUST:
+
+1. Acknowledge the alert as described in Section XXX.
+2. Add a new alert with an `AbsoluteTrigger` for the date-time the alert has been snoozed until. Add a "relatedTo" property to the new alert, setting the "parent" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert being snoozed.
+
+When acknowledging a snoozed alert (i.e. one with a parent relatedTo pointing to the original alert), the client SHOULD delete the alert rather than setting the "acknowledged" property.

@@ -1,0 +1,91 @@
+# CalendarEvent Notifications
+
+The CalendarEventNotification data type records changes made by external entities to events in calendars the user is subscribed to. Notifications are stored in the same Account as the CalendarEvent that was changed.
+
+Notifications are only created by the server; users cannot create them directly. Clients SHOULD present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.
+
+The server SHOULD create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP [@?RFC5546] or other scheduling message in a calendar this user is subscribed to. The server SHOULD NOT create notifications for events implicitly deleted due to the containing calendar being deleted.
+
+## Auto-deletion of Notifications
+
+The server MAY limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.
+
+The server MAY coalesce events if appropriate, or remove events that it deems are no longer relevant or after a certain period of time. The server SHOULD automatically destroy a notification about an event if the user updates or destroys that event (e.g. if the user sends an RSVP for the event).
+
+## Object Properties
+
+The **CalendarEventNotification** object has the following properties:
+
+- **id**: `String`
+  The id of the CalendarEventNotification.
+- **created**: `UTCDate`
+  The time this notification was created.
+- **changedBy**: `Person`
+  Who made the change.
+  - **name**: `String`
+    The name of the person who made the change.
+  - **email**: `String`
+    The email of the person who made the change.
+  - **calendarPrincipalId**: `String|null`
+    The id of the calendar principal corresponding to the person who made the change, if any. This will be null if the change was due to receving an iTIP message.
+- **comment**: `String|null`
+  Comment sent along with the change by the user that made it. (e.g. COMMENT
+  property in an iTIP message).
+- **type**: `String`
+  This MUST be one of
+  - created
+  - updated
+  - destroyed
+- **calendarEventId**: `String`
+  The id of the CalendarEvent that this notification is about.
+- **isDraft**: `Boolean` (created/updated only)
+  Is this event a draft?
+- **event**: `JSEvent`
+  The data before the change (if updated or destroyed), or the data
+  after creation (if created).
+- **eventPatch**: `PatchObject` (updated only)
+  A patch encoding the change between the data in the event property, and the
+  data after the update.
+
+To reduce data, if the change only affects a single instance of a recurring event, the server MAY set the event and eventPatch properties for the instance; the calendarEventId MUST still be for the master event.
+
+## CalendarEventNotification/get
+
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
+
+## CalendarEventNotification/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## CalendarEventNotification/set
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.3.
+
+Only destroy is supported; any attempt to create/update MUST be rejected with a
+`forbidden` SetError.
+
+## CalendarEventNotification/query
+
+This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
+
+### Filtering
+
+A **FilterCondition** object has the following properties:
+
+- **after**: `UTCDate|null`
+  The creation date must be on or after this date to match the condition.
+- **before**: `UTCDate|null`
+  The creation date must be before this date to match the condition.
+- **type**: `String`
+  The type property must be the same to match the condition.
+- **calendarEventIds**: `Id[]|null`
+  A list of event ids. The calendarEventId property of the notification must be in this list to match the condition.
+
+### Sorting
+
+The "created" property MUST be supported for sorting.
+
+## CalendarEventNotification/queryChanges
+
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+

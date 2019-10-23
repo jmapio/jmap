@@ -1,0 +1,155 @@
+# Calendar Principals
+
+A CalendarPrincipal represents an individual, group, schedulable location (e.g. a room), bookable resource (e.g. a projector) or other entity in the calendar system. In a shared calendar environment such as a workplace, a user may have access to a large number of principals.
+
+In most systems the user will have access to a single Account containing CalendarPrincipal objects, but they may have access to multiple if, for example, aggregating calendar data from different places.
+
+A **CalendarPrincipal** object has the following properties:
+
+- **id**: `Id`
+  The id of the principal.
+- **name**: `String`
+  The name of the principal, e.g. "Jane Doe", or "Room 4B".
+- **description**: `String|null`
+  A longer description of the principal, for example details about the facilities of a resource, or null if no description available.
+- **email**: `String|null`
+  An email address for the principal, or null if no email is available.
+- **type**: `String`
+  This MUST be one of the following values:
+  - `individual`: This represents a single person.
+  - `group`: This represents a group of people.
+  - `resource`: This represents some resource, e.g. a projector.
+  - `location`: This represents a location.
+  - `other`: This represents some other undefined principal.
+- **timeZone**: `String`
+  The time zone for this principal. The value MUST be a time zone id from the IANA Time Zone Database.
+- **mayGetAvailability**: `Boolean`
+  May the user call the "CalendarPrincipal/getAvailability" method with this CalendarPrincipal?
+- **accountId**: `Id|null`
+  Id of Account with the `urn:ietf:params:jmap:calendars` capability that
+  contains the data for this principal, or null if none (e.g. the CalendarPrincipal is a group just used for permissions management), or the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property).
+- **account**: `Account|null`
+  The JMAP Account object corresponding to the accountId, null if none.
+- **sendTo**: `String[String]|null`
+  If this principal may be added as a participant to an event, this is the map of methods for adding it, in the same format as Participant#sendTo in JSEvent (see [@!draft-ietf-calext-jscalendar-20], Section 4.4.5).
+
+## CalendarPrincipal/get
+
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
+
+## CalendarPrincipal/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## CalendarPrincipal/set
+
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3. However, the user may only update the "timeZone" property of the CalendarPrincipal with the same id as the "currentUserPrincipalId" in the Account capabilities. Any other change MUST be rejected with a `forbidden` SetError.
+
+Managing calendar principals is likely tied to a directory service or some other vendor-specific solution, and occurs out-of-band, or via an additional capability defined elsewhere.
+
+## CalendarPrincipal/query
+
+This is a standard "/query" method as described in [@!RFC8620], Section 5.5
+
+### Filtering
+
+A **FilterCondition** object has the following properties:
+
+- **accountIds**: `String[]`
+  A list of account ids. The CalendarPrincipal matches if the value for its
+  accountId property is in this list.
+- **email**: `String`
+  Looks for the text in the email property.
+- **name**: `String`
+  Looks for the text in the name property.
+- **text** `String`
+  Looks for the text in the name, email, and description properties.
+- **type**: `String`
+  The type must be exactly as given to match the condition.
+- **timeZone**: `String`
+  The timeZone must be exactly as given to match the condition.
+
+All conditions in the FilterCondition object must match for the CalendarPrincipal to match.
+
+## CalendarPrincipal/queryChanges
+
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+
+## CalendarPrincipal/getAvailability
+
+Calculates the availability of the principal for scheduling within a requested time period. It takes the following arguments:
+
+- **accountId**: `Id`
+  The id of the account to use.
+- **id**: `Id`
+  The id of the CalendarPrincipal to calculate availability for.
+- **utcStart**: `UTCDate`
+  The start time (inclusive) of the period for which to return availability.
+- **utcEnd**: `UTCDate`
+  The end time (exclusive) of the period for which to return availability.
+- **showDetails**: `Boolean`
+  If true, event details will be returned if the user has permission to view them.
+
+The server will first find all relevant events, expanding any recurring events. Relevant events are ones where all of the following is true:
+
+- The principal is subscribed to the calendar.
+- Either the calendar belongs to the principal or the "shareesActAs" property
+  of the calendar is "self".
+- The "includeInAvailability" property of the calendar for the principal is
+  "all" or "attending".
+- The user has the "mayReadFreeBusy" permission for the calendar.
+- The event finishes after the "utcStart" argument and starts before the
+  "utcEnd" argument.
+- The event's "privacy" property is not "secret".
+- The "freeBusyStatus" property of the event is "busy" (or omitted, as this is
+  the default).
+- The "status" property of the event is not "cancelled".
+- If the "includeInAvailability" property of the calendar is "attending", then
+  the principal is a participant of the event, and has a "participationStatus" of "accepted" or "tentative".
+
+The server then generates a BusyPeriod object for each of these events. A **BusyPeriod** object has the following properties:
+
+- **utcStart**: `UTCDate`
+  The start time (inclusive) of the period this represents.
+- **utcEnd**: `UTCDate`
+  The end time (exclusive) of the period this represents.
+- **busyStatus**: `String` (optional, default "unavailable")
+  This MUST be one of
+  - `confirmed`: The event status is "confirmed".
+  - `tentative`: The event status is "tentative".
+  - `unavailable`: The principal is not available for scheduling at this time
+    for any other reason.
+- **event**: `JSEvent|null`
+  The JSEvent representation of the event, or null if any of the following are true:
+  - The "showDetails" argument is false.
+  - The "privacy" property of the event is "private".
+  - The user does not have the "mayReadItems" permission for the calendar.
+
+The server MAY also generate BusyPeriod objects based on other information it has about the principal's availability, such as office hours.
+
+Finally, the server MUST merge and split BusyPeriod objects where the "event" property is null, such that none of them overlap and either there is a gap in time between any two objects (the utcEnd of one does not equal the utcStart of another) or those objects have a different busyStatus property. If there are overlapping BusyPeriod time ranges with different "busyStatus" properties the server MUST choose the value in the following order: confirmed > unavailable > tentative.
+
+The response has the following arguments:
+
+- **accountId**: `Id`
+  The id of the account used for the call.
+- **id**: `Id`
+  The id of the CalendarPrincipal availability is being returned for.
+- **utcStart**: `UTCDate`
+  The start time (inclusive) of the period for which availability is being returned.
+- **utcEnd**: `UTCDate`
+  The end time (exclusive) of the period for which availability is being returned.
+- **list**: `BusyPeriod[]`
+  The list of BusyPeriod objects calculated as described above.
+
+The following additional errors may be returned instead of the
+"CalendarPrincipal/getAvailability" response:
+
+`notFound`: No principal with this id exists, or the user does not have
+permission to see that this principal exists.
+
+`forbidden`: The user does not have permission to query this principal's availability.
+
+`tooLarge`: The duration between utcStart an utcEnd is longer than the server is willing to calculate availability for.
+
+`rateLimit`: Too many availability requests have been made recently and the user is being rate limited. It may work to try again later.

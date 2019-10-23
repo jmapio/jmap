@@ -1,0 +1,76 @@
+# Calendar Share Notifications
+
+The CalendarShareNotification data type records when the user's permissions to access a shared calendar changes. CalendarShareNotification are only created by the server; users cannot create them explicitly. Notifications are stored in the same Account as the CalendarPrincipals.
+
+Clients SHOULD present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.
+
+The server SHOULD create a CalendarShareNotification whenever the user's permissions change on a calendar. It SHOULD NOT create a notification for permission changes to a group principal, even if the user is in the group.
+
+## Auto-deletion of Notifications
+
+The server MAY limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.
+
+The server MAY coalesce events if appropriate, or remove events that it deems are no longer relevant or after a certain period of time. The server SHOULD automatically destroy a notification about a calendar if the user subscribes to that calendar.
+
+## Object Properties
+
+The **CalendarShareNotification** object has the following properties:
+
+- **id**: `String`
+  The id of the CalendarShareNotification.
+- **created**: `UTCDate`
+  The time this notification was created.
+- **changedBy**: `Person`
+  Who made the change.
+  - **name**: `String`
+    The name of the person who made the change.
+  - **email**: `String`
+    The email of the person who made the change.
+  - **calendarPrincipalId**: `String|null`
+    The id of the calendar principal corresponding to the person who made the change.
+- **calendarAccountId**: `String`
+  The id of the account where this calendar exists.
+- **calendarId**: `String`
+  The id of the CalendarEvent that this notification is about.
+- **calendarName**: `String`
+  The name of the calendar at the time the notification was made.
+- **oldRights**: `CalendarRights|null`
+  The rights the user had before the change.
+- **newRights**: `CalendarRights|null`
+  The rights the user has after the change.
+
+## CalendarShareNotification/get
+
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
+
+## CalendarShareNotification/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## CalendarShareNotification/set
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.3.
+
+Only destroy is supported; any attempt to create/update MUST be rejected with a
+`forbidden` SetError.
+
+## CalendarShareNotification/query
+
+This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
+
+### Filtering
+
+A **FilterCondition** object has the following properties:
+
+- **after**: `UTCDate|null`
+  The creation date must be on or after this date to match the condition.
+- **before**: `UTCDate|null`
+  The creation date must be before this date to match the condition.
+
+### Sorting
+
+The "created" property MUST be supported for sorting.
+
+## CalendarShareNotification/queryChanges
+
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
