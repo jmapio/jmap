@@ -78,7 +78,7 @@ A **Calendar** object has the following properties:
        ParticipantIdentity objects returned with the calendar.
 
 - **shareWith**: `Id[CalendarRights]|null`
-  A map of CalendarPrincipal id to rights for principals this calendar is shared with. The owner of the calendar MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right.
+  A map of CalendarPrincipal id to rights for principals this calendar is shared with. The pricincipal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right.
 
 - **shareesActAs**: `String` (immutable; default server-dependent)
   This MUST be one of:
@@ -86,7 +86,7 @@ A **Calendar** object has the following properties:
     - `owner`
     - `self`
 
-    If `self`, sharees act as themselves when using this calendar. If `owner`, they act as the owner of the calendar (secretary mode). If omitted, the default is server dependent. For example, it may be `self` if creating a calendar in a CalendarPrincipal representing a group, and `owner` if creating a calendar for an individual. Users may attempt to set this on creation, but the server may reject with an `invalidProperties` error if the value is not permissible.
+    If `self`, sharees act as themselves when using this calendar. If `owner`, they act as the pricincipal to which this calendar belongs (secretary mode). If omitted, the default is server dependent. For example, it may be `self` if creating a calendar in a CalendarPrincipal representing a group, and `owner` if creating a calendar for an individual. Users may attempt to set this on creation, but the server may reject with an `invalidProperties` error if the value is not permissible.
 
 - **myRights**: `CalendarRights` (server-set)
   The set of access rights the user has in relation to this Calendar.
@@ -110,17 +110,19 @@ A **CalendarRights** object has the following properties:
     - useDefaultAlerts
     - alerts
 
+    The user may also modify the above on a per-occurrence basis for recurring events.
+
 - **mayRSVP**: `Boolean`
-  The user may modify the "participationStatus", "participationComment" and "expectReply" properties of any Participant object that is represented in the participantIdentities property of the calendar.
+  The user may modify the "participationStatus", "participationComment", "expectReply" and "scheduleAgent" properties of any Participant object that is represented in the "participantIdentities" property of the calendar.
 
     The user may also modify the above on a per-occurrence basis for recurring events.
 
 - **mayUpdateOwn**: `Boolean`
-  The user may modify an existing event on this calendar if either they are the owner or there is no owner.
+  The user may modify an existing event on this calendar if either they are the owner of the event or the event has no owner.
 - **mayUpdateAll**: `Boolean`
   The user may modify all existing events on this calendar.
 - **mayRemoveOwn**: `Boolean`
-  The user may delete an event or move it to a different calendar if either they are the owner or there is no owner. For recurring events, they may add an override to remove an occurrence.
+  The user may delete an event or move it to a different calendar if either they are the owner of the event or the event has no owner. For recurring events, they may add an override to remove an occurrence.
 - **mayRemoveAll**: `Boolean`
   The user may delete any event or move it to a different calendar. For recurring events, they may add an override to remove an occurrence.
 - **mayAdmin**: `Boolean`

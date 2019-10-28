@@ -31,11 +31,11 @@ CalendarEvent objects MUST NOT have a "method" property as this is only used whe
 
 The Link object, as defined in [@!I-D.ietf-calext-jscalendar] Section 4.2.7, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per [@!RFC8620] Section 6.
 
-The server MUST translate this to an embedded data: URL when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments [?@RFC8607].
+The server MUST translate this to an embedded `data:` URL [@!RFC2397] when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments [?@RFC8607].
 
 ## Per-user properties
 
-In shared calendars where shareesActAs is "self", the following properties MUST be stored per-user:
+In shared calendars where "shareesActAs" is "self", the following properties MUST be stored per-user:
 
 - keywords
 - color
@@ -66,11 +66,11 @@ This is a standard "/get" method as described in [@!RFC8620], Section 5.1, with 
 - **reduceParticipants**: `Boolean` (default: false)
   If true, only participants with the "owner" role or corresponding to the user's participant identities will be returned in the "participants" property of the master event and any recurrence overrides. If false, all participants will be returned.
 
-A CalendarEvent object is a JSEvent object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties defined on the JSEvent object in the store are returned, along with the "id", "calendarId", and "isDraft" properties. The "utcStart"/"utcEnd" computed properties are only returned if explicitly requested.
+A CalendarEvent object is a JSEvent object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties defined on the JSEvent object in the store are returned, along with the "id", "calendarId", and "isDraft" properties. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested.
 
 If specific properties are requested from the JSEvent and the property is not present on the object in the server's store, the server SHOULD return the default value if known for that property.
 
-An id requested by the server may represent a single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRule" and "recurrenceOverrides" properties MUST be returned as null for such an event.
+An id requested by the server may represent a single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRule" and "recurrenceOverrides" properties MUST be returned as null if requested for such an event.
 
 An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions etc.
 
@@ -93,11 +93,11 @@ Clients MUST NOT send an update/destroy to both the master event and a specific 
 
 Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar object and reject changes with a `forbidden` SetError if not allowed.
 
-The *privacy* property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar). The server MUST reject this with an *invalidProperties* error.
+The "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar). The server MUST reject this with an *invalidProperties* SetError.
 
-The server MUST reject attempts to add events with a "participants" property where none of the participants correspond to one of the calendar's participant identities.
+The server MUST reject attempts to add events with a "participants" property where none of the participants correspond to one of the calendar's participant identities with a `forbidden` SetError.
 
-The following properties MUST be set on a valid JSEvent object. If omitted on create, the server MUST set an appropriate value:
+If omitted on create, the server MUST set the following properties to an appropriate value:
 
 - @type
 - uid
@@ -107,13 +107,16 @@ The following properties MUST be set on a valid JSEvent object. If omitted on cr
 When modifying the event, the server MUST set the following properties if not explicitly set in the update:
 
 - updated: set to the current time.
-- sequence: increment by one, unless only per-user properties were changed.
+- sequence: increment by one, unless only per-user properties (see Section XXX)
+  were changed.
 
-The created property MUST NOT be updated after creation. The sequence property MUST NOT be set to a lower number than its current value. The method property MUST NOT be set. Any attempt to do these is rejected with a standard `invalidProperties` error.
+The "created" property MUST NOT be updated after creation. The "sequence" property MUST NOT be set to a lower number than its current value. The "method" property MUST NOT be set. Any attempt to do these is rejected with a standard `invalidProperties` SetError.
 
-The server does not automatically reset the "partipationStatus" property of a Participant if the event details change. Clients should either be intelligent about whether the change necessitates resending RSVP requests, or ask the user whether to send them.
+The server does not automatically reset the "partipationStatus" or "expectReply" properties of a Participant if the event details change. Clients should either be intelligent about whether the change necessitates resending RSVP requests, or ask the user whether to send them.
 
-The server MAY enforce ownership of events, for example in team calendars. It may reject or add the user as an owner participant on creation if necessary to do this.
+The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the "owner" role corresponding to one of the user's "participantIdentities" for the calendar.
+
+When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the "replyTo" property of the event if not present. Clients SHOULD NOT set the replyTo property for events when the user adds participants; the server is better positioned to add all the methods it supports to receive replies.
 
 ### Sending invitations and responses
 
