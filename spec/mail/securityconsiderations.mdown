@@ -36,8 +36,9 @@ There are a number of ways clients can mitigate these issues, and a defence-in-d
 
   Subtle differences in parsing of HTML can introduce security flaws: to filter with 100% accuracy, you need to use the same parser that the HTML rendering engine will use.
 
-* Encapsulating the message in an `<iframe sandbox>`, as defined in [@!HTML],
-  Section 4.7.6, can help mitigate a number of risks. This will:
+* Encapsulating the message in an `<iframe sandbox>`, as defined in
+  [HTML](https://www.w3.org/TR/html52/), Section 4.7.6, can help mitigate a
+  number of risks. This will:
 
   * Disable JavaScript.
   * Disable form submission.
@@ -61,66 +62,16 @@ As highly complex software components, HTML rendering engines increase the attac
 
 ## Multiple Part Display
 
-Messages may consist of multiple parts to be displayed sequentially as a body. Clients MUST render each part in isolation and MUST NOT concatenate the raw text values to render. Doing so may change the overall semantics of the message. If the client or server is decrypting a Pretty Good Privacy (PGP) or S/MIME encrypted part, concatenating with other parts may leak the decrypted text to an attacker, as described in [@?EFAIL].
-
-<reference anchor='EFAIL' target='https://www.usenix.org/system/files/conference/usenixsecurity18/sec18-poddebniak.pdf'>
-    <front>
-    <title>Efail: Breaking S/MIME and OpenPGP Email Encryption using Exfiltration Channels</title>
-    <author initials='D.' surname='Poddebniak' fullname='Damian Poddebniak'>
-      <organization>Münster University of Applied Sciences</organization>
-    </author>
-    <author initials='C.' surname='Dresen' fullname='Christian Dresen'>
-      <organization>Münster University of Applied Sciences</organization>
-    </author>
-    <author initials='J.' surname='Müller' fullname='Jens Müller'>
-      <organization>Ruhr University Bochum</organization>
-    </author>
-    <author initials='F.' surname='Ising' fullname='Fabian Ising'>
-      <organization>Münster University of Applied Sciences</organization>
-    </author>
-    <author initials='S.' surname='Schinzel' fullname='Sebastian Schinzel'>
-      <organization>Münster University of Applied Sciences</organization>
-    </author>
-    <author initials='S.' surname='Friedberger' fullname='Simon Friedberger'>
-      <organization>NXP Semiconductors</organization>
-    </author>
-    <author initials='J.' surname='Somorovsky' fullname='Juraj Somorovsky'>
-      <organization>Ruhr University Bochum</organization>
-    </author>
-    <author initials='J.' surname='Schwenk' fullname='Jörg Schwenk'>
-      <organization>Ruhr University Bochum</organization>
-    </author>
-    <date year='2018'/>
-    </front>
-</reference>
+Messages may consist of multiple parts to be displayed sequentially as a body. Clients MUST render each part in isolation and MUST NOT concatenate the raw text values to render. Doing so may change the overall semantics of the message. If the client or server is decrypting a Pretty Good Privacy (PGP) or S/MIME encrypted part, concatenating with other parts may leak the decrypted text to an attacker, as described in [EFAIL](https://www.usenix.org/system/files/conference/usenixsecurity18/sec18-poddebniak.pdf).
 
 ## Email Submission
 
-SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters (mail filters), and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de facto XCLIENT extension to SMTP [@?XCLIENT] can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorised proxies.
-
-<reference anchor='XCLIENT' target='http://www.postfix.org/XCLIENT_README.html'>
-    <front>
-    <title>Postfix XCLIENT Howto</title>
-    <author fullname='Unknown'>
-      <organization>Postfix</organization>
-    </author>
-    <date year='2019'/>
-    </front>
-</reference>
+SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters (mail filters), and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de facto [XCLIENT](http://www.postfix.org/XCLIENT_README.html) extension to SMTP can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorised proxies.
 
 JMAP servers that proxy to an SMTP submission server SHOULD allow use of the *submissions* port [@!RFC8314]. Implementation of a mechanism similar to SMTP XCLIENT is strongly encouraged. While Simple Authentication and Security Layer (SASL) PLAIN over TLS [@!RFC4616] is presently the mandatory-to-implement mechanism for interoperability with SMTP submission servers [@!RFC4954], a JMAP submission proxy SHOULD implement and prefer a stronger mechanism for this use case such as TLS client certificate authentication with SASL EXTERNAL ([@!RFC4422], Appendix A) or Salted Challenge Response Authentication Mechanism (SCRAM) [@!RFC7677].
 
-In the event the JMAP server directly relays mail to SMTP servers in other administrative domains, implementation of the de facto [@?milter] protocol is strongly encouraged to integrate with third-party products that address security issues including anti-virus/anti-spam, reputation protection, compliance archiving, and data loss prevention. Proxying to a local SMTP submission server may be a simpler way to provide such security services.
+In the event the JMAP server directly relays mail to SMTP servers in other administrative domains, implementation of the de facto [milter](http://www.postfix.org/MILTER_README.html) protocol is strongly encouraged to integrate with third-party products that address security issues including anti-virus/anti-spam, reputation protection, compliance archiving, and data loss prevention. Proxying to a local SMTP submission server may be a simpler way to provide such security services.
 
-<reference anchor='milter' target='http://www.postfix.org/MILTER_README.html'>
-    <front>
-    <title>Postfix before-queue Milter support</title>
-    <author fullname='Unknown'>
-      <organization>Postfix</organization>
-    </author>
-    <date year='2019'/>
-    </front>
-</reference>
 
 ## Partial Account Access
 

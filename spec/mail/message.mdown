@@ -325,7 +325,7 @@ An **EmailBodyPart** object has the following properties:
 - **disposition**: `String|null`
   The value of the *Content-Disposition* header field of the part, if present; otherwise, it's `null`. CFWS is removed and any parameters are stripped.
 - **cid**: `String|null`
-  The value of the *Content-Id* header field of the part, if present; otherwise it's `null`. CFWS and surrounding angle brackets (`<>`) are removed. This may be used to reference the content from within a `text/html` body part [@!HTML] using the `cid:` protocol, as defined in [@!RFC2392].
+  The value of the *Content-Id* header field of the part, if present; otherwise it's `null`. CFWS and surrounding angle brackets (`<>`) are removed. This may be used to reference the content from within a `text/html` body part [HTML](https://www.w3.org/TR/html52/) using the `cid:` protocol, as defined in [@!RFC2392].
 - **language**: `String[]|null`
   The list of language tags, as defined in [@!RFC3282], in the *Content-Language* header field of the part, if present.
 - **location**: `String|null`
@@ -371,7 +371,7 @@ The following **Email** properties are specified for access to the body data of 
 
     None of these parts include subParts, including `message/*` types. Attached messages may be fetched using the Email/parse method and the blobId.
 
-    Note that a `text/html` body part [@!HTML] may reference image parts in attachments by using `cid:` links to reference the *Content-Id*, as defined in [@!RFC2392], or by referencing the *Content-Location*.
+    Note that a `text/html` body part [HTML](https://www.w3.org/TR/html52/) may reference image parts in attachments by using `cid:` links to reference the *Content-Id*, as defined in [@!RFC2392], or by referencing the *Content-Location*.
 - **hasAttachment**: `Boolean` (immutable; server-set)
   This is `true` if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment to `true` if the *attachments* list contains at least one item that does not have `Content-Disposition: inline`. The server MAY ignore parts in this list that are processed automatically in some way or are referenced as embedded images in one of the `text/html` parts of the message.
 
@@ -1313,25 +1313,3 @@ The server successfully copies the Email and deletes the original. Due to the im
       "destroyed": [ "Md45b47b4877521042cec0938" ],
       ...
     }, "0" ]]
-
-<reference anchor='HTML' target='https://www.w3.org/TR/html52/'>
-  <front>
-    <title>HTML 5.2</title>
-    <author initials='S.' surname='Faulkner' fullname='Steve Faulkner'>
-        <organization>The Paciello Group</organization>
-    </author>
-    <author initials='A.' surname='Eicholz' fullname='Arron Eicholz'>
-        <organization>Microsoft</organization>
-    </author>
-    <author initials='T.' surname='Leithead' fullname='Travis Leithead'>
-        <organization>Microsoft</organization>
-    </author>
-    <author initials='A.' surname='Danilo' fullname='Alex Danilo'>
-        <organization>Google</organization>
-    </author>
-    <author initials='S.' surname='Moon' fullname='Sangwhan Moon'>
-        <organization>Invited Expert</organization>
-    </author>
-    <date year='2017'/>
-  </front>
-</reference>

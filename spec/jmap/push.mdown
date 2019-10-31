@@ -219,7 +219,7 @@ The server extends the expiry time, but only again to its maximum limit of 7 day
 
 ## Event Source
 
-Clients that can hold transport connections open can connect directly to the JMAP server to receive push notifications via a `text/event-stream` resource, as described in [@!EventSource]. This is a long running HTTP request, where the server can push data to the client by appending data without ending the response.
+Clients that can hold transport connections open can connect directly to the JMAP server to receive push notifications via a `text/event-stream` resource, as described in [EventSource](https://www.w3.org/TR/eventsource/). This is a long running HTTP request, where the server can push data to the client by appending data without ending the response.
 
 When a change occurs in the data on the server, it pushes an event called `state` to any connected clients, with the *StateChange* object as the data.
 
@@ -248,14 +248,3 @@ To connect to the resource, the client makes an authenticated GET request to the
      Clients can monitor for the ping event to help determine when the closeafter mode may be required.
 
 A client MAY hold open multiple connections to the event-source resource, although it SHOULD try to use a single connection for efficiency.
-
-<reference anchor='EventSource' target='https://www.w3.org/TR/eventsource/'>
-  <front>
-    <title>Server-Sent Events</title>
-    <author initials='I.' surname='Hickson' fullname='Ian Hickson'>
-        <organization>Google, Inc.</organization>
-    </author>
-    <date month="February" year='2015'/>
-  </front>
- <seriesInfo name='World Wide Web Consortium' value='Recommendation REC-eventsource-20150203' />
-</reference>
