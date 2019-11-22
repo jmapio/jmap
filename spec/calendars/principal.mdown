@@ -129,16 +129,8 @@ The server MAY also generate BusyPeriod objects based on other information it ha
 
 Finally, the server MUST merge and split BusyPeriod objects where the "event" property is null, such that none of them overlap and either there is a gap in time between any two objects (the utcEnd of one does not equal the utcStart of another) or those objects have a different busyStatus property. If there are overlapping BusyPeriod time ranges with different "busyStatus" properties the server MUST choose the value in the following order: confirmed > unavailable > tentative.
 
-The response has the following arguments:
+The response has the following argument:
 
-- **accountId**: `Id`
-  The id of the account used for the call.
-- **id**: `Id`
-  The id of the CalendarPrincipal availability is being returned for.
-- **utcStart**: `UTCDate`
-  The start time (inclusive) of the period for which availability is being returned.
-- **utcEnd**: `UTCDate`
-  The end time (exclusive) of the period for which availability is being returned.
 - **list**: `BusyPeriod[]`
   The list of BusyPeriod objects calculated as described above.
 
