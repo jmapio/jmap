@@ -130,6 +130,15 @@ A **CalendarRights** object has the following properties:
 - **mayDelete**: `Boolean` (server-set)
   The user may delete the calendar itself. This property MUST be false if the account to which this calendar belongs has the *isReadOnly* property set to true.
 
+## Per-user properties
+
+The following properties MUST be stored per-user:
+
+- name
+- color
+- sortOrder
+- isVisible
+
 ## Calendar/get
 
 This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
@@ -150,16 +159,15 @@ This is a standard "/set" method as described in [@!RFC8620], Section 5.3 but wi
   in it will be rejected with a `calendarHasEvents` SetError. If
   true, any CalendarEvents that were in the Calendar will be destroyed. This SHOULD NOT send scheduling messages to participants or create CalendarEventNotification objects.
 
-The role and shareWith properties may only be set by users that have the mayAdmin right. The value is shared across all users, although users without the mayAdmin right cannot see the value.
+The "role" and "shareWith" properties may only be set by users that have the mayAdmin right. The value is shared across all users, although users without the mayAdmin right cannot see the value.
 
-Users can subscribe or unsubscribe to a calendar by setting the isSubscribed property. The server MAY forbid users from subscribing to certain calendars even though they haver permission to see them, rejecting the update with a `forbidden` SetError.
+Users can subscribe or unsubscribe to a calendar by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a `forbidden` SetError.
 
-The timeZone, includeInAvailability, defaultAlertsWithoutTime and defaultAlertsWithTime properties are stored per-user if the calendar shareesActAs is "self" and may be set by any user who is subscribed to the calendar. Otherwise, these properties are shared, and may only be set by users that have the mayAdmin right.
+The "timeZone", "includeInAvailability", "defaultAlertsWithoutTime" and "defaultAlertsWithTime" properties are stored per-user if the calendar "shareesActAs" value is "self", and may be set by any user who is subscribed to the calendar. Otherwise, these properties are shared, and may only be set by users that have the mayAdmin right.
 
 The following properties may be set by anyone who is subscribed to the calendar and are all stored per-user:
 
 - name
-- description
 - color
 - sortOrder
 - isVisible
