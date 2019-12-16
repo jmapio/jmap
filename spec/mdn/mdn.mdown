@@ -36,36 +36,36 @@ The value of this "urn:ietf:params:jmap:mdn" property is an empty object in both
 
 An **MDN** object has the following properties:
 
-- **forEmailId**: `Id|null`
+- forEmailId: `Id|null`
   Email Id of the received email this MDN is relative to.
-- **subject**: `String|null`
+- subject: `String|null`
   Subject used as `Subject` header for this MDN.
-- **textBody**: `String|null`
+- textBody: `String|null`
   Human readable part of the MDN, as plain text.
-- **reportingUA**: `String|null`
+- reportingUA: `String|null`
   Name of the MUA creating this MDN. It is used to build the MDN Report part of the MDN.
-- **disposition**: `Disposition`
+- disposition: `Disposition`
   Object containing the diverse MDN disposition options.
-- **mdnGateway**: `String|null` (server-set)
+- mdnGateway: `String|null` (server-set)
   Name of the gateway or MTA that translated a foreign (non-Internet) message disposition notification into this MDN.
-- **originalRecipient**: `String|null` (server-set)
+- originalRecipient: `String|null` (server-set)
   Original recipient address as specified by the sender of the message for which the MDN is being issued.
-- **finalRecipient**: `String` (server-set)
+- finalRecipient: `String` (server-set)
   Recipient for which the MDN is being issued.
-- **originalMessageId**: `String|null` (server-set)
+- originalMessageId: `String|null` (server-set)
   Message-ID (the [@!RFC5322] header field, not the JMAP Id) of the message for which the MDN is being issued.
-- **error**: `String[]|null` (server-set)
+- error: `String[]|null` (server-set)
   Additional information in the form of text messages when the "error" disposition modifier appears.
-- **extensionFields**: `String[String]|null` (server-set)
+- extensionFields: `String[String]|null` (server-set)
   Object where keys are extension-field names and values are extension-field values.
 
   A **Disposition** object has the following properties:
 
-  - **actionMode**: `String`
+  - actionMode: `String`
     This MUST be one of the following strings: "manual-action" / "automatic-action"
-  - **sendingMode**: `String`
+  - sendingMode: `String`
     This MUST be one of the following strings: "MDN-sent-manually" / "MDN-sent-automatically"
-  - **type**: `String`
+  - type: `String`
     This MUST be one of the following strings: "deleted" / "dispatched" / "displayed" / "processed"
 
   See [@!RFC8098] for the exact meaning of these different fields.
@@ -78,32 +78,32 @@ The MDN/set method generates and sends an [@!RFC5322] message from an MDN object
 
 The client SHOULD NOT issue a MDN/set request if the message has the `$MDNSent` keyword set. In this case, the server MUST reject the submission with a standard `alreadyExists` SetError.
 
-When sending the MDN, the server is in charge of generating the *originalRecipient*, *finalRecipient* and *originalMessageId* fields accordingly to the [@!RFC8098] specification.
+When sending the MDN, the server is in charge of generating the "originalRecipient", "finalRecipient" and "originalMessageId" fields accordingly to the [@!RFC8098] specification.
 
 After all items in the "MDN/set" invocation have been processed, a single implicit "Email/set" call MUST be made to set the "$MDNSent" keyword on "Email" objects referenced by "MDN" objects that have been successfully created (see [@!RFC3503] for more details). The response to this MUST be returned after the "MDN/set" response.
 
 ## MDN/parse
 
-This method allows a client to parse blobs as [@!RFC5322] messages to get MDN objects. This can be used to parse and get detailed information about blobs referenced in the *mdnBlobIds* of the EmailSubmission object, or any email the client could expect to be an MDN.
+This method allows a client to parse blobs as [@!RFC5322] messages to get MDN objects. This can be used to parse and get detailed information about blobs referenced in the "mdnBlobIds" of the EmailSubmission object, or any email the client could expect to be an MDN.
 
-The *forEmailId* property can be null or missing if the *originalMessageId* property is missing or not referencing an existing email.
+The "forEmailId" property can be null or missing if the "originalMessageId" property is missing or not referencing an existing email.
 
 The MDN/parse method takes the following arguments:
 
-- **accountId**: `Id`
+- accountId: `Id`
   The id of the account to use.
-- **blobIds**: `Id[]`
+- blobIds: `Id[]`
   The ids of the blobs to parse.
 
 The response has the following arguments:
 
-- **accountId**: `Id`
+- accountId: `Id`
   The id of the account used for the call.
-- **parsed**: `Id[MDN]|null`
+- parsed: `Id[MDN]|null`
   A map of blob id to parsed MDN representation for each successfully parsed blob, or null if none.
-- **notParsable**: `Id[]|null`
+- notParsable: `Id[]|null`
   A list of ids given that corresponded to blobs that could not be parsed as MDNs, or null if none.
-- **notFound**: `Id[]|null`
+- notFound: `Id[]|null`
   A list of blob ids given that could not be found, or null if none.
 
 # Samples
@@ -148,7 +148,7 @@ If the email id matches an existing email without the `$MDNSent` keyword, the se
 
 ## Asking for MDN when sending an email
 
-This is done with the [@!RFC8621] "Email/set" *create* method.
+This is done with the [@!RFC8621] "Email/set" "create" method.
 
     [[ "Email/set", {
       "accountId": "ue150411c",
