@@ -6,9 +6,9 @@ MDN are defined in [@!RFC8098] and are used as "read receipts", "acknowledgement
 
 A client can have to deal with MDN in different ways:
 
-1. When receiving an email, an MDN can be sent to the sender. This specification defines an MDN/set method to cover this case.
+1. When receiving an email, an MDN can be sent to the sender. This specification defines an MDN/send method to cover this case.
 2. When sending an email, an MDN can be requested. This must be done with the help of a header, and is already specified by [@!RFC8098] and can already be handled by [@!RFC8621] this way.
-3. When receiving an MDN, the MDN could be related to an existing sent mail. This is already covered by [@!RFC8621] in the EmailSubmission object. Client could want to display detailed information about a received MDN. This specification defines a MDN/parse method to cover this case.
+3. When receiving an MDN, the MDN could be related to an existing sent mail. This is already covered by [@!RFC8621] in the EmailSubmission object. Client could want to display detailed information about a received MDN. This specification defines an MDN/parse method to cover this case.
 
 ## Notational conventions
 
@@ -27,7 +27,7 @@ The same terminology is used in this document as in the core JMAP specification.
 Capabilities are announced as part of the standard JMAP Session resource; see [@!RFC8620], section 2.
 
 Support for the "MDN" data type and the "MDN/parse" method are represented by the capability "urn:ietf:params:jmap:mdn" being present in the "capabilities" property.
-The capability "urn:ietf:params:jmap:mdn" being present in the "accountCapabilities" property of an account represents support for creating and sending MDN messages via the "MDN/set" method.
+The capability "urn:ietf:params:jmap:mdn" being present in the "accountCapabilities" property of an account represents support for creating and sending MDN messages via the "MDN/send" method.
 Servers that include the capability in one or more "accountCapabilities" properties MUST also include the property in the "capabilities" property.
 
 The value of this "urn:ietf:params:jmap:mdn" property is an empty object in both the JMAP session "capabilities" property and an account's "accountCapabilities" property.
@@ -70,17 +70,38 @@ An **MDN** object has the following properties:
 
   See [@!RFC8098] for the exact meaning of these different fields.
 
-## MDN/set
+## MDN/send
 
-This is a standard “/set” method as described in [@!RFC8620] where only create is supported; any attempt to update/destroy MUST be rejected with a `forbidden` SetError.
+The MDN/send method sends an [@!RFC5322] message from an MDN object. The capability "urn:ietf:params:jmap:mail" is implicitely required while using this method. The method takes the following arguments:
 
-The MDN/set method generates and sends an [@!RFC5322] message from an MDN object.
+- accountId: `Id`
+  The id of the account to use.
+- send: `Id[MDN]`
+  A map of creation id (client specified) to MDN objects.
 
-The client SHOULD NOT issue a MDN/set request if the message has the `$MDNSent` keyword set. In this case, the server MUST reject the submission with a standard `alreadyExists` SetError.
+The response has the following arguments:
+
+- accountId: `Id`
+  The id of the account used for the call.
+- sent: `Id[MDN]|null`
+  A map of creation id to MDN containing any properties that were not sent by the client. This includes any properties that were omitted by the client and thus set to a default by the server. This argument is null if no MDN objects were successfully sent.
+- notSent: `Id[MDNError]|null`
+  A map of the creation id to an MDNError object for each record that failed to be sent, or null if all successful.
+
+The following MDNError types are defined:
+
+- mdnAlreadySent: The message has the `$MDNSent` keyword already set.
+- forbidden: MDN/send would violate an ACL or other permissions policy.
+- overQuota: MDN/send would exceed a server-defined limit on the number or total size of sent MDN. It could include limitations on sent emails.
+- tooLarge: MDN/send would result in an MDN that exceeds a server-defined limit for the maximum size of an MDN, or more generally on emails.
+- rateLimit: Too many MDN or emails have been created recently, and a server-defined rate limit has been reached. It may work if tried again later.
+- invalidProperties: The record given is invalid in some way.
+
+The client SHOULD NOT issue an MDN/send request if the message has the `$MDNSent` keyword set.
 
 When sending the MDN, the server is in charge of generating the "originalRecipient", "finalRecipient" and "originalMessageId" fields accordingly to the [@!RFC8098] specification.
 
-After all items in the "MDN/set" invocation have been processed, a single implicit "Email/set" call MUST be made to set the "$MDNSent" keyword on "Email" objects referenced by "MDN" objects that have been successfully created (see [@!RFC3503] for more details). The response to this MUST be returned after the "MDN/set" response.
+After all items in the "MDN/send" invocation have been processed, a single implicit "Email/set" call MUST be made to set the "$MDNSent" keyword on "Email" objects referenced by "MDN" objects that have been successfully created (see [@!RFC3503] for more details). The response to this MUST be returned after the "MDN/send" response.
 
 ## MDN/parse
 
@@ -106,15 +127,19 @@ The response has the following arguments:
 - notFound: `Id[]|null`
   A list of blob ids given that could not be found, or null if none.
 
+The following additional error may be returned instead of the MDN/parse response:
+
+- requestTooLarge: The number of ids requested by the client exceeds the maximum number the server is willing to process in a single method call.
+
 # Samples
 
 ## Sending an MDN for a received email
 
 A client can use the following request to send an MDN back to the sender:
 
-    [[ "MDN/set", {
+    [[ "MDN/send", {
       "accountId": "ue150411c",
-      "create": {
+      "send": {
         "k1546": {
           "forEmailId": "Md45b47b4877521042cec0938",
           "subject": "Read receipt for: World domination",
@@ -133,11 +158,9 @@ A client can use the following request to send an MDN back to the sender:
 
 If the email id matches an existing email without the `$MDNSent` keyword, the server can answer:
 
-    [[ "MDN/set", {
+    [[ "MDN/send", {
       "accountId": "ue150411c",
-      "oldState": "012421s6-8nrq-4ps4-n0p4-9330r951ns21",
-      "newState": "355421f6-8aed-4cf4-a0c4-7377e951af36",
-      "created": {
+      "sent": {
         "k1546": {
           "finalRecipient": "rfc822; john@example.com",
           "originalMessageId": "<1521557867.2614.0.camel@apache.org>"
@@ -157,6 +180,17 @@ If the email id matches an existing email without the `$MDNSent` keyword, the se
       }
     }, "0" ]]
 
+If the `$MDNSent` keyword has already been set, the server can answer an error:
+
+    [[ "MDN/send", {
+      "accountId": "ue150411c",
+      "notSent": {
+        "k1546": {
+          "type": "mdnAlreadySent",
+          "description" : "$MDNSent keyword is already present"
+        }
+      }
+    }, "0" ]]
 
 ## Asking for MDN when sending an email
 
@@ -181,7 +215,7 @@ This is done with the [@!RFC8621] "Email/set" "create" method.
             "name": "John",
             "email": "john@example.com"
           }],
-          "header:Disposition-Notification-To": "joe@example.com",
+          "header:Disposition-Notification-To:asText": "joe@example.com",
           "subject": "World domination",
           ...
         }
@@ -222,6 +256,22 @@ The server responds:
       }
     }, "0" ]]
 
+In case of a not found blobId, the server would respond:
+
+    [[ "MDN/parse", {
+      "accountId": "ue150411c",
+      "notFound": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
+      }
+    }, "0" ]]
+
+If the blobId has been found but is not parsable, the server would respond:
+
+    [[ "MDN/parse", {
+      "accountId": "ue150411c",
+      "notParsable": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
+      }
+    }, "0" ]]
+
 # IANA Considerations
 
 ## JMAP Capability Registration for "mdn"
@@ -237,6 +287,22 @@ Intended use: common
 Change Controller: IETF
 
 Security and privacy considerations: this document, section 5.
+
+## JMAP Error Codes Registry
+
+The following subsection register one new error code in the "JMAP Error Codes" registry, as defined in [@!RFC8620].
+
+### mdnAlreadySent
+
+JMAP Error Code: mdnAlreadySent
+
+Intended use: common
+
+Change controller: IETF
+
+Reference: This document, Section 2.1
+
+Description: The message has the `$MDNSent` keyword already set. The client MUST NOT try again to send an MDN for this message.
 
 # Security considerations
 
