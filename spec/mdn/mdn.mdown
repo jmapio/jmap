@@ -72,7 +72,8 @@ An **MDN** object has the following properties:
 
 ## MDN/send
 
-The MDN/send method sends an [@!RFC5322] message from an MDN object. The capability "urn:ietf:params:jmap:mail" is implicitely required while using this method. The method takes the following arguments:
+The MDN/send method sends an [@!RFC5322] message from an MDN object. When calling this method the "using" property of the Request object MUST contain the capabilities "urn:ietf:params:jmap:mdn" and "urn:ietf:params:jmap:mail". The latter because of the implicit call to Email/set, described below.
+The method takes the following arguments:
 
 - accountId: `Id`
   The id of the account to use.
@@ -84,7 +85,7 @@ The response has the following arguments:
 - accountId: `Id`
   The id of the account used for the call.
 - sent: `Id[MDN]|null`
-  A map of creation id to MDN containing any properties that were not sent by the client. This includes any properties that were omitted by the client and thus set to a default by the server. This argument is null if no MDN objects were successfully sent.
+  A map of creation id to MDN containing any properties that were not set by the client. This includes any properties that were omitted by the client and thus set to a default by the server. This argument is null if no MDN objects were successfully sent.
 - notSent: `Id[MDNError]|null`
   A map of the creation id to an MDNError object for each record that failed to be sent, or null if all successful.
 
@@ -261,7 +262,6 @@ In case of a not found blobId, the server would respond:
     [[ "MDN/parse", {
       "accountId": "ue150411c",
       "notFound": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
-      }
     }, "0" ]]
 
 If the blobId has been found but is not parsable, the server would respond:
@@ -269,7 +269,6 @@ If the blobId has been found but is not parsable, the server would respond:
     [[ "MDN/parse", {
       "accountId": "ue150411c",
       "notParsable": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
-      }
     }, "0" ]]
 
 # IANA Considerations
