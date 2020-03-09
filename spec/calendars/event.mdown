@@ -57,6 +57,22 @@ The client may ask the server to expand recurrences within a specific time range
 
 If the user is invited to specific instances then later added to the master event, "CalendarEvent/changes" will show the ids of all the individual instances being destroyed and the id for the master event being created.
 
+## Updating for "this-and-future"
+
+When editing a recurring event, you can either update the master event (affecting all instances unless overriden) or update an override for a specific occurrence. To update all occurrences from a specific point onwards, there are therefore two options: split the event, or update the master and override all occurrences before the split point back to their original values.
+
+### Splitting an event
+
+If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar {TODO:ref} Section 4.1.3, a "next" and "first" relation MUST be set on the new objects respectively.
+
+Splitting an event however is problematic in the case of a scheduled event, because the iTIP messages generated make it appear like two unrelated changes, which can be confusing.
+
+### Updating the master and overriding previous
+
+For scheduled events, a better approach is to avoid splitting and instead update the master event with the new property value for "this and future", then create overrides for all occurrences before the split point to restore the property to its previous value. Indeed, this may be the only option the user has permission to do if not an owner of the event.
+
+Clients may choose to skip creating the overrides if the old data is not important, for example if the "alerts" property is being updated, it is probably not important to create overrides for events in the past with the alerts that have already fired.
+
 ## CalendarEvent/get
 
 This is a standard "/get" method as described in [@!RFC8620], Section 5.1, with three extra arguments:
