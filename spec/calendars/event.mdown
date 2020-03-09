@@ -22,6 +22,8 @@ A **CalendarEvent** object contains information about an event, or recurring ser
 
     Floating events will be interpreted as per calendar's time zone property; or if not set, the the principal's time zone property.
 
+    Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the utcStart property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are RECOMMENDED to request the server expand recurrences (see Section XXX).
+
 - **utcEnd**: `UTCDate`
   The server calculates the end time in UTC from the start/timeZone/duration properties of the event. This is not included by default and must be requested explicitly. Like utcStart, this is calculated at fetch time if requested and may change due to time zone data changes.
 
