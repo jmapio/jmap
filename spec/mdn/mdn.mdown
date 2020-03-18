@@ -22,6 +22,8 @@ Servers MUST support all properties specified for the new data types defined in 
 
 The same terminology is used in this document as in the core JMAP specification.
 
+Keywords being case insensitive in IMAP but JSON being case sensitive, the `$mdnsent` keyword MUST always be used in lowercase.
+
 ## Addition to the capabilities object
 
 Capabilities are announced as part of the standard JMAP Session resource; see [@!RFC8620], section 2.
@@ -37,7 +39,7 @@ The value of this "urn:ietf:params:jmap:mdn" property is an empty object in both
 An **MDN** object has the following properties:
 
 - forEmailId: `Id|null`
-  Email Id of the received email this MDN is relative to.
+  Email Id of the received email this MDN is relative to. This argument can only be null when the MDN object is a server response for the "MDN/parse" method.
 - subject: `String|null`
   Subject used as `Subject` header for this MDN.
 - textBody: `String|null`
@@ -92,18 +94,19 @@ The response has the following arguments:
 
 The following MDNError types are defined:
 
-- mdnAlreadySent: The message has the `$MDNSent` keyword already set.
+- mdnAlreadySent: The message has the `$mdnsent` keyword already set.
+- notFound: The reference Email Id cannot be found, or has no valid "Disposition-Notification-To" header.
 - forbidden: MDN/send would violate an ACL or other permissions policy.
 - overQuota: MDN/send would exceed a server-defined limit on the number or total size of sent MDN. It could include limitations on sent emails.
 - tooLarge: MDN/send would result in an MDN that exceeds a server-defined limit for the maximum size of an MDN, or more generally on emails.
 - rateLimit: Too many MDN or emails have been created recently, and a server-defined rate limit has been reached. It may work if tried again later.
 - invalidProperties: The record given is invalid in some way.
 
-The client SHOULD NOT issue an MDN/send request if the message has the `$MDNSent` keyword set.
+The client SHOULD NOT issue an MDN/send request if the message has the `$mdnsent` keyword set.
 
 When sending the MDN, the server is in charge of generating the "originalRecipient", "finalRecipient" and "originalMessageId" fields accordingly to the [@!RFC8098] specification.
 
-After all items in the "MDN/send" invocation have been processed, a single implicit "Email/set" call MUST be made to set the "$MDNSent" keyword on "Email" objects referenced by "MDN" objects that have been successfully created (see [@!RFC3503] for more details). The response to this MUST be returned after the "MDN/send" response.
+After all items in the "MDN/send" invocation have been processed, a single implicit "Email/set" call MUST be made to set the "$mdnsent" keyword on "Email" objects referenced by "MDN" objects that have been successfully created (see [@!RFC3503] for more details). The response to this MUST be returned after the "MDN/send" response.
 
 ## MDN/parse
 
@@ -158,7 +161,7 @@ A client can use the following request to send an MDN back to the sender:
       }
     }, "0" ]]
 
-If the email id matches an existing email without the `$MDNSent` keyword, the server can answer:
+If the email id matches an existing email without the `$mdnsent` keyword, the server can answer:
 
     [[ "MDN/send", {
       "accountId": "ue150411c",
@@ -176,20 +179,20 @@ If the email id matches an existing email without the `$MDNSent` keyword, the se
       "updated": {
         "Md45b47b4877521042cec0938": {
           "keywords": {
-            "$MDNSent": true
+            "$mdnsent": true
           }
         }
       }
     }, "0" ]]
 
-If the `$MDNSent` keyword has already been set, the server can answer an error:
+If the `$mdnsent` keyword has already been set, the server can answer an error:
 
     [[ "MDN/send", {
       "accountId": "ue150411c",
       "notSent": {
         "k1546": {
           "type": "mdnAlreadySent",
-          "description" : "$MDNSent keyword is already present"
+          "description" : "$mdnsent keyword is already present"
         }
       }
     }, "0" ]]
@@ -302,7 +305,7 @@ Change controller: IETF
 
 Reference: This document, Section 2.1
 
-Description: The message has the `$MDNSent` keyword already set. The client MUST NOT try again to send an MDN for this message.
+Description: The message has the `$mdnsent` keyword already set. The client MUST NOT try again to send an MDN for this message.
 
 # Security considerations
 
