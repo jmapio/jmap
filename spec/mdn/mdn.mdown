@@ -75,11 +75,13 @@ An **MDN** object has the following properties:
 
 ## MDN/send
 
-The MDN/send method sends an [@!RFC5322] message from an MDN object. When calling this method the "using" property of the Request object MUST contain the capabilities "urn:ietf:params:jmap:mdn" and "urn:ietf:params:jmap:mail". The latter because of the implicit call to Email/set, described below.
+The MDN/send method sends an [@!RFC5322] message from an MDN object. When calling this method the "using" property of the Request object MUST contain the capabilities "urn:ietf:params:jmap:mdn" and "urn:ietf:params:jmap:mail". The latter because of the implicit call to Email/set and the use of Identities, described below.
 The method takes the following arguments:
 
 - accountId: `Id`
   The id of the account to use.
+- identity: `Id`
+  The id of the Identity to associate with these MDN. The server will use this identity to define the sender of the MDN and to set the finalRecipient field.
 - send: `Id[MDN]`
   A map of creation id (client specified) to MDN objects.
 
@@ -101,6 +103,8 @@ The following MDNError types are defined:
 - tooLarge: MDN/send would result in an MDN that exceeds a server-defined limit for the maximum size of an MDN, or more generally on emails.
 - rateLimit: Too many MDN or emails have been created recently, and a server-defined rate limit has been reached. It may work if tried again later.
 - invalidProperties: The record given is invalid in some way.
+
+If the Account Id or Identity id given cannot be found, the MDN sending is rejected with an `invalidProperties` error.
 
 The client SHOULD NOT issue an MDN/send request if the message has the `$mdnsent` keyword set.
 
@@ -132,9 +136,11 @@ The response has the following arguments:
 - notFound: `Id[]|null`
   A list of blob ids given that could not be found, or null if none.
 
-The following additional error may be returned instead of the MDN/parse response:
+The following additional errors may be returned instead of the MDN/parse response:
 
 - requestTooLarge: The number of ids requested by the client exceeds the maximum number the server is willing to process in a single method call.
+- invalidProperties: If the Account Id given cannot be found, the MDN parsing is rejected with an `invalidProperties` error.
+
 
 # Samples
 
