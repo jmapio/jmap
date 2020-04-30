@@ -8,7 +8,7 @@ A client can have to deal with MDN in different ways:
 
 1. When receiving an email, an MDN can be sent to the sender. This specification defines an MDN/send method to cover this case.
 2. When sending an email, an MDN can be requested. This must be done with the help of a header, and is already specified by [@!RFC8098] and can already be handled by [@!RFC8621] this way.
-3. When receiving an MDN, the MDN could be related to an existing sent mail. This is already covered by [@!RFC8621] in the EmailSubmission object. Client could want to display detailed information about a received MDN. This specification defines an MDN/parse method to cover this case.
+3. When receiving an MDN, the MDN could be related to an existing sent mail. This is already covered by [@!RFC8621] in the EmailSubmission object. Client might want to display detailed information about a received MDN. This specification defines an MDN/parse method to cover this case.
 
 ## Notational conventions
 
@@ -80,7 +80,7 @@ The method takes the following arguments:
 
 - accountId: `Id`
   The id of the account to use.
-- identity: `Id`
+- identityId: `Id`
   The id of the Identity to associate with these MDN. The server will use this identity to define the sender of the MDN and to set the finalRecipient field.
 - send: `Id[MDN]`
   A map of creation id (client specified) to MDN objects.
@@ -108,7 +108,7 @@ If the Account Id or Identity id given cannot be found, the MDN sending is rejec
 
 The client SHOULD NOT issue an MDN/send request if the message has the `$mdnsent` keyword set.
 
-When sending the MDN, the server is in charge of generating the "originalRecipient", "finalRecipient" and "originalMessageId" fields accordingly to the [@!RFC8098] specification.
+When sending the MDN, the server is in charge of generating the "originalRecipient", "finalRecipient" and "originalMessageId" fields according to the [@!RFC8098] specification.
 
 After all items in the "MDN/send" invocation have been processed, a single implicit "Email/set" call MUST be made to set the "$mdnsent" keyword on "Email" objects referenced by "MDN" objects that have been successfully created (see [@!RFC3503] for more details). The response to this MUST be returned after the "MDN/send" response.
 
@@ -150,6 +150,7 @@ A client can use the following request to send an MDN back to the sender:
 
     [[ "MDN/send", {
       "accountId": "ue150411c",
+      "identityId": "I64588216",
       "send": {
         "k1546": {
           "forEmailId": "Md45b47b4877521042cec0938",
