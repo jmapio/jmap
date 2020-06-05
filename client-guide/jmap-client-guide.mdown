@@ -121,7 +121,7 @@ The Sent mailbox has no unread messages, but 2 unread threads. This is not an er
 
 Presuming the client defaults to showing the `role=inbox` mailbox, we now use a chain of method calls to get all the data we need to display the messages at the top of the mailbox and the threads they participate in.
 
-First we do a query for the `id` of first 10 messages in the mailbox, sorted descending by received date:
+First we do a query for the `id`s of first 10 messages in the mailbox, sorted descending by received date:
 
 ```json
 [
@@ -134,8 +134,10 @@ First we do a query for the `id` of first 10 messages in the mailbox, sorted des
         "sort": [
             { "property": "receivedAt", "isAscending": false }
         ],
+        "position": 0,
         "collapseThreads": true,
-        "limit": 10
+        "limit": 10,
+        "calculateTotal": true
     }, "0" ],
     
     // Then we fetch the threadId of each of those messages
@@ -178,9 +180,6 @@ This might return the following:
 [
     [ "Email/query", {
         "accountId": "u123456",
-        "filter": {
-            "inMailbox": "mailbox1"
-        },
         "ids": [
             "fm1u314",
             "fm1u312",
@@ -193,11 +192,9 @@ This might return the following:
             "fm1u109",
             "fm1u313"
         ],
-        "sort": [
-            { "property": "receivedAt", "isAscending": false }
-        ],
         "queryState": "123:0",
-        "collapseThreads": true,
+        "position": 0,
+        "canCalculateChanges": true,
         "total": 10
     }, "0" ],
     [ "Email/get", {
@@ -238,20 +235,24 @@ This might return the following:
         "list": [{
             "id": "fm1u314",
             "threadId": "4f512aafed75e7fb",
-            "mailboxIds": [ "mailbox1" ],
-            "isUnread": true,
-            "isFlagged": false,
-            "isAnswered": false,
-            "isDraft": false,
+            "mailboxIds": {
+                "mailbox1": true
+            },
+            "keywords": {
+                "$seen": false,
+                "$flagged": false,
+                "$answered": false,
+                "$draft": false
+            },
             "hasAttachment": false,
             "from": [
-                { "name": "Joe Bloggs", "email": "joebloggs@fastmail.fm" }
+                { "name": "Joe Bloggs", "email": "joebloggs@example.com" }
             ],
             "to": [
-                { "name": "Jane Doe", "email": "janedoe@fastmail.fm" }
+                { "name": "Jane Doe", "email": "janedoe@example.com" }
             ],
             "subject": "Camping trip",
-            "date": "2014-07-24T15:04:51Z",
+            "receivedAt": "2014-07-24T15:04:51Z",
             "preview": "Hey Joe. Fancy a trip out west next week? I hea…"
         }, ... ],
         "state": "123",
@@ -264,7 +265,7 @@ We now have the header information for all the messages in the top 10 threads in
 
 ## Paging in data as the interface is navigated
 
-In our example Inbox, there are 1213 threads, but so far we have only loaded in data for the first 10. As the user scrolls down, we need to page in the data for the section of the mailbox that becomes visible (and indeed, to avoid the user having to wait, it's advisable to preload a little way ahead too). This is just another call to `Email/query`, as in the cold boot example, but with the `position` property changed to the index for the section required.
+In our example Inbox, there are 1213 threads, but so far we have only loaded in data for the first 10. As the user scrolls down, we need to page in the data for the section of the mailbox that becomes visible (and indeed, to avoid the user having to wait, it's advisable to preload a little way ahead too). This is just another call to `Email/query`, as in the cold boot example, but with the `position` argument changed to the index for the section required.
 
 Similarly, if we switch mailboxes, or want to do a search, we can use the same call as well. However, remember in JMAP the same message may appear in multiple mailboxes, so to avoid downloading the same data multiple times, it's advisable to just fetch the message list without also getting the message or thread objects (except in certain situations, such as the very first request; the exact heuristics for deciding between the two can be made arbitrarily clever and complex).
 
@@ -281,7 +282,16 @@ Similarly, if we switch mailboxes, or want to do a search, we can use the same c
         "collapseThreads": true,
         "position": 10,
         "limit": 10
-    }, "0" ]
+    }, "0" ],
+    [ "Email/get", {
+        "accountId": "u123456",
+        "#ids": {
+            "name": "Email/query",
+            "path": "/ids",
+            "resultOf": "0"
+        },
+        "properties": [ "threadId" ]
+    }, "1" ]
 ]
 ```
 
@@ -297,25 +307,19 @@ So far we have only fetched the minimal amount of information we need to display
             "accountId": "u123456",
             "ids": [ "fm1u312", "fm2u12", "fm1u304" ],
             "properties": [
-                "threadId",
-                "mailboxIds",
-                "isUnread",
-                "isFlagged",
-                "isAnswered",
-                "isDraft",
-                "hasAttachment",
-                "from",
-                "to",
+                "blobId",
+                "messageId",
+                "inReplyTo",
+                "references",
+                "sender",
                 "cc",
                 "bcc",
                 "replyTo",
-                "subject",
-                "date",
-                "size",
-                "body",
-                "attachments",
-                "attachedMessages"
-            ]
+                "sentAt",
+                "htmlBody",
+                "bodyValues"
+            ],
+            "fetchHTMLBodyValues": true
         }]
     ]
 ```
@@ -430,7 +434,7 @@ This is a good example of multiple method calls combined into a single request. 
 3. `Email/changes`: Gets the list of ids for all messages which have been created or updated, plus the list of messages which have been deleted.
 4. `Thread/changes`: Gets the list of threads which have had messages added or removed from the thread.
 
-In each case, the `sinceState` and `sinceQueryState` arguments come from the response to our previous calls to get the records of that type.
+In each case, the `sinceState` and `sinceQueryState` arguments come from the response to our previous calls to get the records or queries of that type.
 
 ### Handling a standard response
 
@@ -471,13 +475,6 @@ Let's look at a common case example, where two new messages have been delivered 
     }, "2" ],
     [ "Email/queryChanges", {
         "accountId": "u123456",
-        "filter": {
-            "inMailbox": "mailbox1"
-        },
-        "sort": [
-            { "property": "receivedAt", "isAscending": false }
-        ],
-        "collapseThreads": true,
         "newQueryState": "124:0",
         "oldQueryState": "123:0",
         "added": [{
@@ -487,8 +484,7 @@ Let's look at a common case example, where two new messages have been delivered 
             "id": "fm1u315",
             "index": 1
         }],
-        "removed": [],
-        "upToId": "fm1u313"
+        "removed": []
     }, "3" ],
     [ "Email/get", {
         "accountId": "u123456",
@@ -519,38 +515,46 @@ Let's look at a common case example, where two new messages have been delivered 
         "list": [{
             "id": "fm1u316",
             "threadId": "afed75fb4f512ae7",
-            "mailboxId": "mailbox1",
-            "isUnread": true,
-            "isFlagged": false,
-            "isAnswered": false,
-            "isDraft": false,
+            "mailboxIds": {
+                "mailbox1": true
+            },
+            "keywords": {
+                "$seen": false,
+                "$flagged": false,
+                "$answered": false,
+                "$draft": false
+            },
             "hasAttachment": false,
             "from": [
-                { "name": "Joe Bloggs", "email": "joebloggs@fastmail.fm" }
+                { "name": "Joe Bloggs", "email": "joebloggs@example.com" }
             ],
             "to": [
-                { "name": "Jane Doe", "email": "janedoe@fastmail.fm" }
+                { "name": "Jane Doe", "email": "janedoe@example.com" }
             ],
             "subject": "Camping trip",
-            "date": "2014-07-24T15:04:51Z",
+            "receivedAt": "2014-07-24T15:04:51Z",
             "preview": "Hey Joe. Fancy a trip out west next week? I hea…"
         }, {
             "id": "fm1u315",
             "threadId": "b4aae3925af0a0a2",
-            "mailboxId": "mailbox1",
-            "isUnread": true,
-            "isFlagged": false,
-            "isAnswered": false,
-            "isDraft": false,
+            "mailboxIds": {
+                "mailbox1": true
+            },
+            "keywords": {
+                "$seen": false,
+                "$flagged": false,
+                "$answered": false,
+                "$draft": false
+            },
             "hasAttachment": false,
             "from": [
-                { "name": "Joe Bloggs", "email": "joebloggs@fastmail.fm" }
+                { "name": "Joe Bloggs", "email": "joebloggs@example.com" }
             ],
             "to": [
-                { "name": "Jane Doe", "email": "janedoe@fastmail.fm" }
+                { "name": "Jane Doe", "email": "janedoe@example.com" }
             ],
             "subject": "Camping trip",
-            "date": "2014-07-24T15:04:51Z",
+            "receivedAt": "2014-07-24T15:04:51Z",
             "preview": "Hey Joe. Fancy a trip out west next week? I hea…"
         }],
         "notFound": [],
@@ -599,7 +603,7 @@ Here's how we apply this information to our current state to stay in sync:
 
     e.g. removing 'm2': `[ 'm1', 'm2', 'm3' ] -> [ 'm1', 'm3' ]`
 
-3. `Email/changes`: The `destroyed` array has 0 length. The `created` array has two message ids that we don’t have in memory, so we can ignore them. The `updated` array has one message id, which we have in our cache so we should mark is as needing an update (i.e. the flags might be out of date).
+3. `Email/changes`: The `destroyed` array has 0 length. The `created` array has two message ids that we don’t have in memory, so we can ignore them. The `updated` array has one message id, which we have in our cache so we should mark is as needing an update (i.e. the keywords might be out of date).
 4. `Thread/changes`: There are two changed threads here. One existing thread has a new message in it, the other is a brand new thread to create in our cache.
 
 After applying these changes, our cache is nearly in sync with the server. We need to inspect the result of both `Email/changes` and `Thread/changes` and perform one more request to fetch the properties of any objects we have in memory that are now out of date.
@@ -750,16 +754,8 @@ JMAP can also be used to efficiently download and keep in sync the entire set of
             "resultOf": "3"
         },
         "properties": [
-            "id",
-            "threadId",
             "mailboxIds",
             "keywords",
-            "hasAttachment",
-            "from",
-            "to",
-            "subject",
-            "receivedAt",
-            "preview"
         ]
     }, "5" ],
 
