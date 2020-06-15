@@ -134,11 +134,11 @@ If omitted on create, the server MUST set the following properties to an appropr
 - created
 - updated
 
-When modifying the event, the server MUST set the following properties if the server is the source of the event and the property is not explicitly set in the update:
+When modifying the event, the server MUST set the following properties if the server is the source of the event (see Section XXX) and the property is not explicitly set in the update:
 
 - updated: set to the current time.
 - sequence: increment by one, unless only per-user properties (see Section XXX)
-  were changed.
+  were changed, in which case do not modify.
 
 The "created" property MUST NOT be updated after creation. The "sequence" property MUST NOT be set to a lower number than its current value. The "method" property MUST NOT be set. Any attempt to do these is rejected with a standard `invalidProperties` SetError.
 
@@ -146,7 +146,7 @@ If "utcStart" is set, this is translated into a "start" property using the serve
 
 Similarly, the "utcEnd" property is translated into a "duration" property if set. It MUST NOT be set in addition to a "duration" property and it cannot be set inside "recurrenceOverrides"; this MUST be rejected with an `invalidProperties` SetError.
 
-The server does not automatically reset the "partipationStatus" or "expectReply" properties of a Participant if the event details change. Clients should either be intelligent about whether the change necessitates resending RSVP requests, or ask the user whether to send them.
+The server does not automatically reset the "partipationStatus" or "expectReply" properties of a Participant when changing other event details. Clients should either be intelligent about whether the change necessitates resending RSVP requests, or ask the user whether to send them.
 
 The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the "owner" role corresponding to one of the user's "participantIdentities" for the calendar.
 
