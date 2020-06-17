@@ -60,7 +60,7 @@ An **MDN** object has the following properties:
   Message-ID (the [@!RFC5322] header field, not the JMAP Id) of the message for which the MDN is being issued.
 - error: `String[]|null` (server-set)
   Additional information in the form of text messages when the "error" disposition modifier appears.
-- extensionFields: `String[String]|null` (server-set)
+- extensionFields: `String[String]|null`
   Object where keys are extension-field names and values are extension-field values.
 
   A **Disposition** object has the following properties:
@@ -170,6 +170,9 @@ A client can use the following request to send an MDN back to the sender:
             "actionMode": "manual-action",
             "sendingMode": "mdn-sent-manually",
             "type": "displayed"
+          }
+          "extension": {
+            "X-EXTENSION-EXAMPLE": "example.com"
           }
         }
       },
