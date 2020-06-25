@@ -86,7 +86,7 @@ The method takes the following arguments:
 - send: `Id[MDN]`
   A map of creation id (client specified) to MDN objects.
 - onSuccessUpdateEmail: `Id[PatchObject]|null`
-  A map of creation id to an object containing properties to update on the Email object referenced by the "MDN/send" if the sending succeeds.
+  A map of id to an object containing properties to update on the Email object referenced by the "MDN/send" if the sending succeeds. This will always be a backreference to the creation id (see example below in Section 3.1).
 
 The response has the following arguments:
 
@@ -199,11 +199,7 @@ If the email id matches an existing email without the `$mdnsent` keyword, the se
       "oldState": "23",
       "newState": "42",
       "updated": {
-        "Md45b47b4877521042cec0938": {
-          "keywords": {
-            "$mdnsent": true
-          }
-        }
+        "Md45b47b4877521042cec0938": {}
       }
     }, "0" ]]
 
