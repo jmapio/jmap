@@ -57,7 +57,7 @@ In shared calendars where "shareesActAs" is "self", the following properties MUS
 
 The user may also modify these properties on a per-occurrence basis for recurring events; again, these MUST be stored per-user.
 
-When writing per-user properties, the "updated" property MUST also be stored just for that user. When fetching the "updated" property, the value to return is whichever is later of the per-user updated time or the updated time of the master event.
+When writing only per-user properties, the "updated" property MUST also be stored just for that user. When fetching the "updated" property, the value to return is whichever is later of the per-user updated time or the updated time of the master event.
 
 ## Recurring events
 
@@ -132,15 +132,17 @@ If omitted on create, the server MUST set the following properties to an appropr
 - @type
 - uid
 - created
-- updated
 
-When modifying the event, the server MUST set the following properties if the server is the source of the event (see Section XXX) and the property is not explicitly set in the update:
+The "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time.
 
-- updated: set to the current time.
-- sequence: increment by one, unless only per-user properties (see Section XXX)
-  were changed, in which case do not modify.
+When updating an event, if all of:
+* a non per-user property has been changed; and
+* the server is the source of the event (see Section XXX); and
+* the "sequence" property is not explicitly set in the update, or the given
+  value is less than or equal to the current "sequence" value on the server;
+then the server MUST increment the "sequence" value by one.
 
-The "created" property MUST NOT be updated after creation. The "sequence" property MUST NOT be set to a lower number than its current value. The "method" property MUST NOT be set. Any attempt to do these is rejected with a standard `invalidProperties` SetError.
+The "created" property MUST NOT be updated after creation. The "method" property MUST NOT be set. Any attempt to do these is rejected with a standard `invalidProperties` SetError.
 
 If "utcStart" is set, this is translated into a "start" property using the server's current time zone information. It MUST NOT be set in addition to a "start" property and it cannot be set inside "recurrenceOverrides"; this MUST be rejected with an `invalidProperties` SetError.
 
