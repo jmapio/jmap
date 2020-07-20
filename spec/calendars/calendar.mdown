@@ -6,7 +6,7 @@ A **Calendar** object has the following properties:
 
 - **id**: `Id` (immutable; server-set)
   The id of the calendar.
-- **role**: `String|null`
+- **role**: `String|null` (default: null)
   Denotes the calendar has a special purpose. This MUST be one of the following:
 
     - `inbox`: This is the principal's default calendar; when the principal is
@@ -16,9 +16,9 @@ A **Calendar** object has the following properties:
 
 - **name**: `String`
   The user-visible name of the calendar. This may be any UTF-8 string of at least 1 character in length and maximum 255 octets in size.
-- **description**: `String|null`
+- **description**: `String|null` (default: null)
   An optional longer-form description of the calendar, to provide context in shared environments where users need more than just the name.
-- **color**: `String`
+- **color**: `String|null` (default: null)
   The color to be used when displaying events associated with the calendar.
 
   If not null, the value MUST be a case-insensitive color name taken from the set of names defined in Section 4.3 of CSS Color Module Level 3 [COLORS](https://www.w3.org/TR/css-color-3/), or an RGB value in hexadecimal notation, as defined in Section 4.2.1 of CSS Color Module Level 3.
@@ -51,13 +51,13 @@ A **Calendar** object has the following properties:
       are considered.
     - `none`: all events are ignored.
 
-- **defaultAlertsWithTime**: `Alert[]`
+- **defaultAlertsWithTime**: `Alert[]|null` (default: null)
   The alerts to apply for events where showWithoutTime is false that have
   "useDefaultAlerts" set. See [@!I-D.ietf-calext-jscalendar], Section 4.5.2 for the definition of an Alert object.
-- **defaultAlertsWithoutTime**: `Alert[]`
+- **defaultAlertsWithoutTime**: `Alert[]|null` (default: null)
   The alerts to apply for events where showWithoutTime is true that have
   "useDefaultAlerts" set. See [@!I-D.ietf-calext-jscalendar], Section 4.5.2 for the definition of an Alert object.
-- **timeZone**: `String|null`
+- **timeZone**: `String|null` (default: null)
   The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for reminders, queries, or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated CalendarPrincipal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
 - **participantIdentities**: `ParticipantIdentity[]|null` (server-set)
   The identities that represent the user in this calendar.
@@ -78,7 +78,7 @@ A **Calendar** object has the following properties:
     b) A "sendTo" property that has "type" and "uri" equal to one of the
        ParticipantIdentity objects returned with the calendar.
 
-- **shareWith**: `Id[CalendarRights]|null`
+- **shareWith**: `Id[CalendarRights]|null` (default: null)
   A map of CalendarPrincipal id to rights for principals this calendar is shared with. The pricincipal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right.
 
 - **shareesActAs**: `String` (immutable; default server-dependent)
