@@ -114,9 +114,13 @@ A **CalendarRights** object has the following properties:
     The user may also modify the above on a per-occurrence basis for recurring events.
 
 - **mayRSVP**: `Boolean`
-  The user may modify the "participationStatus", "participationComment", "expectReply", "scheduleAgent", "scheduleSequence", and "scheduleUpdated" properties of any Participant object that is represented in the "participantIdentities" property of the calendar.
+  The user may modify the "participationStatus", "participationComment", "expectReply", "scheduleAgent", "scheduleSequence", and "scheduleUpdated" properties of any Participant object where the sendTo property matches a ParticipantIdentity of the calendar.
 
-    The user may also modify the above on a per-occurrence basis for recurring events.
+    If the event has its "mayInviteSelf" property set to true (see Section XXX), then the user may also add a new Participant to the event with a sendTo property that matches a ParticipantIdentity of the calendar. The roles property of the participant MUST only contain "attendee".
+
+    If the event has its "mayInviteOthers" property set to true (see Section XXX) and there is an existing Participant in the event where the sendTo property matches a ParticipantIdentity of the calendar, then the user may also add new participants. The roles property of any new participant MUST only contain "attendee".
+
+    The user may also do all of the above on a per-occurrence basis for recurring events.
 
 - **mayUpdateOwn**: `Boolean`
   The user may modify an existing event on this calendar if either they are the owner of the event or the event has no owner.
