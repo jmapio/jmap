@@ -19,8 +19,9 @@ A **Calendar** object has the following properties:
 - **description**: `String|null`
   An optional longer-form description of the calendar, to provide context in shared environments where users need more than just the name.
 - **color**: `String`
-  The color to be used when displaying events associated with the calendar. The value MUST be a case-insensitive color name taken from the CSS3 set of names,
-  defined in Section 4.3 of W3C.REC-css3-color-20110607, or a CSS3 RGB color hex value.
+  The color to be used when displaying events associated with the calendar.
+
+  If not null, the value MUST be a case-insensitive color name taken from the set of names defined in Section 4.3 of CSS Color Module Level 3 [COLORS](https://www.w3.org/TR/css-color-3/), or an RGB value in hexadecimal notation, as defined in Section 4.2.1 of CSS Color Module Level 3.
 
     The color SHOULD have sufficient contrast to be used as text on a white background.
 
@@ -57,7 +58,7 @@ A **Calendar** object has the following properties:
   The alerts to apply for events where showWithoutTime is true that have
   "useDefaultAlerts" set. See [@!I-D.ietf-calext-jscalendar], Section 4.5.2 for the definition of an Alert object.
 - **timeZone**: `String|null`
-  The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for reminders, queries, or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database. If `null`, the timeZone of the account's associated CalendarPrincipal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
+  The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for reminders, queries, or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated CalendarPrincipal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
 - **participantIdentities**: `ParticipantIdentity[]|null` (server-set)
   The identities that represent the user in this calendar.
 
