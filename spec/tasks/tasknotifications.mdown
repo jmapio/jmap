@@ -1,0 +1,82 @@
+# Task Notifications
+
+The TaskNotification data type records changes made by external entities to tasks in calendars the user is subscribed to. Notifications are stored in the same Account as the Task that was changed.
+
+This is the same specification as the CalendarEventNotification object from [@!I-D.ietf-jmap-calendars], Section XXX. Only the object properties differ slightly and are therefore fully described in this document.
+
+## Object Properties
+
+The **TaskNotification** object has the following properties:
+
+- **id**: `String`
+  The id of the TaskNotification.
+- **created**: `UTCDate`
+  The time this notification was created.
+- **changedBy**: `Person`
+  Who made the change.
+  - **name**: `String`
+    The name of the person who made the change.
+  - **email**: `String`
+    The email of the person who made the change, or null if no email is available.
+  - **principalId**: `String|null`
+    The id of the principal corresponding to the person who made the change, if any. This will be null if the change was due to receving an iTIP message.
+- **comment**: `String|null`
+  Comment sent along with the change by the user that made it. (e.g. COMMENT
+  property in an iTIP message).
+- **type**: `String`
+  This MUST be one of
+  - created
+  - updated
+  - destroyed
+- **TaskId**: `String`
+  The id of the Task that this notification is about.
+- **isDraft**: `Boolean` (created/updated only)
+  Is this event a draft?
+- **event**: `JSTask`
+  The data before the change (if updated or destroyed), or the data
+  after creation (if created).
+- **eventPatch**: `PatchObject` (updated only)
+  A patch encoding the change between the data in the event property, and the
+  data after the update.
+
+To reduce data, if the change only affects a single instance of a recurring event, the server MAY set the event and eventPatch properties for the instance; the calendarEventId MUST still be for the master event.
+
+## TaskNotification/get
+
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
+
+## TaskNotification/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## TaskNotification/set
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.3.
+
+Only destroy is supported; any attempt to create/update MUST be rejected with a
+`forbidden` SetError.
+
+## TaskNotification/query
+
+This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
+
+### Filtering
+
+A **FilterCondition** object has the following properties:
+
+- **after**: `UTCDate|null`
+  The creation date must be on or after this date to match the condition.
+- **before**: `UTCDate|null`
+  The creation date must be before this date to match the condition.
+- **type**: `String`
+  The type property must be the same to match the condition.
+- **taskIds**: `Id[]|null`
+  A list of task ids. The taskId property of the notification must be in this list to match the condition.
+
+### Sorting
+
+The "created" property MUST be supported for sorting.
+
+## TaskNotification/queryChanges
+
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
