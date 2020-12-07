@@ -1,0 +1,56 @@
+# Introduction
+
+JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronizing data, such as mail, calendars or contacts, between a client and a server. It is optimized for mobile and web environments, and aims to provide a consistent interface to different data types.
+
+JMAP for Calendars ([@!I-D.ietf-jmap-calendars]) defines a data model for synchronizing calendar data between a client and a server using JMAP. The data model is designed to allow a server to provide consistent access to the same data via CalDAV [@?RFC4791] as well as JMAP.
+
+While CalDAV defines access to tasks, JMAP for Calendars does not. This specification fills this gap and defines a data model for synchronizing task data between a client and a server using JMAP. It is built upon JMAP for Calendars and reuses most of its definitions. For better readability this document only outlines differences between this specification and JMAP for Calendars. If not stated otherwise, the same specifics that apply to Calendar, CalendarEvent and CalendarEventNotification objects as defined in the aforemetioned specification also apply to similar data types introduced in this specification.
+
+## Notational Conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
+
+Type signatures, examples, and property descriptions in this document follow the conventions established in Section 1.1 of [@!RFC8620].  Data types defined in the core specification are also used in this document.
+
+## Terminology
+
+The same terminology is used in this document as in the core JMAP specification, see [@!RFC8620], Section 1.6.
+
+The terms ParticipantIdentity, TaskList, Task and TaskNotification are used to refer to the data types defined in this document and instances of those data types.
+
+## Data Model Overview
+
+Similar to JMAP for Calendar, an Account (see [@!RFC8620], Section 1.6.2) contains zero or more TaskList objects, which is a named collection of Tasks belonging to a Principal (see [@!I-D.jenkins-jmap-sharing] Section XXX). Task lists can also provide defaults, such as alerts and a color to apply to tasks in the calendar. Clients commonly let users toggle visibility of tasks belonging to a particular task list on/off. Servers may allow a task to belong to multiple TaskLists within an account.
+
+A Task is a representation of a single task or recurring series of Tasks in JSTask [@!I-D.ietf-calext-jscalendar] format. Recurrence rules and alerts as defined in JMAP for Calendars (see [@!I-D.ietf-jmap-calendars] Section XXX) apply.
+
+Just like the CalendarEventNotification objects (see [@!I-D.ietf-jmap-calendars] Section XXX), TaskNotification objects keep track of the history of changes made to a task by other users. Similarly, the ShareNotification type (see [@!I-D.jenkins-jmap-sharing] Section XXX) notifies the user when their access to another user's calendar is granted or revoked.
+
+## Addition to the Capabilities Object
+
+The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], Section 2. This document defines one additional capability URI.
+
+### urn:ietf:params:jmap:tasks
+
+This represents support for the TaskList, Task and TaskNotification data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.
+
+The value of this property in an account’s accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
+
+- **shareesActAs**: `String`
+  This MUST be one of:
+
+    - `self` - sharees act as themselves when using tasks in this account.
+    - `secretary`- sharees act as the principal to which this account belongs.
+
+- **maxTaskListsPerTask**: `UnsignedInt|null`
+  The maximum number of TaskLists (see Section XXX) that can be can assigned to a single Task object (see Section XXX). This MUST be an integer >= 1, or null for no limit (or rather, the limit is always the number of TaskLists in the account).
+- **minDateTime**: `LocalDate`
+  The earliest date-time the server is willing to accept for any date stored in a Task.
+- **maxDateTime**: `LocalDate`
+  The latest date-time the server is willing to accept for any date stored in a Task.
+- **maxExpandedQueryDuration**: `Duration`
+  The maximum duration the user may query over when asking the server to expand recurrences.
+- **maxAssigneesPerTask**: `Number|null`
+  The maximum number of assignees a single task may have, or null for no limit.
+- **mayCreateTaskList**: `Boolean`
+  If true, the user may create a task list in this account.

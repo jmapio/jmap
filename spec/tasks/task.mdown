@@ -1,0 +1,96 @@
+# Tasks
+
+A **Task** object contains information about a task, or recurring series of tasks. It is a JSTask object, as defined in [@!I-D.ietf-calext-jscalendar], with the following additional properties:
+
+- **id**: `Id`
+  The id of the Task. This property is immutable. The id uniquely identifies a JSTask with a particular "uid" and "recurrenceId" within a particular account.
+
+- **taskListIds**: `Id[Boolean]`
+  The set of TaskList ids this task belongs to. An task MUST belong to one or more TaskLists at all times (until it is destroyed). The set is represented as an object, with each key being a *TaskList id*. The value for each key in the object MUST be `true`.
+
+- **isDraft**: `Boolean`
+  If true, this task is to be considered a draft. The server will not send any push notifications for alerts. This may only be set to true upon creation. Once set to false, the value cannot be updated to true. This property MUST NOT appear in "recurrenceOverrides".
+
+- **utcStart**: `UTCDate`
+  For simple clients that do not or cannot implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.
+
+    This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different results if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the task.
+
+    If set, server will convert to the task's current time zone using its current time zone data and store the local time.
+
+    This is not included by default and must be requested explicitly.
+
+    Floating tasks (tasks without a time zone) will be interpreted as per the time zone given as a Task/get argument.
+
+    Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the utcStart property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are RECOMMENDED to request the server expand recurrences (see Section XXX).
+
+- **utcEnd**: `UTCDate`
+  The server calculates the end time in UTC from the start/timeZone/duration properties of the task. This is not included by default and must be requested explicitly. Like utcStart, this is calculated at fetch time if requested and may change due to time zone data changes. Floating tasks will be interpreted as per the time zone given as a Task/get argument.
+
+## Additional JSCalendar properties
+
+This document defines four new JSCalendar properties.
+
+### mayInviteSelf
+
+Type: `Boolean` (default: false)
+
+If `true`, any user that has access to the event may add themselves to it as a participant with the "attendee" role. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the master object.
+
+### mayInviteOthers
+
+Type: `Boolean` (default: false)
+
+If `true`, any current participant with the "attendee" role may add new participants with the "attendee" role to the event. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the master object.
+
+### hideAttendees
+
+Type: `Boolean` (default: false)
+
+If `true`, only the owners of the event may see the full set of participants. Other sharees of the event may only see the owners and themselves. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the master object.
+
+### relatedTo 
+
+Type: `Id[String]|null` (default: null)
+
+A map of task ids to relations. Relation SHOULD be one of:
+    - `blockedBy`: Blocked by task with id.
+    - `clonedBy`: Task with id was cloned from this issue.
+    - `duplicatedBy`: Task with id is a duplicate of this issue.
+    - `causedBy`: Task with id was the cause for this task.
+    - `relatesTo`: Task with id is related.
+    - `childOf`: Task with id is parent.
+
+## Properties similar in JMAP for Calendar
+
+Attachments, per-user properties, recurrences and updates to recurrences are described in [@!I-D.ietf-jmap-calendars], Section XXX.
+
+## Task/get
+
+This is the "CalendarEvent/get" method as described in [@!I-D.ietf-jmap-calendars], Section XXX.
+
+TODO redefine this here. Similar to "TaskList/get" we only need to replace a few definitions. For example, replace `reduceParticipants` with `reduceAssignees`. Copy+Paste most of the stuff.
+
+## Task/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## Task/set
+
+This is the "CalendarEvent/set" method as described in [@!I-D.ietf-jmap-calendars], Section XXX.
+
+TODO copy+paste most stuff from "CalendarEvent/set". It should be fine to just reference patching.
+
+## Task/copy
+
+This is a standard "/copy" method as described in [@!RFC8620], Section 5.4.
+
+## Task/query
+
+This is the "CalendarEvent/query" method as described in [@!I-D.ietf-jmap-calendars], Section XXX.
+
+TODO copy+paste most stuff from "CalendarEvent/query". Mainly filtering should be different.
+
+## Task/queryChanges
+
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
