@@ -1,0 +1,27 @@
+# Participant Identities
+
+A ParticipantIdentity stores information about a URI that represents the user within that account in an event's participants. It has the following properties:
+
+- **id**: `Id` (immutable; server-set)
+  The id of the ParticipantIdentity.
+- **name**: `String` (default: "")
+  The display name of the participant to use when adding this participant to an event, e.g. "Joe Bloggs".
+- **type**: `String` (immutable)
+  The method for sending scheduling messages to this identity, e.g. "imip"
+- **uri**: `String` (immutable)
+  The URI for sending scheduling messages to this identity, e.g.
+  "mailto:foo@example.com"
+
+The following JMAP methods are supported.
+
+## ParticipantIdentity/get
+
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
+
+## ParticipantIdentity/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## ParticipantIdentity/set
+
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3. The server MAY restrict the uri values the user may claim, for example only allowing `mailto:` URIs with email addresses that belong to the user. A standard `forbidden` error is returned to reject non-permissible creates.
