@@ -81,14 +81,6 @@ A **Calendar** object has the following properties:
 - **shareWith**: `Id[CalendarRights]|null` (default: null)
   A map of CalendarPrincipal id to rights for principals this calendar is shared with. The pricincipal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right.
 
-- **shareesActAs**: `String` (immutable; default server-dependent)
-  This MUST be one of:
-
-    - `secretary`
-    - `self`
-
-    If `self`, sharees act as themselves when using this calendar. If `secretary`, they act as the pricincipal to which this calendar belongs (secretary mode). If omitted, the default is server dependent. For example, it may be `self` if creating a calendar in a CalendarPrincipal representing a group, and `secretary` if creating a calendar for an individual. Users may attempt to set this on creation, but the server may reject with an `invalidProperties` error if the value is not permissible.
-
 - **myRights**: `CalendarRights` (server-set)
   The set of access rights the user has in relation to this Calendar.
 
@@ -103,7 +95,7 @@ A **CalendarRights** object has the following properties:
   The user may create new events on this calendar or move events to this calendar. For recurring events, they may add an override to add an occurrence, or remove an existing override that is excluding an occurrence.
 - **mayUpdatePrivate**: `Boolean`
   The user may modify the following properties on all events in the calendar.
-  If shareesActAs is "self", these properties MUST all be stored per-user, and changes do not affect any other user of the calendar. If shareesActAs is "secretary", the values are shared between all users.
+  If the shareesActAs account capability is "self", these properties MUST all be stored per-user, and changes do not affect any other user of the calendar. If shareesActAs is "secretary", the values are shared between all users.
 
     - keywords
     - color
@@ -161,7 +153,7 @@ When modifying the shareWith property, the user cannot give a right to a princip
 
 Users can subscribe or unsubscribe to a calendar by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a `forbidden` SetError.
 
-The "timeZone", "includeInAvailability", "defaultAlertsWithoutTime" and "defaultAlertsWithTime" properties are stored per-user if the calendar "shareesActAs" value is "self", and may be set by any user who is subscribed to the calendar. Otherwise, these properties are shared, and may only be set by users that have the mayAdmin right.
+The "timeZone", "includeInAvailability", "defaultAlertsWithoutTime" and "defaultAlertsWithTime" properties are stored per-user if the calendar account's "shareesActAs" capability is "self", and may be set by any user who is subscribed to the calendar. Otherwise, these properties are shared, and may only be set by users that have the mayAdmin right.
 
 The following properties may be set by anyone who is subscribed to the calendar and are all stored per-user:
 
