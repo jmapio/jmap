@@ -59,25 +59,6 @@ A **Calendar** object has the following properties:
   "useDefaultAlerts" set. See [@!I-D.ietf-calext-jscalendar], Section 4.5.2 for the definition of an Alert object.
 - **timeZone**: `String|null` (default: null)
   The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for reminders, queries, or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated CalendarPrincipal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
-- **participantIdentities**: `ParticipantIdentity[]|null` (server-set)
-  The identities that represent the user in this calendar.
-
-    The first item in the array is the default. A **ParticipantIdentity** object has the following properties:
-
-    - **name**: `String`
-      The display name of the participant to use when adding this participant to an event, e.g. "Joe Bloggs".
-    - **type**: `String`
-      The method for sending scheduling messages to this identity, e.g. "imip"
-    - **uri**: `String`
-      The URI for sending scheduling messages to this identity, e.g.
-      "mailto:foo@example.com"
-
-    The user is an **owner** for an event if the CalendarEvent object has a   "participants" property, and one of the Participant objects has both:
-
-    a) The "owner" role.
-    b) A "sendTo" property that has "type" and "uri" equal to one of the
-       ParticipantIdentity objects returned with the calendar.
-
 - **shareWith**: `Id[CalendarRights]|null` (default: null)
   A map of CalendarPrincipal id to rights for principals this calendar is shared with. The pricincipal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right.
 
@@ -126,6 +107,14 @@ A **CalendarRights** object has the following properties:
   The user may modify sharing for this calendar.
 - **mayDelete**: `Boolean` (server-set)
   The user may delete the calendar itself. This property MUST be false if the account to which this calendar belongs has the *isReadOnly* property set to true.
+
+The user is an **owner** for an event if the CalendarEvent object has a   "participants" property, and one of the Participant objects has both:
+
+    a) The "owner" role.
+    b) A "sendTo" property that has "type" and "uri" equal to one of the
+       user's ParticipantIdentity objects in the account.
+
+An event has no owner if its participants property is null or omitted.
 
 ## Calendar/get
 

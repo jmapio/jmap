@@ -162,7 +162,7 @@ Similarly, the "utcEnd" property is translated into a "duration" property if set
 
 The server does not automatically reset the "partipationStatus" or "expectReply" properties of a Participant when changing other event details. Clients should either be intelligent about whether the change necessitates resending RSVP requests, or ask the user whether to send them.
 
-The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the "owner" role corresponding to one of the user's "participantIdentities" for the calendar.
+The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the "owner" role corresponding to one of the user's ParticipantIdentities (see Section XXX).
 
 When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the "replyTo" property of the event if not present. Clients SHOULD NOT set the replyTo property for events when the user adds participants; the server is better positioned to add all the methods it supports to receive replies.
 
@@ -301,7 +301,7 @@ Messages are only sent to participants with a "scheduleAgent" property set to "s
 
 The server may send the scheduling message via any of the methods defined on the sendTo property of a participant (if the server is the source) or the replyTo property of the event (otherwise) that it supports. If no supported methods are available, the server MUST reject the change with a `noSupportedScheduleMethods` SetError.
 
-If the server is the source of the event it MUST NOT send messages to any participant corresponding to the participantIdentities of the calendar it is in.
+If the server is the source of the event it MUST NOT send messages to any participant corresponding to a ParticipantIdentitity in that account (see Section XXX).
 
 If sending via iMIP [@?RFC6047], the server MAY choose to only send updates it deems "essential" to avoid flooding the recipient's email with changes they do not care about. For example, changes to the participationStatus of another participant, or changes to events solely in the past may be omitted.
 
@@ -335,7 +335,7 @@ In each of the latter 3 cases, the message is sent to all participants.
 
 #### REPLY
 
-When the server is *not* the source for the event, a REPLY message ([@!RFC5546], Section 3.2.3) is sent for any participant corresponding to the participantIdentities of the calendar it is in if:
+When the server is *not* the source for the event, a REPLY message ([@!RFC5546], Section 3.2.3) is sent for any participant corresponding to one of the user's ParticipantIdentitities in the account if:
 
 - The "participationStatus" property of the participant is changed.
 - The event is destroyed and the participationStatus was not "needs-action".
