@@ -6,11 +6,13 @@ A ParticipantIdentity stores information about a URI that represents the user wi
   The id of the ParticipantIdentity.
 - **name**: `String` (default: "")
   The display name of the participant to use when adding this participant to an event, e.g. "Joe Bloggs".
-- **type**: `String` (immutable)
-  The method for sending scheduling messages to this identity, e.g. "imip"
-- **uri**: `String` (immutable)
-  The URI for sending scheduling messages to this identity, e.g.
-  "mailto:foo@example.com"
+- **sendTo**: `String[String]`
+   Represents methods by which the participant may receive invitations and updates to an event.
+
+     The keys in the property value are the available methods and MUST only contain ASCII alphanumeric characters (A-Za-z0-9). The value is a URI for the method specified in the key.
+
+
+A participant in an event corresponds to a ParticipantIdentity if any of the method/uri pairs in the sendTo property of the participant are identical to a method/uri pair in the sendTo property of the identity.
 
 The following JMAP methods are supported.
 
