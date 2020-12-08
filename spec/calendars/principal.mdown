@@ -89,6 +89,8 @@ Calculates the availability of the principal for scheduling within a requested t
   The end time (exclusive) of the period for which to return availability.
 - **showDetails**: `Boolean`
   If true, event details will be returned if the user has permission to view them.
+- **eventProperties**: `String[]|null`
+  A list of properties to include in any JSEvent object returned. If `null`, all properties of the event will be returned. Otherwise, only properties with names in the given list will be returned.
 
 The server will first find all relevant events, expanding any recurring events. Relevant events are ones where all of the following is true:
 
@@ -121,9 +123,12 @@ The server then generates a BusyPeriod object for each of these events. A **Busy
     for any other reason.
 - **event**: `JSEvent|null`
   The JSEvent representation of the event, or null if any of the following are true:
-  - The "showDetails" argument is false.
-  - The "privacy" property of the event is "private".
-  - The user does not have the "mayReadItems" permission for the calendar.
+
+    - The "showDetails" argument is false.
+    - The "privacy" property of the event is "private".
+    - The user does not have the "mayReadItems" permission for the calendar.
+
+    If an eventProperties argument was given, any properties in the JSEvent that are not in the eventProperties list are removed from the returned representation.
 
 The server MAY also generate BusyPeriod objects based on other information it has about the principal's availability, such as office hours.
 
