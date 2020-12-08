@@ -87,11 +87,11 @@ A **CalendarRights** object has the following properties:
     The user may also modify the above on a per-occurrence basis for recurring events.
 
 - **mayRSVP**: `Boolean`
-  The user may modify the "participationStatus", "participationComment", "expectReply", "scheduleAgent", "scheduleSequence", and "scheduleUpdated" properties of any Participant object where the sendTo property matches a ParticipantIdentity of the calendar.
+  The user may modify the "participationStatus", "participationComment", "expectReply", "scheduleAgent", "scheduleSequence", and "scheduleUpdated" properties of any Participant object that corresponds to one of the user's ParticipantIdentity objects in the account.
 
-    If the event has its "mayInviteSelf" property set to true (see Section XXX), then the user may also add a new Participant to the event with a sendTo property that matches a ParticipantIdentity of the calendar. The roles property of the participant MUST only contain "attendee".
+    If the event has its "mayInviteSelf" property set to true (see Section XXX), then the user may also add a new Participant to the event with a sendTo property that is the same as the sendTo property of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain "attendee".
 
-    If the event has its "mayInviteOthers" property set to true (see Section XXX) and there is an existing Participant in the event where the sendTo property matches a ParticipantIdentity of the calendar, then the user may also add new participants. The roles property of any new participant MUST only contain "attendee".
+    If the event has its "mayInviteOthers" property set to true (see Section XXX) and there is an existing Participant in the event corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The roles property of any new participant MUST only contain "attendee".
 
     The user may also do all of the above on a per-occurrence basis for recurring events.
 
@@ -108,11 +108,10 @@ A **CalendarRights** object has the following properties:
 - **mayDelete**: `Boolean` (server-set)
   The user may delete the calendar itself. This property MUST be false if the account to which this calendar belongs has the *isReadOnly* property set to true.
 
-The user is an **owner** for an event if the CalendarEvent object has a   "participants" property, and one of the Participant objects has both:
+The user is an **owner** for an event if the CalendarEvent object has a   "participants" property, and one of the Participant objects both:
 
-    a) The "owner" role.
-    b) A "sendTo" property that has "type" and "uri" equal to one of the
-       user's ParticipantIdentity objects in the account.
+    a) Has the "owner" role.
+    b) Corresponds to one of the user's ParticipantIdentity objects in the account.
 
 An event has no owner if its participants property is null or omitted.
 
