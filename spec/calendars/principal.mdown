@@ -109,6 +109,8 @@ The server will first find all relevant events, expanding any recurring events. 
 - If the "includeInAvailability" property of the calendar is "attending", then
   the principal is a participant of the event, and has a "participationStatus" of "accepted" or "tentative".
 
+If an event is in more than one calendar, it is relevant if all of the above are true for any one calendar that it is in.
+
 The server then generates a BusyPeriod object for each of these events. A **BusyPeriod** object has the following properties:
 
 - **utcStart**: `UTCDate`
@@ -126,7 +128,8 @@ The server then generates a BusyPeriod object for each of these events. A **Busy
 
     - The "showDetails" argument is false.
     - The "privacy" property of the event is "private".
-    - The user does not have the "mayReadItems" permission for the calendar.
+    - The user does not have the "mayReadItems" permission for any of the
+      calendars the event is in.
 
     If an eventProperties argument was given, any properties in the JSEvent that are not in the eventProperties list are removed from the returned representation.
 

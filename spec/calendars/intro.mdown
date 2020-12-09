@@ -8,7 +8,7 @@ This specification defines a data model for synchronizing calendar data between 
 
 A CalendarPrincipal (see Section XXX) represents an individual, team or resource (e.g. a room or projector). The object contains information about the entity being represented, such as a name, description and time zone. A CalendarPrincipal has a 1:1 correspondence with an Account (see [@!RFC8620], Section 1.6.2) that supports the `urn:ietf:params:jmap:calendars` capability.
 
-Each such Account contains zero or more Calendar objects, which is a named collection of CalendarEvents belonging to the CalendarPrincipal. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off.
+Each such Account contains zero or more Calendar objects, which is a named collection of CalendarEvents belonging to the CalendarPrincipal. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off. Servers may allow an event to belong to multiple Calendars within an account.
 
 A CalendarEvent is a representation of an event or recurring series of events in JSEvent [@!I-D.ietf-calext-jscalendar] format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.
 
@@ -73,6 +73,8 @@ The value of this property in an account’s accountCapabilities property is an 
     - `self` - sharees act as themselves when using calendars in this account.
     - `secretary`- sharees act as the pricincipal to which this account belongs.
 
+- **maxCalendarsPerEvent**: `UnsignedInt|null`
+  The maximum number of Calendars (see Section XXX) that can be can assigned to a single CalendarEvent object (see Section XXX). This MUST be an integer >= 1, or null for no limit (or rather, the limit is always the number of Calendars in the account).
 - **minDateTime**: `LocalDate`
   The earliest date-time the server is willing to accept for any date stored in a CalendarEvent.
 - **maxDateTime**: `LocalDate`
