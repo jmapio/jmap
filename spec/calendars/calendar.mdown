@@ -19,7 +19,7 @@ A **Calendar** object has the following properties:
 - **description**: `String|null` (default: null)
   An optional longer-form description of the calendar, to provide context in shared environments where users need more than just the name.
 - **color**: `String|null` (default: null)
-  The color to be used when displaying events associated with the calendar.
+  A color to be used when displaying events associated with the calendar.
 
   If not null, the value MUST be a case-insensitive color name taken from the set of names defined in Section 4.3 of CSS Color Module Level 3 [COLORS](https://www.w3.org/TR/css-color-3/), or an RGB value in hexadecimal notation, as defined in Section 4.2.1 of CSS Color Module Level 3.
 
@@ -40,7 +40,7 @@ A **Calendar** object has the following properties:
     requests it or to offer it for the user to subscribe to.
 
 - **isVisible**: `Boolean` (default: true)
-  Should the calendar's events be displayed to the user at the moment? Clients MUST ignore this property if isSubscribed is false.
+  Should the calendar's events be displayed to the user at the moment? Clients MUST ignore this property if isSubscribed is false. If an event is in multiple calendars, it should be displayed if isVisible is true for any of those calendars.
 
 - **includeInAvailability**: `String` (default: all)
   Should the calendar's events be used as part of availability calculation?
@@ -49,7 +49,8 @@ A **Calendar** object has the following properties:
     - `all`: all events are considered.
     - `attending`: events the user is a confirmed or tentative participant of
       are considered.
-    - `none`: all events are ignored.
+    - `none`: all events are ignored (but may be considered if also in another
+      calendar).
 
 - **defaultAlertsWithTime**: `Id[Alert]|null` (default: null)
   A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true.
@@ -61,7 +62,15 @@ A **Calendar** object has the following properties:
   A map of CalendarPrincipal id to rights for principals this calendar is shared with. The pricincipal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right.
 
 - **myRights**: `CalendarRights` (server-set)
-  The set of access rights the user has in relation to this Calendar.
+  The set of access rights the user has in relation to this Calendar. If any event is in multiple calendars, the user has the following rights:
+
+  - The user may fetch the event if they have the mayReadItems right on any
+    calendar the event is in.
+  - The user may remove an event from a calendar (by modifying the event's
+    "calendarIds" property) if the user has the appropriate permission for that
+    calendar.
+  - The user may make other changes to the event if they have the right to do
+    so in *all* calendars to which the event belongs.
 
 
 A **CalendarRights** object has the following properties:
@@ -98,9 +107,9 @@ A **CalendarRights** object has the following properties:
 - **mayUpdateAll**: `Boolean`
   The user may modify all existing events on this calendar.
 - **mayRemoveOwn**: `Boolean`
-  The user may delete an event or move it to a different calendar if either they are the owner of the event or the event has no owner. For recurring events, they may add an override to remove an occurrence.
+  The user may delete an event or remove it from this calendar if either they are the owner of the event or the event has no owner. For recurring events, they may add an override to remove an occurrence.
 - **mayRemoveAll**: `Boolean`
-  The user may delete any event or move it to a different calendar. For recurring events, they may add an override to remove an occurrence.
+  The user may delete any event or remove it from this calendar. For recurring events, they may add an override to remove an occurrence.
 - **mayAdmin**: `Boolean`
   The user may modify sharing for this calendar.
 - **mayDelete**: `Boolean` (server-set)
@@ -131,7 +140,7 @@ This is a standard "/set" method as described in [@!RFC8620], Section 5.3 but wi
 
   If false, any attempt to destroy a Calendar that still has CalendarEvents
   in it will be rejected with a `calendarHasEvent` SetError. If
-  true, any CalendarEvents that were in the Calendar will be destroyed. This SHOULD NOT send scheduling messages to participants or create CalendarEventNotification objects.
+  true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This SHOULD NOT send scheduling messages to participants or create CalendarEventNotification objects.
 
 The "role" and "shareWith" properties may only be set by users that have the mayAdmin right. The value is shared across all users, although users without the mayAdmin right cannot see the value.
 

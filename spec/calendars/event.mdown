@@ -5,8 +5,8 @@ A **CalendarEvent** object contains information about an event, or recurring ser
 - **id**: `Id`
   The id of the CalendarEvent. This property is immutable. The id uniquely identifies a JSEvent with a particular "uid" and "recurrenceId" within a particular account.
 
-- **calendarId**: `Id`
-  The id of the Calendar this event belongs to.
+- **calendarIds**: `Id[Boolean]`
+  The set of Calendar ids this event belongs to. An event MUST belong to one or more Calendars at all times (until it is destroyed). The set is represented as an object, with each key being a *Calendar id*. The value for each key in the object MUST be `true`.
 
 - **isDraft**: `Boolean`
   If true, this event is to be considered a draft. The server will not send any scheduling messages to participants or send push notifications for alerts. This may only be set to true upon creation. Once set to false, the value cannot be updated to true. This property MUST NOT appear in "recurrenceOverrides".
@@ -20,12 +20,12 @@ A **CalendarEvent** object contains information about an event, or recurring ser
 
     This is not included by default and must be requested explicitly.
 
-    Floating events will be interpreted as per calendar's time zone property; or if not set, the the principal's time zone property.
+    Floating events (events without a time zone) will be interpreted as per the time zone given as a CalendarEvent/get argument.
 
     Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the utcStart property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are RECOMMENDED to request the server expand recurrences (see Section XXX).
 
 - **utcEnd**: `UTCDate`
-  The server calculates the end time in UTC from the start/timeZone/duration properties of the event. This is not included by default and must be requested explicitly. Like utcStart, this is calculated at fetch time if requested and may change due to time zone data changes.
+  The server calculates the end time in UTC from the start/timeZone/duration properties of the event. This is not included by default and must be requested explicitly. Like utcStart, this is calculated at fetch time if requested and may change due to time zone data changes. Floating events will be interpreted as per the time zone given as a CalendarEvent/get argument.
 
 CalendarEvent objects MUST NOT have a "method" property as this is only used when representing iTIP [@!RFC5546] scheduling messages, not events in a data store.
 
@@ -105,8 +105,10 @@ This is a standard "/get" method as described in [@!RFC8620], Section 5.1, with 
   If given, only recurrence overrides with a recurrence id on or after this date (when translated into UTC) will be returned.
 - **reduceParticipants**: `Boolean` (default: false)
   If true, only participants with the "owner" role or corresponding to the user's participant identities will be returned in the "participants" property of the master event and any recurrence overrides. If false, all participants will be returned.
+- **timeZone**: `String` (default "Etc/UTC")
+  The time zone to use when calculating the utcStart/utcEnd property of floating events. This argument has no effect if those properties are not requested.
 
-A CalendarEvent object is a JSEvent object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties defined on the JSEvent object in the store are returned, along with the "id", "calendarId", and "isDraft" properties. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested. If either are requested, the "recurrenceOverrides" property MUST NOT be requested (recurrence overrides cannot be interpreted accurately with just the UTC times).
+A CalendarEvent object is a JSEvent object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties defined on the JSEvent object in the store are returned, along with the "id", "calendarIds", and "isDraft" properties. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested. If either are requested, the "recurrenceOverrides" property MUST NOT be requested (recurrence overrides cannot be interpreted accurately with just the UTC times).
 
 If specific properties are requested from the JSEvent and the property is not present on the object in the server's store, the server SHOULD return the default value if known for that property.
 
@@ -127,13 +129,13 @@ This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
 This is a standard "/set" method as described in [@!RFC8620], Section 5.3, with the following extra argument:
 
 - **sendSchedulingMessages**: `Boolean` (default: false)
-  If true then any changes to scheduled events will be sent to all the participants (if the user is an owner of the event) or back to the owners (otherwise). If false, the changes only affect this calendar and no scheduling messages will be sent.
+  If true then any changes to scheduled events will be sent to all the participants (if the user is an owner of the event) or back to the owners (otherwise). If false, the changes only affect this account and no scheduling messages will be sent.
 
 For recurring events, an id may represent the master event or a specific instance. When the id for a specific instance is given, the server MUST process an update as an update to the recurrence override for that instance on the master event, and a destroy as removing just that instance.
 
 Clients MUST NOT send an update/destroy to both the master event and a specific instance in a single "/set" request; the result of this is undefined.
 
-Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar object and reject changes with a `forbidden` SetError if not allowed.
+Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a `forbidden` SetError if not allowed.
 
 The "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar). The server MUST reject this with an `invalidProperties` SetError.
 
