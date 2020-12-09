@@ -1,12 +1,40 @@
 # Alerts
 
-Alerts may be specified on events as described in [@!I-D.ietf-calext-jscalendar], Section 4.5. If the "useDefaultAlerts" property is true, the alerts are taken from the Calendar "defaultAlertsWithTime" or "defaultAlertsWithoutTime" property, as described in Section XXX. Otherwise, the alerts are taken from the "alerts" property of the CalendarEvent.
+Alerts may be specified on events as described in [@!I-D.ietf-calext-jscalendar], Section 4.5.
 
 Alerts MUST only be triggered for events in calendars where the user is subscribed and either the user owns the calendar or the calendar account's "shareesActAs" capability is "self".
 
 When an alert with an "email" action is triggered, the server MUST send an email to the user to notify them of the event. The contents of the email is implementation specific. Clients MUST NOT perform an action for these alerts.
 
 When an alert with a "display" action is triggered, clients SHOULD display an alert in a platform-appropriate manner to the user to remind them of the event. Clients with a full offline cache of events may choose to calculate when alerts should trigger locally. Alternatively, they can subscribe to push events from the server.
+
+## Default alerts
+
+If the "useDefaultAlerts" property of an event is true, the alerts are taken from the "defaultAlertsWithTime" or "defaultAlertsWithoutTime" Calendar property, as described in Section XXX, rather than the "alerts" property of the CalendarEvent.
+
+When using default alerts, the "alerts" property of the event is ignored except for the following:
+
+* The "acknowledged" time for an alert is stored here when a default alert for
+  the event is dismissed. The id of the alert MUST be the same as the id of the default alert in the calendar. See Section XXX on acknowledging alerts.
+* If an alert has a relatedTo property where the parent is the id of one of
+  the calendar default alerts, it is processed as normal and not ignored. This is to support snoozing default alerts; see Section XXX.
+
+
+## Acknowledging an alert
+
+To dismiss an alert, clients set the "acknowledged" property of the Alert object to the current date-time. If the alert was a calendar default, it may need to be added to the event at this point in order to acknowledge it. When other clients fetch the updated CalendarEvent they SHOULD automatically dismiss or suppress duplicate alerts (alerts with the same alert id that triggered on or before the "acknowledged" date-time) and alerts that have been removed from the event.
+
+Setting the "acknowledged" property MUST NOT create a new recurrence override. For a recurring calendar object, the "acknowledged" property of the parent object MUST be updated, unless the alert is already overridden in the "recurrenceOverrides" property.
+
+## Snoozing an alert
+
+Users may wish to dismiss an alert temporarily and have it come back after a specific period of time. To do this, clients MUST:
+
+1. Acknowledge the alert as described in Section XXX.
+2. Add a new alert to the event with an `AbsoluteTrigger` for the date-time the
+   alert has been snoozed until. Add a "relatedTo" property to the new alert, setting the "parent" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert that was acknowledged in step 1.
+
+When acknowledging a snoozed alert (i.e. one with a parent relatedTo pointing to the original alert), the client SHOULD delete the alert rather than setting the "acknowledged" property.
 
 ## Push events
 
@@ -29,19 +57,3 @@ A **CalendarAlert** object has the following properties:
   triggered, or `null` if the event is not recurring.
 - **alertId**: `String`
   The id for the alert that triggered.
-
-
-## Acknowledging an alert
-
-To dismiss an alert, clients set the "acknowledged" property of the Alert object to the current date-time. When other clients fetch the CalendarEvent with the updated Alert they SHOULD automatically dismiss or suppress duplicate alerts (alerts with the same alert id that triggered on or before this date-time).
-
-Setting the "acknowledged" property MUST NOT create a new recurrence override. For a recurring calendar object, the "acknowledged" property of the parent object MUST be updated, unless the alert is already overridden in the "recurrenceOverrides" property.
-
-## Snoozing an alert
-
-Users may wish to dismiss an alert temporarily and have it come back after a specific period of time. To do this, clients MUST:
-
-1. Acknowledge the alert as described in Section XXX.
-2. Add a new alert with an `AbsoluteTrigger` for the date-time the alert has been snoozed until. Add a "relatedTo" property to the new alert, setting the "parent" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert being snoozed.
-
-When acknowledging a snoozed alert (i.e. one with a parent relatedTo pointing to the original alert), the client SHOULD delete the alert rather than setting the "acknowledged" property.

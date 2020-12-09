@@ -51,12 +51,10 @@ A **Calendar** object has the following properties:
       are considered.
     - `none`: all events are ignored.
 
-- **defaultAlertsWithTime**: `Alert[]|null` (default: null)
-  The alerts to apply for events where showWithoutTime is false that have
-  "useDefaultAlerts" set. See [@!I-D.ietf-calext-jscalendar], Section 4.5.2 for the definition of an Alert object.
-- **defaultAlertsWithoutTime**: `Alert[]|null` (default: null)
-  The alerts to apply for events where showWithoutTime is true that have
-  "useDefaultAlerts" set. See [@!I-D.ietf-calext-jscalendar], Section 4.5.2 for the definition of an Alert object.
+- **defaultAlertsWithTime**: `Id[Alert]|null` (default: null)
+  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true.
+- **defaultAlertsWithoutTime**: `Id[Alert]|null` (default: null)
+  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for events where "showWithoutTime" is true and "useDefaultAlerts" is true.
 - **timeZone**: `String|null` (default: null)
   The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for reminders, queries, or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated CalendarPrincipal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
 - **shareWith**: `Id[CalendarRights]|null` (default: null)
