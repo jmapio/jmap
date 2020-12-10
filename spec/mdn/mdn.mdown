@@ -6,10 +6,10 @@ JMAP for Mail ([@!RFC8621] - The JSON Meta Application Protocol (JMAP) for Mail)
 
 Message Disposition Notifications (MDNs) are defined in [@!RFC8098] and are used as "read receipts", "acknowledgements", or "receipt notifications".
 
-A client can have to deal with MDNs in different ways:
+A client can come across MDNs in different ways:
 
 1. When receiving an email message, an MDN can be sent to the sender. This specification defines an MDN/send method to cover this case.
-2. When sending an email message, an MDN can be requested. This must be done with the help of a header, and is already specified by [@!RFC8098] and can already be handled by [@!RFC8621] this way.
+2. When sending an email message, an MDN can be requested. This must be done with the help of a header field, and is already specified by [@!RFC8098] and can already be handled by [@!RFC8621] this way.
 3. When receiving an MDN, the MDN could be related to an existing sent message. This is already covered by [@!RFC8621] in the EmailSubmission object. A client might want to display detailed information about a received MDN. This specification defines an MDN/parse method to cover this case.
 
 ## Notational conventions
@@ -33,21 +33,21 @@ Capabilities are announced as part of the standard JMAP Session resource; see [@
 The capability "urn:ietf:params:jmap:mdn" being present in the "accountCapabilities" property of an account represents support for the "MDN" data type, parsing MDNs via the "MDN/parse" method, and creating and sending MDN messages via the "MDN/send" method.
 Servers that include the capability in one or more "accountCapabilities" properties MUST also include the property in the "capabilities" property.
 
-The value of this "urn:ietf:params:jmap:mdn" property is an empty object in the account's "accountCapabilities" property.
+The value of this "urn:ietf:params:jmap:mdn" property is an empty object both in the account's "accountCapabilities" property and in the "capabilities" property.
 
 # MDN
 
 An **MDN** object has the following properties:
 
 - forEmailId: `Id|null`
-  Email Id of the received message this MDN is relative to. This property MUST NOT be null for "MDN/send", but may be null in the response from the "MDN/parse" method.
+  Email id of the received message this MDN is relative to. This property MUST NOT be null for "MDN/send", but MAY be null in the response from the "MDN/parse" method.
 - subject: `String|null`
-  Subject used as `Subject` header for this MDN.
+  Subject used as `Subject` header field for this MDN.
 - textBody: `String|null`
   Human readable part of the MDN, as plain text.
 - includeOriginalMessage: `Boolean` (default: false). If `true`, the content of the original message will appear in the third component of the multipart/report generated for the MDN. See [@!RFC8098] for details and security considerations.
 - reportingUA: `String|null`
-  Name of the MUA creating this MDN. It is used to build the MDN Report part of the MDN.
+  Name of the MUA creating this MDN. It is used to build the MDN Report part of the MDN. Note that a `null` value may have better privacy properties.
 - disposition: `Disposition`
   Object containing the diverse MDN disposition options.
 - mdnGateway: `String|null` (server-set)
@@ -55,13 +55,13 @@ An **MDN** object has the following properties:
 - originalRecipient: `String|null` (server-set)
   Original recipient address as specified by the sender of the message for which the MDN is being issued.
 - finalRecipient: `String|null`
-  Recipient for which the MDN is being issued.  if set, it overrides the value that would be calculated by the server from the Identity.
+  Recipient for which the MDN is being issued.  If set, it overrides the value that would be calculated by the server from the Identity defined in the "MDN/Send" method, unless explicitly set by the client.
 - originalMessageId: `String|null` (server-set)
-  Message-ID (the [@!RFC5322] header field, not the JMAP Id) of the message for which the MDN is being issued.
+  Message-ID (the [@!RFC5322] header field, not the JMAP id) of the message for which the MDN is being issued.
 - error: `String[]|null` (server-set)
   Additional information in the form of text messages when the "error" disposition modifier appears.
 - extensionFields: `String[String]|null`
-  Object where keys are extension-field names and values are extension-field values.
+  Object where keys are extension-field names and values are extension-field values (see [@!RFC8098] Section 3.3).
 
   A **Disposition** object has the following properties:
 
@@ -76,7 +76,7 @@ An **MDN** object has the following properties:
 
 ## MDN/send
 
-The MDN/send method sends an [@!RFC5322] message from an MDN object. When calling this method the "using" property of the Request object MUST contain the capabilities "urn:ietf:params:jmap:mdn" and "urn:ietf:params:jmap:mail". The latter because of the implicit call to Email/set and the use of Identities, described below.
+The MDN/send method sends an [@!RFC5322] message from an MDN object. When calling this method the "using" property of the Request object MUST contain the capabilities "urn:ietf:params:jmap:mdn" and "urn:ietf:params:jmap:mail"; the latter because of the implicit call to Email/set and the use of Identities, described below.
 The method takes the following arguments:
 
 - accountId: `Id`
@@ -86,7 +86,7 @@ The method takes the following arguments:
 - send: `Id[MDN]`
   A map of creation id (client specified) to MDN objects.
 - onSuccessUpdateEmail: `Id[PatchObject]|null`
-  A map of id to an object containing properties to update on the Email object referenced by the "MDN/send" if the sending succeeds. This will always be a backward reference to the creation id (see example below in Section 3.1).
+  A map of id to an object containing properties to update on the Email object referenced by the "MDN/send" if the sending succeeds. This will always be a backward reference to the email id (see example below in Section 3.1).
 
 The response has the following arguments:
 
@@ -97,9 +97,9 @@ The response has the following arguments:
 - notSent: `Id[SetError]|null`
   A map of the creation id to a SetError object for each record that failed to be sent, or null if all successful.
 
-The following already registered SetError would mean:
+In this context, the existing SetError types defined in [@!RFC8620] and [@!RFC8621] are interpreted as follows:
 
-- notFound: The reference Email Id cannot be found, or has no valid "Disposition-Notification-To" header.
+- notFound: The reference Email id cannot be found, or has no valid "Disposition-Notification-To" header field.
 - forbidden: MDN/send would violate an ACL or other permissions policy.
 - forbiddenFrom: The user is not allowed to use the given finalRecipient property.
 - overQuota: MDN/send would exceed a server-defined limit on the number or total size of sent MDNs. It could include limitations on sent messages.
@@ -115,7 +115,7 @@ If the accountId or identityId given cannot be found, the method call is rejecte
 
 The client MUST NOT issue an MDN/send request if the message has the `$mdnsent` keyword set.
 
-When sending the MDN, the server is in charge of generating the "originalRecipient", "finalRecipient" and "originalMessageId" fields according to the [@!RFC8098] specification.
+When sending the MDN, the server is in charge of generating the "originalRecipient" and "originalMessageId" fields according to the [RFC8098] specification. "finalRecipient" will also generally be generated by the server based on the provided identity, but if specified by the client and allowed (see Section 5) the server will use the client provided value.
 
 The client is expected to explicitly update each "Email" for which an "MDN/send" has been invoked in order to set the "$mdnsent" keyword on these messages. To ensure that, the server MUST reject an "MDN/send" which does not result in setting the keyword "$mdnsent". Thus the server MUST check that the "onSuccessUpdateEmail" property of the method is correctly set to update this keyword.
 
@@ -123,7 +123,7 @@ The client is expected to explicitly update each "Email" for which an "MDN/send"
 
 This method allows a client to parse blobs as [@!RFC5322] messages to get MDN objects. This can be used to parse and get detailed information about blobs referenced in the "mdnBlobIds" of the EmailSubmission object, or any email message the client could expect to be an MDN.
 
-The "forEmailId" property can be null or missing if the "originalMessageId" property is missing or does not refer to an existing message, or if the server cannot efficiently calculate the related message (for example, if several messages get the same "Message-Id" header).
+The "forEmailId" property can be null or missing if the "originalMessageId" property is missing or does not refer to an existing message, or if the server cannot efficiently calculate the related message (for example, if several messages get the same "Message-Id" header field).
 
 The MDN/parse method takes the following arguments:
 
@@ -172,12 +172,12 @@ A client can use the following request to send an MDN back to the sender:
             "type": "displayed"
           },
           "extension": {
-            "X-EXTENSION-EXAMPLE": "example.com"
+            "EXTENSION-EXAMPLE": "example.com"
           }
         }
       },
       "onSuccessUpdateEmail": {
-        "#k1546": {
+        "Md45b47b4877521042cec0938": {
           "keywords/$mdnsent": true
         }
       }
@@ -222,7 +222,7 @@ This is done with the [@!RFC8621] "Email/set" "create" method.
     [[ "Email/set", {
       "accountId": "ue150411c",
       "create": {
-        "k1546": {
+        "k2657": {
           "mailboxIds": {
             "2ea1ca41b38e": true
           },
@@ -245,7 +245,7 @@ This is done with the [@!RFC8621] "Email/set" "create" method.
       }
     }, "0" ]]
 
-Note the specified `Disposition-Notification-To` header indicating where to send MDN back (usually the sender of the message).
+Note the specified `Disposition-Notification-To` header field indicating where to send MDN back (usually the sender of the message).
 
 ## Parsing a received MDN
 
@@ -327,4 +327,4 @@ Description: The message has the `$mdnsent` keyword already set. The client MUST
 
 The same considerations regarding MDN (see [@!RFC8098] and [@!RFC3503]) apply to this document.
 
-In order to enforce trust regarding the relation between the user sending an email message and the identity of this user, the server SHOULD validate in conformance to the provided Identity that the user is permitted to use the finalRecipient value and return a forbiddenFrom error if not.
+In order to reinforce trust regarding the relation between the user sending an email message and the identity of this user, the server SHOULD validate in conformance to the provided Identity that the user is permitted to use the finalRecipient value and return a forbiddenFrom error if not.
