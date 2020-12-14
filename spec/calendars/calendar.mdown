@@ -57,9 +57,9 @@ A **Calendar** object has the following properties:
 - **defaultAlertsWithoutTime**: `Id[Alert]|null` (default: null)
   A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for events where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.
 - **timeZone**: `String|null` (default: null)
-  The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated CalendarPrincipal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
+  The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
 - **shareWith**: `Id[CalendarRights]|null` (default: null)
-  A map of CalendarPrincipal id to rights for principals this calendar is shared with. The pricincipal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right.
+  A map of Principal id to rights for principals this calendar is shared with. The pricincipal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right.
 
 - **myRights**: `CalendarRights` (server-set)
   The set of access rights the user has in relation to this Calendar. If any event is in multiple calendars, the user has the following rights:
@@ -76,7 +76,7 @@ A **Calendar** object has the following properties:
 A **CalendarRights** object has the following properties:
 
 - **mayReadFreeBusy**: `Boolean`
-  The user may read the free-busy information for this calendar as part of a call to CalendarPrincipal/getAvailability (see Section XXX).
+  The user may read the free-busy information for this calendar as part of a call to Principal/getAvailability (see Section XXX).
 - **mayReadItems**: `Boolean`
   The user may fetch the events in this calendar.
 - **mayAddItems**: `Boolean`
@@ -126,7 +126,7 @@ An event has no owner if its participants property is null or omitted.
 
 This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
 
-If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in Calendar/get and Calendar/query; it must behave as though it did not exist. The data is just used as part of CalendarPrincipal/getAvailability.
+If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in Calendar/get and Calendar/query; it must behave as though it did not exist. The data is just used as part of Principal/getAvailability.
 
 ## Calendar/changes
 

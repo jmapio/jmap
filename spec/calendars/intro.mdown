@@ -6,9 +6,9 @@ This specification defines a data model for synchronizing calendar data between 
 
 ## Data Model Overview
 
-A CalendarPrincipal (see Section XXX) represents an individual, team or resource (e.g. a room or projector). The object contains information about the entity being represented, such as a name, description and time zone. A CalendarPrincipal has a 1:1 correspondence with an Account (see [@!RFC8620], Section 1.6.2) that supports the `urn:ietf:params:jmap:calendars` capability.
+A Principal (see Section XXX) represents an individual, team or resource (e.g. a room or projector). The object contains information about the entity being represented, such as a name, description and time zone. A Principal has a 1:1 correspondence with an Account (see [@!RFC8620], Section 1.6.2) that supports the `urn:ietf:params:jmap:calendars` capability.
 
-Each such Account contains zero or more Calendar objects, which is a named collection of CalendarEvents belonging to the CalendarPrincipal. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off. Servers may allow an event to belong to multiple Calendars within an account.
+Each such Account contains zero or more Calendar objects, which is a named collection of CalendarEvents belonging to the Principal. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off. Servers may allow an event to belong to multiple Calendars within an account.
 
 A CalendarEvent is a representation of an event or recurring series of events in JSEvent [@!I-D.ietf-calext-jscalendar] format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.
 
@@ -18,7 +18,7 @@ The ParticipantIdentity data type represents the identities of the current user 
 
 ## Accounts, Push, and the Session Object
 
-The JMAP Session object (see [@!RFC8620], Section 2) typically includes an object in the `accounts` property for every account that the user has access to. Calendaring systems may share data between a (potentially very) large number of CalendarPrincipals, most of which the user does not care about day-to-day but may occasionally need to query when scheduling events.
+The JMAP Session object (see [@!RFC8620], Section 2) typically includes an object in the `accounts` property for every account that the user has access to. Calendaring systems may share data between a (potentially very) large number of Principals, most of which the user does not care about day-to-day but may occasionally need to query when scheduling events.
 
 Users can normally subscribe to any calendar to which they have access (see Section XXX). This indicates the user wants this calendar to appear in their regular list of calendars. The separate "isVisible" property stores whether the user would currently like to view the events in a subscribed calendar.
 
@@ -26,7 +26,7 @@ The Session object MUST only include Accounts where the user is subscribed to at
 
 The server MAY reject the user's attempt to subscribe to some calendars, e.g. those representing resources.
 
-A user may query the set of CalendarPrincipals they have access to with "CalendarPrincipal/query" (see Section XXX). The CalendarPrincipal object may have an "accountId" property that can be used to then fetch calendars and events associated with that principal, subject to appropriate permissions.
+A user may query the set of Principals they have access to with "Principal/query" (see Section XXX). The Principal object may have an "accountId" property that can be used to then fetch calendars and events associated with that principal, subject to appropriate permissions.
 
 ### UIDs and CalendarEvent Ids
 
@@ -50,7 +50,7 @@ Where `LocalDate` is given as a type, it means a string in the same format as `D
 
 The same terminology is used in this document as in the core JMAP specification, see [@!RFC8620], Section 1.6.
 
-The terms CalendarPrincipal, ParticipantIdentity, Calendar, CalendarEvent, CalendarEventNotification, and CalendarShareNotification  (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.
+The terms Principal, ParticipantIdentity, Calendar, CalendarEvent, CalendarEventNotification, and CalendarShareNotification  (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.
 
 ## Addition to the Capabilities Object
 
@@ -62,11 +62,11 @@ This represents support for the Calendar, CalendarEvent, CalendarEventNotificati
 
 The value of this property in an account’s accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
 
-- **accountIdForCalendarPrincipal**: `String|null`
+- **accountIdForPrincipal**: `String|null`
   The id of an account with the `urn:ietf:params:jmap:calendarprincipals`
-  capability that contains the corresponding CalendarPrincipal object. This may
+  capability that contains the corresponding Principal object. This may
   be the same account id. This is null for single-user systems that do not
-  support the CalendarPrincipal data type.
+  support the Principal data type.
 - **shareesActAs**: `String`
   This MUST be one of:
 
@@ -88,7 +88,7 @@ The value of this property in an account’s accountCapabilities property is an 
 
 ### urn:ietf:params:jmap:calendarprincipals
 
-Represents support for the CalendarPrincipal and CalendarShareNotification data types and associated API methods. Single user systems do not need this and MAY choose not to support it.
+Represents support for the Principal and CalendarShareNotification data types and associated API methods. Single user systems do not need this and MAY choose not to support it.
 
 The value of this property in the JMAP Session capabilities property is an empty object.
 

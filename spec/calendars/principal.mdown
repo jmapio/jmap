@@ -1,10 +1,10 @@
 # Calendar Principals
 
-A CalendarPrincipal represents an individual, group, schedulable location (e.g. a room), bookable resource (e.g. a projector) or other entity in the calendar system. In a shared calendar environment such as a workplace, a user may have access to a large number of principals.
+A Principal represents an individual, group, schedulable location (e.g. a room), bookable resource (e.g. a projector) or other entity in the calendar system. In a shared calendar environment such as a workplace, a user may have access to a large number of principals.
 
-In most systems the user will have access to a single Account containing CalendarPrincipal objects, but they may have access to multiple if, for example, aggregating calendar data from different places.
+In most systems the user will have access to a single Account containing Principal objects, but they may have access to multiple if, for example, aggregating calendar data from different places.
 
-A **CalendarPrincipal** object has the following properties:
+A **Principal** object has the following properties:
 
 - **id**: `Id`
   The id of the principal.
@@ -24,30 +24,30 @@ A **CalendarPrincipal** object has the following properties:
 - **timeZone**: `String`
   The time zone for this principal. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones).
 - **mayGetAvailability**: `Boolean`
-  May the user call the "CalendarPrincipal/getAvailability" method with this CalendarPrincipal?
+  May the user call the "Principal/getAvailability" method with this Principal?
 - **accountId**: `Id|null`
   Id of Account with the `urn:ietf:params:jmap:calendars` capability that
-  contains the data for this principal, or null if none (e.g. the CalendarPrincipal is a group just used for permissions management), or the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property).
+  contains the data for this principal, or null if none (e.g. the Principal is a group just used for permissions management), or the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property).
 - **account**: `Account|null`
   The JMAP Account object corresponding to the accountId, null if none.
 - **sendTo**: `String[String]|null`
   If this principal may be added as a participant to an event, this is the map of methods for adding it, in the same format as Participant#sendTo in JSEvent (see [@!I-D.ietf-calext-jscalendar], Section 4.4.5).
 
-## CalendarPrincipal/get
+## Principal/get
 
 This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
 
-## CalendarPrincipal/changes
+## Principal/changes
 
 This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
 
-## CalendarPrincipal/set
+## Principal/set
 
-This is a standard "/set" method as described in [@!RFC8620], Section 5.3. However, the user may only update the "timeZone" property of the CalendarPrincipal with the same id as the "currentUserPrincipalId" in the Account capabilities. Any other change MUST be rejected with a `forbidden` SetError.
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3. However, the user may only update the "timeZone" property of the Principal with the same id as the "currentUserPrincipalId" in the Account capabilities. Any other change MUST be rejected with a `forbidden` SetError.
 
 Managing calendar principals is likely tied to a directory service or some other vendor-specific solution, and occurs out-of-band, or via an additional capability defined elsewhere.
 
-## CalendarPrincipal/query
+## Principal/query
 
 This is a standard "/query" method as described in [@!RFC8620], Section 5.5
 
@@ -56,7 +56,7 @@ This is a standard "/query" method as described in [@!RFC8620], Section 5.5
 A **FilterCondition** object has the following properties:
 
 - **accountIds**: `String[]`
-  A list of account ids. The CalendarPrincipal matches if the value for its
+  A list of account ids. The Principal matches if the value for its
   accountId property is in this list.
 - **email**: `String`
   Looks for the text in the email property.
@@ -69,20 +69,20 @@ A **FilterCondition** object has the following properties:
 - **timeZone**: `String`
   The timeZone must be exactly as given to match the condition.
 
-All conditions in the FilterCondition object must match for the CalendarPrincipal to match.
+All conditions in the FilterCondition object must match for the Principal to match.
 
-## CalendarPrincipal/queryChanges
+## Principal/queryChanges
 
 This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
 
-## CalendarPrincipal/getAvailability
+## Principal/getAvailability
 
 Calculates the availability of the principal for scheduling within a requested time period. It takes the following arguments:
 
 - **accountId**: `Id`
   The id of the account to use.
 - **id**: `Id`
-  The id of the CalendarPrincipal to calculate availability for.
+  The id of the Principal to calculate availability for.
 - **utcStart**: `UTCDate`
   The start time (inclusive) of the period for which to return availability.
 - **utcEnd**: `UTCDate`
@@ -143,7 +143,7 @@ The response has the following argument:
   The list of BusyPeriod objects calculated as described above.
 
 The following additional errors may be returned instead of the
-"CalendarPrincipal/getAvailability" response:
+"Principal/getAvailability" response:
 
 `notFound`: No principal with this id exists, or the user does not have
 permission to see that this principal exists.
