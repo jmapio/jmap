@@ -1,0 +1,83 @@
+# Share Notifications
+
+The ShareNotification data type records when the user's permissions to access a shared object changes. ShareNotification are only created by the server; users cannot create them explicitly. Notifications are stored in the same Account as the Principals.
+
+Clients SHOULD present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.
+
+The server SHOULD create a ShareNotification whenever the user's permissions change on an object. It SHOULD NOT create a notification for permission changes to a group principal, even if the user is in the group.
+
+## Auto-deletion of Notifications
+
+The server MAY limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.
+
+The server MAY coalesce notifications if appropriate, or remove notifications that it deems are no longer relevant or after a certain period of time. The server SHOULD automatically destroy a notification about an object if the user subscribes to that object.
+
+## Object Properties
+
+The **ShareNotification** object has the following properties:
+
+- **id**: `String`
+  The id of the ShareNotification.
+- **created**: `UTCDate`
+  The time this notification was created.
+- **changedBy**: `Person`
+  Who made the change.
+  - **name**: `String`
+    The name of the person who made the change.
+  - **email**: `String|null`
+    The email of the person who made the change, or null if no email is available.
+  - **principalId**: `String|null`
+    The id of the Principal corresponding to the person who made the change, or null if no associated principal.
+- **objectType**: `String`
+  The name of the data type for the object whose permissions have changed, e.g.
+  "Calendar" or "Mailbox".
+- **objectAccountId**: `String`
+  The id of the account where this object exists.
+- **objectId**: `String`
+  The id of the object that this notification is about.
+- **name**: `String`
+  The name of the object at the time the notification was made.
+- **oldRights**: `Object|null`
+  The "myRights" property of the object for the user before the change.
+- **newRights**: `Object|null`
+  The "myRights" property of the object for the user after the change.
+
+## ShareNotification/get
+
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
+
+## ShareNotification/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## ShareNotification/set
+
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3.
+
+Only destroy is supported; any attempt to create/update MUST be rejected with a
+`forbidden` SetError.
+
+## ShareNotification/query
+
+This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
+
+### Filtering
+
+A **FilterCondition** object has the following properties:
+
+- **after**: `UTCDate|null`
+  The creation date must be on or after this date to match the condition.
+- **before**: `UTCDate|null`
+  The creation date must be before this date to match the condition.
+- **objectType**: `String`
+  The objectType value must be identical to the given value to match the condition.
+- **objectAccountId**: `String`
+  The objectAccountId value must be identical to the given value to match the condition.
+
+### Sorting
+
+The "created" property MUST be supported for sorting.
+
+## ShareNotification/queryChanges
+
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.

@@ -1,0 +1,63 @@
+# Introduction
+
+JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronizing data, such as mail, calendars or contacts, between a client and a server. It is optimized for mobile and web environments, and aims to provide a consistent interface to different data types.
+
+This specification defines a data model to represent entities in a collaborative environment and a framework for sharing data between them that can be used to provide a consistent sharing model for different data types. It does not define *what* may be shared, or the granularity of permissions, as this will depend on the data in question.
+
+## Notational Conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
+
+Type signatures, examples, and property descriptions in this document follow the conventions established in Section 1.1 of [@!RFC8620].  Data types defined in the core specification are also used in this document.
+
+## Terminology
+
+The same terminology is used in this document as in the core JMAP specification, see [@!RFC8620], Section 1.6.
+
+The terms Principal, and ShareNotification  (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.
+
+## Data Model Overview
+
+A Principal (see Section XXX) represents an individual, team or resource (e.g., a room or projector). The object contains information about the entity being represented, such as a name, description and time zone. It may also hold domain-specific information. A Principal may be associated with zero or more Accounts (see [@!RFC8620], Section 1.6.2) containing data belonging to the principal. Managing the set of principals within a system is out of scope for this specification, as it is highly domain specific.
+
+Data types may allow users to share data with others by assigning permissions to principals. When a user's permissions are changed, a ShareNotification object is created for them so a client can inform the user of the changes.
+
+## Subscriptions
+
+Permissions determine whether a user *may* access data, but not whether they *want* to. Some shared data is of equal importance as the user's own, while other data is just there should the user wish to explicitly go find it. Clients will often want to differentiate the two; for example, a company may share mailing list archives for all departments with all employees, but a user may only generally be interested in the few they belong to. They would have *permission* to access many mailboxes, but can *subscribe* to just the ones they care about. The client would provide separate interfaces for reading mail in subscribed mailboxes and browsing all mailboxes they have permission to access in order to manage their subscriptions.
+
+The JMAP Session object (see [@!RFC8620], Section 2) typically includes an object in the `accounts` property for every account that the user has access to. Collaborative systems may share data between a very large number of Principals, most of which the user does not care about day-to-day. The Session object MUST only include Accounts where either the user is subscribed to at least one record (see [@!RFC8620], Section 1.6.3) in the account, or the account belongs to the user. StateChange events for changes to data SHOULD only be sent for data the user has subscribed to and MUST NOT be sent for any Account where the user is not subscribed to any records in the account, except where that account belongs to the user.
+
+The server MAY reject the user's attempt to subscribe to some resources even if they have permission to access them, e.g., a calendar representing a location.
+
+A user may query the set of Principals they have access to with "Principal/query" (see Section XXX). The Principal object may then provide Account objects if the user has permission to access data for that principal, even if they are not yet subscribed.
+
+## Addition to the Capabilities Object
+
+The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], Section 2. This document defines two additional capability URIs.
+
+### urn:ietf:params:jmap:principals
+
+Represents support for the Principal and ShareNotification data types and associated API methods.
+
+The value of this property in the JMAP Session capabilities property is an empty object.
+
+The value of this property in an account’s accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
+
+- **currentUserPrincipalId**: `Id|null`
+  The id of the principal in this account that corresponds to the user fetching this object, if any.
+
+### urn:ietf:params:jmap:principals:owner
+
+This URI is solely used as a key in an account’s accountCapabilities property; it does not appear in the JMAP Session capabilities. Support is implied by the `urn:ietf:params:jmap:principals` session capability.
+
+If present, the account (and data therein) is owned by a principal. Some accounts may not be owned by a principal (e.g., the account that contains the data for the principals themselves), in which case this property is omitted.
+
+The value of this property is an object with the following properties:
+
+- **accountIdForPrincipal**: `Id`
+  The id of an account with the `urn:ietf:params:jmap:principals`
+  capability that contains the corresponding Principal object.
+- **principalId**: `Id`
+  The id of the principal that owns this account.
+

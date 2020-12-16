@@ -59,7 +59,7 @@ A **Calendar** object has the following properties:
 - **timeZone**: `String|null` (default: null)
   The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
 - **shareWith**: `Id[CalendarRights]|null` (default: null)
-  A map of Principal id to rights for principals this calendar is shared with. The pricincipal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right.
+  A map of Principal id to rights for principals this calendar is shared with. The principal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the `urn:ietf:params:jmap:principals:owner` capability of the Account to which the calendar belongs.
 
 - **myRights**: `CalendarRights` (server-set)
   The set of access rights the user has in relation to this Calendar. If any event is in multiple calendars, the user has the following rights:

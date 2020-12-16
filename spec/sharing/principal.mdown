@@ -1,0 +1,73 @@
+# Principals
+
+A Principal represents an individual, group, location (e.g. a room), resource (e.g. a projector) or other entity in a collaborative environment. Sharing in JMAP is generally configured by assigning rights to certain data within an account to other principals, for example a user may assign permission to read their calendar to a principal representing another user, or their team.
+
+In a shared environment such as a workplace, a user may have access to a large number of principals.
+
+In most systems the user will have access to a single Account containing Principal objects, but they may have access to multiple if, for example, aggregating data from different places.
+
+A **Principal** object has the following properties:
+
+- **id**: `Id`
+  The id of the principal.
+- **type**: `String`
+  This MUST be one of the following values:
+  - `individual`: This represents a single person.
+  - `group`: This represents a group of people.
+  - `resource`: This represents some resource, e.g. a projector.
+  - `location`: This represents a location.
+  - `other`: This represents some other undefined principal.
+- **name**: `String`
+  The name of the principal, e.g. "Jane Doe", or "Room 4B".
+- **description**: `String|null`
+  A longer description of the principal, for example details about the facilities of a resource, or null if no description available.
+- **email**: `String|null`
+  An email address for the principal, or null if no email is available.
+- **timeZone**: `String|null`
+  The time zone for this principal, if known. If not null, the value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones).
+- **capabilities**: `String[Object]`
+  A map of JMAP capability URIs to domain specific information about the principal in relation to that capability, as defined in the document that registered the capability.
+
+## Principal/get
+
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
+
+## Principal/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## Principal/set
+
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3.
+
+Users SHOULD be allowed to update the "name", "description" and "timeZone" properties of the Principal with the same id as the "currentUserPrincipalId" in the Account capabilities.
+
+However, the server may, and probably will, reject any change with a `forbidden` SetError. Managing principals is likely tied to a directory service or some other vendor-specific solution, and may occur out-of-band, or via an additional capability defined elsewhere.
+
+## Principal/query
+
+This is a standard "/query" method as described in [@!RFC8620], Section 5.5
+
+### Filtering
+
+A **FilterCondition** object has the following properties:
+
+- **accountIds**: `String[]`
+  A list of account ids. The Principal matches if the value for its
+  accountId property is in this list.
+- **email**: `String`
+  Looks for the text in the email property.
+- **name**: `String`
+  Looks for the text in the name property.
+- **text** `String`
+  Looks for the text in the name, email, and description properties.
+- **type**: `String`
+  The type must be exactly as given to match the condition.
+- **timeZone**: `String`
+  The timeZone must be exactly as given to match the condition.
+
+All conditions in the FilterCondition object must match for the Principal to match.
+
+## Principal/queryChanges
+
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
