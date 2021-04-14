@@ -27,6 +27,14 @@ A **Task** object contains information about a task, or recurring series of task
 - **utcEnd**: `UTCDate`
   The server calculates the end time in UTC from the start/timeZone/duration properties of the task. This is not included by default and must be requested explicitly. Like utcStart, this is calculated at fetch time if requested and may change due to time zone data changes. Floating tasks will be interpreted as per the time zone given as a Task/get argument.
 
+- **sortOrder**: `UnsignedInt` (default: 0)
+  Defines the sort order of a task when presented in the client's UI, so it
+  is consistent between devices. The number MUST be an integer in the range
+  0 <= sortOrder < 2^31.
+
+    A task with a lower order should be displayed before a task with
+    a higher order in any list of tasks in the client's UI. Tasks with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
+
 ## Additional JSCalendar properties
 
 This document defines four new JSCalendar properties.
