@@ -14,9 +14,9 @@ A **Task** object contains information about a task, or recurring series of task
 - **utcStart**: `UTCDate`
   For simple clients that do not or cannot implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.
 
-    This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different results if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the task.
+    This property is calculated at fetch time by the server. Time zones are political, and they can and do change at any time. Fetching exactly the same property again may return different results if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the task.
 
-    If set, server will convert to the task's current time zone using its current time zone data and store the local time.
+    If set, the server will convert to the task's current time zone using its current time zone data and store the local time.
 
     This is not included by default and must be requested explicitly.
 
@@ -24,7 +24,7 @@ A **Task** object contains information about a task, or recurring series of task
 
     Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the utcStart property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are RECOMMENDED to request the server expand recurrences (see Section XXX).
 
-- **utcEnd**: `UTCDate`
+- **utcDue**: `UTCDate`
   The server calculates the end time in UTC from the start/timeZone/duration properties of the task. This is not included by default and must be requested explicitly. Like utcStart, this is calculated at fetch time if requested and may change due to time zone data changes. Floating tasks will be interpreted as per the time zone given as a Task/get argument.
 
 - **sortOrder**: `UnsignedInt` (default: 0)
