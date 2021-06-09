@@ -1516,7 +1516,7 @@ Should a client receive back a response with a different queryState string to a 
 This is true if the server supports calling <spanx style="verb">Foo/queryChanges</spanx> with these <spanx style="verb">filter</spanx>/<spanx style="verb">sort</spanx> parameters. Note, this does not guarantee that the <spanx style="verb">Foo/queryChanges</spanx> call will succeed, as it may only be possible for a limited time afterwards due to server internal implementation details.</t>
 
 <t>position: <spanx style="verb">UnsignedInt</spanx><vspace blankLines="1" />
-The zero-based index of the first result in the <spanx style="verb">ids</spanx> array within the complete list of query results.</t>
+The zero-based index of the first result in the <spanx style="verb">ids</spanx> array within the complete list of query results. If the <spanx style="verb">ids</spanx> array is empty, the value is undefined and MUST NOT be used by the client.</t>
 
 <t>ids: <spanx style="verb">Id[]</spanx><vspace blankLines="1" />
 The list of ids for each Foo in the query results, starting at the index given by the <spanx style="verb">position</spanx> argument of this response and continuing until it hits the end of the results or reaches the <spanx style="verb">limit</spanx> number of ids. If <spanx style="verb">position</spanx> is &gt;= <spanx style="verb">total</spanx>, this MUST be the empty list.</t>
