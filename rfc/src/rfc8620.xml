@@ -1562,7 +1562,7 @@ The current state of the query in the client. This is the string that was return
 The maximum number of changes to return in the response. See error descriptions below for more details.</t>
 
 <t>upToId: <spanx style="verb">Id|null</spanx><vspace blankLines="1" />
-The last (highest-index) id the client currently has cached from the query results. When there are a large number of results, in a common case, the client may have only downloaded and cached a small subset from the beginning of the results. If the sort and filter are both only on immutable properties, this allows the server to omit changes after this point in the results, which can significantly increase efficiency. If they are not immutable, this argument is ignored.</t>
+The last (highest-index) id the client currently has cached from the query results. When there are a large number of results, in a common case, the client may have only downloaded and cached a small subset from the beginning of the results. The server may be able to omit added or removed items that are after the client's last cached id, making the update more efficient.</t>
 
 <t>calculateTotal: <spanx style="verb">Boolean</spanx> (default: false)<vspace blankLines="1" />
 Does the client wish to know the total number of results now in the query? This may be slow and expensive for servers to calculate, particularly with complex filters, so clients should take care to only request the total when needed.</t>
@@ -1591,7 +1591,7 @@ The <spanx style="verb">id</spanx> for every Foo that was in the query results i
 If the server cannot calculate this exactly, the server MAY return the ids of extra Foos in addition that may have been in the old results but are not in the new results.
 <vspace blankLines="1" />
 
-If the sort and filter are both only on immutable properties and an <spanx style="verb">upToId</spanx> is supplied and exists in the results, any ids that were removed but have a higher index than <spanx style="verb">upToId</spanx> SHOULD be omitted.
+If an <spanx style="verb">upToId</spanx> is supplied and existed in the old results, any ids that were removed but had a higher index than <spanx style="verb">upToId</spanx> in those results SHOULD be omitted. If the server cannot calculate this, the <spanx style="verb">upToId</spanx> MUST just be ignored.
 <vspace blankLines="1" />
 
 If the <spanx style="verb">filter</spanx> or <spanx style="verb">sort</spanx> includes a mutable property, the server MUST include all Foos in the current results for which this property may have changed. The position of these may have moved in the results, so they must be reinserted by the client to ensure its query cache is correct.</t>
@@ -1600,7 +1600,7 @@ If the <spanx style="verb">filter</spanx> or <spanx style="verb">sort</spanx> in
 The id and index in the query results (in the new state) for every Foo that has been added to the results since the old state AND every Foo in the current results that was included in the <spanx style="verb">removed</spanx> array (due to a filter or sort based upon a mutable property).
 
 <vspace blankLines="1" />
-If the sort and filter are both only on immutable properties and an <spanx style="verb">upToId</spanx> is supplied and exists in the results, any ids that were added but have a higher index than <spanx style="verb">upToId</spanx> SHOULD be omitted.
+If an <spanx style="verb">upToId</spanx> is supplied and exists in the new results, any ids that were added but have a higher index than <spanx style="verb">upToId</spanx> SHOULD be omitted.
 
 <vspace blankLines="1" />
 The array MUST be sorted in order of index, with the lowest index first.
