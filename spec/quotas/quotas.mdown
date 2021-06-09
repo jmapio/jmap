@@ -1,6 +1,8 @@
 # Introduction
 
-JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
+JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mails,
+calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims
+to provide a consistent interface to different data types.
 
 This specification defines a data model for handling mail quotas over JMAP, allowing you to read and explain quota information.
 
@@ -14,7 +16,8 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all
 capitals, as shown here.
 
-Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1 of [@!RFC8620]. Data types defined in the core specification are also used in this document.
+Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1
+of [@!RFC8620]. Data types defined in the core specification are also used in this document.
 
 Servers MUST support all properties specified for the new data types defined in this document.
 
@@ -22,7 +25,7 @@ Servers MUST support all properties specified for the new data types defined in 
 
 ### Quota
 
-A quota is a numeric upper limit that the server is enforcing. Quotas are applied to JMAP Mailbox objects.
+A quota is a numeric upper limit that the server is enforcing. Quotas are applied to accounts.
 
 ## Addition to the capabilities object
 
@@ -32,20 +35,48 @@ This document defines one additional capability URI.
 
 ### urn::ietf::params::jmap::quota
 
-This represents support for the Quota data type and associated API methods. Servers supporting this specification MUST add this property to the capabilities object.
+This represents support for the Quota data type and associated API methods. The value of this property in the JMAP
+session capabilities property is an empty object.
+
+The value of this property in an account’s accountCapabilities property is an object that MUST contain the following
+information on server capabilities and permissions for that account:
+
+* **quotaIds:** `Id[]` (default: `[]`) A list of quota ids bound to that account, or `[]` if that account has no quota
+restrictions.
+
+## Push
+
+Servers MUST support the JMAP push mechanisms, as specified in [@!RFC8620] Section 7, to receive notifications when
+the state changes for the Quota type defined in this specification.
 
 # Quota definition
 
-The quota is an object that displays the limit set to a mailbox usage as well as the current usage in regard to that limit.
+The quota is an object that displays the limit set to an account usage as well as the current usage in regard to that limit.
 
 ## The Scope Data Type
 
 The **Scope** is a `String` from an enumeration defined list of values, handled by the server.
 
-It explains the entities this value applies to. Some custom specifications might provide some additional values. If the client does not specify custom scope specifications in the "using" parameter of the request, the server should respond the JSON value `null`, instead of answering a scope value that the client does not support. Standard values are:
+It explains the entities this value applies to. Some custom specifications might provide some additional values. If the
+client does not specify custom scope specifications in the "using" parameter of the request, the server should respond
+the JSON value `null`, instead of answering a scope value that the client does not support. Standard values are:
+
 * `account`: Applies for this account
 * `domain`: All users of this domain share this part of the quota
 * `global`: All users of this mail server share this part of the quota
+
+## The ResourceType Data Type
+
+The **ResourceType** is a `String` from an enumeration defined list of values, handled by the server.
+
+A resource type is like an unit of measure for the quota usage. Some custom specifications might provide some additional
+values. If the client does not specify custom resource type specifications in the "using" parameter of the request,
+the server should respond the JSON value `null`, instead of answering a resource type value that the client does not
+support. Standard values are:
+
+* `count`: The quota is measured in number of data type objects. For example, a quota can have a limit of 50 `Mail` objects.
+* `size`: The quota is measured in size. The default unit is in `bytes`, but a server can decide of the unit it wants
+to use (like in `octets`). For example, a quota can have a limit of 25000 `bytes`
 
 ## The Quota Object
 
@@ -53,30 +84,46 @@ The quota object MUST contain the following fields:
 
 * **id**: `Id` The unique identifier for this object. It should respect the JMAP ID datatype defined in section 1.2 of [@!RFC8620]
 
-* **type**: `String` The type of quota. It should either be "messageCount" or "messageStorageSize". There is two ways we can define a quota: either on a number of emails, or in the amount of bytes.
+* **resourceType**: `ResourceType` The resource type of the quota.
 
 * **used**: `UnsignedInt` The current usage of the mailbox. Computation of this value is handled by the server.
 
-* **usedScope**: `Scope` The `Scope` of the current mailbox usage.
+* **limit**: `UnsignedInt` The hard limit set by this quota object. No more outgoing and ingoing messages should be
+allowed if we reach this limit. It should higher than the `warnLimit` and the `softLimit`.
 
-* **limit**: `UnsignedInt` The limit set by this quota object to the current mailbox.
+* **scope**: `Scope` The `Scope` of this quota.
 
-* **limitScope**: `Scope` The `Scope` of the mailbox limit.
+* **name**: `String` The name of the quota object. Useful for managing quotas and use queries for searching.
+
+* **datatypes**: `String[]` A list of all the data types values that are applying to this quota. This allows to assign
+quotas to separated or shared data types. This MAY include data types the client does not recognise. Clients MUST
+ignore any unknown data type in the list.
 
 The quota object MAY contain the following field:
 
-* **description**: `String|null` Arbitrary free, human readable, description of this quota. Might be used to explain where the limit comes from and explain the entities this quota applies to.
+* **warnLimit**: `UnsignedInt|null` The warn limit set by this quota object. It can be used to send a warning to an
+user that he is going to reach the hard limit soon, but no action is taken. If set, it should be lower than the
+`softLimit` and the `limit`.
+
+* **softLimit**: `UnsignedInt|null` The soft limit set by this quota object. It can be used to block outgoing messages,
+but still allowing incoming messages. If set, it should be higher than the `warnLimit` but lower than the `limit`.
+
+* **description**: `String|null` Arbitrary free, human readable, description of this quota. Might be used to explain
+where the limit comes from and explain the entities this quota applies to.
 
 ## Example
 
     {
       "id": "2a06df0d-9865-4e74-a92f-74dcc814270e",
-      "type": "messageCount",
+      "resourceType": "count",
       "used": 1056,
-      "usedScope": "account",
+      "warnLimit": 1600,
+      "softLimit": 1800,
       "limit": 2000,
-      "limitScope": "domain",
-      "description": "Personal account usage, bounded by a domain limit"
+      "scope": "account",
+      "name": "bob@example.com",
+      "description": "Personal account usage",
+      "datatypes" : [ "Mail", "Calendar", "Contact" ]
     }
 
 ## Quota/get
@@ -98,16 +145,19 @@ With response :
       "accountId": "u33084183",
       "state": "78540",
       "list": [{
-      "id": "2a06df0d-9865-4e74-a92f-74dcc814270e",
-      "type": "messageCount",
-      "used": 1056,
-      "usedScope": "account",
-      "limit": 2000,
-      "limitScope": "domain",
-      "description": "Personal account usage, bounded by a domain limit"
+        "id": "2a06df0d-9865-4e74-a92f-74dcc814270e",
+        "resourceType": "count",
+        "used": 1056,
+        "warnLimit": 1600,
+        "softLimit": 1800,
+        "limit": 2000,
+        "scope": "account",
+        "name": "bob@example.com",
+        "description": "Personal account usage",
+        "datatypes" : [ "Mail", "Calendar", "Contact" ]
       }, {
         "id": "3b06df0e-3761-4s74-a92f-74dcc963501x",
-        "type": "messageStorageSize",
+        "resourceType": "size",
         ...
       }, ...],
       "notFound": []
@@ -116,7 +166,18 @@ With response :
 
 ## Quota/changes
 
-Standard “/changes” method as described in [@!RFC8620] section 5.2.
+Standard “/changes” method as described in [@!RFC8620] section 5.2 but with one extra argument to the response:
+
+* **updatedProperties**: `String[]|null` If only the “used” Quota properties has changed since the old state, this
+will be the list of properties that may have changed. If the server is unable to tell if only "used" has changed, it
+MUST just be null.
+
+Since "used" frequently changes but other properties are generally only changed rarely, the server can help the client
+optimise data transfer by keeping track of changes to Quota usage separate from other state changes. The
+updatedProperties array may be used directly via a back-reference in a subsequent Quota/get call in the same request,
+so only these properties are returned if nothing else has changed.
+
+Servers MAY decide to add other properties to the list that they judge changing frequently.
 
 ### Example
 
@@ -126,7 +187,20 @@ Request:
       "accountId": "u33084183",
       "sinceState": "10824",
       "maxChanges": 20
-    }, "0" ]
+    }, "0" ],
+    [ "Quota/get", {
+      "accountId": "u33084183",
+      "#ids": {
+        "resultOf": "0",
+        "name": "Quota/changes",
+        "path": "/updated"
+      },
+      "#properties": {
+        "resultOf": "0",
+        "name": "Quota/changes",
+        "path": "/updatedProperties"
+      }
+    }, "1" ]]
 
 Response:
 
@@ -139,13 +213,38 @@ Response:
       "updated": ["2a06df0d-9865-4e74-a92f-74dcc814270e"],
       "destroyed": []
     }, "0" ],
-    ... ]
+    [ "Quota/get", {
+      "accountId": "u33084183",
+      "state": "10826",
+      "list": [{
+        "id": "2a06df0d-9865-4e74-a92f-74dcc814270e",
+        "used": 1246
+      }],
+      "notFound": []
+    }, "1" ]]
 
-# Addition to the Mailbox object
+## Quota/query
 
-The following extra property is defined:
+This is a standard “/query” method as described in [@!RFC8620], Section 5.5.
 
-* **quotaIds:** `Id[]` (default: `[]`) A list of quota ids bound to that mailbox, or `[]` if that mailbox has no quota restrictions. This value is server-set.
+A **FilterCondition** object has the following properties, any of which may be omitted:
+
+* **name**: `String` The Quota _name_ property contains the given string.
+* **scopes**: `Scope[]` The Quota _scope_ property must be in this list to match the condition.
+* **resourceTypes**: `ResourceType[]` The Quota _resourceType_ property must be in this list to match the condition.
+* **datatypes**: `String[]` The Quota _datatypes_ property must contain the elements in this list to match the condition.
+
+A Quota object matches the FilterCondition if and only if all of the given conditions match. If zero properties are
+specified, it is automatically true for all objects.
+
+The following Quota properties MUST be supported for sorting:
+
+* **name**
+* **used**
+
+## Quota/queryChanges
+
+This is a standard “/queryChanges” method as described in [@!RFC8620], Section 5.6.
 
 # Security considerations
 
