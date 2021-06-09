@@ -1203,6 +1203,7 @@ for each newly created record, so it can substitute in the correct value if
 necessary in later method calls. In the case of records with references to the
 same type, the server MUST order the creates and updates within a single method call so that creates happen before their creation ids are referenced by another create/update/destroy in the same call.
 </t>
+<t>A record may be updated/destroyed in the same request as it is created. The update/destroy arguments may use creation ids as keys by prefixing the creation id with a <spanx style="verb">#</spanx>.</t>
 <t>Creation ids are not scoped by type but are a single map for all types. A client SHOULD NOT reuse a creation id anywhere in the same API request. If a creation id is reused, the server MUST map the creation id to the most recently created item with that id. To allow easy proxying of API requests, an initial set of creation id to real id values may be passed with a request (see "The Request Object", <xref target="the-request-object"/>) and the final state of the map passed out with the response (see "The Response Object", <xref target="the-response-object"/>).
 </t>
 <t>The response has the following arguments:
