@@ -1626,12 +1626,19 @@ fooIds = [ "id1", "id2", null, null, "id3", "id4", null, null, null ]
 removed = [ "id2", "id31", ... ];
 fooIds =&gt; [ "id1", null, null, "id3", "id4", null, null, null ]
 </artwork></figure>
+
+<t>and if any of the <spanx style="verb">removed</spanx> ids were not found, invalidates all cached ids after the first gap in the sparse array:</t>
+
+<figure align="center"><artwork align="center">
+fooIds =&gt; [ "id1", null, null, null, null, null, null, null ]
+</artwork></figure>
+
 <t>and <spanx style="strong">splices in</spanx> (one by one in order, starting with the lowest index) all of the ids in the added array:
 </t>
 
 <figure align="center"><artwork align="center">
 added = [{ id: "id5", index: 0, ... }];
-fooIds =&gt; [ "id5", "id1", null, null, "id3", "id4", null, null, null ]
+fooIds =&gt; [ "id5", "id1", null, null, null, null, null, null, null ]
 </artwork></figure>
 <t>and <spanx style="strong">truncates</spanx> or <spanx style="strong">extends</spanx> to the new total length, then the results will now be in the new state.
 </t>
