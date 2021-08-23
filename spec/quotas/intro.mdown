@@ -1,0 +1,78 @@
+# Introduction
+
+JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mails,
+calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims
+to provide a consistent interface to different data types.
+
+This specification defines a data model for handling quotas over JMAP, allowing you to read and explain quota information.
+
+This specification does not address quota administration, which should be handled by other means.
+
+## Notational conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in BCP
+14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all
+capitals, as shown here.
+
+Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1
+of [@!RFC8620]. Data types defined in the core specification are also used in this document.
+
+Servers MUST support all properties specified for the new data types defined in this document.
+
+## Terminology
+
+The same terminology is used in this document as in the core JMAP specification.
+
+The term Quota (with that specific capitalization) is used to refer to the data type defined in this document and instance of that data type.
+
+## Addition to the capabilities object
+
+The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], section 2.
+
+This document defines one additional capability URI.
+
+### urn::ietf::params::jmap::quota
+
+This represents support for the Quota data type and associated API methods. The value of this property in the JMAP
+session capabilities property is an empty object.
+
+The value of this property in an account’s accountCapabilities property is an object that MUST contain the following
+information on server capabilities and permissions for that account:
+
+* **quotaIds:** `Id[]` (default: `[]`) A list of quota ids bound to that account, or `[]` if that account has no quota
+restrictions.
+
+## Data types
+
+In addition to the standard JSON data types, a couple of additional data types are common to the definition of Quota objects and properties.
+
+### Scope
+
+The **Scope** is a `String` from an enumeration defined list of values, handled by the server.
+
+It explains the entities this value applies to. Some custom specifications might provide some additional values. If the
+client does not specify custom scope specifications in the "using" parameter of the request, the server should respond
+the JSON value `null`, instead of answering a scope value that the client does not support. Standard values are:
+
+* `account`: Applies for this account
+* `domain`: All accounts of this domain share this part of the quota
+* `global`: All accounts of this server share this part of the quota
+
+### ResourceType
+
+The **ResourceType** is a `String` from an enumeration defined list of values, handled by the server.
+
+A resource type is like an unit of measure for the quota usage. Some custom specifications might provide some additional
+values. If the client does not specify custom resource type specifications in the "using" parameter of the request,
+the server should respond the JSON value `null`, instead of answering a resource type value that the client does not
+support. Standard values are:
+
+* `count`: The quota is measured in number of data type objects. For example, a quota can have a limit of 50 `Mail` objects.
+* `size`: The quota is measured in size (in `bytes`). For example, a quota can have a limit of 25000 `bytes`.
+
+## Push
+
+Servers MUST support the JMAP push mechanisms, as specified in [@!RFC8620] Section 7, to receive notifications when
+the state changes for the Quota type defined in this specification.
