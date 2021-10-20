@@ -1,6 +1,6 @@
 # Task Notifications
 
-The TaskNotification data type records changes made by external entities to tasks in calendars the user is subscribed to. Notifications are stored in the same Account as the Task that was changed.
+The TaskNotification data type records changes made by external entities to tasks in task lists the user is subscribed to. Notifications are stored in the same Account as the Task that was changed.
 
 This is the same specification as the CalendarEventNotification object from [@!I-D.ietf-jmap-calendars], Section XXX. Only the object properties differ slightly and are therefore fully described in this document.
 
@@ -31,15 +31,15 @@ The **TaskNotification** object has the following properties:
 - **TaskId**: `String`
   The id of the Task that this notification is about.
 - **isDraft**: `Boolean` (created/updated only)
-  Is this event a draft?
-- **event**: `JSTask`
+  Is this task a draft?
+- **task**: `JSTask`
   The data before the change (if updated or destroyed), or the data
   after creation (if created).
-- **eventPatch**: `PatchObject` (updated only)
-  A patch encoding the change between the data in the event property, and the
+- **taskPatch**: `PatchObject` (updated only)
+  A patch encoding the change between the data in the task property, and the
   data after the update.
 
-To reduce data, if the change only affects a single instance of a recurring event, the server MAY set the event and eventPatch properties for the instance; the calendarEventId MUST still be for the master event.
+To reduce data, if the change only affects a single instance of a recurring task, the server MAY set the task and taskPatch properties for the instance; the taskId MUST still be for the master task.
 
 ## TaskNotification/get
 
