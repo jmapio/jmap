@@ -17,7 +17,7 @@ A **TaskList** object has the following properties:
 - **description**: `String|null` (default: null)
   An optional longer-form description of the task list, to provide context in shared environments where users need more than just the name.
 - **color**: `String|null` (default: null)
-  A color to be used when displaying events associated with the task list.
+  A color to be used when displaying tasks associated with the task list.
 
     If not null, the value MUST be a case-insensitive color name taken from the set of names defined in Section 4.3 of CSS Color Module Level 3 [COLORS](https://www.w3.org/TR/css-color-3/), or an RGB value in hexadecimal notation, as defined in Section 4.2.1 of CSS Color Module Level 3.
 
@@ -38,11 +38,11 @@ A **TaskList** object has the following properties:
     requests it or to offer it for the user to subscribe to.
 
 - **defaultAlertsWithTime**: `Id[Alert]|null` (default: null)
-  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
+  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for tasks where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
 - **defaultAlertsWithoutTime**: `Id[Alert]|null` (default: null)
-  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for events where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
+  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for tasks where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
 - **timeZone**: `String|null` (default: null)
-  The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this task list if set.
+  The time zone to use for tasks without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new tasks in this task list if set.
 - **shareWith**: `Id[TaskRights]|null` (default: null)
   A map of Principal id to rights for principals this task list is shared with. The principal to which this task list belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the task list  is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the `urn:ietf:params:jmap:principals:owner` capability of the Account to which the task list belongs.
 
