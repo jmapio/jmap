@@ -32,7 +32,7 @@ A **TaskList** object has the following properties:
     a higher order in any list of task lists in the client's UI. Task lists with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
 
 - **isSubscribed**: `Boolean`
-  Has the user indicated they wish to see this task list in their client? This SHOULD default to false for task lists in shared accounts the user has access to and true for any new task list created by the user themself.
+  Has the user indicated they wish to see this task list in their client? This SHOULD default to false for task lists in shared accounts the user has access to and true for any new task list created by the user themselves.
 
     If false, the task list should only be displayed when the user explicitly
     requests it or to offer it for the user to subscribe to.
@@ -83,9 +83,9 @@ A **TaskRights** object has the following properties:
     - participationComment
     - expectReply
 
-    If the task has its "mayInviteSelf" property set to true (see Section XXX), then the user may also add a new Participant to the task with a sendTo property that is the same as the sendTo property of one of the user's AssigneeIdentity objects in the account. The roles property of the participant MUST only contain "attendee".
+    If the task has its "mayInviteSelf" property set to true (see Section XXX), then the user may also add a new Participant to the task with a sendTo property that is the same as the sendTo property of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain "attendee".
 
-    If the task has its "mayInviteOthers" property set to true (see Section XXX) and there is an existing Participant in the task corresponding to one of the user's AssigneeIdentity objects in the account, then the user may also add new participants. The roles property of any new participant MUST only contain "attendee".
+    If the task has its "mayInviteOthers" property set to true (see Section XXX) and there is an existing Participant in the task corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The roles property of any new participant MUST only contain "attendee".
 
     The user may also do all of the above on a per-occurrence basis for recurring tasks (updating the recurrenceOverrides property of the task to do so).
 
@@ -94,12 +94,12 @@ A **TaskRights** object has the following properties:
 - **mayDelete**: `Boolean` (server-set)
   The user may delete the task list itself. This property MUST be false if the account to which this task list belongs has the *isReadOnly* property set to true.
 
-The user is an **owner** for a task if the Task object has an "assignee" property, and one of the Participant objects both:
+The user is an **owner** for a task if the Task object has a "participant" property, and one of the Participant objects both:
 
 1. Has the "chair" role.
-1. Corresponds to one of the user's AssigneeIdentity objects in the account.
+1. Corresponds to one of the user's ParticipantIdentity objects in the account.
   
-A task has no owner if its assignee property is null or omitted.
+A task has no owner if its participant property is null or omitted.
 
 ## TaskList/get
 
