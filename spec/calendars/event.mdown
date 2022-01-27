@@ -137,6 +137,8 @@ Clients MUST NOT send an update/destroy to both the base event and a specific in
 
 Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a `forbidden` SetError if not allowed.
 
+The "privacy" property of a JSEvent object allows the owner to override how sharees of the calendar see the event. If this is set to "private", a sharee may not delete or update the event (even if only modifying per-user properties); any attempt to modify such an event MUST be rejected with a `forbidden` SetError. If set to "secret", the server MUST behave as though the event does not exist for all users other than the owner.
+
 The "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar). The server MUST reject this with an `invalidProperties` SetError.
 
 If omitted on create, the server MUST set the following properties to an appropriate value:
