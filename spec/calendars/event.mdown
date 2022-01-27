@@ -2,13 +2,13 @@
 
 A **CalendarEvent** object contains information about an event, or recurring series of events, that takes place at a particular time. It is a JSEvent object, as defined in [@!I-D.ietf-calext-jscalendar], with the following additional properties:
 
-- **id**: `Id`
-  The id of the CalendarEvent. This property is immutable. The id uniquely identifies a JSEvent with a particular "uid" and "recurrenceId" within a particular account.
+- **id**: `Id` (immutable; server-set)
+  The id of the CalendarEvent. The id uniquely identifies a JSEvent with a particular "uid" and "recurrenceId" within a particular account.
 
 - **calendarIds**: `Id[Boolean]`
   The set of Calendar ids this event belongs to. An event MUST belong to one or more Calendars at all times (until it is destroyed). The set is represented as an object, with each key being a *Calendar id*. The value for each key in the object MUST be `true`.
 
-- **isDraft**: `Boolean`
+- **isDraft**: `Boolean` (default: false)
   If true, this event is to be considered a draft. The server will not send any scheduling messages to participants or send push notifications for alerts. This may only be set to true upon creation. Once set to false, the value cannot be updated to true. This property MUST NOT appear in "recurrenceOverrides".
 
 - **utcStart**: `UTCDate`
