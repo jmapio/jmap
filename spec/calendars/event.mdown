@@ -37,13 +37,17 @@ This document defines three new JSCalendar properties.
 
 Type: `Boolean` (default: false)
 
-If `true`, any user that has access to the event may add themselves to it as a participant with the "attendee" role. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.
+If `true`, any user may add themselves to the event as a participant with the "attendee" role. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.
+
+This indicates the owner will accept "party crasher" RSVPs via iTIP, subject to any other domain-specific restrictions, and users may add themselves to the event via JMAP as long as they have the mayRSVP permission for the calendar.
 
 ### mayInviteOthers
 
 Type: `Boolean` (default: false)
 
 If `true`, any current participant with the "attendee" role may add new participants with the "attendee" role to the event. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.
+
+The mayRSVP permission for the calendar is also required in conjunction with this event property for users to be allowed to make this change via JMAP.
 
 ### hideAttendees
 
