@@ -1,5 +1,5 @@
 # Your mmark binary
-MMARK := mmark
+MMARK := ~/Code/mmark/mmark
 
 rfc/build/%.xml: rfc/src/%.mdown spec/%/*
 	mkdir -p $(@D)
