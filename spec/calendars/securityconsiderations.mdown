@@ -1,11 +1,45 @@
 # Security Considerations
 
-All security considerations of JMAP [@!RFC8620] and JSCalendar [@!I-D.ietf-calext-jscalendar] apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.
-
-## Denial-of-service Expanding Recurrences
-
-Recurrence rules can be crafted to occur as frequently as every second. Servers MUST be careful to not allow resources to be exhausted when expanding. Equally, rules can be generated that never create any occurrences at all. Servers MUST be careful to limit the work spent iterating in search of the next occurrence.
+All security considerations of JMAP [@!RFC8620] and JSCalendar [@!RFC8984] apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.
 
 ## Privacy
 
-TODO.
+Calendars often contain the precise movements, activities, and contacts of people, and is therefore intensely private data. Privacy leaks can have real world consequences, and calendar servers and clients MUST be mindful of the need to keep all data secure.
+
+Servers MUST enforce the ACLs set on calendars to ensure only authorised data is shared. The additional restrictions specified by the "privacy" property of a JSEvent object (see [@!RFC8984] Section 4.4.3) MUST also be enforced.
+
+Users may have multiple Participant Identities that they use for areas of their life kept private from one another. Using one identity with an event MUST NOT leak the existence of any other identity. For example, sending an RSVP from identity worklife@example.com MUST NOT reveal anything about another identity present in the account such as privatelife@example.org.
+
+Severs SHOULD enforce that invitations sent to external systems are only transmitted via secure encrypted and signed connections to protect against eavesdropping and modification of data.
+
+## Spoofing
+
+When receiving events and updates from external systems, it can be hard to verify that the identity of the author is who they claim to be. When receiving events via email, DKIM [@!RFC6376] and S/MIME [@!RFC8551] are two mechanisms that may be used to verify certain properties about the email data, which can be correlated with the event information.
+
+## Denial-of-service
+
+There are many ways in which a calendar user can make a request liable to cause a calendar server to spend an inordinate amount of processing time. Care must be taken to limit resources allocated to any one user to ensure the system does not become unresponsive. The following subsections list particularly hazardous areas.
+
+### Expanding Recurrences
+
+Recurrence rules can be crafted to occur as frequently as every second. Servers MUST be careful to not allow resources to be exhausted when expanding, and limit the number of expansions they will create. Equally, rules can be generated that never create any occurrences at all. Servers MUST be careful to limit the work spent iterating in search of the next occurrence.
+
+### Firing alerts
+
+An alert firing for an event can cause a notification to be pused to the user's devices, or to send them an email. Servers MUST rate limit the number of alerts sent for any one user. The combination of recurring events with multiple alerts can in particular define unreasonably frequent alerts, leading to denial of service for either the server processing them or the user's devices receiving them.
+
+Similarly, clients generating alerts from the data on device must take the same precautions.
+
+The "email" alert type (see RFC8984, Section 4.5.2) causes an email to be sent when triggered. Clients MUST ignore this alert type; the email is sent only be the calendar server. There is no mechanism in JSCalendar to specify a particular email address: the server MUST only allow alerts to be sent to an address it has verified as belonging to the user to avoid this being used as a spamming vector.
+
+### Load spikes
+
+Since most events are likely to start on the hour mark, a large spike of activity is often seen at these times, with particularly large spikes at certain common times in the time zone of the server's user base. In particular, a large number of alerts (across different users and events) will be triggered at the same time. Servers may mitigate this somewhat by adding jitter to the triggering of the alerts; it is RECOMMENDED to fire them slightly early rather than slightly late if needed to spread load.
+
+## Spam
+
+Invitations received from an untrusted source may be spam. If this is added to the user's calendar automatically it can be very obtrusive, especially if it is a recurring event that now appears every day. Incoming invitations to events should be subject to spam scanning, and suspicious events should not be added to the calendar automatically.
+
+Servers should strip any alerts on invitations when adding to the user's calendar; the useDefaultAlerts property should be set instead to apply the user's preferences.
+
+Similarly, a malicious user may use a calendar system to send spam by inviting people to an event. Outbound iTIP should be subject to all the same controls used on outbound email systems, and rate limited as appropriate. A rate limit on the number of distinct recipients as well as overall messages is recommended.
