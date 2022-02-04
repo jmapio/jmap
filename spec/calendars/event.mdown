@@ -1,6 +1,6 @@
 # Calendar Events
 
-A **CalendarEvent** object contains information about an event, or recurring series of events, that takes place at a particular time. It is a JSEvent object, as defined in [@!I-D.ietf-calext-jscalendar], with the following additional properties:
+A **CalendarEvent** object contains information about an event, or recurring series of events, that takes place at a particular time. It is a JSEvent object, as defined in [@!RFC8984], with the following additional properties:
 
 - **id**: `Id` (immutable; server-set)
   The id of the CalendarEvent. The id uniquely identifies a JSEvent with a particular "uid" and "recurrenceId" within a particular account.
@@ -60,7 +60,7 @@ If `true`, only the owners of the event may see the full set of participants. Ot
 
 ## Attachments
 
-The Link object, as defined in [@!I-D.ietf-calext-jscalendar] Section 4.2.7, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per [@!RFC8620] Section 6.
+The Link object, as defined in [@!RFC8984] Section 4.2.7, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per [@!RFC8620] Section 6.
 
 The server MUST translate this to an embedded `data:` URL [@!RFC2397] when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments [?@RFC8607].
 
@@ -92,7 +92,7 @@ When editing a recurring event, you can either update the base event (affecting 
 
 ### Splitting an event
 
-If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar [@!I-D.ietf-calext-jscalendar] Section 4.1.3, a "next" and "first" relation MUST be set on the new objects respectively.
+If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar [@!RFC8984] Section 4.1.3, a "next" and "first" relation MUST be set on the new objects respectively.
 
 Splitting an event however is problematic in the case of a scheduled event, because the iTIP messages generated make it appear like two unrelated changes, which can be confusing.
 
@@ -123,7 +123,7 @@ A requested id may represent a single instance of a recurring event if the clien
 
 An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions etc.
 
-The "privacy" property of a JSEvent object allows the owner to override how sharees of the calendar see the event. If this is set to "private", when a sharee fetches the event the server MUST only return the basic time and metadata properties of the JSEvent object as specified in [@!I-D.ietf-calext-jscalendar], Section 4.4.3. If set to "secret", the server MUST behave as though the event does not exist for all users other than the owner.
+The "privacy" property of a JSEvent object allows the owner to override how sharees of the calendar see the event. If this is set to "private", when a sharee fetches the event the server MUST only return the basic time and metadata properties of the JSEvent object as specified in [@!RFC8984], Section 4.4.3. If set to "secret", the server MUST behave as though the event does not exist for all users other than the owner.
 
 This "hideAttendees" property of a JSEvent object allows the owner to reduce the visibility of sharees into the set of participants. If this is `true`, when a non-owner sharee fetches the event, the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.
 

@@ -24,7 +24,7 @@ The terms ParticipantIdentity, Calendar, CalendarEvent, CalendarEventNotificatio
 
 An Account (see [@!RFC8620], Section 1.6.2) with support for the calendar data model contains zero or more Calendar objects, which is a named collection of CalendarEvents. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off. Servers may allow an event to belong to multiple Calendars within an account.
 
-A CalendarEvent is a representation of an event or recurring series of events in JSEvent [@!I-D.ietf-calext-jscalendar] format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.
+A CalendarEvent is a representation of an event or recurring series of events in JSEvent [@!RFC8984] format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.
 
 CalendarEventNotification objects keep track of the history of changes made to a calendar by other users, allowing calendar clients to notify the user of changes to their schedule.
 
@@ -38,7 +38,7 @@ Users can normally subscribe to any calendar to which they have access. This ind
 
 ### UIDs and CalendarEvent Ids
 
-Each CalendarEvent has a `uid` property ([@!I-D.ietf-calext-jscalendar], Section 4.1.2), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.
+Each CalendarEvent has a `uid` property ([@!RFC8984], Section 4.1.2), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.
 
 An Account MUST NOT contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their `recurrenceId` property. (This situation occurs if the principal is added to one or more specific instances of a recurring event without being invited to the whole series.)
 
