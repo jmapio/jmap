@@ -1,5 +1,21 @@
 # Security Considerations
 
-All security considerations of JMAP [@!RFC8620] apply to this specification.
+All security considerations of JMAP [@!RFC8620] apply to this specification. Additional considerations are detailed below.
 
-TODO.
+## Spoofing
+
+Allowing users to edit their own Principal's name (and, to a lesser extent, description) could allow a user to change their name to that of another user in the system, potentially tricking others into sharing private data with them. Servers may choose to forbid this, and SHOULD keep logs of such changes to provide an audit trail.
+
+## Unnoticed sharing
+
+Sharing data with another user allows someone to turn a transitory account compromise (e.g. brief access to an unlocked, logged in terminal) into a persistant compromise (by setting up sharing with a user controlled by the attacker). This can be mitigated by requiring further authorisation for configuring sharing, or sending notifications to the sharer via another channel whenever a new sharee is added.
+
+## Unauthorised principals
+
+The set of principals within a shared environment SHOULD be strictly controlled. If adding a new principal is open to the public, risks include:
+* An increased risk of a user accidentally sharing data with an unintended
+  person.
+* An attacker may share unwanted or offensive information with the user.
+* An attacker may share items with spam content in the names in order to
+  generate ShareNotification objects, which are likely to be prominently
+  displayed to the sharee.
