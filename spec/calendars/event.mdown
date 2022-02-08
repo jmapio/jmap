@@ -159,11 +159,13 @@ If omitted on create, the server MUST set the following properties to an appropr
 The "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time.
 
 When updating an event, if all of:
+
 * a property has been changed other than "calendarIds", "isDraft" or a per-user
   property (see Section XXX); and
 * the server is the source of the event (see Section XXX); and
 * the "sequence" property is not explicitly set in the update, or the given
   value is less than or equal to the current "sequence" value on the server;
+
 then the server MUST increment the "sequence" value by one.
 
 The "created" property MUST NOT be updated after creation. The "method" property MUST NOT be set. Any attempt to do these is rejected with a standard `invalidProperties` SetError.
