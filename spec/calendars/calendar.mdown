@@ -144,14 +144,16 @@ The "timeZone", "includeInAvailability", "defaultAlertsWithoutTime" and "default
 
 If the calendar account's "shareesActAs" capability is "self" these properties are instead shared, and may only be set by users that have the mayAdmin right.
 
-The following properties may be set by anyone who is subscribed to the calendar and are all stored per-user:
+The following properties may be set by anyone who is subscribed to the calendar and are always stored per-user:
 
 - name
 - color
 - sortOrder
 - isVisible
 
-These properties are initially inherited from the owner's copy of the calendar, but if set by a sharee that user gets their own copy of the property; it does not change for any other principals. If the value of the property in the owner's calendar changes after this, it does not overwrite the sharee's value.
+The "name" and "color" properties are initially inherited from the owner's copy of the calendar, but if set by a sharee that user gets their own copy of the property; it does not change for any other principals. If the value of the property in the owner's calendar changes after this, it does not overwrite the sharee's value.
+
+The "sortOrder" and "isVisible" properties are initally the default value for each sharee; they are not inherited from the owner.
 
 A calendar may be destroyed that is referenced as the "defaultCalendarId" in the CalenderPreferences object for the same account. Doing so updates the defaultCalendarId property on the CalendarPreferences to `null`.
 
