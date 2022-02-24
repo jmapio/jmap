@@ -140,7 +140,9 @@ When modifying the shareWith property, the user cannot give a right to a princip
 
 Users can subscribe or unsubscribe to a calendar by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a `forbidden` SetError.
 
-The "timeZone", "includeInAvailability", "defaultAlertsWithoutTime" and "defaultAlertsWithTime" properties are stored per-user if the calendar account's "shareesActAs" capability is "self", and may be set by any user who is subscribed to the calendar. Otherwise, these properties are shared, and may only be set by users that have the mayAdmin right.
+The "timeZone", "includeInAvailability", "defaultAlertsWithoutTime" and "defaultAlertsWithTime" properties are stored per-user if the calendar account's "shareesActAs" capability is "self", and may be set by any user who is subscribed to the calendar. Each user gets the default value for these properties as the initial value; they do not inherit an initial value from the calendar owner.
+
+If the calendar account's "shareesActAs" capability is "self" these properties are instead shared, and may only be set by users that have the mayAdmin right.
 
 The following properties may be set by anyone who is subscribed to the calendar and are all stored per-user:
 
