@@ -119,7 +119,7 @@ A CalendarEvent object is a JSEvent object so may have arbitrary properties. If 
 
 If specific properties are requested from the JSEvent and the property is not present on the object in the server's store, the server SHOULD return the default value if known for that property.
 
-A requested id may represent a single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRule" and "recurrenceOverrides" properties MUST be returned as null if requested for such an event.
+A requested id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRule" and "recurrenceOverrides" properties MUST be returned as null if requested for such an event.
 
 An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions etc.
 
@@ -140,9 +140,9 @@ This is a standard "/set" method as described in [@!RFC8620], Section 5.3, with 
 - **sendSchedulingMessages**: `Boolean` (default: false)
   If true then any changes to scheduled events will be sent to all the participants (if the user is an owner of the event) or back to the owners (otherwise). If false, the changes only affect this account and no scheduling messages will be sent.
 
-For recurring events, an id may represent the base event or a specific instance. When the id for a specific instance is given, the server MUST process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.
+An id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". When the synthetic id for such an instance is given, the server MUST process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.
 
-Clients MUST NOT send an update/destroy to both the base event and a specific instance in a single "/set" request; the result of this is undefined.
+Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single "/set" request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different `recurrenceId` property) with the base event (same uid, no `recurrenceId`) in a single "/set" call. (So the /set will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.
 
 Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a `forbidden` SetError if not allowed.
 
