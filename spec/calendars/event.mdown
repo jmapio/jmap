@@ -76,7 +76,7 @@ In shared calendars where the account's "shareesActAs" capability is "self", the
 
 The user may also modify these properties on a per-occurrence basis for recurring events; again, these MUST be stored per-user.
 
-When writing only per-user properties, the "updated" property MUST also be stored just for that user. When fetching the "updated" property, the value to return is whichever is later of the per-user updated time or the updated time of the base event.
+When writing only per-user properties, the "updated" property MUST also be stored just for that user if set. When fetching the "updated" property, the value to return is whichever is later of the per-user updated time or the updated time of the base event.
 
 ## Recurring events
 
@@ -156,7 +156,7 @@ If omitted on create, the server MUST set the following properties to an appropr
 - uid
 - created
 
-The "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time.
+If (and only if) the server is the source of the event (see Section XXX), the "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time. If the server is not the source of the event it MUST NOT automatically set an "updated" time, as this can break correct processing of iTIP messages.
 
 When updating an event, if all of:
 
