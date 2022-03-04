@@ -1,5 +1,4 @@
 # Tasks
-
 A **Task** object contains information about a task, or recurring series of tasks. It is a JSTask object, as defined in [@!I-D.ietf-calext-jscalendar], with the following additional properties:
 
 - **id**: `Id`
@@ -37,7 +36,7 @@ A **Task** object contains information about a task, or recurring series of task
 
 ## Additional JSCalendar properties
 
-This document defines four new JSCalendar properties.
+This document defines four new JSCalendar properties and extends one properties with new values.
 
 ### mayInviteSelf
 
@@ -69,6 +68,26 @@ A map of task ids to relations. Relation SHOULD be one of:
 - `causedBy`: Task with id was the cause for this task.
 - `relatesTo`: Task with id is related.
 - `childOf`: Task with id is parent.
+
+### progress
+
+The progress property is extended by the following values:
+
+`deferred` - Indicates the task has been deferred or is waiting on someone
+
+`resolved` - Indicates the task has been resolved
+
+`needs-feedback` - Indicates the task is waiting on feedback
+
+`confirmed` - Indicates the task has been confirmed
+
+Mapping the status correctly to the present values of the Task can be challenging. In the most simple case tasks can have two states - done or not done. On the other hand, tasks can have various domain-specific statuses. Here are some recommendations for mapping more common values that SHOULD be used:
+
+`needs-action` - `not-done` (most simple case), `not-started`, `new`, …
+
+`in-process` - `in-progress`, `active`, `assigned`, …
+
+`completed` - `done` (most simple case), `closed`, `verified`, …
 
 ## Participants
 The Participant object, as defined in [@!I-D.ietf-calext-jscalendar] Section 4.4.6 is used to represent participants. This spec extends the keys for the roles property with the following value:
