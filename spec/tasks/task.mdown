@@ -34,6 +34,9 @@ A **Task** object contains information about a task, or recurring series of task
     A task with a lower order should be displayed before a task with
     a higher order in any list of tasks in the client's UI. Tasks with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
 
+- **workflowStatus**: `String|null` (default: null)
+  Specifies the status of the task. The allowed values are defined within `workflowStatuses`. If set, `progress` MUST null.
+
 ## Extensions to JSCalendar data types
 
 This document extends one data type with new values.
@@ -49,7 +52,7 @@ The keys for `relation` of the `Relation` object are extended by the following v
 
 ## Additional JSCalendar properties
 
-This document defines five new JSCalendar properties and extends one properties with new values.
+This document defines five new JSCalendar properties.
 
 ### mayInviteSelf
 
@@ -68,26 +71,6 @@ If `true`, any current participant with the "attendee" role may add new particip
 Type: `Boolean` (default: false)
 
 If `true`, only the owners of the task may see the full set of participants. Other sharees of the task may only see the owners and themselves. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the master object.
-
-### progress
-
-The progress property is extended by the following values:
-
-`deferred` - Indicates the task has been deferred or is waiting on someone
-
-`resolved` - Indicates the task has been resolved
-
-`needs-feedback` - Indicates the task is waiting on feedback
-
-`confirmed` - Indicates the task has been confirmed
-
-Mapping the status correctly to the present values of the Task can be challenging. In the most simple case tasks can have two states - done or not done. On the other hand, tasks can have various domain-specific statuses. Here are some recommendations for mapping more common values that SHOULD be used:
-
-`needs-action` - `not-done` (most simple case), `not-started`, `new`, …
-
-`in-process` - `in-progress`, `active`, `assigned`, …
-
-`completed` - `done` (most simple case), `closed`, `verified`, …
 
 ### estimatedWork
 
