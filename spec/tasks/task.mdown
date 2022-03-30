@@ -37,9 +37,22 @@ A **Task** object contains information about a task, or recurring series of task
 - **source**: `String|null` (default: null)
   The source of the task like "Web app", "Mobile client" or "Email".
 
+## Extensions to JSCalendar data types
+
+This document extends one data type with new values.
+
+### Relation
+
+The keys for `relation` of the `Relation` object are extended by the following values:
+
+- `depends-on`: This task depends on the referenced task in some manner. For example, a task may be blocked waiting on the other, referenced, task.
+- `clone`: The referenced task was cloned from this task.
+- `duplicate`: The referenced task is a duplicate of this task.
+- `cause`: The referenced task was the cause for this task.
+
 ## Additional JSCalendar properties
 
-This document defines four new JSCalendar properties and extends one properties with new values.
+This document defines five new JSCalendar properties and extends one properties with new values.
 
 ### mayInviteSelf
 
@@ -58,19 +71,6 @@ If `true`, any current participant with the "attendee" role may add new particip
 Type: `Boolean` (default: false)
 
 If `true`, only the owners of the task may see the full set of participants. Other sharees of the task may only see the owners and themselves. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the master object.
-
-### relatedTo 
-
-Type: `Id[String]|null` (default: null)
-
-A map of task ids to relations. Relation SHOULD be one of:
-
-- `blockedBy`: Blocked by task with id.
-- `clonedBy`: Task with id was cloned from this issue.
-- `duplicatedBy`: Task with id is a duplicate of this issue.
-- `causedBy`: Task with id was the cause for this task.
-- `relatesTo`: Task with id is related.
-- `childOf`: Task with id is parent.
 
 ### progress
 
