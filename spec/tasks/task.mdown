@@ -1,5 +1,10 @@
 # Tasks
-A **Task** object contains information about a task, or recurring series of tasks. It is a JSTask object, as defined in [@!I-D.ietf-calext-jscalendar], with the following additional properties:
+
+A **Task** object contains information about a task. It is a JSTask object, as defined in [@!I-D.ietf-calext-jscalendar]. However, as use-cases of task systems vary, this Section defines relevant parts of the JSTask object to implement the core task capability as well as several extensions to it. Only the core capability MUST be implemented by any task system. Implementers can choose the extensions that fit their own use case. For example, the recurrence extension allows having a Task object represent a series of recurring Tasks.
+
+The core JSTask objects are Task, Link, Location, Relation and VirtualLocation. The core properties are JSTask's Metadata Properties (Section 4.1), What and Where Properties (Section 4.2), Task Properties (Section 5.2) as well as priority (Section 4.4.1), privacy (Section 4.4.3), replyTo (Section 4.4.4) and timeZone (Section 4.7.1).
+
+On top of the JSTask properties, a Task object has the following additional core properties:
 
 - **id**: `Id`
   The id of the Task. This property is immutable. The id uniquely identifies a JSTask with a particular "uid" and "recurrenceId" within a particular account.
@@ -39,7 +44,7 @@ A **Task** object contains information about a task, or recurring series of task
 
 ## Extensions to JSCalendar data types
 
-This document extends one data type with new values.
+This document extends one JSCalendar data type with new values.
 
 ### Relation
 
@@ -52,7 +57,7 @@ The keys for `relation` of the `Relation` object are extended by the following v
 
 ## Additional JSCalendar properties
 
-This document defines five new JSCalendar properties.
+This document defines five new core JSCalendar properties for the JSTask object.
 
 ### mayInviteSelf
 
@@ -84,14 +89,42 @@ Type: `String|null` (default: null)
 
 This specifies the impact or severity of the task, but does not say anything about prioritization. Usually, the priority of a task is based upon its impact and urgency. Some examples are: minor, trivial, major or block.
 
-## Participants
+## Properties similar in JMAP for Calendar
+
+Attachments and per-user properties are described in [@!I-D.ietf-jmap-calendars], Section XXX.
+
+## Recurrences extension
+
+For the recurrence extension the JSCalendar objects NDay and RecurrenceRule as well as the Recurrence Properties (Section 4.3) need to be supported.
+
+### Properties similar in JMAP for Calendar
+
+Recurrences and updates to recurrences are described in [@!I-D.ietf-jmap-calendars], Section XXX
+
+## Assignees extension
+
+For the assignees extension the JSCalendar object Participant as well as all Sharing and Scheduling Properties (Section 4.4) need to be supported.
+
+### Extensions to JSCalendar data types
+
+The assignees extension extends one JSCalendar data type with new values.
+
+#### Participants
 The Participant object, as defined in [@!I-D.ietf-calext-jscalendar] Section 4.4.6 is used to represent participants. This spec extends the keys for the roles property with the following value:
 
 - `assignee`: the participant is expected to work on the task
 
-## Properties similar in JMAP for Calendar
+## Alerts extension
 
-Attachments, per-user properties, recurrences and updates to recurrences are described in [@!I-D.ietf-jmap-calendars], Section XXX.
+For the alerts extension the JSCalendar objects Alert, AbsoluteTrigger and OffsetTrigger as well as all Alerts Properties (Section 4.4) need to be supported.
+
+## Multilingual extension
+
+For the multilingual extension the JSCalendar Multilingual Properties (Section 4.6) need to be supported.
+
+## Custom Time Zones extension
+
+For the custom time zones extension the JSCalendar objects TimeZone and TimeZoneRule as well as all Time Zone Properties (Section 4.7) need to be supported.
 
 ## Task/get
 

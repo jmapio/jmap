@@ -2,7 +2,7 @@
 
 A TaskList is a named collection of tasks. All tasks are associated with exactly one TaskList.
 
-A **TaskList** object has the following properties:
+A **TaskList** object has the following core properties:
 
 - **id**: `Id` (immutable; server-set)
   The id of the task list.
@@ -41,10 +41,6 @@ A **TaskList** object has the following properties:
     If false, the task list should only be displayed when the user explicitly
     requests it or to offer it for the user to subscribe to.
 
-- **defaultAlertsWithTime**: `Id[Alert]|null` (default: null)
-  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for tasks where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
-- **defaultAlertsWithoutTime**: `Id[Alert]|null` (default: null)
-  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for tasks where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
 - **timeZone**: `String|null` (default: null)
   The time zone to use for tasks without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new tasks in this task list if set.
 - **workflowStatuses**: `String[]` (default: [completed, failed, in-process, needs-action, cancelled, pending])
@@ -70,7 +66,6 @@ A **TaskList** object has the following properties:
     task list.
   - The user may make other changes to the task if they have the right to do
     so in *all* task list to which the task belongs.
-
 
 A **TaskRights** object has the following properties:
 
@@ -114,6 +109,15 @@ The user is an **owner** for a task if the Task object has a "participant" prope
 1. Corresponds to one of the user's ParticipantIdentity objects in the account.
   
 A task has no owner if its participant property is null or omitted.
+
+## Alerts extension
+
+A TaskList has the following alerts properties:
+
+- **defaultAlertsWithTime**: `Id[Alert]|null` (default: null)
+  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for tasks where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
+- **defaultAlertsWithoutTime**: `Id[Alert]|null` (default: null)
+  A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for tasks where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
 
 ## TaskList/get
 

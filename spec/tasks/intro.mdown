@@ -4,7 +4,7 @@ JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for 
 
 JMAP for Calendars ([@!I-D.ietf-jmap-calendars]) defines a data model for synchronizing calendar data between a client and a server using JMAP. The data model is designed to allow a server to provide consistent access to the same data via CalDAV [@?RFC4791] as well as JMAP.
 
-While CalDAV defines access to tasks, JMAP for Calendars does not. This specification fills this gap and defines a data model for synchronizing task data between a client and a server using JMAP. It is built upon JMAP for Calendars and reuses most of its definitions. For better readability this document only outlines differences between this specification and JMAP for Calendars. If not stated otherwise, the same specifics that apply to Calendar, CalendarEvent and CalendarEventNotification objects as defined in the aforemetioned specification also apply to similar data types introduced in this specification.
+While CalDAV defines access to tasks, JMAP for Calendars does not. This specification fills this gap and defines a data model for synchronizing task data between a client and a server using JMAP. It is built upon JMAP for Calendars and reuses most of its definitions. For better readability, this document only outlines differences between this specification and JMAP for Calendars. If not stated otherwise, the same specifics that apply to Calendar, CalendarEvent and CalendarEventNotification objects as defined in the aforementioned specification also apply to similar data types introduced in this specification.
 
 ## Notational Conventions
 
@@ -20,21 +20,23 @@ The terms ParticipantIdentity, TaskList, Task and TaskNotification are used to r
 
 ## Data Model Overview
 
-Similar to JMAP for Calendar, an Account (see [@!RFC8620], Section 1.6.2) contains zero or more TaskList objects, which is a named collection of Tasks belonging to a Principal (see [@!I-D.ietf-jmap-sharing] Section XXX). Task lists can also provide defaults, such as alerts and a color to apply to tasks in the calendar. Clients commonly let users toggle visibility of tasks belonging to a particular task list on/off.
+Similar to JMAP for Calendar, an Account (see [@!RFC8620], Section 1.6.2) contains zero or more TaskList objects, which is a named collection of Tasks belonging to a Principal (see [@!I-D.ietf-jmap-sharing] Section XXX). Task lists can also provide defaults, such as alerts and a color, to apply to tasks in the calendar. Clients commonly let users toggle visibility of tasks belonging to a particular task list on/off.
 
 A Task is a representation of a single task or recurring series of Tasks in JSTask [@!I-D.ietf-calext-jscalendar] format. Recurrence rules and alerts as defined in JMAP for Calendars (see [@!I-D.ietf-jmap-calendars] Section XXX) apply.
 
 Just like the CalendarEventNotification objects (see [@!I-D.ietf-jmap-calendars] Section XXX), TaskNotification objects keep track of the history of changes made to a task by other users. Similarly, the ShareNotification type (see [@!I-D.ietf-jmap-sharing] Section XXX) notifies the user when their access to another user's task list is granted or revoked.
 
+Use cases for task systems vary. Only a few systems will require implementation of all available features defined within this specification. For this reason, this document describes several extensions to the core task properties and objects through which support for a certain feature MUST be advertised via capabilities. In addition to the core features advertised via `urn:ietf:params:jmap:tasks` support for recurrences, assignees, alerts, localizations as well as custom time zones can be advertised.
+
 ## Addition to the Capabilities Object
 
-The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], Section 2. This document defines one additional capability URI.
+The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], Section 2. This document defines six additional capability URIs.
 
 ### urn:ietf:params:jmap:tasks
 
-This represents support for the TaskList, Task and TaskNotification data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.
+This represents support for the core properties and objects of the TaskList, Task and TaskNotification data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.
 
-The value of this property in an account’s accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
+The value of this property in an account's accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
 
 - **shareesActAs**: `String`
   This MUST be one of:
@@ -46,9 +48,35 @@ The value of this property in an account’s accountCapabilities property is an 
   The earliest date-time the server is willing to accept for any date stored in a Task.
 - **maxDateTime**: `LocalDate`
   The latest date-time the server is willing to accept for any date stored in a Task.
-- **maxExpandedQueryDuration**: `Duration`
-  The maximum duration the user may query over when asking the server to expand recurrences.
-- **maxParticipantsPerTask**: `Number|null`
-  The maximum number of participants a single task may have, or null for no limit.
 - **mayCreateTaskList**: `Boolean`
   If true, the user may create a task list in this account.
+
+### urn:ietf:params:jmap:tasks:recurrences
+
+This represents support for the recurrence properties and objects of the TaskList, Task and TaskNotification data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.
+
+The value of this property in an account's accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
+
+- **maxExpandedQueryDuration**: `Duration`
+  The maximum duration the user may query over when asking the server to expand recurrences.
+
+### urn:ietf:params:jmap:tasks:assignees
+
+This represents support for the assignee properties and objects of the TaskList, Task and TaskNotification data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.
+
+The value of this property in an account's accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
+
+- **maxParticipantsPerTask**: `Number|null`
+  The maximum number of participants a single task may have, or null for no limit.
+
+### urn:ietf:params:jmap:tasks:alerts
+
+This represents support for the alerts properties and objects of the TaskList, Task and TaskNotification data types and associated API methods. The value of this property in the JMAP Session capabilities property and the account's accountCapabilities property is an empty object.
+
+### urn:ietf:params:jmap:tasks:multilingual
+
+This represents support for the multilingual properties and objects of the TaskList, Task and TaskNotification data types and associated API methods. The value of this property in the JMAP Session capabilities property and the account's accountCapabilities property is an empty object.
+
+### urn:ietf:params:jmap:tasks:customtimezones
+
+This represents support for the custom time zone properties and objects of the TaskList, Task and TaskNotification data types and associated API methods. The value of this property in the JMAP Session capabilities property and the account's accountCapabilities property is an empty object.
