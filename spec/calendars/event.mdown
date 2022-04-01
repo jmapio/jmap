@@ -14,6 +14,15 @@ A **CalendarEvent** object contains information about an event, or recurring ser
 - **isDraft**: `Boolean` (default: false)
   If true, this event is to be considered a draft. The server will not send any scheduling messages to participants or send push notifications for alerts. This may only be set to true upon creation. Once set to false, the value cannot be updated to true. This property MUST NOT appear in "recurrenceOverrides".
 
+- **isOrigin**: `Boolean` (server-set)
+  Is this the authoritative source for this event (i.e., does it control
+  scheduling for this event; the event has not been added as a result of an
+  invitation from another calendar system)? This is `true` if, and only if:
+
+    * the event's "replyTo" property is `null`; or
+    * the server will receive messages sent to at least one of the methods
+      specified in the "replyTo" property of the event.
+
 - **utcStart**: `UTCDate`
   For simple clients that do not or cannot implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.
 
@@ -165,13 +174,13 @@ If omitted on create, the server MUST set the following properties to an appropr
 - uid
 - created
 
-If (and only if) the server is the source of the event (see Section XXX), the "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time. If the server is not the source of the event it MUST NOT automatically set an "updated" time, as this can break correct processing of iTIP messages.
+If (and only if) the server is the origin of the event (i.e., the event's "isOrigin" property is true), the "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time. If the server is not the origin of the event it MUST NOT automatically set an "updated" time, as this can break correct processing of iTIP messages.
 
 When updating an event, if all of:
 
 * a property has been changed other than "calendarIds", "isDraft", "updated" or
   a per-user property (see Section XXX); and
-* the server is the source of the event (see Section XXX); and
+* the server is the origin of the event (the "isOrigin" property is true); and
 * the "sequence" property is not explicitly set in the update, or the given
   value is less than or equal to the current "sequence" value on the server;
 
@@ -312,7 +321,7 @@ This would mean remove the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at pa
 
 If "sendSchedulingMessages" is true, the server MUST send appropriate iTIP [@!RFC5546] scheduling messages after successfuly creating, updating or destroying a calendar event.
 
-When determining which scheduling messages to send, the server must first establish whether it is the *source* of the event. The server is the source if it will receive messages sent to any of the methods specified in the "replyTo" property of the event.
+When determining which scheduling messages to send, the server must first establish whether it is the *origin* of the event, as described in the "isOrigin" property.
 
 Messages are only sent to participants with a "scheduleAgent" property set to "server" or omitted. If the effective "scheduleAgent" property is changed:
 
@@ -322,15 +331,15 @@ Messages are only sent to participants with a "scheduleAgent" property set to "s
   the event had just been destroyed.
 - any other change: do not send any messages to this participant.
 
-The server may send the scheduling message via any of the methods defined on the sendTo property of a participant (if the server is the source) or the replyTo property of the event (otherwise) that it supports. If no supported methods are available, the server MUST reject the change with a `noSupportedScheduleMethods` SetError.
+The server may send the scheduling message via any of the methods defined on the sendTo property of a participant (if the server is the origin) or the replyTo property of the event (otherwise) that it supports. If no supported methods are available, the server MUST reject the change with a `noSupportedScheduleMethods` SetError.
 
-If the server is the source of the event it MUST NOT send messages to any participant corresponding to a ParticipantIdentitity in that account (see Section XXX).
+If the server is the origin of the event it MUST NOT send messages to any participant corresponding to a ParticipantIdentitity in that account (see Section XXX).
 
 If sending via iMIP [@?RFC6047], the server MAY choose to only send updates it deems "essential" to avoid flooding the recipient's email with changes they do not care about. For example, changes to the participationStatus of another participant, or changes to events solely in the past may be omitted.
 
 #### REQUEST
 
-When the server is the source for the event, a REQUEST message ([@!RFC5546], Section 3.2.2) is sent to all current participants if either:
+When the server is the origin for the event, a REQUEST message ([@!RFC5546], Section 3.2.2) is sent to all current participants if either:
 
 - The event is being created; or
 - Any non per-user property (see Section XXX) is updated on the event
@@ -344,7 +353,7 @@ If the event's "hideAttendees" property is set to `true`, the recipient MUST be 
 
 #### CANCEL
 
-When the server is the source for the event, a CANCEL message ([@!RFC5546], Section 3.2.5) is sent if any of:
+When the server is the origin for the event, a CANCEL message ([@!RFC5546], Section 3.2.5) is sent if any of:
 
 - A participant is removed from either the base event or a single instance
   (the message is only sent to this participant; remaining participants will get a REQUEST, as described above).
@@ -358,7 +367,7 @@ In each of the latter 3 cases, the message is sent to all participants.
 
 #### REPLY
 
-When the server is *not* the source for the event, a REPLY message ([@!RFC5546], Section 3.2.3) is sent for every participant corresponding to one of the user's ParticipantIdentitities in the account if any of the following changes are made:
+When the server is *not* the origin for the event, a REPLY message ([@!RFC5546], Section 3.2.3) is sent for every participant corresponding to one of the user's ParticipantIdentitities in the account if any of the following changes are made:
 
 - The "participationStatus" property of the participant is changed, either for
   the base event or a specific instance, to any value other than "needs-action".
