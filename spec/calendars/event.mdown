@@ -176,6 +176,9 @@ If omitted on create, the server MUST set the following properties to an appropr
 
 If (and only if) the server is the origin of the event (i.e., the event's "isOrigin" property is true), the "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time. If the server is not the origin of the event it MUST NOT automatically set an "updated" time, as this can break correct processing of iTIP messages.
 
+Clients SHOULD NOT allow users to manually edit anything other than per-user
+properties when the "isOrigin" property is false, even if the calendar "myRights" allows them to do so. All other properties may be overwritten when a future update arrives to this event from the origin (i.e., via another iTIP REQUEST). Such updates may be directly applied by the server, or applied on user request by a client if it has access to the data through some other means (e.g., the client also has access to the user's email and can parse an iMIP message).
+
 When updating an event, if all of:
 
 * a property has been changed other than "calendarIds", "isDraft", "updated" or
