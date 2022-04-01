@@ -123,7 +123,16 @@ A requested id may represent a server-expanded single instance of a recurring ev
 
 An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions etc.
 
-The "privacy" property of a JSEvent object allows the owner to override how sharees of the calendar see the event. If this is set to "private", when a sharee fetches the event the server MUST only return the basic time and metadata properties of the JSEvent object as specified in [@!RFC8984], Section 4.4.3. If set to "secret", the server MUST behave as though the event does not exist for all users other than the owner.
+The "privacy" property of a JSEvent object allows the owner to override how sharees of the calendar see the event. If set to "private", then when a sharee fetches the event the server MUST only return properties that are:
+
+* the basic time and metadata properties of the JSEvent object as specified in
+  [@!RFC8984], Section 4.4.3; or
+* properties that are wholly derived from these permitted properties
+  (i.e., utcStart, utcEnd); or
+* Additional CalendarEvent properties not derived from the JSEvent data
+  (i.e., id, baseEventId, calendarIds, isDraft).
+
+If "privacy" is set to "secret", the server MUST behave as though the event does not exist for all users other than the owner.
 
 This "hideAttendees" property of a JSEvent object allows the owner to reduce the visibility of sharees into the set of participants. If this is `true`, when a non-owner sharee fetches the event, the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.
 
