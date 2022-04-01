@@ -46,13 +46,15 @@ A **CalendarAlert** object has the following properties:
 
 - **@type**: `String`
   This MUST be the string "CalendarAlert".
-- **accountId**: `String`
+- **accountId**: `Id`
   The account id for the calendar in which the alert triggered.
-- **calendarEventId**: `String`
-  The CalendarEvent id for the alert that triggered.
+- **calendarEventId**: `Id`
+  The CalendarEvent id for the alert that triggered. Note, for a recurring
+  event this is the id of the base event, never a synthetic id for a particular
+  instance.
 - **uid**: `String`
   The uid property of the CalendarEvent for the alert that triggered.
-- **recurrenceId**: `String|null`
+- **recurrenceId**: `LocalDate|null`
   The recurrenceId for the instance of the event for which this alert is being
   triggered, or `null` if the event is not recurring.
 - **alertId**: `String`
