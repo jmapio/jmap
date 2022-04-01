@@ -44,10 +44,16 @@ A **Calendar** object has the following properties:
     - `none`: all events are ignored (but may be considered if also in another
       calendar).
 
-- **defaultAlertsWithTime**: `Id[Alert]|null` (default: null)
+- **defaultAlertsWithTime**: `Id[Alert]|null`
   A map of alert ids to Alert objects (see [@!RFC8984], Section 4.5.2) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.
-- **defaultAlertsWithoutTime**: `Id[Alert]|null` (default: null)
+
+    If omitted on creation, the default is server dependent. For example, servers may choose to always default to `null`, or may copy the alerts from the default calendar.
+
+- **defaultAlertsWithoutTime**: `Id[Alert]|null`
   A map of alert ids to Alert objects (see [@!RFC8984], Section 4.5.2) to apply for events where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.
+
+    If omitted on creation, the default is server dependent. For example, servers may choose to always default to `null`, or may copy the alerts from the default calendar.
+
 - **timeZone**: `String|null` (default: null)
   The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
 - **shareWith**: `Id[CalendarRights]|null` (default: null)
