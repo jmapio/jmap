@@ -114,10 +114,15 @@ A task has no owner if its participant property is null or omitted.
 
 A TaskList has the following alerts properties:
 
-- **defaultAlertsWithTime**: `Id[Alert]|null` (default: null)
+- **defaultAlertsWithTime**: `Id[Alert]|null`
   A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for tasks where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
-- **defaultAlertsWithoutTime**: `Id[Alert]|null` (default: null)
+
+    If omitted on creation, the default is server dependent. For example, servers may choose to always default to `null`, or may copy the alerts from the default task list.
+
+- **defaultAlertsWithoutTime**: `Id[Alert]|null`
   A map of alert ids to Alert objects (see [@!I-D.ietf-calext-jscalendar], Section 4.5.2) to apply for tasks where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
+
+      If omitted on creation, the default is server dependent. For example, servers may choose to always default to `null`, or may copy the alerts from the default task list.
 
 ## TaskList/get
 
