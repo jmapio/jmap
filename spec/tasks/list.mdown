@@ -148,7 +148,9 @@ When modifying the shareWith property, the user cannot give a right to a princip
 
 Users can subscribe or unsubscribe to a task list by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain task lists even though they have permission to see them, rejecting the update with a `forbidden` SetError.
 
-The "timeZone", "defaultAlertsWithoutTime" and "defaultAlertsWithTime" properties are stored per-user if the task list account's "shareesActAs" capability is "self", and may be set by any user who is subscribed to the task list. Otherwise, these properties are shared, and may only be set by users that have the mayAdmin right.
+The "timeZone", "defaultAlertsWithoutTime" and "defaultAlertsWithTime" properties are stored per-user if the task list account's "shareesActAs" capability is "self", and may be set by any user who is subscribed to the task list and has the mayUpdatePrivate right. Each user gets the default value for these properties as the initial value; they do not inherit an initial value from the task list owner.
+
+If the task list account's "shareesActAs" capability is "secretary" these properties are instead shared, and may only be set by users that have the mayAdmin right.
 
 The following properties may be set by anyone who is subscribed to the task list and are all stored per-user:
 
@@ -156,7 +158,9 @@ The following properties may be set by anyone who is subscribed to the task list
 - color
 - sortOrder
 
-These properties are initially inherited from the owner's copy of the task list, but if set by a sharee that user gets their own copy of the property; it does not change for any other principals. If the value of the property in the owner's task list changes after this, it does not overwrite the sharee's value.
+The "name" and "color" properties are initially inherited from the owner's copy of the task list, but if set by a sharee that user gets their own copy of the property; it does not change for any other principals. If the value of the property in the owner's task list changes after this, it does not overwrite the sharee's value.
+
+The "sortOrder" property is initally the default value for each sharee; it is not inherited from the owner.
 
 The following extra SetError types are defined:
 
