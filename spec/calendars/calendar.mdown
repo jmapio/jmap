@@ -60,7 +60,7 @@ A **Calendar** object has the following properties:
 - **timeZone**: `String|null` (default: null)
   The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.
 - **shareWith**: `Id[CalendarRights]|null` (default: null)
-  A map of Principal id to rights for principals this calendar is shared with. The principal to which this calendar belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the `urn:ietf:params:jmap:principals:owner` capability of the Account to which the calendar belongs.
+  A map of Principal id to rights for principals this calendar is shared with. The principal to which this calendar belongs MUST NOT be in this set. This is null if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the `urn:ietf:params:jmap:principals:owner` capability of the Account to which the calendar belongs.
 
 - **myRights**: `CalendarRights` (server-set)
   The set of access rights the user has in relation to this Calendar. If any event is in multiple calendars, the user has the following rights:
@@ -137,8 +137,7 @@ This is a standard "/set" method as described in [@!RFC8620], Section 5.3 but wi
   in it will be rejected with a `calendarHasEvent` SetError. If
   true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This SHOULD NOT send scheduling messages to participants or create CalendarEventNotification objects.
 
-The "shareWith" property may only be set by users that have the mayAdmin right. The value is shared across all users, although users without the mayAdmin right cannot see the value.
-
+The "shareWith" property may only be set by users that have the mayAdmin right.
 When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a `forbidden` SetError.
 
 Users can subscribe or unsubscribe to a calendar by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a `forbidden` SetError.
