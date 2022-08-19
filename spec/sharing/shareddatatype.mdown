@@ -6,5 +6,5 @@ Shareable data types SHOULD define the following three properties:
   Has the user indicated they wish to see this data? The initial value for this when data is shared by another user is implementation dependent, although data types may give advice on appropriate defaults.
 - **myRights**: `String[Boolean]`
   The set of permissions the user currently has. Appropriate permissions are domain specific and must be defined per data type.
-- **shareWith**: `Id[String[Boolean]]`
-  A map of principal id to rights to give that principal. The account id for the principal id can be found in the capabilities of the Account this object is in (see Section XXX). Users with appropriate permission may set this property to modify who the data is shared with. The principal that owns the account this data is in MUST NOT be in the set of sharees; their rights are implicit.
+- **shareWith**: `Id[String[Boolean]]|null`
+  A map of principal id to rights to give that principal, or `null` if not shared with anyone. The account id for the principal id can be found in the capabilities of the Account this object is in (see Section XXX). Users with appropriate permission may set this property to modify who the data is shared with. The principal that owns the account this data is in MUST NOT be in the set of sharees; their rights are implicit.
