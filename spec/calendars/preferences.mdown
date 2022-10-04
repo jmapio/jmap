@@ -1,18 +1,13 @@
 # CalendarPreferences
 
-A CalendarPreferences object stores information about the principal's preferences and defaults.
+A CalendarPreferences object stores information about the user's preferences and defaults.
 
 - **id**: `Id` (immutable; server-set)
-  The id of the object. There is only ever one CalendarPreferences object, and its id is `"singleton"`.
+  The id of the object. There is only ever one CalendarPreferences object in an account, and its id is `"singleton"`.
 - **defaultCalendarId**: `Id|null`
-  The id of the principal's default calendar. The principal MUST have the mayWriteAll right for this calendar. If set, clients should default to
-  this calendar when creating new events in this account, unless overridden by a local preference. When the principal is invited to an event, this is the calendar to which it will be added by the server.
-
-    If `null`, no default is defined and clients/servers may choose any calendar.
+  The id of the default calendar to use for new events in this account. The user MUST have the mayWriteAll right for this calendar. If set, clients should default to this calendar when creating new events in this account, unless overridden by a local preference.
 - **defaultParticipantIdentityId**: `Id|null`
-  The default participant identity to use for the principal when adding participants to an event. If set, when the user adds an invitee to an event without an owner, the client should use this participant identity to add the principal as an owner participant of the event.
-
-    If `null`, no default is defined and clients/servers may choose any participant identity.
+  The default participant identity to use for the user when adding them as a participant to an event in this account.
 
 The following JMAP methods are supported.
 
