@@ -26,7 +26,7 @@ Data types may allow users to share data with others by assigning permissions to
 
 Permissions determine whether a user *may* access data, but not whether they *want* to. Some shared data is of equal importance as the user's own, while other data is just there should the user wish to explicitly go find it. Clients will often want to differentiate the two; for example, a company may share mailing list archives for all departments with all employees, but a user may only generally be interested in the few they belong to. They would have *permission* to access many mailboxes, but can *subscribe* to just the ones they care about. The client would provide separate interfaces for reading mail in subscribed mailboxes and browsing all mailboxes they have permission to access in order to manage their subscriptions.
 
-The JMAP Session object (see [@!RFC8620], Section 2) typically includes an object in the `accounts` property for every account that the user has access to. Collaborative systems may share data between a very large number of Principals, most of which the user does not care about day-to-day. The Session object MUST only include Accounts where either the user is subscribed to at least one record (see [@!RFC8620], Section 1.6.3) in the account, or the account belongs to the user. StateChange events for changes to data SHOULD only be sent for data the user has subscribed to and MUST NOT be sent for any Account where the user is not subscribed to any records in the account, except where that account belongs to the user.
+The JMAP Session object (see [@!RFC8620], Section 2) typically includes an object in the `accounts` property for every account that the user has access to. Collaborative systems may share data between a very large number of Principals, most of which the user does not care about day-to-day. The Session object MUST only include Accounts where either the user is subscribed to at least one record (see [@!RFC8620], Section 1.6.3) in the account, or the account belongs to the user. StateChange events for changes to data SHOULD only be sent for data the user has subscribed to and MUST NOT be sent for any account where the user is not subscribed to any records in the account, except where that account belongs to the user.
 
 The server MAY reject the user's attempt to subscribe to some resources even if they have permission to access them, e.g., a calendar representing a location.
 
@@ -59,5 +59,4 @@ The value of this property is an object with the following properties:
   The id of an account with the `urn:ietf:params:jmap:principals`
   capability that contains the corresponding Principal object.
 - **principalId**: `Id`
-  The id of the principal that owns this account.
-
+  The id of the Principal that owns this account.
