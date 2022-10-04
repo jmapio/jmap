@@ -23,16 +23,16 @@ The **CalendarEventNotification** object has the following properties:
 - **created**: `UTCDate`
   The time this notification was created.
 - **changedBy**: `Person`
-  Who made the change.
+  Who made the change. The Person object has the following properties:
   - **name**: `String`
     The name of the person who made the change.
   - **email**: `String|null`
     The email of the person who made the change, or null if no email is available.
   - **principalId**: `String|null`
-    The id of the calendar principal corresponding to the person who made the change, if any. This will be null if the change was due to receving an iTIP message.
+    The id of the Principal corresponding to the person who made the change, if any. This will be null if the change was due to receving an iTIP message.
 - **comment**: `String|null`
   Comment sent along with the change by the user that made it. (e.g. COMMENT
-  property in an iTIP message).
+  property in an iTIP message), if any.
 - **type**: `String`
   This MUST be one of
   - created
@@ -49,7 +49,7 @@ The **CalendarEventNotification** object has the following properties:
   A patch encoding the change between the data in the event property, and the
   data after the update.
 
-To reduce data, if the change only affects a single instance of a recurring event, the server MAY set the event and eventPatch properties for the instance; the calendarEventId MUST still be for the base event.
+If the change only affects a single instance of a recurring event, the server MAY set the event and eventPatch properties for just that instance; the calendarEventId MUST still be for the base event.
 
 ## CalendarEventNotification/get
 

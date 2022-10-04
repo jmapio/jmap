@@ -28,7 +28,7 @@ A **CalendarEvent** object contains information about an event, or recurring ser
 
     This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different results if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the event.
 
-    If set, server will convert to the event's current time zone using its current time zone data and store the local time.
+    If set, the server will convert the UTC date to the event's current time zone and store the local time.
 
     This is not included by default and must be requested explicitly.
 
@@ -130,9 +130,9 @@ If specific properties are requested from the JSEvent and the property is not pr
 
 A requested id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRule" and "recurrenceOverrides" properties MUST be returned as null if requested for such an event.
 
-An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions etc.
+An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions, etc.
 
-The "hideAttendees" property of a JSEvent object allows the event owner(s) to reduce the visibility of sharees into the set of participants. If this is `true`, when a non-owner sharee fetches the event, the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.
+The "hideAttendees" property of a JSEvent object allows the event owner(s) to reduce the visibility of sharees into the set of participants. If this is true, when a non-owner sharee fetches the event, the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.
 
 The "privacy" property of a JSEvent object allows the principal that owns the calendar to override how sharees of the calendar see the event. If set to "private", then when a sharee fetches the event the server MUST only return properties that are:
 
@@ -177,7 +177,7 @@ If omitted on create, the server MUST set the following properties to an appropr
 If (and only if) the server is the origin of the event (i.e., the event's "isOrigin" property is true), the "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time. If the server is not the origin of the event it MUST NOT automatically set an "updated" time, as this can break correct processing of iTIP messages.
 
 Clients SHOULD NOT allow users to manually edit anything other than per-user
-properties when the "isOrigin" property is false, even if the calendar "myRights" allows them to do so. All other properties may be overwritten when a future update arrives to this event from the origin (i.e., via another iTIP REQUEST). Such updates may be directly applied by the server, or applied on user request by a client if it has access to the data through some other means (e.g., the client also has access to the user's email and can parse an iMIP message).
+properties when the "isOrigin" property is false, even if the calendar "myRights" allows them to do so. All other properties may be overwritten when a future update arrives to this event from the origin (i.e., via another iTIP REQUEST). Such updates may be directly applied by the server, or applied at the user's request by a client if it has access to the data through some other means (e.g., the client also has access to the user's email and can parse an iMIP message).
 
 When updating an event, if all of:
 
@@ -195,15 +195,17 @@ If "utcStart" is set, this is translated into a "start" property using the serve
 
 Similarly, the "utcEnd" property is translated into a "duration" property if set. It MUST NOT be set in addition to a "duration" property and it cannot be set inside "recurrenceOverrides"; this MUST be rejected with an `invalidProperties` SetError.
 
-The server does not automatically reset the "partipationStatus" or "expectReply" properties of a Participant when changing other event details. Clients should either be intelligent about whether the change necessitates resending RSVP requests, or ask the user whether to send them.
+The server does not automatically reset the "partipationStatus" or "expectReply" properties of a Participant when changing other event details. Clients should either be intelligent about whether the change invalidates previous RSVPs, or ask the user whether to reset them.
 
 The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the "owner" role corresponding to one of the user's ParticipantIdentities (see Section XXX).
 
-When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the "replyTo" property of the event if not present. Clients SHOULD NOT set the replyTo property for events when the user adds participants; the server is better positioned to add all the methods it supports to receive replies.
+When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the "replyTo" property of the event if not present. Clients SHOULD NOT set the "replyTo" property for events when the user adds participants; the server is better positioned to add all the methods it supports to receive replies.
 
 ### Patching
 
-The JMAP "/set" method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, e.g. inside "localizations" or "recurrenceOverrides". In particular, you cannot add a property with value `null` to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property. This is more easily understood with an example. Suppose you have a CalendarEvent object like so:
+The JMAP "/set" method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, e.g. inside "localizations" or "recurrenceOverrides". In particular, you cannot add a property with value `null` to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property.
+
+This is more easily understood with an example. Suppose you have a CalendarEvent object like so:
 
     {
       "id": "123",
@@ -338,7 +340,7 @@ The server may send the scheduling message via any of the methods defined on the
 
 If the server is the origin of the event it MUST NOT send messages to any participant where it will receive the message back in the same account (i.e. it must not send messages to the owner of the calendar the event is already on).
 
-If sending via iMIP [@?RFC6047], the server MAY choose to only send updates it deems "essential" to avoid flooding the recipient's email with changes they do not care about. For example, changes to the participationStatus of another participant, or changes to events solely in the past may be omitted.
+If sending via iMIP [@?RFC6047], the server MAY choose to only send updates it deems "essential" to avoid flooding the recipient's email with changes they do not care about. For example, changes to the participation status of another participant, or changes to events solely in the past may be omitted.
 
 #### REQUEST
 

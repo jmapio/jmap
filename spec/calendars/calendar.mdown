@@ -83,7 +83,7 @@ A **CalendarRights** object has the following properties:
 - **mayWriteAll**: `Boolean`
   The user may create, modify or destroy all events in this calendar, or move events to or from this calendar. If this is true, the mayWriteOwn, mayUpdatePrivate and mayRSVP properties MUST all also be true.
 - **mayWriteOwn**: `Boolean`
-  The user may create, modify or destroy an event on this calendar if either they are the owner of the event or the event has no owner. This means the user may also transfer ownership by updating an event so they are no longer an owner.
+  The user may create, modify or destroy an event on this calendar if either they are the owner of the event (see below) or the event has no owner. This means the user may also transfer ownership by updating an event so they are no longer an owner.
 - **mayUpdatePrivate**: `Boolean`
   The user may modify per-user properties (see Section XXX) on all events in the calendar, even if they would not otherwise have permission to modify that event. These properties MUST all be stored per-user, and changes do not affect any other user of the calendar.
 
@@ -113,7 +113,7 @@ A **CalendarRights** object has the following properties:
 The user is an **owner** for an event if the CalendarEvent object has a   "participants" property, and one of the Participant objects both:
 
     a) Has the "owner" role.
-    b) Corresponds to one of the user's ParticipantIdentity objects in the account.
+    b) Corresponds to one of the user's ParticipantIdentity objects in the account (as per Section XXX).
 
 An event has no owner if its participants property is null or omitted, or if none of the Participant objects have the "owner" role.
 
@@ -153,7 +153,7 @@ The following properties may be set by anyone who is subscribed to the calendar 
 - defaultAlertsWithoutTime
 - defaultAlertsWithTime
 
-The "name", "color", and "timeZone" properties are initially inherited from the owner's copy of the calendar, but if set by a sharee that user gets their own copy of the property; it does not change for any other principals. If the value of the property in the owner's calendar changes after this, it does not overwrite the sharee's value.
+The "name", "color", and "timeZone" properties are initially inherited from the owner's copy of the calendar, but if set by a sharee then they get their own copy of the property; it does not change for any other principals. If the value of the property in the owner's calendar changes after this, it does not overwrite the sharee's value.
 
 The "sortOrder", "isVisible", "includeInAvailability", "defaultAlertsWithTime", and "defaultAlertsWithoutTime" properties are initally the default value for each sharee; they are not inherited from the owner.
 
