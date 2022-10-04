@@ -124,7 +124,7 @@ This is a standard "/get" method as described in [@!RFC8620], Section 5.1, with 
 - **timeZone**: `String` (default "Etc/UTC")
   The time zone to use when calculating the utcStart/utcEnd property of floating events. This argument has no effect if those properties are not requested.
 
-A CalendarEvent object is a JSEvent object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties defined on the JSEvent object in the store are returned, along with the "id", "calendarIds", and "isDraft" properties. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested. If either are requested, the "recurrenceOverrides" property MUST NOT be requested (recurrence overrides cannot be interpreted accurately with just the UTC times).
+A CalendarEvent object is a JSEvent object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties defined on the JSEvent object in the store are returned, along with the "id", "calendarIds", "isDraft", and "isOrigin" properties. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested. If either are requested, the "recurrenceOverrides" property MUST NOT be requested (recurrence overrides cannot be interpreted accurately with just the UTC times).
 
 If specific properties are requested from the JSEvent and the property is not present on the object in the server's store, the server SHOULD return the default value if known for that property.
 
@@ -141,7 +141,7 @@ The "privacy" property of a JSEvent object allows the principal that owns the ca
 * properties that are wholly derived from these permitted properties
   (i.e., utcStart, utcEnd); or
 * Additional CalendarEvent properties not derived from the JSEvent data
-  (i.e., id, baseEventId, calendarIds, isDraft).
+  (i.e., id, baseEventId, calendarIds, isDraft, isOrigin).
 
 If "privacy" is set to "secret", the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.
 
