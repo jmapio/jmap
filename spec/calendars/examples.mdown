@@ -1,0 +1,307 @@
+# Examples
+
+For brevity, in the following examples only the "methodCalls" property of the Request object, and the "methodResponses" property of the Response object is shown.
+
+## Fetching initial data
+
+A user has authenticated and the client has fetched the JMAP Session object. It finds a single Account with the "urn:ietf:params:jmap:calendars" capability, with id "a0x9", and wants to display all the calendar information for January 2023 in the Australia/Melbourne time zone. It might make the following request:
+
+    [
+      ["Calendar/get", {
+        "accountId": "a0x9"
+      }, "0"],
+      ["ParticipantIdentity/get", {
+        "accountId": "a0x9"
+      }, "1"],
+      ["CalendarPreferences/get", {
+        "accountId": "a0x9",
+        "ids": ["singleton"]
+      }, "2"],
+      ["CalendarEvent/query", {
+        "accountId": "a0x9",
+        "timeZone": "Australia/Melbourne",
+        "filter": {
+          "after": "2023-01-01T00:00:00",
+          "before": "2023-02-01T00:00:00"
+        }
+      }, "3"],
+      ["CalendarEvent/get", {
+      	"accountId": "a0x9",
+      	"#ids":{
+      	  "resultOf":"3",
+      	  "name":"CalendarEvent/query",
+      	  "path":"/ids"
+      	}
+      }, "4"]
+    ]
+
+
+The server might respond with something like:
+
+	[
+	  ["Calendar/get", {
+        "accountId": "a0x9",
+        "list": [{
+           "id": "062adcfa-105d-455c-bc60-6db68b69c3f3",
+           "name": "Private",
+           "sortOrder": 12
+           "defaultAlertsWithTime": null,
+           ...
+         }, {
+           "id": "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662",
+           "name": "Work",
+           "sortOrder": 4
+           "defaultAlertsWithTime": {
+             "631BE24C-A3B6-11EC-BF4C-B027680D752E": {
+               "@type": "Alert",
+               "action": "display",
+               "trigger": {
+                 "@type": "OffsetTrigger",
+                 "offset": "-PT1H",
+                 "relativeTo": "start"
+               }
+             }
+           },
+           ...
+         }],
+         "notFound": [],
+         "state": "~506"
+      }, "0"],
+      ["ParticipantIdentity/get", {
+      	"accountId": "a0x9",
+        "list": [{
+           "id": "3",
+           "name": "Jane Doe"
+           "scheduleId": "mailto:jane@example.com",
+           "sendTo": {
+           	 "imip": "mailto:jane@example.com",
+           	 "other":
+           	 	"https://example.com/uri/for/internal/scheduling"
+           }
+         }],
+         "notFound": [],
+         "state": "lgkf:98144:aae"
+      }, "1"],
+      ["CalendarPreferences/get", {
+        "accountId": "a0x9",
+        "list": [{
+           "id": "singleton",
+           "defaultCalendarId":
+             "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662"
+           "defaultParticipantIdentityId": "3"
+         }],
+         "notFound": [],
+         "state": "lgkf:98144:aae"
+      }, "2"],
+      ["CalendarEvent/query", {
+        "accountId": "a0x9",
+        "canCalculateChanges": false,
+        "position": 0,
+        "queryState": "~206",
+        "ids": [
+          "E-01c9626e-1490-43df-a34f-457021256281",
+          "E-07a2b89d-96b6-4920-982a-54fdf0a386ce",
+          ...
+        ]
+      }, "3"],
+      ["CalendarEvent/get", {
+      	"accountId": "a0x9",
+      	"list": [{
+           "id": "E-01c9626e-1490-43df-a34f-457021256281",
+           "calendarIds": {
+           	  "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true,
+           },
+           "title": "Q1 All hands"
+           "start": "20230109T10:00:00",
+           "duration": "PT1H",
+           "timeZone": "Australia/Sydney",
+           ...
+         }, ...],
+         "notFound": [],
+         "state": "$$/413/206"
+      }, "4"]
+	]
+
+The client now has everything it needs to display that month in full.
+
+## Creating an event
+
+Suppose the user asks the client to create a new event. The client should default to adding it to the "Work" calendar, as this is the default indicated in CalendarPreferences.
+
+	[
+	  ["CalendarEvent/set", {
+	    "accountId":"a0x9",
+	    "create":{
+	      "k559":{
+	        "uid":"5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
+	        "calendarIds":{
+	          "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662":true
+	        },
+	        "title":"Party at Pete’s",
+	        "start":"2023-02-03T19:00:00",
+	        "duration":"PT3H0M0S",
+	        "timeZone":"Australia/Melbourne",
+	        "showWithoutTime":false,
+	        "participants":{
+	          "1":{
+	            "@type":"Participant",
+	            "name": "Jane Doe"
+	            "scheduleId": "mailto:jane@example.com",
+	            "sendTo": {
+	              "imip": "mailto:jane@example.com",
+	              "other":
+	                 "https://example.com/uri/for/internal/scheduling"
+	            }
+	            "kind":"individual",
+	            "roles":{
+	              "attendee":true,
+	              "owner":true
+	            },
+	            "participationStatus":"accepted",
+	            "expectReply":false
+	          },
+	          "2":{
+	            "@type":"Participant",
+	            "name":"Joe Bloggs",
+	            "sendTo":{
+	              "imip":"mailto:joe@example.com"
+	            },
+	            "kind":"individual",
+	            "roles":{
+	              "attendee":true
+	            },
+	            "participationStatus":"needs-action",
+	            "expectReply":true
+	          }
+	        },
+	        "mayInviteSelf":false,
+	        "mayInviteOthers":false,
+	        "useDefaultAlerts":false,
+	        "alerts":null
+	      }
+	    },
+	    "sendSchedulingMessages":true
+	  }, "0"]
+	]
+
+As the event has participants, the server sets a "replyTo" property. This server uses a special email address for receiving iTIP RSVPs rather than just receiving them at the owner's regular email address, and also provides a web page for people that don't have calendar clients supporting iTIP. The response may look something like this:
+
+    [
+	  ["CalendarEvent/set", {
+	    "accountId":"a0x9",
+	    "created":{
+	      "k559":{
+	        "id":"E-5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
+	        "isOrigin": true,
+	      	"@type": "Event",
+	        "created": "20221005T20:42:13Z",
+	        "updated": "20221005T20:42:13Z",
+	        "sequence": 1,
+	        "replyTo": {
+	          "imip": "3e87-1b18bb5e6b4@itip.example.com",
+	          "web": https://cal.example.com/
+	          	5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91/?
+	          	auth=bfc0-4ba3-9e44"
+	        }
+	      }
+	    },
+	    ...
+	  }, "0"]
+	]
+
+## Snoozing an alert
+
+The client is connected to the event source and receives a push:
+
+	{
+		"@type": "CalendarAlert",
+		"accountId": "a0x9",
+		"calendarEventId": "E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f",
+		"uid": "b6f7e27b-5872-4b52-b457-0242541bb01c",
+		"recurrenceId": null,
+		"alertId": "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd"
+	}
+
+Not finding this event in its local cache, the client fetches the information for this event that it needs to show the alert by making the following request:
+
+    [
+      ["CalendarEvent/get", {
+      	"accountId": "a0x9",
+      	"ids":["E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f"],
+      	"properties": ["calendarIds", title", "start",
+      	  "timeZone", "useDefaultAlerts", "alerts"]
+      }, "0"]
+    ]
+
+In response it receives:
+
+	[
+      ["CalendarEvent/get", {
+      	"accountId": "a0x9",
+      	"list": [{
+           "id": "E-01c9626e-1490-43df-a34f-457021256281",
+           "calendarIds": {
+           	  "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true,
+           },
+           "title": "Team catchup"
+           "start": "20230210T17:00:00",
+           "timeZone": "America/New_York",
+           "useDefaultAlerts": false,
+           "alerts": {
+             "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
+               "@type": "Alert",
+               "action": "display",
+               "trigger": {
+                 "@type": "OffsetTrigger",
+                 "relativeTo": "start",
+                 "offset": "-PT1H"
+               }
+             }
+           }
+         }],
+         "notFound": [],
+         "state": "$$/414/208"
+      }, "0"]
+	]
+
+The client displays an alert in a platform-appropriate manner. Presuming the user here is in the Australia/Melbourne time zone, this might look something like:
+
+    +----------------------------------------+
+    |                                        |
+    |  Reminder: Team catchup                |
+    |  Today at 10am (in 1 hour)             |
+    |                             [Snooze\/] |
+    +----------------------------------------+
+
+
+The user snoozes the notification for 30 minutes. The client dismisses the current notification and sends an update to the event to the server:
+
+	[
+      ["CalendarEvent/set", {
+      	"accountId": "a0x9",
+      	"update": {
+          "E-01c9626e-1490-43df-a34f-457021256281": {
+           	"alerts/7519a951-1e6f-4a6c-b08b-20dd2e5a89cd
+           		/acknowledged": "20230110T23:00:31Z",
+            "alerts/86b0-318b8291045f": {
+              "@type": "Alert",
+              "action": "display",
+              "trigger": {
+                "@type": "AbsoluteTrigger",
+                "when": "20230210T23:30:00Z",
+                "relatedTo": {
+                  "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
+                    "@type": "Relation",
+                    "relation": {
+                      "parent": true,
+                    }
+                  }
+            	}
+              }
+            }
+          }
+      	}
+      }, "0"]
+	]
+
+Any other connected client will receive a push, sync the change and dismiss any duplicate alert. After the snooze time has elapsed, the new alert will trigger.
