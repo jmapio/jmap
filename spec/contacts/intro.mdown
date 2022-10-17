@@ -1,6 +1,6 @@
 # Introduction
 
-JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
+JMAP ([@!RFC8620] JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.
 
 This specification defines a data model for synchronising contacts between a client and a server using JMAP.
 
@@ -8,25 +8,29 @@ This specification defines a data model for synchronising contacts between a cli
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
 
-Type signatures, examples and property descriptions in this document follow the conventions established in Section 1.1 of [@!RFC8620].
-
-Object properties may also have a set of attributes defined along with the type
-signature. These have the following meanings:
-
-* **server-set**: Only the server can set the value for this property. The
-  client MUST NOT send this property when creating a new object of this type.
-* **immutable**: The value MUST NOT change after the object is created.
-* **default**: (This is followed by a JSON value). The value that will be used
-  for this property if it is omitted in an argument, or when creating a new object of this type.
-
-Data types defined in the core specification are used in this document.
+Type signatures, examples and property descriptions in this document follow the conventions established in Section 1.1 of [@!RFC8620].  Data types defined in the core specification are also used in this document.
 
 ## Terminology
 
-The same terminology is used in this document as in the core JMAP specification.
+The same terminology is used in this document as in the core JMAP specification, see [@!RFC8620], Section 1.6.
 
-## Addition to the capabilities object
+The terms AddressBook, CardGroup, and Card (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.
 
-The capabilities object is returned as part of the standard JMAP Session object; see the JMAP spec. Servers supporting *this* specification MUST add a property called `urn:ietf:params:jmap:contacts` to the capabilities object.
+## Data Model Overview
 
-The value of this property is an empty object in both the JMAP session *capabilities* property and an account's *accountCapabilities* property.
+An Account (see [@!RFC8620], Section 1.6.2) with support for the contacts data model contains zero or more AddressBook objects, which is a named collection of Cards and CardGroups. A Card is a representation of a person, company, or other entity in RFCXXXX JSContact Card format. A CardGroup is a named set of zero or more UIDs, used to represent a group of Cards, in RFCXXXX JSContact CardGroup format. Each Card or CardGroup belongs to exactly one AddressBook.
+
+In servers with support for JMAP Sharing [RFC XXX], data may be shared with other users. Sharing permissions are managed per AddressBook.
+
+## Addition to the Capabilities Object
+
+The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], Section 2. This document defines two additional capability URIs.
+
+### urn:ietf:params:jmap:contacts
+
+This represents support for the AddressBook, CardGroup, and Card data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.
+
+The value of this property in an account’s accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
+
+- **mayCreateAddressBook**: `Boolean`
+  If true, the user may create an AddressBook in this account.

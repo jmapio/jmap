@@ -1,0 +1,61 @@
+# Cards
+
+A **Card** object contains information about a person, company, or other entity. It is a JSContact Card object, as defined in RFCXXXX, with the following additional properties:
+
+- **id**: `Id` (immutable; server-set)
+  The id of the Card. The id uniquely identifies a JSCard with a particular "uid" within a particular account.
+- **addressBookId**: `Id`
+  The id of the AddressBook this card belongs to. A card MUST belong to exactly one AddressBook at all times (until it is destroyed).
+
+TODO:photos as blobs.
+
+## Card/get
+
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
+
+## Card/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## Card/query
+
+This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
+
+### Filtering
+
+A **FilterCondition** object has the following properties:
+
+- **inAddressBook**: `Id`
+  An AddressBook id. A card must be in this address book to match the condition.
+- **text**: `String|null`
+  A card matches this condition if the text matches with text in the card.
+
+If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
+
+The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
+
+- Text SHOULD be matched in a case-insensitive manner.
+- Text contained in either (but matched) single or double quotes SHOULD be treated as a **phrase search**, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use `\"`, `\'` and `\\` to match a literal `"`, `'` and `\` respectively in a phrase.
+- Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the contact, but MUST all be present for the contact to match the filter.
+- Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for `bus` would match "buses" but not "business").
+
+### Sorting
+
+The following properties MUST be supported for sorting:
+
+TODO
+
+## Card/queryChanges
+
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+
+## Card/set
+
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3.
+
+To set a new photo, the file must first be uploaded using the upload mechanism as described in [@!RFC8620], Section 6.1. This will give the client a valid blobId/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the photo for a card.
+
+## Card/copy
+
+This is a standard "/copy" method as described in [@!RFC8620], Section 5.4.
+

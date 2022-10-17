@@ -1,0 +1,26 @@
+# Card Groups
+
+A **CardGroup** object represents a group of cards. It is a JSContact CardGroup object, as defined in RFCXXXX, with the following additional properties:
+
+- **id**: `Id` (immutable; server-set)
+  The id of the CardGroup. The id uniquely identifies a JSCard with a particular "uid" within a particular account.
+- **addressBookId**: `Id`
+  The id of the AddressBook this CardGroup belongs to. A CardGroup MUST belong to exactly one AddressBook at all times (until it is destroyed).
+
+
+Clients should consider the set to contain any Card with a matching UID, from
+any account they have access to with support for the
+`urn:ietf:params:jmap:contacts` capability. UIDs that cannot be found SHOULD be
+ignored but preserved. For example, suppose a user adds contacts from a shared address book to their private set, then temporarily lose access to this address book. The UIDs cannot be resolved so the contacts will disappear from the group. However, if they are given permission to access the data again the UIDs will be found and the contacts will reappear.
+
+## CardGroup/get
+
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
+
+## CardGroup/changes
+
+This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+
+## CardGroup/set
+
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3.
