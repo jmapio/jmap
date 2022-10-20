@@ -44,14 +44,14 @@ A **TaskList** object has the following core properties:
 - **timeZone**: `String|null` (default: null)
   The time zone to use for tasks without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new tasks in this task list, if set.
 - **workflowStatuses**: `String[]` (default: [completed, failed, in-process, needs-action, cancelled, pending])
-  Defines the allowed values for `workflowStatus`. The default values are based the values defined within [@!RFC8984], Section 5.2.5 and `pending`. `pending` indicates the task has been created and accepted, but has not yet started.
+  Defines the allowed values for `workflowStatus`. The default values are based on the values defined within [@!RFC8984], Section 5.2.5 and `pending`. `pending` indicates the task has been created and accepted, but it currently is on-hold.
 
     As naming and workflows differ between systems, mapping the status correctly to the present values of the Task can be challenging. In the most simple case, a task system may support merely two states - done and not-done. On the other hand, statuses and their semantic meaning can differ between systems or task lists (e.g. projects). In case of uncertainty, here are some recommendations for mapping commonly observed values that can help during implementation:
 
     - `completed`: `done` (most simple case), `closed`, `verified`, …
     - `in-process`: `in-progress`, `active`, `assigned`, …
     - `needs-action`: `not-done` (most simple case), `not-started`, `new`, …
-    - `pending`: `waiting`, `deferred`
+    - `pending`: `waiting`, `deferred`, `on-hold`, `paused`, …
 
 - **shareWith**: `Id[TaskRights]|null` (default: null)
   A map of Principal id to rights for principals this task list is shared with. The principal to which this task list belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the task list  is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the `urn:ietf:params:jmap:principals:owner` capability of the Account to which the task list belongs.
