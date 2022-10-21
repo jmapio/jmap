@@ -30,7 +30,7 @@ A **TaskList** object has the following core properties:
 - **sortOrder**: `UnsignedInt` (default: 0)
   Defines the sort order of task lists when presented in the client's UI, so it
   is consistent between devices. The number MUST be an integer in the range
-  0 <= sortOrder < 2^31.
+  0 ≤ sortOrder < 2^31.
 
     A task list with a lower order should be displayed before a list with
     a higher order in any list of task lists in the client's UI. Task lists with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
@@ -54,7 +54,7 @@ A **TaskList** object has the following core properties:
     - `pending`: `waiting`, `deferred`, `on-hold`, `paused`, …
 
 - **shareWith**: `Id[TaskRights]|null` (default: null)
-  A map of Principal id to rights for principals this task list is shared with. The principal to which this task list belongs MUST NOT be in this set. This is null if the user requesting the object does not have the mayAdmin right, or if the task list  is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the `urn:ietf:params:jmap:principals:owner` capability of the Account to which the task list belongs.
+  A map of Principal id to rights for principals this task list is shared with. The principal to which this task list belongs MUST NOT be in this set. This is null if the task list  is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the `urn:ietf:params:jmap:principals:owner` capability of the Account to which the task list belongs.
 
 - **myRights**: `TaskRights` (server-set)
   The set of access rights the user has in relation to this TaskList.
