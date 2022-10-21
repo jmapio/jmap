@@ -76,12 +76,7 @@ A **TaskRights** object has the following properties:
 - **mayWriteOwn**: `Boolean`
   The user may create, modify or destroy a task on this task list if either they are the owner of the task or the task has no owner. This means the user may also transfer ownership by updating a task so they are no longer an owner.
 - **mayUpdatePrivate**: `Boolean`
-  The user may modify the following properties on all tasks in the task list, even if they would not otherwise have permission to modify that task. If the shareesActAs account capability is "self", these properties MUST all be stored per-user, and changes do not affect any other user of the task list. If shareesActAs is "secretary", the values are shared between all users.
-
-    - keywords
-    - color
-    - useDefaultAlerts
-    - alerts
+  The user may modify the following properties on all tasks in the task list, even if they would not otherwise have permission to modify that task. These properties MUST all be stored per-user, and changes do not affect any other user of the task list.
 
     The user may also modify the above on a per-occurrence basis for recurring tasks (updating the recurrenceOverrides property of the task to do so).
 
@@ -134,7 +129,7 @@ This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
 
 ## TaskList/set
 
-This is the "Calendar/set" method as described in [@!I-D.ietf-jmap-calendars], Section XXX.
+This is the standard "/set" method as described in [@!RFC8620], Section 5.3 but with the following additional request argument:
 
 - **onDestroyRemoveTasks**: `Boolean` (default: false)
 
@@ -142,25 +137,23 @@ This is the "Calendar/set" method as described in [@!I-D.ietf-jmap-calendars], S
   in it will be rejected with a `TaskListHasTask` SetError. If
   true, any Tasks that were in the TaskList will be removed from it, and they will be destroyed.
 
-The "role" and "shareWith" properties may only be set by users that have the mayAdmin right. The value is shared across all users, although users without the mayAdmin right cannot see the value.
-
+The "shareWith" properties may only be set by users that have the mayAdmin right.
 When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a `forbidden` SetError.
 
 Users can subscribe or unsubscribe to a task list by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain task lists even though they have permission to see them, rejecting the update with a `forbidden` SetError.
 
-The "timeZone", "defaultAlertsWithoutTime" and "defaultAlertsWithTime" properties are stored per-user if the task list account's "shareesActAs" capability is "self", and may be set by any user who is subscribed to the task list and has the mayUpdatePrivate right. Each user gets the default value for these properties as the initial value; they do not inherit an initial value from the task list owner.
-
-If the task list account's "shareesActAs" capability is "secretary" these properties are instead shared, and may only be set by users that have the mayAdmin right.
-
-The following properties may be set by anyone who is subscribed to the task list and are all stored per-user:
+The following properties may be set by anyone who is subscribed to the task list, and are all stored per-user:
 
 - name
 - color
 - sortOrder
+- timeZone
+- defaultAlertsWithoutTime
+- defaultAlertsWithTime
 
-The "name" and "color" properties are initially inherited from the owner's copy of the task list, but if set by a sharee that user gets their own copy of the property; it does not change for any other principals. If the value of the property in the owner's task list changes after this, it does not overwrite the sharee's value.
+The "name", "color" and "timeZone" properties are initially inherited from the owner's copy of the task list, but if set by a sharee then they get their own copy of the property; it does not change for any other principals. If the value of the property in the owner's task list changes after this, it does not overwrite the sharee's value.
 
-The "sortOrder" property is initally the default value for each sharee; it is not inherited from the owner.
+The "sortOrder", "isVisible", "defaultAlertsWithTime", and "defaultAlertsWithoutTime" properties are initially the default value for each sharee; they are not inherited from the owner.
 
 The following extra SetError types are defined:
 
