@@ -13,16 +13,16 @@ The **TaskNotification** object has the following properties:
 - **created**: `UTCDate`
   The time this notification was created.
 - **changedBy**: `Person`
-  Who made the change.
+  Who made the change. The Person object has the following properties:
   - **name**: `String`
     The name of the person who made the change.
   - **email**: `String|Null`
     The email of the person who made the change, or null if no email is available.
   - **principalId**: `String|null`
-    The id of the principal corresponding to the person who made the change, if any. This will be null if the change was due to receving an iTIP message.
+    The id of the Principal corresponding to the person who made the change, if any. This will be null if the change was due to receiving an iTIP message.
 - **comment**: `String|null`
   Comment sent along with the change by the user that made it. (e.g. COMMENT
-  property in an iTIP message).
+  property in an iTIP message), if any.
 - **type**: `String`
   This MUST be one of
   - created
@@ -39,7 +39,7 @@ The **TaskNotification** object has the following properties:
   A patch encoding the change between the data in the task property, and the
   data after the update.
 
-To reduce data, if the change only affects a single instance of a recurring task, the server MAY set the task and taskPatch properties for the instance; the taskId MUST still be for the master task.
+If the change only affects a single instance of a recurring task, the server MAY set the task and taskPatch properties for the just that instance; the taskId MUST still be for the master task.
 
 ## TaskNotification/get
 
