@@ -73,7 +73,7 @@ This specifies the impact or severity of the task, but does not say anything abo
 
 ## Properties similar in JMAP for Calendar
 
-Attachments and per-user properties are described in [@!I-D.ietf-jmap-calendars], Section XXX.
+Attachments are described in [@!I-D.ietf-jmap-calendars], Section XXX.
 
 ## Recurrences extension
 
@@ -104,6 +104,20 @@ The Task will require the following further property:
       specified in the "replyTo" property of the task.
 
 Task objects MUST NOT have a "method" property as this is only used when representing iTIP [@!RFC5546] scheduling messages, not tasks in a data store.
+
+### Per-user properties
+
+In shared task lists, any top-level property registered in the IANA registry as "Is Per-User: yes" (see Section XXX) MUST be stored per-user. This includes:
+
+- keywords
+- color
+- freeBusyStatus
+- useDefaultAlerts
+- alerts
+
+The user may also modify these properties on a per-occurrence basis for recurring tasks; again, these MUST be stored per-user. Sharees initially receive the default value for each of these properties, not whatever value another user may have set.
+
+When writing only per-user properties, the "updated" property MUST also be stored just for that user, if set. When fetching the "updated" property, the value to return is whichever is later of the per-user updated time or the updated time of the base task.
 
 ### Extensions to JSCalendar data types
 
