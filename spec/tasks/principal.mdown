@@ -1,6 +1,6 @@
-# Principals
+# Principals and Sharing
 
-For systems that also support JMAP Sharing [@!I-D.ietf-jmap-sharing], the tasks capability is used to indicate that this principal may be used with tasks.
+For systems that also support JMAP Sharing [@!I-D.ietf-jmap-sharing], the tasks capability is used to indicate that this principal may be used with task management.
 
 ## Principal Capability urn:ietf:params:jmap:tasks
 
@@ -8,8 +8,9 @@ A "urn:ietf:params:jmap:tasks" property is added to the Principal "capabilities"
 
 - **accountId**: `Id|null`
   Id of Account with the `urn:ietf:params:jmap:tasks` capability that
-  contains the task data for this principal, or null if none (e.g. the Principal is a group just used for permissions management), or the user does not have access to any data in the account.
-- **account**: `Account|null`
-  The JMAP Account object corresponding to the accountId, null if none.
+  contains the task data for this principal, or null if none (e.g. the Principal is a group just used for permissions management), or the user does not have access to any data in the account. The corresponding Account object can be found in the principal's "accounts" property, as per [RFC XXX].
+- **mayShareWith**: `Boolean`
+  May the user add this principal as a task sharee (by adding them to the
+  shareWith property of a task list, see Section XXX)?
 - **sendTo**: `String[String]|null`
   If this principal may be added as a participant to a task, this is the map of methods for adding it, in the same format as Participant#sendTo in JSTask (see [@!RFC8984], Section 4.4.5).
