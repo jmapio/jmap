@@ -4,7 +4,7 @@ The quota is an object that displays the limit set to an account usage as well a
 
 The quota object MUST contain the following fields:
 
-* **id**: `Id` The unique identifier for this object. It should respect the JMAP ID datatype defined in section 1.2 of [@!RFC8620]
+* **id**: `Id` The unique identifier for this object. It should respect the JMAP ID data type defined in section 1.2 of [@!RFC8620]
 
 * **resourceType**: `ResourceType` The resource type of the quota.
 
@@ -14,20 +14,20 @@ The quota object MUST contain the following fields:
 
 * **scope**: `Scope` The `Scope` of this quota.
 
-* **name**: `String` The name of the quota object. Useful for managing quotas and use queries for searching.
+* **name**: `String` The name of the quota object. Useful for managing quotas and using queries for searching.
 
-* **datatypes**: `String[]` A list of all the data types values that are applying to this quota. This allows to assign
+* **dataTypes**: `String[]` A list of all the data types values that are applying to this quota. This allows to assign
 quotas to separated or shared data types. This MAY include data types the client does not recognise. Clients MUST
 ignore any unknown data type in the list.
 
-The quota object MAY contain the following field:
+The quota object MAY contain the following fields:
 
 * **warnLimit**: `UnsignedInt|null` The warn limit set by this quota object. It can be used to send a warning to an
 entity about to reach the hard limit soon, but with no action taken yet. If set, it should be lower than the
 `softLimit` and the `limit`.
 
 * **softLimit**: `UnsignedInt|null` The soft limit set by this quota object. It can be used to still allow some operations,
-but refusing some others. What is allowed or not is up to the server. For example, it could be used for blocking outgoing
+but refuse some others. What is allowed or not is up to the server. For example, it could be used for blocking outgoing
 events of an entity (sending emails, creating calendar events, ...) while still receiving incoming events (receiving emails,
 receiving calendars events, ...). If set, it should be higher than the `warnLimit` but lower than the `limit`.
 
@@ -36,7 +36,7 @@ where the limit comes from and explain the entities and data types this quota ap
 
 ## Quota/get
 
-Standard “/get” method as described in [@!RFC8620] section 5.1. The ids argument may be `null` to fetch all at once.
+Standard “/get” method as described in [@!RFC8620] section 5.1. The *ids* argument may be `null` to fetch all at once.
 
 ## Quota/changes
 
@@ -62,7 +62,7 @@ A **FilterCondition** object has the following properties, any of which may be o
 * **name**: `String` The Quota _name_ property contains the given string.
 * **scopes**: `Scope[]` The Quota _scope_ property must be in this list to match the condition.
 * **resourceTypes**: `ResourceType[]` The Quota _resourceType_ property must be in this list to match the condition.
-* **datatypes**: `String[]` The Quota _datatypes_ property must contain the elements in this list to match the condition.
+* **dataTypes**: `String[]` The Quota _dataTypes_ property must contain the elements in this list to match the condition.
 
 A Quota object matches the FilterCondition if and only if all of the given conditions match. If zero properties are
 specified, it is automatically true for all objects.
@@ -102,7 +102,7 @@ With response :
         "scope": "account",
         "name": "bob@example.com",
         "description": "Personal account usage",
-        "datatypes" : [ "Mail", "Calendar", "Contact" ]
+        "dataTypes" : [ "Mail", "Calendar", "Contact" ]
       }, {
         "id": "3b06df0e-3761-4s74-a92f-74dcc963501x",
         "resourceType": "octets",
