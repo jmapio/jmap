@@ -4,7 +4,7 @@ The quota is an object that displays the limit set to an account usage as well a
 
 The quota object MUST contain the following fields:
 
-* **id**: "`Id`" The unique identifier for this object. It should respect the JMAP ID data type defined in section 1.2 of [@!RFC8620]
+* **id**: "`Id`" The unique identifier for this object.
 
 * **resourceType**: "`ResourceType`" The resource type of the quota.
 
@@ -12,15 +12,15 @@ The quota object MUST contain the following fields:
 Computation of this value is handled by the server.
 
 * **limit**: "`UnsignedInt`" The hard limit set by this quota, using the `resourceType` defined as unit of measure. Objects 
-in scope may not be created or updated if we reach this limit. It should be higher than the `warnLimit` and the `softLimit`.
+in scope may not be created or updated if this limit is reached.
 
 * **scope**: "`Scope`" The `Scope` of this quota.
 
 * **name**: "`String`" The name of the quota object. Useful for managing quotas and using queries for searching.
 
-* **dataTypes**: "`String[]`" A list of all the data types values that are applying to this quota. This allows to assign
-quotas to separated or shared data types. This MAY include data types the client does not recognise. Clients MUST
-ignore any unknown data type in the list.
+* **dataTypes**: "`String[]`" A list of all the type names (e.g., Email, Calendar, etc.) to which this quota applies. 
+This allows to assign quotas to distinct or shared data types. This MAY include data types the client does not recognise. 
+Clients MUST ignore any unknown data type in the list.
 
 The quota object MAY contain the following fields:
 

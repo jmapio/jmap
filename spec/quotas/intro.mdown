@@ -4,7 +4,7 @@ JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for 
 calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims
 to provide a consistent interface to different data types.
 
-This specification defines a data model for handling quotas over JMAP, allowing you to read and explain quota information.
+This specification defines a data model for handling quotas over JMAP, allowing a user to obtain details about a certain quota.
 
 This specification does not address quota administration, which should be handled by other means.
 
@@ -19,11 +19,11 @@ capitals, as shown here.
 Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1
 of [@!RFC8620]. Data types defined in the core specification are also used in this document.
 
-Servers MUST support all properties specified for the new data types defined in this document.
+Servers that support the new data types defined in this document MUST support all the properties specified for these data types.
 
 ## Terminology
 
-The same terminology is used in this document as in the core JMAP specification.
+This document reuses the terminology from the core JMAP specification.
 
 The term Quota (with that specific capitalization) is used to refer to the data type defined in this document and instance of that data type.
 
@@ -41,23 +41,19 @@ The value of this property is an empty object in both the JMAP session capabilit
 
 ## Data types
 
-In addition to the standard JSON data types, a couple of additional data types are common to the definition of Quota objects and properties.
+In addition to the standard JMAP data types, a couple of additional data types are common to the definition of Quota objects and properties.
 
 ### Scope
 
-The **Scope** is a `String` from an enumeration defined list of values, handled by the server.
+The **Scope** data type is used to represent the entities the Quota applies to. It is defined as a `String` with values from the following set:
 
-It explains the entities this value applies to. Values for the **Scope** are:
-
-* `account`: Applies for this account
-* `domain`: All accounts of this domain share this part of the quota
-* `global`: All accounts of this server share this part of the quota
+* `account`: The Quota information applies to this account
+* `domain`: The Quota information applies to all accounts sharing this domain
+* `global`: The Quota information applies to all accounts belonging to the server
 
 ### ResourceType
 
-The **ResourceType** is a `String` from an enumeration defined list of values, handled by the server.
-
-A resource type is like an unit of measure for the quota usage. Values for the **ResourceType** are:
+The **ResourceType** data type is used to act as an unit of measure for the quota usage. It is defined as a `String` with values from the following set:
 
 * `count`: The quota is measured in number of data type objects. For example, a quota can have a limit of 50 `Mail` objects.
 * `octets`: The quota is measured in size (in `octets`). For example, a quota can have a limit of 25000 `octets`.
