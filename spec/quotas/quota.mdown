@@ -4,49 +4,71 @@ The quota is an object that displays the limit set to an account usage as well a
 
 The quota object MUST contain the following fields:
 
-* **id**: `Id` The unique identifier for this object.
+* id: "Id"
+  
+  The unique identifier for this object.
 
-* **resourceType**: `ResourceType` The resource type of the quota.
+* resourceType: "ResourceType"
+  
+  The resource type of the quota.
 
-* **used**: `UnsignedInt` The current usage of the defined quota, using the `resourceType` defined as unit of measure.
+* used: "UnsignedInt"
+  
+  The current usage of the defined quota, using the "resourceType" defined as unit of measure.
 Computation of this value is handled by the server.
 
-* **limit**: `UnsignedInt` The hard limit set by this quota, using the `resourceType` defined as unit of measure. Objects 
+* limit: "UnsignedInt"
+  
+  The hard limit set by this quota, using the "resourceType" defined as unit of measure. Objects 
 in scope may not be created or updated if this limit is reached.
 
-* **scope**: `Scope` The `Scope` of this quota.
+* scope: "Scope" 
+  
+  The "Scope" of this quota.
 
-* **name**: `String` The name of the quota object. Useful for managing quotas and using queries for searching.
+* name: "String" 
+  
+  The name of the quota object. Useful for managing quotas and using queries for searching.
 
-* **dataTypes**: `String[]` A list of all the type names (e.g., Email, Calendar, etc.) to which this quota applies. 
+* dataTypes: "String[]"
+  
+  A list of all the type names (e.g., Email, Calendar, etc.) to which this quota applies. 
 This allows to assign quotas to distinct or shared data types. This MAY include data types the client does not recognise. 
 Clients MUST ignore any unknown data type in the list.
 
 The quota object MAY contain the following fields:
 
-* **warnLimit**: `UnsignedInt|null` The warn limit set by this quota object, using the `resourceType` defined as unit of measure. 
+* warnLimit: "UnsignedInt|null" 
+  
+  The warn limit set by this quota object, using the "resourceType" defined as unit of measure. 
 It can be used to send a warning to an entity about to reach the hard limit soon, but with no action taken yet. If set, it 
-should be lower than the `softLimit` and the `limit`.
+should be lower than the "softLimit" and the "limit".
 
-* **softLimit**: `UnsignedInt|null` The soft limit set by this quota object, using the `resourceType` defined as unit of measure.
+* softLimit: "UnsignedInt|null" 
+  
+  The soft limit set by this quota object, using the "resourceType" defined as unit of measure.
 It can be used to still allow some operations, but refuse some others. What is allowed or not is up to the server. For example, it
 could be used for blocking outgoing events of an entity (sending emails, creating calendar events, ...) while still receiving
-incoming events (receiving emails, receiving calendars events, ...). If set, it should be higher than the `warnLimit` but lower
-than the `limit`.
+incoming events (receiving emails, receiving calendars events, ...). If set, it should be higher than the "warnLimit" but lower
+than the "limit".
 
-* **description**: `String|null` Arbitrary free, human readable, description of this quota. Might be used to explain
+* description: "String|null" 
+  
+  Arbitrary free, human readable, description of this quota. Might be used to explain
 where the limit comes from and explain the entities and data types this quota applies to. The description is presumed to be given
 in the US-ASCII character set.
 
 ## Quota/get
 
-Standard “/get” method as described in [@!RFC8620] section 5.1. The *ids* argument may be `null` to fetch all at once.
+Standard "/get" method as described in [@!RFC8620] section 5.1. The *ids* argument may be "null" to fetch all at once.
 
 ## Quota/changes
 
-Standard “/changes” method as described in [@!RFC8620] section 5.2 but with one extra argument to the response:
+Standard "/changes" method as described in [@!RFC8620] section 5.2 but with one extra argument to the response:
 
-* **updatedProperties**: `String[]|null` If only the “used” Quota properties has changed since the old state, this
+* updatedProperties: "String[]|null" 
+  
+  If only the "used” Quota properties has changed since the old state, this
 will be a list containing only that property. If the server is unable to tell if only "used" has changed, it
 MUST just be null.
 
@@ -59,26 +81,37 @@ Servers MAY decide to add other properties to the list that they judge changing 
 
 ## Quota/query
 
-This is a standard “/query” method as described in [@!RFC8620], Section 5.5.
+This is a standard "/query” method as described in [@!RFC8620], Section 5.5.
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
-* **name**: `String` The Quota _name_ property contains the given string.
-* **scopes**: `Scope[]` The Quota _scope_ property must be in this list to match the condition.
-* **resourceTypes**: `ResourceType[]` The Quota _resourceType_ property must be in this list to match the condition.
-* **dataTypes**: `String[]` The Quota _dataTypes_ property must contain the elements in this list to match the condition.
+* name: "String" 
+  
+  The Quota _name_ property contains the given string.
+
+* scopes: "Scope[]" 
+  
+  The Quota _scope_ property must be in this list to match the condition.
+
+* resourceTypes: "ResourceType[]" 
+  
+  The Quota _resourceType_ property must be in this list to match the condition.
+
+* dataTypes: "String[]" 
+  
+  The Quota _dataTypes_ property must contain the elements in this list to match the condition.
 
 A Quota object matches the FilterCondition if and only if all of the given conditions match. If zero properties are
 specified, it is automatically true for all objects.
 
 The following Quota properties MUST be supported for sorting:
 
-* **name**
-* **used**
+* name
+* used
 
 ## Quota/queryChanges
 
-This is a standard “/queryChanges” method as described in [@!RFC8620], Section 5.6.
+This is a standard "/queryChanges” method as described in [@!RFC8620], Section 5.6.
 
 ## Examples
 
