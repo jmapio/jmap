@@ -42,15 +42,15 @@ The quota object MAY contain the following fields:
   
   The warn limit set by this quota object, using the "resourceType" defined as unit of measure. 
 It can be used to send a warning to an entity about to reach the hard limit soon, but with no action taken yet. If set, it 
-should be lower than the "softLimit" and the "limit".
+SHOULD be lower than the "softLimit" (if present and different than null) and the "limit".
 
 * softLimit: "UnsignedInt|null" 
   
   The soft limit set by this quota object, using the "resourceType" defined as unit of measure.
 It can be used to still allow some operations, but refuse some others. What is allowed or not is up to the server. For example, it
 could be used for blocking outgoing events of an entity (sending emails, creating calendar events, ...) while still receiving
-incoming events (receiving emails, receiving calendars events, ...). If set, it should be higher than the "warnLimit" but lower
-than the "limit".
+incoming events (receiving emails, receiving calendars events, ...). If set, it SHOULD be higher than the "warnLimit" 
+(if present and different than null) but lower than the "limit".
 
 * description: "String|null" 
   
