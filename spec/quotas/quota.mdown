@@ -54,7 +54,7 @@ incoming events (receiving emails, receiving calendars events, ...). If set, it 
 
 * description: "String|null" 
   
-  Arbitrary free, human readable, description of this quota. Might be used to explain
+  Arbitrary free, human readable, description of this quota. It might be used to explain
 where the limit comes from and explain the entities and data types this quota applies to. The description MUST be 
 encoded in UTF-8 [@!RFC3629] as described in [@!RFC8620] section 1.5, selected based on an Accept-Language header in the request
 (as defined in [RFC9110], Section 12.5.4) or out-of-band information about the user's language/locale.
@@ -68,13 +68,13 @@ at once, as demonstrated in this document at (#fetching-quotas).
 
 ## Quota/changes
 
-Standard "/changes" method as described in [@!RFC8620] section 5.2 but with one extra argument to the response:
+Standard "/changes" method as described in [@!RFC8620] section 5.2 but with one extra argument in the response:
 
 * updatedProperties: "String[]|null" 
   
-  If only the "used” Quota property has changed since the old state, this
+  If only the "used" Quota property has changed since the old state, this
 will be a list containing only that property. If the server is unable to tell if only "used" has changed, it
-MUST just be null.
+MUST be null.
 
 Since "used" frequently changes but other properties are generally only changed rarely, the server can help the client
 optimise data transfer by keeping track of changes to Quota usage separate from other state changes. The
@@ -87,7 +87,7 @@ This method's usage is demonstrated in this document at (#requesting-latest-quot
 
 ## Quota/query
 
-This is a standard "/query” method as described in [@!RFC8620], Section 5.5.
+This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
@@ -117,7 +117,7 @@ The following Quota properties MUST be supported for sorting:
 
 ## Quota/queryChanges
 
-This is a standard "/queryChanges” method as described in [@!RFC8620], Section 5.6.
+This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
 
 # Examples
 
