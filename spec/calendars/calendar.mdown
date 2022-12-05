@@ -34,6 +34,15 @@ A **Calendar** object has the following properties:
 - **isVisible**: `Boolean` (default: true)
   Should the calendar's events be displayed to the user at the moment? Clients MUST ignore this property if isSubscribed is false. If an event is in multiple calendars, it should be displayed if isVisible is true for any of those calendars.
 
+- **isDefault**: `Boolean` (server-set)
+  This SHOULD be true for exactly one calendar in any account, and MUST NOT be
+  true for more than one calendar within an account. The default calendar
+  should be used by clients whenever they need to choose a calendar for the
+  user within this account, and they do not have any other information on
+  which to make a choice. For example, if the user creates a new event, the
+  client may automatically set the event as belonging to the default calendar
+  from the user's primary account.
+
 - **includeInAvailability**: `String`
   Should the calendar's events be used as part of availability calculation?
   This MUST be one of:
@@ -129,13 +138,27 @@ This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
 
 ## Calendar/set
 
-This is a standard "/set" method as described in [@!RFC8620], Section 5.3 but with the following additional request argument:
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3 but with the following additional request arguments:
 
 - **onDestroyRemoveEvents**: `Boolean` (default: false)
 
   If false, any attempt to destroy a Calendar that still has CalendarEvents
   in it will be rejected with a `calendarHasEvent` SetError. If
   true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This SHOULD NOT send scheduling messages to participants or create CalendarEventNotification objects.
+
+- **onSuccessSetIsDefault**: `Id|null`
+  If an id is given, and all creates, updates and destroys (if any) succeed
+  without error, the server will try to set this calendar as the default. (For
+  references to Calendar creations, this is equivalent to a
+  creation-reference, so the id will be the creation id prefixed with a "#".)
+
+  If the id is not found, or the change is not permitted by the server for
+  policy reasons, it MUST be ignored and the currently default calendar (if
+  any) will remain as such. No error is returned to the client in this case.
+
+  As per [@!RFC8620], Section 5.3, if the default is successfully changed, any
+  changed objects MUST be reported in either the "created" or "updated"
+  argument in the response as  appropriate, with the server-set value included.
 
 The "shareWith" property may only be set by users that have the mayAdmin right.
 When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a `forbidden` SetError.
@@ -156,8 +179,6 @@ The following properties may be set by anyone who is subscribed to the calendar 
 The "name", "color", and "timeZone" properties are initially inherited from the owner's copy of the calendar, but if set by a sharee then they get their own copy of the property; it does not change for any other principals. If the value of the property in the owner's calendar changes after this, it does not overwrite the sharee's value.
 
 The "sortOrder", "isVisible", "includeInAvailability", "defaultAlertsWithTime", and "defaultAlertsWithoutTime" properties are initally the default value for each sharee; they are not inherited from the owner.
-
-A calendar may be destroyed that is referenced as the "defaultCalendarId" in the CalenderPreferences object for the same account. If this occurs, the server MUST set the defaultCalendarId property on the CalendarPreferences to another calendar where the principal has the mayWriteAll right, if any, otherwise `null`.
 
 The following extra SetError types are defined:
 

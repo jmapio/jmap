@@ -22,7 +22,7 @@ Where `Duration` is given as a type, it means a length of time represented by a 
 
 The same terminology is used in this document as in the core JMAP specification, see [@!RFC8620], Section 1.6.
 
-The terms ParticipantIdentity, Calendar, CalendarEvent, CalendarEventNotification, and CalendarPreferences (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.
+The terms ParticipantIdentity, Calendar, CalendarEvent, and CalendarEventNotification (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.
 
 ## Data Model Overview
 
@@ -33,8 +33,6 @@ A CalendarEvent is a representation of an event or recurring series of events in
 CalendarEventNotification objects keep track of the history of changes made to a calendar by other users, allowing calendar clients to notify the user of changes to their schedule.
 
 The ParticipantIdentity data type represents the identities of the current user within an Account, which determines which events the user is a participant of and possibly their permissions related to that event.
-
-The CalendarPreferences object is a singleton in the account that stores the user's default calendar and participant identity.
 
 In servers with support for JMAP Sharing [RFC XXX], data may be shared with other users. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Principals may also represent schedulable entities, such as a meeting room.
 
@@ -70,12 +68,6 @@ The value of this property in an account’s accountCapabilities property is an 
   The maximum number of participants a single event may have, or null for no limit.
 - **mayCreateCalendar**: `Boolean`
   If true, the user may create a calendar in this account.
-
-### urn:ietf:params:jmap:calendars:preferences
-
-This represents support for the CalendarPreferences data type and associated API methods. The value of this property in the JMAP Session capabilities property and the account’s accountCapabilities property is an empty object.
-
-Any account with this capability MUST also have the `urn:ietf:params:jmap:calendars` capability.
 
 ### urn:ietf:params:jmap:principals:availability
 

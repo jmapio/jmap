@@ -13,10 +13,6 @@ A user has authenticated and the client has fetched the JMAP Session object. It 
       ["ParticipantIdentity/get", {
         "accountId": "a0x9"
       }, "1"],
-      ["CalendarPreferences/get", {
-        "accountId": "a0x9",
-        "ids": ["singleton"]
-      }, "2"],
       ["CalendarEvent/query", {
         "accountId": "a0x9",
         "timeZone": "Australia/Melbourne",
@@ -24,7 +20,7 @@ A user has authenticated and the client has fetched the JMAP Session object. It 
           "after": "2023-01-01T00:00:00",
           "before": "2023-02-01T00:00:00"
         }
-      }, "3"],
+      }, "2"],
       ["CalendarEvent/get", {
       	"accountId": "a0x9",
       	"#ids":{
@@ -32,7 +28,7 @@ A user has authenticated and the client has fetched the JMAP Session object. It 
       	  "name":"CalendarEvent/query",
       	  "path":"/ids"
       	}
-      }, "4"]
+      }, "3"]
     ]
 
 
@@ -45,12 +41,14 @@ The server might respond with something like:
            "id": "062adcfa-105d-455c-bc60-6db68b69c3f3",
            "name": "Private",
            "sortOrder": 12
+           "isDefault": false,
            "defaultAlertsWithTime": null,
            ...
          }, {
            "id": "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662",
            "name": "Work",
            "sortOrder": 4
+           "isDefault": true,
            "defaultAlertsWithTime": {
              "631BE24C-A3B6-11EC-BF4C-B027680D752E": {
                "@type": "Alert",
@@ -77,22 +75,12 @@ The server might respond with something like:
            	 "imip": "mailto:jane@example.com",
            	 "other":
            	 	"https://example.com/uri/for/internal/scheduling"
-           }
+           },
+           "isDefault": true
          }],
          "notFound": [],
          "state": "lgkf:98144:aae"
       }, "1"],
-      ["CalendarPreferences/get", {
-        "accountId": "a0x9",
-        "list": [{
-           "id": "singleton",
-           "defaultCalendarId":
-             "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662"
-           "defaultParticipantIdentityId": "3"
-         }],
-         "notFound": [],
-         "state": "lgkf:98144:aae"
-      }, "2"],
       ["CalendarEvent/query", {
         "accountId": "a0x9",
         "canCalculateChanges": false,
@@ -103,7 +91,7 @@ The server might respond with something like:
           "E-07a2b89d-96b6-4920-982a-54fdf0a386ce",
           ...
         ]
-      }, "3"],
+      }, "2"],
       ["CalendarEvent/get", {
       	"accountId": "a0x9",
       	"list": [{
@@ -119,14 +107,14 @@ The server might respond with something like:
          }, ...],
          "notFound": [],
          "state": "$$/413/206"
-      }, "4"]
+      }, "3"]
 	]
 
 The client now has everything it needs to display that month in full.
 
 ## Creating an event
 
-Suppose the user asks the client to create a new event. The client should default to adding it to the "Work" calendar, as this is the default indicated in CalendarPreferences.
+Suppose the user asks the client to create a new event. The client should default to adding it to the "Work" calendar, as this is the default calendar for the user, unless it has information to make a more informed decision. (e.g. The client may have a feature to automatically choose the calendar based on the time of day, and the user indicates the event is at 7pm, so it knows to default to "Private".)
 
 	[
 	  ["CalendarEvent/set", {
@@ -305,3 +293,31 @@ The user snoozes the notification for 30 minutes. The client dismisses the curre
 	]
 
 Any other connected client will receive a push, sync the change and dismiss any duplicate alert. After the snooze time has elapsed, the new alert will trigger.
+
+## Changing the default calendar
+
+The client tries to change the default calendar from "Work" to "Private" (and
+makes no other change):
+
+
+    [
+      ["Calendar/set", {
+        "accountId": "a0x9",
+        "onSuccessSetIsDefault": "062adcfa-105d-455c-bc60-6db68b69c3f3"
+      }, "0"]
+    ]
+
+The server allows the change, returning the following response:
+
+    [
+      ["Calendar/set", {
+        "accountId": "a0x9",
+        "updated": {
+          "062adcfa-105d-455c-bc60-6db68b69c3f3": {
+            "isDefault": true,
+          },
+          "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": {
+            "isDefault": false,
+          }
+      }, "0"]
+    ]

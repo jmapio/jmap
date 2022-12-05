@@ -14,6 +14,17 @@ A ParticipantIdentity stores information about a URI that represents the user wi
 
      The keys in the property value are the available methods and MUST only contain ASCII alphanumeric characters (A-Za-z0-9). The value is a URI for the method specified in the key.
 
+- **isDefault**: `Boolean` (server-set)
+  This SHOULD be true for exactly one participant identity in any account, and
+  MUST NOT be true for more than one participant identity within an account.
+  The default identity should be used by clients whenever they need to choose
+  an identity for the user within this account, and they do not have any other
+  information on which to make a choice. For example, if creating a scheduled
+  event in this account, the default identity may be automatically added as
+  an owner. (But the client may ignore this if, for example, it has its own
+  feature to allow users to choose which identity to use based on the
+  invitees.)
+
 A participant in an event corresponds to a ParticipantIdentity if the scheduleId property of the participant is equivalent to the scheduleId property of the identity after syntax-based normalisation, as per [@!RFC3986], Section 6.2.2.
 
 The following JMAP methods are supported.
@@ -28,6 +39,22 @@ This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
 
 ## ParticipantIdentity/set
 
-This is a standard "/set" method as described in [@!RFC8620], Section 5.3. The server MAY restrict the uri values the user may claim, for example only allowing `mailto:` URIs with email addresses that belong to the user. A standard `forbidden` error is returned to reject non-permissible changes.
+This is a standard "/set" method as described in [@!RFC8620], Section 5.3, but with the following additional request argument:
 
-A participant identity may be destroyed that is referenced as the "defaultParticipantIdentityId" in the CalenderPreferences object for the same account. Doing so updates the defaultParticipantIdentityId property on the CalendarPreferences to `null`.
+- **onSuccessSetIsDefault**: `Id|null`
+  If an id is given, and all creates, updates and destroys (if any) succeed
+  without error, the server will try to set this identity as the default. (For
+  references to ParticipantIdentity creations, this is equivalent to a
+  creation-reference, so the id will be the creation id prefixed with a "#".)
+
+  If the id is not found, or the change is not permitted by the server for
+  policy reasons, it MUST be ignored and the currently default
+  ParticipantIdentity (if any) will remain as such. No error is returned to
+  the client in this case.
+
+  As per [@!RFC8620], Section 5.3, if the default is successfully changed, any
+  changed objects MUST be reported in either the "created" or "updated"
+  argument in the response as  appropriate, with the server-set value included.
+
+
+The server MAY restrict the uri values the user may claim, for example only allowing `mailto:` URIs with email addresses that belong to the user. A standard `forbidden` error is returned to reject non-permissible changes.
