@@ -42,7 +42,7 @@ The quota object MAY contain the following fields:
   
   The warn limit set by this quota object, using the "resourceType" defined as unit of measure. 
 It can be used to send a warning to an entity about to reach the hard limit soon, but with no action taken yet. If set, it 
-SHOULD be lower than the "softLimit" (if present and different than null) and the "limit".
+SHOULD be lower than the "softLimit" (if present and different from null) and the "limit".
 
 * softLimit: "UnsignedInt|null" 
   
@@ -50,11 +50,11 @@ SHOULD be lower than the "softLimit" (if present and different than null) and th
 It can be used to still allow some operations, but refuse some others. What is allowed or not is up to the server. For example, it
 could be used for blocking outgoing events of an entity (sending emails, creating calendar events, ...) while still receiving
 incoming events (receiving emails, receiving calendars events, ...). If set, it SHOULD be higher than the "warnLimit" 
-(if present and different than null) but lower than the "limit".
+(if present and different from null) but lower than the "limit".
 
 * description: "String|null" 
   
-  Arbitrary free, human readable, description of this quota. It might be used to explain
+  Arbitrary free, human-readable, description of this quota. It might be used to explain
 where the limit comes from and explain the entities and data types this quota applies to. The description MUST be 
 encoded in UTF-8 [@!RFC3629] as described in [@!RFC8620] section 1.5, selected based on an Accept-Language header in the request
 (as defined in [@!RFC9110], Section 12.5.4) or out-of-band information about the user's language/locale.
