@@ -2,6 +2,8 @@
 
 The quota is an object that displays the limit set to an account usage. It then shows as well the current usage in regard to that limit.
 
+## Properties of the quota object
+
 The quota object MUST contain the following fields:
 
 * id: "Id"
@@ -64,7 +66,7 @@ The following JMAP methods are supported.
 ## Quota/get
 
 Standard "/get" method as described in [@!RFC8620] section 5.1. The *ids* argument may be "null" to fetch all Quotas of the account 
-at once, as demonstrated in this document at (#fetching-quotas).
+at once, as demonstrated in this document in (#fetching-quotas).
 
 ## Quota/changes
 
@@ -89,19 +91,19 @@ This method's usage is demonstrated in this document at (#requesting-latest-quot
 
 This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
 
-A **FilterCondition** object has the following properties, any of which may be omitted:
+A **FilterCondition** object has the following properties, any of which may be included or  omitted:
 
 * name: "String" 
   
   The Quota _name_ property contains the given string.
 
-* scopes: "Scope[]" 
+* scopes: "Scope" 
   
-  The Quota _scope_ property must be in this list to match the condition.
+  The Quota _scope_ property must match the given value exactly.
 
-* resourceTypes: "ResourceType[]" 
+* resourceTypes: "ResourceType" 
   
-  The Quota _resourceType_ property must be in this list to match the condition.
+  The Quota _resourceType_ property must match the given value exactly.
 
 * dataTypes: "String[]" 
   
@@ -161,7 +163,7 @@ Request fetching the changes for a specific quota:
 
     [[ "Quota/changes", {
       "accountId": "u33084183",
-      "sinceState": "10824",
+      "sinceState": "78540",
       "maxChanges": 20
     }, "0" ],
     [ "Quota/get", {
@@ -182,8 +184,8 @@ With response:
 
     [[ "Quota/changes", {
       "accountId": "u33084183",
-      "oldState": "10824",
-      "newState": "10826",
+      "oldState": "78540",
+      "newState": "78542",
       "hasMoreChanges": false,
       "updatedProperties": ["used"],
       "created": [],
