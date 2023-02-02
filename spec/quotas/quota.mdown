@@ -32,11 +32,13 @@ in scope may not be created or updated if this limit is reached.
   
   The name of the quota object. Useful for managing quotas and using queries for searching.
 
-* dataTypes: "String[]"
+* types: "String[]"
   
-  A list of all the type names (e.g., Email, Calendar, etc.) to which this quota applies. 
-This allows to assign quotas to distinct or shared data types. This MAY include data types the client does not recognise. 
-Clients MUST ignore any unknown data type in the list.
+  A list of all the type names as defined in the "JMAP Types Names" registry (e.g., Email, Calendar, etc.) to which this quota applies. 
+This allows to assign quotas to distinct or shared data types.
+
+The server MUST filter out any types for which the client did not request the associated capability in the "using" section of the request.
+Futher, the server MUST NOT return Quota objects for which there are no types recognised by the client.
 
 The quota object MAY contain the following fields:
 
@@ -105,9 +107,9 @@ A **FilterCondition** object has the following properties, any of which may be i
   
   The Quota _resourceType_ property must match the given value exactly.
 
-* dataTypes: "String[]" 
+* types: "String[]" 
   
-  The Quota _dataTypes_ property must contain the elements in this list to match the condition.
+  The Quota _types_ property must contain all the elements in this list to match the condition.
 
 A Quota object matches the FilterCondition if and only if all the given conditions
 match, including multiple array elements existing within a condition. If zero properties are
@@ -148,7 +150,7 @@ With response :
         "scope": "account",
         "name": "bob@example.com",
         "description": "Personal account usage. When the soft limit is reached, the user is not allowed to send mails or create contacts and calendar events anymore.",
-        "dataTypes" : [ "Mail", "Calendar", "Contact" ]
+        "types" : [ "Mail", "Calendar", "Contact" ]
       }, {
         "id": "3b06df0e-3761-4s74-a92f-74dcc963501x",
         "resourceType": "octets",
