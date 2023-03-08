@@ -36,8 +36,7 @@ On top of the JSTask properties, a Task object has the following additional core
   is consistent between devices. The number MUST be an integer in the range
   0 <= sortOrder < 2^31.
 
-    A task with a lower order should be displayed before a task with
-    a higher order in any list of tasks in the client's UI. Tasks with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
+    A task with a lower order should be displayed before a task with a higher order in any list of tasks in the client's UI. Tasks with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
 
 - **workflowStatus**: `String|null` (default: null)
   Specifies the status of the task. The allowed values are defined within `workflowStatuses`. If set, `progress` MUST null.
@@ -70,6 +69,25 @@ This specifies the estimated amount of work the task takes to complete. In Agile
 Type: `String|null` (default: null)
 
 This specifies the impact or severity of the task, but does not say anything about the actual prioritization. Some examples are: minor, trivial, major or block. Usually, the priority of a task is based upon its impact and urgency.
+
+### checklists
+
+Type: `Id[Checklist]`
+
+A map of Checklist IDs to Checklist objects, containing checklist items. A Checklist object has the following properties:
+
+* @type: `String`. Specifies the type of this object. This *MUST* be `Checklist`.
+* title: `String` (optional). Title of the list. 
+* checkItems: `CheckItem[]` (optional). The items of the check list.
+
+A CheckItem object has the following properties:
+
+* @type: `String`. Specifies the type of this object. This *MUST* be `CheckItem`.
+* title: `String`. Title of the item.
+* sortOrder: `UnsignedInt` (default: 0) Defines the sort order of CheckItem when presented in the client's UI. The number MUST be an integer in the range 0 <= sortOrder < 2^31. An item with a lower order should be displayed before an item with a higher order. Items with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
+* updated: `UTCDateTime` (optional) The date and time when this item was updated
+* isComplete: `Boolean`
+* participant: `String` (optional) The scheduleId of the assignee that this item was assigned to. MUST be a URI.
 
 ## Properties similar in JMAP for Calendar
 
