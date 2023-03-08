@@ -76,18 +76,36 @@ Type: `Id[Checklist]`
 
 A map of Checklist IDs to Checklist objects, containing checklist items. A Checklist object has the following properties:
 
-* @type: `String`. Specifies the type of this object. This *MUST* be `Checklist`.
+* @type: `String`. Specifies the type of this object. This MUST be `Checklist`.
 * title: `String` (optional). Title of the list. 
 * checkItems: `CheckItem[]` (optional). The items of the check list.
 
 A CheckItem object has the following properties:
 
-* @type: `String`. Specifies the type of this object. This *MUST* be `CheckItem`.
+* @type: `String`. Specifies the type of this object. This MUST be `CheckItem`.
 * title: `String`. Title of the item.
 * sortOrder: `UnsignedInt` (default: 0) Defines the sort order of CheckItem when presented in the client's UI. The number MUST be an integer in the range 0 <= sortOrder < 2^31. An item with a lower order should be displayed before an item with a higher order. Items with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
 * updated: `UTCDateTime` (optional) The date and time when this item was updated
 * isComplete: `Boolean`
-* participant: `String` (optional) The scheduleId of the assignee that this item was assigned to. MUST be a URI.
+* assigneee: `Person` (optional) The person that this item is assigned to.
+
+The `Person` object has the following properties:
+
+* @type: `String` (mandatory). Specifies the type of this object. This MUST be Person.
+* name: `String` (optional). The name of this Person.
+* uri: `String` (optional). A URI value that identifies the person. This SHOULD be the scheduleId of the participant that this item was assigned to.
+
+### comments
+
+Type: `Id[Comment]` (optional).
+
+Free-text comments associated with this task. A Comment object has the following properties:
+
+* @type: `String` (mandatory). Specifies the type of this object. This MUST be `Comment`.
+* message: `String` (mandatory). The free text value of this comment.
+* created: `UTCDateTime` (optional). The date and time when this note was created.
+* updated: `UTCDateTime` (optional). The date and time when this note was updated.
+* author: `Person` (optional). The author of this comment. The Person object is defined in the Section of the checklists Property.
 
 ## Properties similar in JMAP for Calendar
 
@@ -211,3 +229,4 @@ TODO copy+paste most stuff from "CalendarEvent/query". Mainly filtering should b
 ## Task/queryChanges
 
 This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+s
