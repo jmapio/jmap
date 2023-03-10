@@ -70,30 +70,40 @@ Type: `String|null` (default: null)
 
 This specifies the impact or severity of the task, but does not say anything about the actual prioritization. Some examples are: minor, trivial, major or block. Usually, the priority of a task is based upon its impact and urgency.
 
-### checklists
+### checklists {#checklists}
 
 Type: `Id[Checklist]`
 
-A map of Checklist IDs to Checklist objects, containing checklist items. A Checklist object has the following properties:
+A map of Checklist IDs to Checklist objects, containing checklist items. A **Checklist** object has the following properties:
 
-* @type: `String`. Specifies the type of this object. This MUST be `Checklist`.
-* title: `String` (optional). Title of the list. 
-* checkItems: `CheckItem[]` (optional). The items of the check list.
+* **@type**: `String`
+  Specifies the type of this object. This MUST be `Checklist`.
+* **title**: `String` (optional)
+  Title of the list. 
+* **checkItems**: `CheckItem[]` (optional)
+  The items of the check list.
 
-A CheckItem object has the following properties:
+A **CheckItem** object has the following properties:
 
-* @type: `String`. Specifies the type of this object. This MUST be `CheckItem`.
-* title: `String`. Title of the item.
-* sortOrder: `UnsignedInt` (default: 0) Defines the sort order of CheckItem when presented in the client's UI. The number MUST be an integer in the range 0 <= sortOrder < 2^31. An item with a lower order should be displayed before an item with a higher order. Items with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
-* updated: `UTCDateTime` (optional) The date and time when this item was updated
-* isComplete: `Boolean`
-* assigneee: `Person` (optional) The person that this item is assigned to.
-
-The `Person` object has the following properties:
-
-* @type: `String` (mandatory). Specifies the type of this object. This MUST be Person.
-* name: `String` (optional). The name of this Person.
-* uri: `String` (optional). A URI value that identifies the person. This SHOULD be the scheduleId of the participant that this item was assigned to.
+* **@type**: `String`
+  Specifies the type of this object. This MUST be `CheckItem`.
+* **title**: `String`
+  Title of the item.
+* **sortOrder**: `UnsignedInt` (default: 0)
+  Defines the sort order of CheckItem when presented in the client's UI. The number MUST be an integer in the range 0 <= sortOrder < 2^31. An item with a lower order should be displayed before an item with a higher order. Items with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
+* **updated**: `UTCDateTime` (optional)
+  The date and time when this item was updated
+* **isComplete**: `Boolean`
+* **assigneee**: `Person` (optional)
+  The person that this item is assigned to. The Person object has the following properties of which either principalId or uri MUST be defined:
+  * **@type**: `String` (mandatory)
+    Specifies the type of this object. This MUST be Person.
+  * **name**: `String` (optional)
+    The name of the person.
+  * **uri**: `String` (optional)
+    A URI value that identifies the person. This SHOULD be the scheduleId of the participant that this item was assigned to.
+  * **principalId**: `String` (optional)
+    The id of the Principal corresponding to the person, if any.
 
 ### comments
 
@@ -101,11 +111,11 @@ Type: `Id[Comment]` (optional).
 
 Free-text comments associated with this task. A Comment object has the following properties:
 
-* @type: `String` (mandatory). Specifies the type of this object. This MUST be `Comment`.
-* message: `String` (mandatory). The free text value of this comment.
-* created: `UTCDateTime` (optional). The date and time when this note was created.
-* updated: `UTCDateTime` (optional). The date and time when this note was updated.
-* author: `Person` (optional). The author of this comment. The Person object is defined in the Section of the checklists Property.
+* **@type**: `String` (mandatory). Specifies the type of this object. This MUST be `Comment`.
+* **message**: `String` (mandatory). The free text value of this comment.
+* **created**: `UTCDateTime` (optional). The date and time when this note was created.
+* **updated**: `UTCDateTime` (optional). The date and time when this note was updated.
+* **author**: `Person` (optional). The author of this comment. The Person object is defined in Section (#checklists).
 
 ## Properties similar in JMAP for Calendar
 
