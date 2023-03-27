@@ -162,6 +162,9 @@ An id may represent a server-expanded single instance of a recurring event if th
 
 Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single "/set" request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different `recurrenceId` property) with the base event (same uid, no `recurrenceId`) in a single "/set" call. (So the /set will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.
 
+If a property is set to null in a create/update, this is equivalent to
+omitting/removing the property from the JSEvent object.
+
 Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a `forbidden` SetError if not allowed.
 
 The "privacy" property of a JSEvent object allows the principal to override how sharees of the calendar see the event. If this is set to "private", a sharee may not delete or update the event (even if only modifying per-user properties); any attempt to modify such an event MUST be rejected with a `forbidden` SetError. If set to "secret", the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.
