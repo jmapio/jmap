@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rfc version="3" ipr="trust200902" docName="draft-ietf-jmap-sharing-03" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
+
+<front>
+<title abbrev="JMAP Sharing">JMAP Sharing</title>
+<seriesInfo value="draft-ietf-jmap-sharing-03" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
+<author role="editor" initials="N.M." surname="Jenkins" fullname="Neil Jenkins">
+	<organization>Fastmail</organization>
+	<address>
+		<postal>
+			<street>PO Box 234, Collins St West</street>
+			<city>Melbourne</city>
+			<code>VIC 8007</code>
+			<country>Australia</country>
+		</postal>
+		<email>neilj@fastmailteam.com</email>
+		<uri>https://www.fastmail.com</uri>
+	</address>
+</author>
+<date year="2023" month="March" day="27"></date>
+<area>Applications</area>
+<workgroup>JMAP</workgroup>
+<keyword>JMAP</keyword>
+<keyword>JSON</keyword>
+<keyword>sharing</keyword>
+
+<abstract>
+<t>This document specifies a data model for sharing data between users using JMAP.</t>
+</abstract>
+</front>
+
+<middle>
+
+<section anchor="introduction"><name>Introduction</name>
+<t>JMAP (<xref target="RFC8620"></xref> JSON Meta Application Protocol) is a generic protocol for synchronizing data, such as mail, calendars or contacts, between a client and a server. It is optimized for mobile and web environments, and aims to provide a consistent interface to different data types.</t>
+<t>This specification defines a data model to represent entities in a collaborative environment, and a framework for sharing data between them that can be used to provide a consistent sharing model for different data types. It does not define <em>what</em> may be shared, or the granularity of permissions, as this will depend on the data in question.</t>
+
+<section anchor="notational-conventions"><name>Notational Conventions</name>
+<t>The key words &quot;MUST&quot;, &quot;MUST NOT&quot;, &quot;REQUIRED&quot;, &quot;SHALL&quot;, &quot;SHALL NOT&quot;, &quot;SHOULD&quot;, &quot;SHOULD NOT&quot;, &quot;RECOMMENDED&quot;, &quot;NOT RECOMMENDED&quot;, &quot;MAY&quot;, and &quot;OPTIONAL&quot; in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
+<t>Type signatures, examples, and property descriptions in this document follow the conventions established in <xref target="RFC8620" section="1.1" sectionFormat="of"></xref>.  Data types defined in the core specification are also used in this document.</t>
+</section>
+
+<section anchor="terminology"><name>Terminology</name>
+<t>The same terminology is used in this document as in the core JMAP specification, see <xref target="RFC8620" section="1.6" sectionFormat="comma"></xref>.</t>
+<t>The terms Principal, and ShareNotification (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.</t>
+</section>
+
+<section anchor="data-model-overview"><name>Data Model Overview</name>
+<t>A Principal (see <xref target="principals"/>) represents an individual, team, or resource (e.g., a room or projector). The object contains information about the entity being represented, such as a name, description, and time zone. It may also hold domain-specific information. A Principal may be associated with zero or more Accounts (see <xref target="RFC8620" section="1.6.2" sectionFormat="comma"></xref>) containing data belonging to the principal. Managing the set of principals within a system is out of scope for this specification, as it is highly domain specific. It is likely to map directly from a directory service or other user management system.</t>
+<t>Data types may allow users to share data with others by assigning permissions to principals. When a user's permissions are changed, a ShareNotification object is created for them so a client can inform the user of the changes.</t>
+</section>
+
+<section anchor="subscriptions"><name>Subscriptions</name>
+<t>Permissions determine whether a user <em>may</em> access data, but not whether they <em>want</em> to. Some shared data is of equal importance as the user's own, while other data is just there should the user wish to explicitly go find it. Clients will often want to differentiate the two; for example, a company may share mailing list archives for all departments with all employees, but a user may only generally be interested in the few they belong to. They would have <em>permission</em> to access many mailboxes, but can <em>subscribe</em> to just the ones they care about. The client would provide separate interfaces for reading mail in subscribed mailboxes and browsing all mailboxes they have permission to access in order to manage their subscriptions.</t>
+<t>The JMAP Session object (see <xref target="RFC8620" section="2" sectionFormat="comma"></xref>) typically includes an object in the <tt>accounts</tt> property for every account that the user has access to. Collaborative systems may share data between a very large number of Principals, most of which the user does not care about day-to-day. The Session object <bcp14>MUST</bcp14> only include Accounts where either the user is subscribed to at least one record (see <xref target="RFC8620" section="1.6.3" sectionFormat="comma"></xref>) in the account, or the account belongs to the user. StateChange events for changes to data <bcp14>SHOULD</bcp14> only be sent for data the user has subscribed to and <bcp14>MUST NOT</bcp14> be sent for any account where the user is not subscribed to any records in the account, except where that account belongs to the user.</t>
+<t>The server <bcp14>MAY</bcp14> reject the user's attempt to subscribe to some resources even if they have permission to access them, e.g., a calendar representing a location.</t>
+<t>A user may query the set of Principals they have access to with &quot;Principal/query&quot; (see <xref target="principal-query"/>). The Principal object may then provide Account objects if the user has permission to access data for that principal, even if they are not yet subscribed.</t>
+</section>
+
+<section anchor="addition-to-the-capabilities-object"><name>Addition to the Capabilities Object</name>
+<t>The capabilities object is returned as part of the JMAP Session object; see <xref target="RFC8620" section="2" sectionFormat="comma"></xref>. This document defines two additional capability URIs.</t>
+
+<section anchor="urn-ietf-params-jmap-principals"><name>urn:ietf:params:jmap:principals</name>
+<t>Represents support for the Principal and ShareNotification data types and associated API methods.</t>
+<t>The value of this property in the JMAP Session capabilities property is an empty object.</t>
+<t>The value of this property in an account’s accountCapabilities property is an object that <bcp14>MUST</bcp14> contain the following information on server capabilities and permissions for that account:</t>
+
+<ul spacing="compact">
+<li><t><strong>currentUserPrincipalId</strong>: <tt>Id|null</tt></t>
+<t>The id of the principal in this account that corresponds to the user fetching this object, if any.</t></li>
+</ul>
+</section>
+
+<section anchor="urn-ietf-params-jmap-principals-owner"><name>urn:ietf:params:jmap:principals:owner</name>
+<t>This URI is solely used as a key in an account’s accountCapabilities property; it does not appear in the JMAP Session capabilities. Support is implied by the <tt>urn:ietf:params:jmap:principals</tt> session capability.</t>
+<t>If present, the account (and data therein) is owned by a principal. Some accounts may not be owned by a principal (e.g., the account that contains the data for the principals themselves), in which case this property is omitted.</t>
+<t>The value of this property is an object with the following properties:</t>
+
+<ul spacing="compact">
+<li><t><strong>accountIdForPrincipal</strong>: <tt>Id</tt></t>
+<t>The id of an account with the <tt>urn:ietf:params:jmap:principals</tt>
+capability that contains the corresponding Principal object.</t></li>
+<li><t><strong>principalId</strong>: <tt>Id</tt></t>
+<t>The id of the Principal that owns this account.</t></li>
+</ul>
+</section>
+</section>
+</section>
+
+<section anchor="principals"><name>Principals</name>
+<t>A Principal represents an individual, group, location (e.g., a room), resource (e.g., a projector) or other entity in a collaborative environment. Sharing in JMAP is generally configured by assigning rights to certain data within an account to other principals, for example a user may assign permission to read their calendar to a principal representing another user, or their team.</t>
+<t>In a shared environment such as a workplace, a user may have access to a large number of principals.</t>
+<t>In most systems the user will have access to a single Account containing Principal objects, but they may have access to multiple if, for example, aggregating data from different places.</t>
+<t>A <strong>Principal</strong> object has the following properties:</t>
+
+<ul spacing="compact">
+<li><t><strong>id</strong>: <tt>Id</tt></t>
+<t>The id of the principal.</t></li>
+<li><t><strong>type</strong>: <tt>String</tt></t>
+<t>This <bcp14>MUST</bcp14> be one of the following values:</t>
+
+<ul spacing="compact">
+<li><tt>individual</tt>: This represents a single person.</li>
+<li><tt>group</tt>: This represents a group of people.</li>
+<li><tt>resource</tt>: This represents some resource, e.g., a projector.</li>
+<li><tt>location</tt>: This represents a location.</li>
+<li><tt>other</tt>: This represents some other undefined principal.</li>
+</ul></li>
+<li><t><strong>name</strong>: <tt>String</tt></t>
+<t>The name of the principal, e.g., &quot;Jane Doe&quot;, or &quot;Room 4B&quot;.</t></li>
+<li><t><strong>description</strong>: <tt>String|null</tt></t>
+<t>A longer description of the principal, for example details about the facilities of a resource, or null if no description available.</t></li>
+<li><t><strong>email</strong>: <tt>String|null</tt></t>
+<t>An email address for the principal, or null if no email is available.</t></li>
+<li><t><strong>timeZone</strong>: <tt>String|null</tt></t>
+<t>The time zone for this principal, if known. If not null, the value <bcp14>MUST</bcp14> be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>.</t></li>
+<li><t><strong>capabilities</strong>: <tt>String[Object]</tt></t>
+<t>A map of JMAP capability URIs to domain specific information about the principal in relation to that capability, as defined in the document that registered the capability.</t></li>
+<li><t><strong>accounts</strong>: <tt>Id[Account]|null</tt></t>
+<t>A map of account id to Account object for each JMAP Account containing data
+for this principal that the user has access to, or null if none.</t></li>
+</ul>
+
+<section anchor="principal-get"><name>Principal/get</name>
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" sectionFormat="comma"></xref>.</t>
+</section>
+
+<section anchor="principal-changes"><name>Principal/changes</name>
+<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620" section="5.2" sectionFormat="comma"></xref>.</t>
+</section>
+
+<section anchor="principal-set"><name>Principal/set</name>
+<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>.</t>
+<t>Users <bcp14>SHOULD</bcp14> be allowed to update the &quot;name&quot;, &quot;description&quot; and &quot;timeZone&quot; properties of the Principal with the same id as the &quot;currentUserPrincipalId&quot; in the Account capabilities.</t>
+<t>However, the server may, and probably will, reject any change with a <tt>forbidden</tt> SetError. Managing principals is likely tied to a directory service or some other vendor-specific solution, and may occur out-of-band, or via an additional capability defined elsewhere.</t>
+</section>
+
+<section anchor="principal-query"><name>Principal/query</name>
+<t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620" section="5.5" sectionFormat="comma"></xref></t>
+
+<section anchor="filtering"><name>Filtering</name>
+<t>A <strong>FilterCondition</strong> object has the following properties:</t>
+
+<ul spacing="compact">
+<li><t><strong>accountIds</strong>: <tt>String[]</tt></t>
+<t>A list of account ids. The Principal matches if any of the ids in this list are keys in the Principal's &quot;accounts&quot; property (i.e., if any of the account ids belong to the principal).</t></li>
+<li><t><strong>email</strong>: <tt>String</tt></t>
+<t>Looks for the text in the email property.</t></li>
+<li><t><strong>name</strong>: <tt>String</tt></t>
+<t>Looks for the text in the name property.</t></li>
+<li><t><strong>text</strong> <tt>String</tt></t>
+<t>Looks for the text in the name, email, and description properties.</t></li>
+<li><t><strong>type</strong>: <tt>String</tt></t>
+<t>The type must be exactly as given to match the condition.</t></li>
+<li><t><strong>timeZone</strong>: <tt>String</tt></t>
+<t>The timeZone must be exactly as given to match the condition.</t></li>
+</ul>
+<t>All conditions in the FilterCondition object must match for the Principal to match.</t>
+</section>
+</section>
+
+<section anchor="principal-querychanges"><name>Principal/queryChanges</name>
+<t>This is a standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620" section="5.6" sectionFormat="comma"></xref>.</t>
+</section>
+</section>
+
+<section anchor="share-notifications"><name>Share Notifications</name>
+<t>The ShareNotification data type records when the user's permissions to access a shared object changes. ShareNotification are only created by the server; users cannot create them explicitly. Notifications are stored in the same Account as the Principals.</t>
+<t>Clients <bcp14>SHOULD</bcp14> present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard &quot;/set&quot; call to destroy it.</t>
+<t>The server <bcp14>SHOULD</bcp14> create a ShareNotification whenever the user's permissions change on an object. It <bcp14>SHOULD NOT</bcp14> create a notification for permission changes to a group principal, even if the user is in the group.</t>
+
+<section anchor="auto-deletion-of-notifications"><name>Auto-deletion of Notifications</name>
+<t>The server <bcp14>MAY</bcp14> limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.</t>
+<t>The server <bcp14>MAY</bcp14> coalesce notifications if appropriate, or remove notifications that it deems are no longer relevant or after a certain period of time. The server <bcp14>SHOULD</bcp14> automatically destroy a notification about an object if the user subscribes to that object.</t>
+</section>
+
+<section anchor="object-properties"><name>Object Properties</name>
+<t>The <strong>ShareNotification</strong> object has the following properties:</t>
+
+<ul spacing="compact">
+<li><t><strong>id</strong>: <tt>String</tt></t>
+<t>The id of the ShareNotification.</t></li>
+<li><t><strong>created</strong>: <tt>UTCDate</tt></t>
+<t>The time this notification was created.</t></li>
+<li><t><strong>changedBy</strong>: <tt>Person</tt></t>
+<t>Who made the change.</t>
+
+<ul spacing="compact">
+<li><t><strong>name</strong>: <tt>String</tt></t>
+<t>The name of the person who made the change.</t></li>
+<li><t><strong>email</strong>: <tt>String|null</tt></t>
+<t>The email of the person who made the change, or null if no email is available.</t></li>
+<li><t><strong>principalId</strong>: <tt>String|null</tt></t>
+<t>The id of the Principal corresponding to the person who made the change, or null if no associated principal.</t></li>
+</ul></li>
+<li><t><strong>objectType</strong>: <tt>String</tt></t>
+<t>The name of the data type for the object whose permissions have changed, e.g., &quot;Calendar&quot; or &quot;Mailbox&quot;.</t></li>
+<li><t><strong>objectAccountId</strong>: <tt>String</tt></t>
+<t>The id of the account where this object exists.</t></li>
+<li><t><strong>objectId</strong>: <tt>String</tt></t>
+<t>The id of the object that this notification is about.</t></li>
+<li><t><strong>name</strong>: <tt>String</tt></t>
+<t>The name of the object at the time the notification was made.</t></li>
+<li><t><strong>oldRights</strong>: <tt>String[Boolean]|null</tt></t>
+<t>The &quot;myRights&quot; property of the object for the user before the change.</t></li>
+<li><t><strong>newRights</strong>: <tt>String[Boolean]|null</tt></t>
+<t>The &quot;myRights&quot; property of the object for the user after the change.</t></li>
+</ul>
+</section>
+
+<section anchor="sharenotification-get"><name>ShareNotification/get</name>
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" sectionFormat="comma"></xref>.</t>
+</section>
+
+<section anchor="sharenotification-changes"><name>ShareNotification/changes</name>
+<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620" section="5.2" sectionFormat="comma"></xref>.</t>
+</section>
+
+<section anchor="sharenotification-set"><name>ShareNotification/set</name>
+<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>.</t>
+<t>Only destroy is supported; any attempt to create/update <bcp14>MUST</bcp14> be rejected with a
+<tt>forbidden</tt> SetError.</t>
+</section>
+
+<section anchor="sharenotification-query"><name>ShareNotification/query</name>
+<t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620" section="5.5" sectionFormat="comma"></xref>.</t>
+
+<section anchor="filtering-1"><name>Filtering</name>
+<t>A <strong>FilterCondition</strong> object has the following properties:</t>
+
+<ul spacing="compact">
+<li><t><strong>after</strong>: <tt>UTCDate|null</tt></t>
+<t>The creation date must be on or after this date to match the condition.</t></li>
+<li><t><strong>before</strong>: <tt>UTCDate|null</tt></t>
+<t>The creation date must be before this date to match the condition.</t></li>
+<li><t><strong>objectType</strong>: <tt>String</tt></t>
+<t>The objectType value must be identical to the given value to match the condition.</t></li>
+<li><t><strong>objectAccountId</strong>: <tt>String</tt></t>
+<t>The objectAccountId value must be identical to the given value to match the condition.</t></li>
+</ul>
+</section>
+
+<section anchor="sorting"><name>Sorting</name>
+<t>The &quot;created&quot; property <bcp14>MUST</bcp14> be supported for sorting.</t>
+</section>
+</section>
+
+<section anchor="sharenotification-querychanges"><name>ShareNotification/queryChanges</name>
+<t>This is a standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620" section="5.6" sectionFormat="comma"></xref>.</t>
+</section>
+</section>
+
+<section anchor="framework-for-shared-data"><name>Framework for shared data</name>
+<t>Shareable data types <bcp14>SHOULD</bcp14> define the following three properties:</t>
+
+<ul spacing="compact">
+<li><t><strong>isSubscribed</strong>: <tt>Boolean</tt></t>
+<t>Has the user indicated they wish to see this data? The initial value for this when data is shared by another user is implementation dependent, although data types may give advice on appropriate defaults.</t></li>
+<li><t><strong>myRights</strong>: <tt>String[Boolean]</tt></t>
+<t>The set of permissions the user currently has. Appropriate permissions are domain specific and must be defined per data type. Each key is the name of a permission defined for that data type. The value for the key is <tt>true</tt> if the user has the permission, or <tt>false</tt> if they do not.</t></li>
+<li><t><strong>shareWith</strong>: <tt>Id[String[Boolean]]|null</tt></t>
+<t>A map of principal id to rights to give that principal (in the same format as the <tt>myRights</tt> property), or <tt>null</tt> if not shared with anyone. The account id for the principal id can be found in the capabilities of the Account this object is in (see <xref target="urn-ietf-params-jmap-principals-owner"/>). Users with appropriate permission may set this property to modify who the data is shared with. The principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees; their rights are implicit.</t></li>
+</ul>
+</section>
+
+<section anchor="security-considerations"><name>Security Considerations</name>
+<t>All security considerations of JMAP <xref target="RFC8620"></xref> apply to this specification. Additional considerations are detailed below.</t>
+
+<section anchor="spoofing"><name>Spoofing</name>
+<t>Allowing users to edit their own Principal's name (and, to a lesser extent, description) could allow a user to change their name to that of another user in the system, potentially tricking others into sharing private data with them. Servers may choose to forbid this, and <bcp14>SHOULD</bcp14> keep logs of such changes to provide an audit trail.</t>
+</section>
+
+<section anchor="unnoticed-sharing"><name>Unnoticed sharing</name>
+<t>Sharing data with another user allows someone to turn a transitory account compromise (e.g., brief access to an unlocked, logged in client) into a persistant compromise (by setting up sharing with a user controlled by the attacker). This can be mitigated by requiring further authorisation for configuring sharing, or sending notifications to the sharer via another channel whenever a new sharee is added.</t>
+</section>
+
+<section anchor="unauthorised-principals"><name>Unauthorised principals</name>
+<t>The set of principals within a shared environment <bcp14>SHOULD</bcp14> be strictly controlled. If adding a new principal is open to the public, risks include:</t>
+<ul spacing="compact">
+<li>An increased risk of a user accidentally sharing data with an unintended person.</li>
+<li>An attacker may share unwanted or offensive information with the user.</li>
+<li>An attacker may share items with spam content in the names in order to generate ShareNotification objects, which are likely to be prominently displayed to the sharee.</li>
+</ul>
+</section>
+</section>
+
+<section anchor="iana-considerations"><name>IANA Considerations</name>
+
+<section anchor="jmap-capability-registration-for-principals"><name>JMAP Capability Registration for &quot;principals&quot;</name>
+<t>IANA will register the &quot;principals&quot; JMAP Capability as follows:</t>
+<t>Capability Name: <tt>urn:ietf:params:jmap:principals</tt></t>
+<t>Specification document: this document</t>
+<t>Intended use: common</t>
+<t>Change Controller: IETF</t>
+<t>Security and privacy considerations: this document, <xref target="security-considerations" /></t>
+</section>
+
+<section anchor="jmap-capability-registration-for-principals-owner"><name>JMAP Capability Registration for &quot;principals:owner&quot;</name>
+<t>IANA will register the &quot;principals:owner&quot; JMAP Capability as follows:</t>
+<t>Capability Name: <tt>urn:ietf:params:jmap:principals:owner</tt></t>
+<t>Specification document: this document</t>
+<t>Intended use: common</t>
+<t>Change Controller: IETF</t>
+<t>Security and privacy considerations: this document, <xref target="security-considerations" /></t>
+</section>
+</section>
+
+</middle>
+
+<back>
+<references><name>Normative References</name>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
+</references>
+</back>
+
+</rfc>
