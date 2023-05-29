@@ -462,3 +462,39 @@ The following properties SHOULD be supported for sorting:
 ## CalendarEvent/queryChanges
 
 This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+
+## CalendarEvent/parse
+
+This method allows the client to parse blobs as `iCalendars` [@!RFC5545] to get `CalendarEvent` objects. This can
+be used to parse and display calendar events information to the end user.
+
+The following metadata properties on the CalendarEvent objects will be `null` if requested:
+
+- id
+- baseEventId
+- calendarIds
+- isDraft
+- isOrigin
+
+The *CalendarEvent/parse* method takes the following arguments:
+
+- **accountId**: `Id`
+  The id of the account to use.
+- **blobIds**: `Id[]`
+  The ids of the blobs to parse.
+- **properties**: `String[]`
+  If supplied, only the properties listed in the array are returned for each `CalendarEvent` object. If omitted, defaults to all the properties.
+
+The response object contains the following arguments:
+
+- **accountId**: `Id`
+  The id of the account used for the call.
+- **parsed**: `Id[CalendarEvent[]]|null`
+  A map of blob ids to parsed `CalendarEvent` objects representations for each successfully parsed blob, or `null` if none.
+- **notFound**: `Id[]|null`
+  A list of blob ids given that could not be found, or `null` if none.
+- **notParsable**: `Id[]|null`
+  A list of blob ids given that corresponded to blobs that could not be parsed as CalendarEvents, or `null` if none.
+
+Parsed `iCalendars` are to be converted into `CalendarEvent` objects following the process defined in the
+[JSCalendar: Converting from and to iCalendar](https://datatracker.ietf.org/doc/draft-ietf-calext-jscalendar-icalendar) draft.
