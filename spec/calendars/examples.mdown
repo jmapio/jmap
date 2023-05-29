@@ -321,3 +321,91 @@ The server allows the change, returning the following response:
           }
       }, "0"]
     ]
+
+## Example
+
+The client makes a request to parse the calendar event from a blob id representing an icalendar file:
+
+    [
+      [ "CalendarEvent/parse", {
+        "accountId": "29883977c13473ae7cb7678ef767cbfbaffc8a44a6e463d971d23a65c1dc4af6",
+        "blobIds": ["0f9f65ab-dc7b-4146-850f-6e4881093965"]
+      }, "c1"]
+    ]
+
+The server responds:
+
+    [[ "CalendarEvent/parse",
+    {
+      "accountId": "29883977c13473ae7cb7678ef767cbfbaffc8a44a6e463d971d23a65c1dc4af6",
+      "parsed": {
+        "0f9f65ab-dc7b-4146-850f-6e4881093965": [
+          {
+            "uid": "ea127690-0440-404b-af98-9823c855a283",
+            "title": "Gatling: break LemonLDAP!",
+            "description": "Let's write some basic OIDC benchmarks",
+            "start": "2023-02-09T10:00:00",
+            "duration": "PT2H0M0S",
+            "end": "2023-02-09T12:00:00",
+            "timeZone": "Asia/Ho_Chi_Minh",
+            "location": "10 Thai Ha, Ha Noi",
+            "method": "REQUEST",
+            "sequence": 0,
+            "priority": 5,
+            "freeBusyStatus": "busy",
+            "privacy": "public",
+            "organizer": {
+              "name": "Bob SMITH",
+              "mailto": "bsmith@example.com"
+            },
+            "participants": [{
+                "name": "Bob SMITH",
+                "mailto": "bsmith@example.com",
+                "kind": "individual",
+                "role": "chair",
+                "participationStatus": "accepted",
+                "expectReply": false
+              },
+              {
+                "name": "Alice DOE",
+                "mailto": "adoe@example.com",
+                "kind": "individual",
+                "role": "requested-participant",
+                "participationStatus": "needs-action",
+                "expectReply": true
+              }
+            ],
+            "extensionFields": {
+              "X-VIDEOCONFERENCE": ["https://jitsi.linagora.com/abcd"],
+              "X-CUSTOM-HEADER1": ["whatever1", "whatever2"]
+            },
+            "recurrenceRules":[
+              {
+                "frequency": "yearly",
+                "byDay": [ "mo" ],
+                "byMonth": [ "10" ],
+                "bySetPosition": [ 1, 2 ],
+                "until":"2024-01-11T09:00:00Z"
+              }
+            ]
+          },
+          ...
+        ]
+      }
+    }, "c1" ]]
+
+In the case that a blob id is not found, the server would respond:
+
+    [[ "CalendarEvent/parse",
+    {
+      "accountId": "29883977c13473ae7cb7678ef767cbfbaffc8a44a6e463d971d23a65c1dc4af6",
+      "notFound": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
+    }, "c1" ]]
+
+If the blob id has been found but is not parsable, the server would respond:
+
+    [[ "CalendarEvent/parse",
+    {
+      "accountId": "29883977c13473ae7cb7678ef767cbfbaffc8a44a6e463d971d23a65c1dc4af6",
+      "notParsable": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
+    }, "c1" ]]
