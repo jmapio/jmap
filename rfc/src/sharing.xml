@@ -17,7 +17,7 @@
 		<uri>https://www.fastmail.com</uri>
 	</address>
 </author>
-<date year="2023" month="March" day="27"></date>
+<date year="2023" month="March" day="31"></date>
 <area>Applications</area>
 <workgroup>JMAP</workgroup>
 <keyword>JMAP</keyword>
@@ -25,7 +25,7 @@
 <keyword>sharing</keyword>
 
 <abstract>
-<t>This document specifies a data model for sharing data between users using JMAP.</t>
+<t>This document specifies a data model for sharing data between users using JMAP. Specifications for other data types can reference this document to support a consistent model of sharing.</t>
 </abstract>
 </front>
 
@@ -94,7 +94,7 @@ capability that contains the corresponding Principal object.</t></li>
 <t>A <strong>Principal</strong> object has the following properties:</t>
 
 <ul spacing="compact">
-<li><t><strong>id</strong>: <tt>Id</tt></t>
+<li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
 <t>The id of the principal.</t></li>
 <li><t><strong>type</strong>: <tt>String</tt></t>
 <t>This <bcp14>MUST</bcp14> be one of the following values:</t>
@@ -132,7 +132,7 @@ for this principal that the user has access to, or null if none.</t></li>
 <section anchor="principal-set"><name>Principal/set</name>
 <t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>.</t>
 <t>Users <bcp14>SHOULD</bcp14> be allowed to update the &quot;name&quot;, &quot;description&quot; and &quot;timeZone&quot; properties of the Principal with the same id as the &quot;currentUserPrincipalId&quot; in the Account capabilities.</t>
-<t>However, the server may, and probably will, reject any change with a <tt>forbidden</tt> SetError. Managing principals is likely tied to a directory service or some other vendor-specific solution, and may occur out-of-band, or via an additional capability defined elsewhere.</t>
+<t>However, the server may reject this change, and probably will reject any other change, with a <tt>forbidden</tt> SetError. Managing principals is likely tied to a directory service or some other vendor-specific solution, and may occur out-of-band, or via an additional capability defined elsewhere.</t>
 </section>
 
 <section anchor="principal-query"><name>Principal/query</name>
@@ -178,11 +178,11 @@ for this principal that the user has access to, or null if none.</t></li>
 <t>The <strong>ShareNotification</strong> object has the following properties:</t>
 
 <ul spacing="compact">
-<li><t><strong>id</strong>: <tt>String</tt></t>
+<li><t><strong>id</strong>: <tt>String</tt> (immutable; server-set)</t>
 <t>The id of the ShareNotification.</t></li>
-<li><t><strong>created</strong>: <tt>UTCDate</tt></t>
+<li><t><strong>created</strong>: <tt>UTCDate</tt> (immutable; server-set)</t>
 <t>The time this notification was created.</t></li>
-<li><t><strong>changedBy</strong>: <tt>Person</tt></t>
+<li><t><strong>changedBy</strong>: <tt>Person</tt> (immutable; server-set)</t>
 <t>Who made the change.</t>
 
 <ul spacing="compact">
@@ -193,18 +193,18 @@ for this principal that the user has access to, or null if none.</t></li>
 <li><t><strong>principalId</strong>: <tt>String|null</tt></t>
 <t>The id of the Principal corresponding to the person who made the change, or null if no associated principal.</t></li>
 </ul></li>
-<li><t><strong>objectType</strong>: <tt>String</tt></t>
+<li><t><strong>objectType</strong>: <tt>String</tt> (immutable; server-set)</t>
 <t>The name of the data type for the object whose permissions have changed, e.g., &quot;Calendar&quot; or &quot;Mailbox&quot;.</t></li>
-<li><t><strong>objectAccountId</strong>: <tt>String</tt></t>
+<li><t><strong>objectAccountId</strong>: <tt>String</tt> (immutable; server-set)</t>
 <t>The id of the account where this object exists.</t></li>
-<li><t><strong>objectId</strong>: <tt>String</tt></t>
+<li><t><strong>objectId</strong>: <tt>String</tt> (immutable; server-set)</t>
 <t>The id of the object that this notification is about.</t></li>
-<li><t><strong>name</strong>: <tt>String</tt></t>
-<t>The name of the object at the time the notification was made.</t></li>
-<li><t><strong>oldRights</strong>: <tt>String[Boolean]|null</tt></t>
+<li><t><strong>oldRights</strong>: <tt>String[Boolean]|null</tt> (immutable; server-set)</t>
 <t>The &quot;myRights&quot; property of the object for the user before the change.</t></li>
-<li><t><strong>newRights</strong>: <tt>String[Boolean]|null</tt></t>
+<li><t><strong>newRights</strong>: <tt>String[Boolean]|null</tt> (immutable; server-set)</t>
 <t>The &quot;myRights&quot; property of the object for the user after the change.</t></li>
+<li><t><strong>name</strong>: <tt>String</tt> (immutable; server-set)</t>
+<t>The name of the object at the time the notification was made. Determining the name will depend on the data type in question, for example it might be the "title" property of a CalendarEvent or the "name" of a Mailbox, and is implementation specific. The name is to show to users who have had their access rights to the object removed, so that they know what it is they can no longer access.</t></li>
 </ul>
 </section>
 
