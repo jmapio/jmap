@@ -465,8 +465,7 @@ This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5
 
 ## CalendarEvent/parse
 
-This method allows the client to parse blobs as `iCalendars` [@!RFC5545] to get `CalendarEvent` objects. This can
-be used to parse and display calendar events information to the end user.
+This method allows the client to parse blobs as `iCalendar` files [@!RFC5545] to get `CalendarEvent` objects. This can be used to parse, display, and import information from iCalendar files without having to implement iCalendar parsing in the client. Server support for this is optional, and indicated via the "urn:ietf:params:jmap:calendars:parse" capability, as per Section XXX.
 
 The following metadata properties on the CalendarEvent objects will be `null` if requested:
 
@@ -496,5 +495,4 @@ The response object contains the following arguments:
 - **notParsable**: `Id[]|null`
   A list of blob ids given that corresponded to blobs that could not be parsed as CalendarEvents, or `null` if none.
 
-Parsed `iCalendars` are to be converted into `CalendarEvent` objects following the process defined in the
-[JSCalendar: Converting from and to iCalendar](https://datatracker.ietf.org/doc/draft-ietf-calext-jscalendar-icalendar) draft.
+Parsed `iCalendars` are to be converted into `CalendarEvent` objects following the process defined in the [JSCalendar: Converting from and to iCalendar](https://datatracker.ietf.org/doc/draft-ietf-calext-jscalendar-icalendar) document.

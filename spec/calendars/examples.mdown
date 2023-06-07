@@ -322,13 +322,13 @@ The server allows the change, returning the following response:
       }, "0"]
     ]
 
-## Example
+## Parsing an iCalendar file
 
 The client makes a request to parse the calendar event from a blob id representing an icalendar file:
 
     [
       [ "CalendarEvent/parse", {
-        "accountId": "29883977c13473ae7cb7678ef767cbfbaffc8a44a6e463d971d23a65c1dc4af6",
+        "accountId": "a0x9",
         "blobIds": ["0f9f65ab-dc7b-4146-850f-6e4881093965"]
       }, "c1"]
     ]
@@ -337,7 +337,7 @@ The server responds:
 
     [[ "CalendarEvent/parse",
     {
-      "accountId": "29883977c13473ae7cb7678ef767cbfbaffc8a44a6e463d971d23a65c1dc4af6",
+      "accountId": "a0x9",
       "parsed": {
         "0f9f65ab-dc7b-4146-850f-6e4881093965": [
           {
@@ -394,18 +394,18 @@ The server responds:
       }
     }, "c1" ]]
 
-In the case that a blob id is not found, the server would respond:
+If the blob id had not been found, the server would have responded:
 
     [[ "CalendarEvent/parse",
     {
-      "accountId": "29883977c13473ae7cb7678ef767cbfbaffc8a44a6e463d971d23a65c1dc4af6",
+      "accountId": "a0x9",
       "notFound": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
     }, "c1" ]]
 
-If the blob id has been found but is not parsable, the server would respond:
+If the blob id had been found but was not parsable, the server would have responded:
 
     [[ "CalendarEvent/parse",
     {
-      "accountId": "29883977c13473ae7cb7678ef767cbfbaffc8a44a6e463d971d23a65c1dc4af6",
+      "accountId": "a0x9",
       "notParsable": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
     }, "c1" ]]
