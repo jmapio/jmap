@@ -31,12 +31,49 @@ This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
 
 ### Filtering
 
-A **FilterCondition** object has the following properties:
+A **FilterCondition** object has the following properties, any of which may be omitted:
 
 - **inAddressBook**: `Id`
   An AddressBook id. A card must be in this address book to match the condition.
-- **text**: `String|null`
+- **uid**: `String`
+  A card must have this string exactly as its uid to match.
+- **hasMember**: `String`
+  A card must have a "members" property that contains this string as one of the uids in the set to match.
+- **kind**: `String`
+  A card must have a type property that equals this string exactly to match.
+- **createdBefore**: `UTCDate`
+  The "created" date-time of the ContactCard must be before this date-time to match the condition.
+- **createdAfter**: `UTCDate`
+  The "created" date-time of the ContactCard must be the same or after this date-time to match the condition.
+- **updatedBefore**: `UTCDate`
+  The "updated" date-time of the ContactCard must be before this date-time to match the condition.
+- **updatedAfter**: `UTCDate`
+  The "updated" date-time of the ContactCard must be the same or after this date-time to match the condition.
+- **text**: `String`
   A card matches this condition if the text matches with text in the card.
+- **name**: `String`
+  A card matches this condition if the value of any NameComponent in the "name" property, or the "full" property in the "name" property of the card matches the value.
+- **name/given**: `String`
+  A card matches this condition if the value of a NameComponent with kind "given" inside the "name" property of the card matches the value.
+- **name/surname**: `String`
+  A card matches this condition if the value of a NameComponent with kind "surname" inside the "name" property of the card matches the value.
+- **name/surname2**: `String`
+  A card matches this condition if the value of a NameComponent with kind "surname2" inside the "name" property of the card matches the value.
+- **nickName**: `String`
+  A card matches this condition if the "name" of any NickName in the "nickNames" property of the card matches the value.
+- **organization**: `String`
+  A card matches this condition if the "name" of any Organization in the "organizations" property of the card matches the value.
+- **email**: `String`
+  A card matches this condition if the "address" or "label" of any EmailAddress in the "emails" property of the card matches the value.
+- **phone**: `String`
+  A card matches this condition if the "number" or "label" of any Phone in the "phones" property of the card matches the value.
+- **onlineService**: `String`
+  A card matches this condition if the "service", "uri", "user", or "label" of any OnlineService in the "onlineServices" property of the card matches the value.
+- **address**: `String`
+  A card matches this condition if the value of any NameComponent in the "name" property, or the "full" property in the "name" property of the card matches the value.
+- **note**: `String`
+  A card matches this condition if the "note" of any Note in the "notes" property of the card matches the value.
+
 
 If zero properties are specified on the FilterCondition, the condition MUST always evaluate to `true`. If multiple properties are specified, ALL must apply for the condition to be `true` (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).
 
@@ -49,9 +86,20 @@ The exact semantics for matching `String` fields is **deliberately not defined**
 
 ### Sorting
 
-The following properties MUST be supported for sorting:
+The following value for the "property" field on the Comparator object
+MUST be supported for sorting:
 
-TODO
+* "created" - The "created" date on the ContactCard.
+* "updated" - The "updated" date on the ContactCard.
+
+The following values for the "property" field on the Comparator object SHOULD be supported for sorting:
+
+- "name/given" - The value of the first NameComponent in the "name" property
+  whose "kind" is "given".
+- "name/surname" - The value of the first NameComponent in the "name" property
+  whose "kind" is "surname".
+- "name/surname2" - The value of the first NameComponent in the "name"
+  property whose "kind" is "surname2".
 
 ## ContactCard/queryChanges
 
