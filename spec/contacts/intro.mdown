@@ -14,11 +14,11 @@ Type signatures, examples and property descriptions in this document follow the 
 
 The same terminology is used in this document as in the core JMAP specification, see [@!RFC8620], Section 1.6.
 
-The terms AddressBook, CardGroup, and Card (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.
+The terms AddressBook and ContactCard (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.
 
 ## Data Model Overview
 
-An Account (see [@!RFC8620], Section 1.6.2) with support for the contacts data model contains zero or more AddressBook objects, which is a named collection of Cards and CardGroups. A Card is a representation of a person, company, or other entity in RFCXXXX JSContact Card format. A CardGroup is a named set of zero or more UIDs, used to represent a group of Cards, in RFCXXXX JSContact CardGroup format. Each Card or CardGroup belongs to exactly one AddressBook.
+An Account (see [@!RFC8620], Section 1.6.2) with support for the contacts data model contains zero or more AddressBook objects, which is a named collection of ContactCards. A ContactCard is a representation of a person, company, or other entity, or a group of such entities, in RFCXXXX JSContact Card format. Each ContactCard belongs to one or more AddressBooks.
 
 In servers with support for JMAP Sharing [RFC XXX], data may be shared with other users. Sharing permissions are managed per AddressBook.
 
@@ -28,9 +28,11 @@ The capabilities object is returned as part of the JMAP Session object; see [@!R
 
 ### urn:ietf:params:jmap:contacts
 
-This represents support for the AddressBook, CardGroup, and Card data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.
+This represents support for the AddressBook and ContactCard data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.
 
 The value of this property in an account’s accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
 
+- **maxAddressBooksPerCard**: `UnsignedInt|null`
+  The maximum number of AddressBooks (see Section XXX) that can be can assigned to a single ContactCard object (see Section XXX). This MUST be an integer >= 1, or null for no limit (or rather, the limit is always the number of AddressBooks in the account).
 - **mayCreateAddressBook**: `Boolean`
   If true, the user may create an AddressBook in this account.

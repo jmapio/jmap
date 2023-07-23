@@ -1,23 +1,23 @@
-# Cards
+# ContactCards
 
-A **Card** object contains information about a person, company, or other entity. It is a JSContact Card object, as defined in RFCXXXX, with the following additional properties:
+A **ContactCard** object contains information about a person, company, or other entity, or represents a group of such entities. It is a JSContact ContactCard object, as defined in RFCXXXX, with the following additional properties:
 
 - **id**: `Id` (immutable; server-set)
-  The id of the Card. The id uniquely identifies a JSCard with a particular "uid" within a particular account.
-- **addressBookId**: `Id`
-  The id of the AddressBook this card belongs to. A card MUST belong to exactly one AddressBook at all times (until it is destroyed).
+  The id of the ContactCard. The id uniquely identifies a JSContactCard with a particular "uid" within a particular account.
+- **addressBookId**: `Id[Boolean]`
+  The set of AddressBook ids this ContactCard belongs to. A card MUST belong to at least one AddressBook at all times (until it is destroyed). The set is represented as an object, with each key being an AddressBook id. The value for each key in the object MUST be true.
 
 TODO:photos as blobs.
 
-## Card/get
+## ContactCard/get
 
 This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
 
-## Card/changes
+## ContactCard/changes
 
 This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
 
-## Card/query
+## ContactCard/query
 
 This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
 
@@ -45,17 +45,17 @@ The following properties MUST be supported for sorting:
 
 TODO
 
-## Card/queryChanges
+## ContactCard/queryChanges
 
 This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
 
-## Card/set
+## ContactCard/set
 
 This is a standard "/set" method as described in [@!RFC8620], Section 5.3.
 
 To set a new photo, the file must first be uploaded using the upload mechanism as described in [@!RFC8620], Section 6.1. This will give the client a valid blobId/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the photo for a card.
 
-## Card/copy
+## ContactCard/copy
 
 This is a standard "/copy" method as described in [@!RFC8620], Section 5.4.
 
