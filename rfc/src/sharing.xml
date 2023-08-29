@@ -261,6 +261,39 @@ for this principal that the user has access to, or null if none.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[String[Boolean]]|null</tt></t>
 <t>A map of principal id to rights to give that principal (in the same format as the <tt>myRights</tt> property), or <tt>null</tt> if not shared with anyone. The account id for the principal id can be found in the capabilities of the Account this object is in (see <xref target="urn-ietf-params-jmap-principals-owner"/>). Users with appropriate permission may set this property to modify who the data is shared with. The principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees; their rights are implicit.</t></li>
 </ul>
+
+<section anchor="example"><name>Example</name>
+<t>Suppose we are designing a data model for a very simple todo list. There is a Todo data type representing a single item to do, each of which belongs to a single TodoList. The specification makes the lists sharable by referencing this document and defining the common properties.</t>
+
+<t>First it would define a set of domain-specific rights. For example, a TodoListRights object may have the following properties:</t>
+
+<ul spacing="compact">
+<li><t><strong>mayRead</strong>: <tt>Boolean</tt></t>
+<t>The user may fetch this TodoList, and any Todos that belong to this TodoList.</t></li>
+<li><t><strong>mayWrite</strong>: <tt>Boolean</tt></t>
+<t>The user may create, update, or destroy Todos that belong to this TodoList, and may change the "name" property of this TodoList.</t></li>
+<li><t><strong>mayAdmin</strong>: <tt>Boolean</tt></t>
+<t>The user may see and modify the "myRights" property of this TodoList, and may destroy this TodoList.</t></li>
+</ul>
+
+<t>Then in the TodoList data type, we would include the three common properties, in addition to any type-specific properties (like "name" in this case):</t>
+
+<ul spacing="compact">
+<li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
+<t>The id of the object.</t></li>
+<li><t><strong>name</strong>: <tt>String</tt></t>
+<t>A name for this list of todos.</t></li>
+<li><t><strong>isSubscribed</strong>: <tt>Boolean</tt></t>
+<t>Has the user indicated they wish to see this list? If false, clients should not display this todo list with the user's other lists, but should provide a means for users to see and subscribe to all lists that have been shared with them.</t></li>
+<li><t><strong>myRights</strong>: <tt>TodoListRights</tt></t>
+<t>The set of permissions the user currently has for this todo list.</t></li>
+<li><t><strong>shareWith</strong>: <tt>Id[TodoListRights]|null</tt></t>
+<t>A map of principal id to rights to give that principal, or <tt>null</tt> if not shared with anyone or the user does not have the "mayAdmin" right for this list. Users with the "mayAdmin" right may set this property to modify who the data is shared with. The principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees; their rights are implicit.</t></li>
+</ul>
+
+<t>A client wishing to let the user configure sharing would look at the account capabilities for the Account containing the Todo data, and find the "urn:ietf:params:jmap:principals:owner" property, as per <xref target="urn-ietf-params-jmap-principals-owner"></xref>. From this it can find the account with the Principal data and fetch the list of principals to offer the user to share the list with.</t>
+</section>
+
 </section>
 
 <section anchor="security-considerations"><name>Security Considerations</name>
