@@ -28,7 +28,7 @@ The terms ParticipantIdentity, Calendar, CalendarEvent, and CalendarEventNotific
 
 An Account (see [@!RFC8620], Section 1.6.2) with support for the calendar data model contains zero or more Calendar objects, which is a named collection of CalendarEvents. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off. Servers may allow an event to belong to multiple Calendars within an account.
 
-A CalendarEvent is a representation of an event or recurring series of events in JSEvent [@!RFC8984] format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.
+A CalendarEvent is a representation of an event or recurring series of events in JSCalendar Event [@!RFC8984] format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.
 
 CalendarEventNotification objects keep track of the history of changes made to a calendar by other users, allowing calendar clients to notify the user of changes to their schedule.
 
@@ -77,7 +77,7 @@ The value of this property in the JMAP Session capabilities property is an empty
 
 The value of this property in an account’s accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:
 
-- **maxAvailabilityDuration**:
+- **maxAvailabilityDuration**: `Duration`
   The maximum duration over which the server is prepared to calculate availability in a single call (see Section XXX).
 
 ### urn:ietf:params:jmap:calendars:parse
