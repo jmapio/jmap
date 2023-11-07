@@ -18,7 +18,7 @@ The server MAY coalesce events if appropriate, or remove events that it deems ar
 
 The **CalendarEventNotification** object has the following properties:
 
-- **id**: `String`
+- **id**: `Id`
   The id of the CalendarEventNotification.
 - **created**: `UTCDate`
   The time this notification was created.
@@ -28,7 +28,7 @@ The **CalendarEventNotification** object has the following properties:
     The name of the person who made the change.
   - **email**: `String|null`
     The email of the person who made the change, or null if no email is available.
-  - **principalId**: `String|null`
+  - **principalId**: `Id|null`
     The id of the Principal corresponding to the person who made the change, if any. This will be null if the change was due to receving an iTIP message.
   - **scheduleId**: `String|null`
     The scheduleId URI of the person who made the change, if any. This will normally be set if the change was made due to receving an iTIP message.
@@ -40,11 +40,11 @@ The **CalendarEventNotification** object has the following properties:
   - created
   - updated
   - destroyed
-- **calendarEventId**: `String`
+- **calendarEventId**: `Id`
   The id of the CalendarEvent that this notification is about.
 - **isDraft**: `Boolean` (created/updated only)
   Is this event a draft?
-- **event**: `JSEvent`
+- **event**: `JSCalendar Event`
   The data before the change (if updated or destroyed), or the data
   after creation (if created).
 - **eventPatch**: `PatchObject` (updated only)
