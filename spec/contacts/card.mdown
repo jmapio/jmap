@@ -1,9 +1,9 @@
 # ContactCards
 
-A **ContactCard** object contains information about a person, company, or other entity, or represents a group of such entities. It is a JSContact ContactCard object, as defined in RFCXXXX, with the following additional properties:
+A **ContactCard** object contains information about a person, company, or other entity, or represents a group of such entities. It is a JSCard object, as defined in RFCXXXX, with the following additional properties:
 
 - **id**: `Id` (immutable; server-set)
-  The id of the ContactCard. The id uniquely identifies a JSContactCard with a particular "uid" within a particular account.
+  The id of the ContactCard. The id uniquely identifies a ContactCard with a particular "uid" within a particular account.
 - **addressBookId**: `Id[Boolean]`
   The set of AddressBook ids this ContactCard belongs to. A card MUST belong to at least one AddressBook at all times (until it is destroyed). The set is represented as an object, with each key being an AddressBook id. The value for each key in the object MUST be true.
 
@@ -14,12 +14,11 @@ For any Media object in the card (see RFCXXX, Section XXX), a new property is de
 
 When returning ContactCards, any Media with a `data:` URI SHOULD return a `blobId` property and omit the `uri` property. The "mediaType" property MUST also be set. Similarly, when creating or updating a ContactCard, clients MAY send a `blobId` instead of the `uri` property for a Media object.
 
-A contact card with a "kind" property equal to "group" represents a group of contacts. Clients often present these separately from other contact cards. The "members" property, as defined in RFC XXX, Section XXX, contains a set of UIDs for other contacts that are the members of this group. Clients should consider the group to contain any ContactCard with a matching UID, from any account they have access to with support for the `urn:ietf:params:jmap:contacts` capability. UIDs that cannot be found SHOULD be
-ignored but preserved. For example, suppose a user adds contacts from a shared address book to their private set, then temporarily lose access to this address book. The UIDs cannot be resolved so the contacts will disappear from the group. However, if they are given permission to access the data again the UIDs will be found and the contacts will reappear.
+A contact card with a "kind" property equal to "group" represents a group of contacts. Clients often present these separately from other contact cards. The "members" property, as defined in RFC XXX, Section XXX, contains a set of UIDs for other contacts that are the members of this group. Clients should consider the group to contain any ContactCard with a matching UID, from any account they have access to with support for the `urn:ietf:params:jmap:contacts` capability. UIDs that cannot be found SHOULD be ignored but preserved. For example, suppose a user adds contacts from a shared address book to their private group, then temporarily loses access to this address book. The UIDs cannot be resolved so the contacts will disappear from the group. However, if they are given permission to access the data again the UIDs will be found and the contacts will reappear.
 
 ## ContactCard/get
 
-This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
 
 ## ContactCard/changes
 
@@ -70,7 +69,7 @@ A **FilterCondition** object has the following properties, any of which may be o
 - **onlineService**: `String`
   A card matches this condition if the "service", "uri", "user", or "label" of any OnlineService in the "onlineServices" property of the card matches the value.
 - **address**: `String`
-  A card matches this condition if the value of any NameComponent in the "name" property, or the "full" property in the "name" property of the card matches the value.
+  A card matches this condition if the value of any StreetComponent in the "street" property, or the "locality", "region", "country", or "postcode" property in any Address in the "addresses" property of the card matches the value.
 - **note**: `String`
   A card matches this condition if the "note" of any Note in the "notes" property of the card matches the value.
 
