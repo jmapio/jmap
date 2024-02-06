@@ -5,17 +5,17 @@
 <title abbrev="JMAP Sharing">JMAP Sharing</title>
 <seriesInfo value="draft-ietf-jmap-sharing-04" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
 <author role="editor" initials="N.M." surname="Jenkins" fullname="Neil Jenkins">
-	<organization>Fastmail</organization>
-	<address>
-		<postal>
-			<street>PO Box 234, Collins St West</street>
-			<city>Melbourne</city>
-			<code>VIC 8007</code>
-			<country>Australia</country>
-		</postal>
-		<email>neilj@fastmailteam.com</email>
-		<uri>https://www.fastmail.com</uri>
-	</address>
+    <organization>Fastmail</organization>
+    <address>
+        <postal>
+            <street>PO Box 234, Collins St West</street>
+            <city>Melbourne</city>
+            <code>VIC 8007</code>
+            <country>Australia</country>
+        </postal>
+        <email>neilj@fastmailteam.com</email>
+        <uri>https://www.fastmail.com</uri>
+    </address>
 </author>
 <date year="2023" month="August" day="29"></date>
 <area>Applications</area>
@@ -38,6 +38,8 @@
 <section anchor="notational-conventions"><name>Notational Conventions</name>
 <t>The key words &quot;MUST&quot;, &quot;MUST NOT&quot;, &quot;REQUIRED&quot;, &quot;SHALL&quot;, &quot;SHALL NOT&quot;, &quot;SHOULD&quot;, &quot;SHOULD NOT&quot;, &quot;RECOMMENDED&quot;, &quot;NOT RECOMMENDED&quot;, &quot;MAY&quot;, and &quot;OPTIONAL&quot; in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
 <t>Type signatures, examples, and property descriptions in this document follow the conventions established in <xref target="RFC8620" section="1.1" sectionFormat="of"></xref>.  Data types defined in the core specification are also used in this document.</t>
+
+<t>Examples of API exchanges only show the methodCalls array of the Request object or the methodResponses array of the Response object. For compactness, the rest of the Request/Response object is omitted.</t>
 </section>
 
 <section anchor="terminology"><name>Terminology</name>
@@ -291,7 +293,93 @@ for this principal that the user has access to, or null if none.</t></li>
 <t>A map of principal id to rights to give that principal, or <tt>null</tt> if not shared with anyone or the user does not have the "mayAdmin" right for this list. Users with the "mayAdmin" right may set this property to modify who the data is shared with. The principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees; their rights are implicit.</t></li>
 </ul>
 
-<t>A client wishing to let the user configure sharing would look at the account capabilities for the Account containing the Todo data, and find the "urn:ietf:params:jmap:principals:owner" property, as per <xref target="urn-ietf-params-jmap-principals-owner"></xref>. From this it can find the account with the Principal data and fetch the list of principals to offer the user to share the list with.</t>
+<t>We would define a new Principal capability with two properties:</t>
+<ul spacing="compact">
+<li><t><strong>accountId</strong>: <tt>Id|null</tt></t>
+<t>The accountId containing the todo data for this Principal, if it has been shared with the requesting user.</t></li>
+<li><t><strong>mayShareWith</strong>: <tt>Boolean</tt></t>
+<t>May the user add this principal as a sharee of a todo list?</t></li>
+</ul>
+
+<t>A client wishing to let the user configure sharing would look at the account capabilities for the Account containing the user's Todo data, and find the "urn:ietf:params:jmap:principals:owner" property, as per <xref target="urn-ietf-params-jmap-principals-owner"></xref>.</t>
+
+<figure><artwork>
+In the "accounts" property of the JMAP session object...
+
+"u12345678": {
+    "name": "jane.doe@example.com"
+    "isPersonal": true
+    "isReadOnly": false
+    "accountCapabilities": {
+        "urn:com.example:jmap:todo": {},
+        "urn:ietf:params:jmap:principals:owner": {
+            accountIdForPrincipal: "u33084183",
+            principalId: "P105aga511jaa"
+        }
+    }
+}
+</artwork></figure>
+
+
+<t>From this it now knows which account has the Principal data, and can fetch the list of principals to offer the user to share the list with, making an API request like this:</t>
+
+<figure><artwork>
+[[ "Principal/get", {
+  "accountId": "u33084183",
+  "ids": null
+}, "0" ]]
+</artwork></figure>
+
+<t>Here's an example response (where Joe Bloggs is another user that this user could share their todo list with, but who has not shared any data in their own account with this user):
+</t>
+
+<figure><artwork>
+[[ "Principal/get", {
+  "accountId": "u33084183",
+  "state": "7b8eff5zz",
+  "list": [{
+    "id": "P2342fnddd20",
+    "type": "individual",
+    "name": "Joe Bloggs",
+    "description": null,
+    "email": "joe.bloggs@example.com",
+    "timeZone": "Australia/Melbourne",
+    "capabilities": {
+        "urn:com.example:jmap:todo": {
+            accountId: null,
+            mayShareWith: true
+        }
+    },
+    "accounts": null,
+  }, {
+    "id": "P674pp24095qo49pr",
+    "name": "Board room",
+    "type": "location",
+    ...
+  }, ... ],
+  "notFound": []
+}, "0" ]]
+</artwork></figure>
+
+<t>A todo list can be shared with Joe Bloggs by updating its shareWith property, as in this example request:</t>
+
+<figure><artwork>
+[[ "TodoList/set", {
+  "accountId": "u12345678",
+  "update": {
+    "tl01n231": {
+        "shareWith": {
+            "P2342fnddd20": {
+                "mayRead": true,
+                "mayWrite": true,
+                "mayAdmin": false
+            }
+        }
+    }
+  }
+}, "0" ]]
+</artwork></figure>
+
 </section>
 
 </section>
