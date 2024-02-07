@@ -1,0 +1,107 @@
+# Examples
+
+For brevity, in the following examples only the "methodCalls" property of the Request object, and the "methodResponses" property of the Response object is shown.
+
+## Fetching initial data
+
+A user has authenticated and the client has fetched the JMAP Session object. It finds a single Account with the "urn:ietf:params:jmap:contacts" capability, with id "a0x9", and wants to fetch all the address books and contacts. It might make the following request:
+
+    [
+      ["AddressBook/get", {
+        "accountId": "a0x9"
+      }, "0"],
+      ["ContactCard/get", {
+        "accountId": "a0x9"
+      }, "1"],
+    ]
+
+
+The server might respond with something like:
+
+    [
+      ["AddressBook/get", {
+        "accountId": "a0x9",
+        "list": [{
+            "id": "062adcfa-105d-455c-bc60-6db68b69c3f3",
+            "name": "Personal",
+            "description": null,
+            "sortOrder": 0,
+            "isDefault": true,
+            "isSubscribed": true,
+            "shareWith": null,
+            "myRights": {
+              "mayRead": true,
+              "mayWrite": true,
+              "mayAdmin": true,
+              "mayDelete": false
+            }
+          }, {
+            "id": "cd40089d-35f9-4fd7-980b-ba3a9f1d74fe",
+            "name": "Autosaved",
+            "description": null,
+            "sortOrder": 1,
+            "isDefault": false,
+            "isSubscribed": true,
+            "shareWith": null,
+            "myRights": {
+              "mayRead": true,
+              "mayWrite": true,
+              "mayAdmin": true,
+              "mayDelete": false
+            }
+          }],
+          "notFound": [],
+          "state": "~4144"
+      }, "0"],
+      ["Contact/get", {
+        "accountId": "a0x9",
+        "list": [{
+            "id": "3",
+            "addressBookId": "062adcfa-105d-455c-bc60-6db68b69c3f3",
+            "name": {
+              "components": [
+                { "kind": "given", "value": "Joe" },
+                { "kind": "surname", "value": "Bloggs" }
+              ],
+              "isOrdered": true
+            },
+            "emails": {
+              "0": {
+              "contexts": {
+                "private": true
+              },
+              "address": "joe.bloggs@example.com"
+              }
+            }
+          }],
+          "notFound": [],
+          "state": "ewarbckaqJ::112"
+      }, "1"]
+    ]
+
+## Changing the default address book
+
+The client tries to change the default address book from "Personal" to "Autosaved" (and makes no other change):
+
+    [
+      ["AddressBook/set", {
+        "accountId": "a0x9",
+        "onSuccessSetIsDefault": "cd40089d-35f9-4fd7-980b-ba3a9f1d74fe"
+      }, "0"]
+    ]
+
+The server allows the change, returning the following response:
+
+    [
+      ["AddressBook/set", {
+        "accountId": "a0x9",
+        "updated": {
+          "cd40089d-35f9-4fd7-980b-ba3a9f1d74fe": {
+            "isDefault": true
+          },
+          "062adcfa-105d-455c-bc60-6db68b69c3f3": {
+            "isDefault": false
+          }
+        }
+      }, "0"]
+    ]
