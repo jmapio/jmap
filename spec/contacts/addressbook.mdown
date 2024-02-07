@@ -10,6 +10,14 @@ A **AddressBook** object has the following properties:
   The user-visible name of the AddressBook. This may be any UTF-8 string of at least 1 character in length and maximum 255 octets in size.
 - **description**: `String|null` (default: null)
   An optional longer-form description of the AddressBook, to provide context in shared environments where users need more than just the name.
+- **isDefault**: `Boolean` (server-set)
+  This SHOULD be true for exactly one AddressBook in any account, and MUST NOT
+  be true for more than one AddressBook within an account. The default
+  AddressBook should be used by clients whenever they need to choose an
+  AddressBook for the user within this account, and they do not have any other
+  information on which to make a choice. For example, if the user creates a new
+  contact card, the client may automatically set the card as belonging to the
+  default AddressBook from the user's primary account.
 - **isSubscribed**: `Boolean`
   Has the user indicated they wish to see this AddressBook in their client? This SHOULD default to false for AddressBooks in shared accounts the user has access to and true for any new AddressBooks created by the user themself.
 
@@ -45,7 +53,23 @@ This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
 This is a standard "/set" method as described in [@!RFC8620], Section 5.3 but with the following additional request argument:
 
 - **onDestroyRemoveContents**: `Boolean` (default: false)
-  If false, any attempt to destroy an AddressBook that still has a ContactCard in it will be rejected with a `addressBookHasContents` SetError. If true, any ContactCards that were in the AddressBook will be destroyed.
+  If false, any attempt to destroy an AddressBook that still has ContactCard
+  in it will be rejected with an `addressBookHasContents` SetError. If
+  true, any ContactCards that were in the AddressBook will be removed from it, and if in no other AddressBooks they will be destroyed.
+
+- **onSuccessSetIsDefault**: `Id|null`
+  If an id is given, and all creates, updates and destroys (if any) succeed
+  without error, the server will try to set this AddressBook as the default.
+  (For references to AddressBook creations, this is equivalent to a
+  creation-reference, so the id will be the creation id prefixed with a "#".)
+
+  If the id is not found, or the change is not permitted by the server for
+  policy reasons, it MUST be ignored and the currently default AddressBook (if
+  any) will remain as such. No error is returned to the client in this case.
+
+  As per [@!RFC8620], Section 5.3, if the default is successfully changed, any
+  changed objects MUST be reported in either the "created" or "updated"
+  argument in the response as  appropriate, with the server-set value included.
 
 The "shareWith" property may only be set by users that have the mayAdmin right.
 When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a `forbidden` SetError.
