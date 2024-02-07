@@ -26,9 +26,9 @@ A **AddressBook** object has the following properties:
   contact card, the client may automatically set the card as belonging to the
   default AddressBook from the user's primary account.
 - **isSubscribed**: `Boolean`
-  Has the user indicated they wish to see this AddressBook in their client? This SHOULD default to false for AddressBooks in shared accounts the user has access to and true for any new AddressBooks created by the user themself.
+  True if the user has indicated they wish to see this AddressBook in their client. This SHOULD default to false for AddressBooks in shared accounts the user has access to and true for any new AddressBooks created by the user themself.
 
-    If false, the AddressBook and its contents should only be displayed when
+    If false, the AddressBook and its contents SHOULD only be displayed when
     the user explicitly requests it or to offer it for the user to subscribe to.
 - **shareWith**: `Id[AddressBookRights]|null` (default: null)
   A map of Principal id to rights for principals this AddressBook is shared with. The principal to which this AddressBook belongs MUST NOT be in this set. This is null if the AddressBook is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the `urn:ietf:params:jmap:principals:owner` capability of the Account to which the AddressBook belongs.
@@ -42,7 +42,7 @@ An **AddressBookRights** object has the following properties:
 - **mayWrite**: `Boolean`
   The user may create, modify or destroy all ContactCards in this AddressBook, or move them to or from this AddressBook.
 - **mayAdmin**: `Boolean`
-  The user may modify sharing for this AddressBook.
+  The user may modify the "shareWith" property for this AddressBook.
 - **mayDelete**: `Boolean`
   The user may delete the AddressBook itself.
 
