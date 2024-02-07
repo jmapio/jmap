@@ -10,6 +10,13 @@ A **AddressBook** object has the following properties:
   The user-visible name of the AddressBook. This may be any UTF-8 string of at least 1 character in length and maximum 255 octets in size.
 - **description**: `String|null` (default: null)
   An optional longer-form description of the AddressBook, to provide context in shared environments where users need more than just the name.
+- **sortOrder**: `UnsignedInt` (default: 0)
+  Defines the sort order of AddressBooks when presented in the client's UI, so
+  it is consistent between devices. The number MUST be an integer in the range
+  0 <= sortOrder < 2^31.
+
+    An AddressBook with a lower order should be displayed before a AddressBook
+    with a higher order in any list of AddressBooks in the client's UI. AddressBooks with equal order SHOULD be sorted in alphabetical order by name.  The sorting should take into account locale-specific character order convention.
 - **isDefault**: `Boolean` (server-set)
   This SHOULD be true for exactly one AddressBook in any account, and MUST NOT
   be true for more than one AddressBook within an account. The default
