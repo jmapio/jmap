@@ -43,11 +43,21 @@ CalendarEvent objects MUST NOT have a "method" property as this is only used whe
 
 ## Additional JSCalendar properties
 
-This document defines three new JSCalendar properties for common use.
+This document defines four new JSCalendar properties for common use.
+
+### scheduleId
+
+Type: `String`
+
+Context: Participant
+
+This is a URI as defined by [@!RFC3986] or any other IANA-registered form for a URI. It is the same as the CAL-ADDRESS value of an ATTENDEE or ORGANIZER in iCalendar ([@!RFC5545]) — it globally identifies a particular participant, even across different events.
 
 ### mayInviteSelf
 
 Type: `Boolean` (default: false)
+
+Context: Event, Task
 
 If true, any user may add themselves to the event as a participant with the "attendee" role. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.
 
@@ -57,6 +67,8 @@ This indicates the event will accept "party crasher" RSVPs via iTIP, subject to 
 
 Type: `Boolean` (default: false)
 
+Context: Event, Task
+
 If true, any current participant with the "attendee" role may add new participants with the "attendee" role to the event. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.
 
 The mayRSVP permission for the calendar is also required in conjunction with this event property for users to be allowed to make this change via JMAP.
@@ -64,6 +76,8 @@ The mayRSVP permission for the calendar is also required in conjunction with thi
 ### hideAttendees
 
 Type: `Boolean` (default: false)
+
+Context: Event, Task
 
 If true, only the owners of the event may see the full set of participants. Other sharees of the event may only see the owners and themselves. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.
 
