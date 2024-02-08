@@ -250,7 +250,7 @@ invitees.)</t></li>
 <t>The following JMAP methods are supported.</t>
 
 <section anchor="participantidentity-get"><name>ParticipantIdentity/get</name>
-<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" />. The <em>ids</em> argument may be <tt>null</tt> to fetch all at once.</t>
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be <tt>null</tt> to fetch all at once.</t>
 </section>
 
 <section anchor="participantidentity-changes"><name>ParticipantIdentity/changes</name>
@@ -342,13 +342,10 @@ A map of Principal id to rights for principals this calendar is shared with. The
 The set of access rights the user has in relation to this Calendar. If any event is in multiple calendars, the user has the following rights:</t>
 
 <ul spacing="compact">
-<li><t>The user may fetch the event if they have the mayReadItems right on any</t><t>
-calendar the event is in.</t></li>
-<li><t>The user may remove an event from a calendar (by modifying the event's</t><t>
-&quot;calendarIds&quot; property) if the user has the appropriate permission for that
+<li><t>The user may fetch the event if they have the mayReadItems right on any calendar the event is in.</t></li>
+<li><t>The user may remove an event from a calendar (by modifying the event's &quot;calendarIds&quot; property) if the user has the appropriate permission for that
 calendar.</t></li>
-<li><t>The user may make other changes to the event if they have the right to do</t><t>
-so in <em>all</em> calendars to which the event belongs.</t></li>
+<li><t>The user may make other changes to the event if they have the right to do so in <strong>all</strong> calendars to which the event belongs.</t></li>
 </ul></li>
 </ul>
 <t>A <strong>CalendarRights</strong> object has the following properties:</t>
@@ -394,7 +391,7 @@ The user may delete the calendar itself.</t></li>
 <t>An event has no owner if its participants property is null or omitted, or if none of the Participant objects have the &quot;owner&quot; role.</t>
 
 <section anchor="calendar-get"><name>Calendar/get</name>
-<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" />. The <em>ids</em> argument may be <tt>null</tt> to fetch all at once.</t>
+<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be <tt>null</tt> to fetch all at once.</t>
 <t>If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in Calendar/get and Calendar/query; it must behave as though it did not exist. The data is just used as part of Principal/getAvailability.</t>
 </section>
 
@@ -729,7 +726,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
   }
 }, &quot;0&quot; ]]
 </artwork>
-<t>This would mean remove the &quot;participants/dG9tQGZvb2Jhci5xlLmNvbQ&quot; property at path &quot;recurrenceOverrides&quot; -&gt; &quot;2018-03-08T09:00:00&quot; inside the object; but this doesn't exist. We actually want to <em>add</em> this property and make it map to <tt>null</tt>. The client must instead send the full object that contains the property mapping to <tt>null</tt>, like so:</t>
+<t>This would mean remove the &quot;participants/dG9tQGZvb2Jhci5xlLmNvbQ&quot; property at path &quot;recurrenceOverrides&quot; -&gt; &quot;2018-03-08T09:00:00&quot; inside the object; but this doesn't exist. We actually want to add this property and make it map to <tt>null</tt>. The client must instead send the full object that contains the property mapping to <tt>null</tt>, like so:</t>
 
 <artwork>[[ &quot;CalendarEvent/set&quot;, {
   &quot;accountId&quot;: &quot;ue150411c&quot;,
@@ -749,7 +746,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 
 <section anchor="sending-invitations-and-responses"><name>Sending invitations and responses</name>
 <t>If &quot;sendSchedulingMessages&quot; is true, the server MUST send appropriate iTIP <xref target="RFC5546"></xref> scheduling messages after successfuly creating, updating or destroying a calendar event.</t>
-<t>When determining which scheduling messages to send, the server must first establish whether it is the <em>origin</em> of the event, as described in the &quot;isOrigin&quot; property.</t>
+<t>When determining which scheduling messages to send, the server must first establish whether it is the <strong>origin</strong> of the event, as described in the &quot;isOrigin&quot; property.</t>
 <t>Messages are only sent to participants with a &quot;scheduleAgent&quot; property set to &quot;server&quot; or omitted. If the effective &quot;scheduleAgent&quot; property is changed:</t>
 
 <ul spacing="compact">
@@ -786,7 +783,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 </section>
 
 <section anchor="reply"><name>REPLY</name>
-<t>When the server is <em>not</em> the origin for the event, a REPLY message (<xref target="RFC5546" section="3.2.3" />) is sent for every participant corresponding to one of the user's ParticipantIdentitities in the account if any of the following changes are made:</t>
+<t>When the server is <strong>not</strong> the origin for the event, a REPLY message (<xref target="RFC5546" section="3.2.3" />) is sent for every participant corresponding to one of the user's ParticipantIdentitities in the account if any of the following changes are made:</t>
 
 <ul spacing="compact">
 <li><t>The &quot;participationStatus&quot; property of the participant is changed, either for the base event or a specific instance, to any value other than &quot;needs-action&quot;.</t></li>
@@ -827,17 +824,17 @@ The end of the event, or any recurrence of the event, in the time zone given as 
 <li><t><strong>before</strong>: <tt>LocalDate|null</tt></t><t>
 The start of the event, or any recurrence of the event, in the time zone given as the timeZone argument, must be before this date to match the condition.</t></li>
 <li><t><strong>text</strong>: <tt>String|null</tt></t><t>
-Looks for the text in the <em>title</em>, <em>description</em>, <em>locations</em> (matching name/description), <em>participants</em> (matching name/email) and any other textual properties of the event or any recurrence of the event.</t></li>
+Looks for the text in the "title", "description", "locations" (matching name/description), "participants" (matching name/email) and any other textual properties of the event or any recurrence of the event.</t></li>
 <li><t><strong>title</strong>: <tt>String|null</tt></t><t>
-Looks for the text in the <em>title</em> property of the event, or the overridden <em>title</em> property of a recurrence.</t></li>
+Looks for the text in the "title" property of the event, or the overridden "title" property of a recurrence.</t></li>
 <li><t><strong>description</strong>: <tt>String|null</tt></t><t>
-Looks for the text in the <em>description</em> property of the event, or the overridden <em>description</em> property of a recurrence.</t></li>
+Looks for the text in the "description" property of the event, or the overridden "description" property of a recurrence.</t></li>
 <li><t><strong>location</strong>: <tt>String|null</tt></t><t>
-Looks for the text in the <em>locations</em> property of the event (matching name/description of a location), or the overridden <em>locations</em> property of a recurrence.</t></li>
+Looks for the text in the "locations" property of the event (matching name/description of a location), or the overridden "locations" property of a recurrence.</t></li>
 <li><t><strong>owner</strong>: <tt>String|null</tt></t><t>
-Looks for the text in the name or email fields of a participant in the <em>participants</em> property of the event, or the overridden <em>participants</em> property of a recurrence, where the participant has a role of &quot;owner&quot;.</t></li>
+Looks for the text in the name or email fields of a participant in the "participants" property of the event, or the overridden "participants" property of a recurrence, where the participant has a role of &quot;owner&quot;.</t></li>
 <li><t><strong>attendee</strong>: <tt>String|null</tt></t><t>
-Looks for the text in the name or email fields of a participant in the <em>participants</em> property of the event, or the overridden <em>participants</em> property of a recurrence, where the participant has a role of &quot;attendee&quot;.</t></li>
+Looks for the text in the name or email fields of a participant in the "participants" property of the event, or the overridden "participants" property of a recurrence, where the participant has a role of &quot;attendee&quot;.</t></li>
 <li><t><strong>uid</strong>: <tt>String</tt></t><t>
 The uid of the event is exactly the given string.</t></li>
 </ul>
@@ -885,7 +882,7 @@ The uid of the event is exactly the given string.</t></li>
 <li><t>isDraft</t></li>
 <li><t>isOrigin</t></li>
 </ul>
-<t>The <em>CalendarEvent/parse</em> method takes the following arguments:</t>
+<t>The "CalendarEvent/parse" method takes the following arguments:</t>
 
 <ul spacing="compact">
 <li><t><strong>accountId</strong>: <tt>Id</tt></t><t>
