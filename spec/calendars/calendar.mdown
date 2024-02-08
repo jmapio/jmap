@@ -26,9 +26,9 @@ A **Calendar** object has the following properties:
     a higher order in any list of calendars in the client's UI. Calendars with equal order SHOULD be sorted in alphabetical order by name.  The sorting should take into account locale-specific character order convention.
 
 - **isSubscribed**: `Boolean`
-  Has the user indicated they wish to see this Calendar in their client? This SHOULD default to false for Calendars in shared accounts the user has access to and true for any new Calendars created by the user themself.
+  True if the user has indicated they wish to see this Calendar in their client. This SHOULD default to false for Calendars in shared accounts the user has access to and true for any new Calendars created by the user themself.
 
-    If false, the calendar should only be displayed when the user explicitly
+    If false, the calendar SHOULD only be displayed when the user explicitly
     requests it or to offer it for the user to subscribe to. For example, a company may have a large number of shared calendars which all employees have permission to access, but you would only subscribe to the ones you care about and want to be able to have normally accessible.
 
 - **isVisible**: `Boolean` (default: true)
@@ -116,8 +116,8 @@ A **CalendarRights** object has the following properties:
     The user may also do all of the above on a per-occurrence basis for recurring events (updating the recurrenceOverrides property of the event to do so).
 
 - **mayAdmin**: `Boolean`
-  The user may modify sharing for this calendar.
-- **mayDelete**: `Boolean` (server-set)
+  The user may modify the "shareWith" property for this calendar.
+- **mayDelete**: `Boolean`
   The user may delete the calendar itself.
 
 The user is an **owner** for an event if the CalendarEvent object has a   "participants" property, and one of the Participant objects both:
@@ -129,7 +129,7 @@ An event has no owner if its participants property is null or omitted, or if non
 
 ## Calendar/get
 
-This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
+This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
 
 If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in Calendar/get and Calendar/query; it must behave as though it did not exist. The data is just used as part of Principal/getAvailability.
 
