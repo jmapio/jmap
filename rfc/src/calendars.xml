@@ -1208,6 +1208,7 @@ data after the update.</t></li>
           &quot;2&quot;:{
             &quot;@type&quot;:&quot;Participant&quot;,
             &quot;name&quot;:&quot;Joe Bloggs&quot;,
+            &quot;scheduleId&quot;: &quot;mailto:joe@example.com&quot;,
             &quot;sendTo&quot;:{
               &quot;imip&quot;:&quot;mailto:joe@example.com&quot;
             },
@@ -1386,85 +1387,55 @@ makes no other change):</t>
 <artwork>[
   [ &quot;CalendarEvent/parse&quot;, {
     &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;blobIds&quot;: [&quot;0f9f65ab-dc7b-4146-850f-6e4881093965&quot;]
+    &quot;blobIds&quot;: [&quot;Ge682d5d7aad50b3a4f7180a7ed9276476485ea52&quot;]
   }, &quot;c1&quot;]
 ]
 </artwork>
 <t>The server responds:</t>
 
-<artwork>[[ &quot;CalendarEvent/parse&quot;,
-{
-  &quot;accountId&quot;: &quot;a0x9&quot;,
+<artwork>[[ &quot;CalendarEvent/parse&quot;, {
+  &quot;accountId&quot;: &quot;ue150411c&quot;,
   &quot;parsed&quot;: {
-    &quot;0f9f65ab-dc7b-4146-850f-6e4881093965&quot;: [
-      {
-        &quot;uid&quot;: &quot;ea127690-0440-404b-af98-9823c855a283&quot;,
-        &quot;title&quot;: &quot;Gatling: break LemonLDAP!&quot;,
-        &quot;description&quot;: &quot;Let's write some basic OIDC benchmarks&quot;,
-        &quot;start&quot;: &quot;2023-02-09T10:00:00&quot;,
-        &quot;duration&quot;: &quot;PT2H0M0S&quot;,
-        &quot;end&quot;: &quot;2023-02-09T12:00:00&quot;,
-        &quot;timeZone&quot;: &quot;Asia/Ho_Chi_Minh&quot;,
-        &quot;location&quot;: &quot;10 Thai Ha, Ha Noi&quot;,
-        &quot;method&quot;: &quot;REQUEST&quot;,
-        &quot;sequence&quot;: 0,
-        &quot;priority&quot;: 5,
-        &quot;freeBusyStatus&quot;: &quot;busy&quot;,
-        &quot;privacy&quot;: &quot;public&quot;,
-        &quot;organizer&quot;: {
-          &quot;name&quot;: &quot;Bob SMITH&quot;,
-          &quot;mailto&quot;: &quot;bsmith@example.com&quot;
-        },
-        &quot;participants&quot;: [{
-            &quot;name&quot;: &quot;Bob SMITH&quot;,
-            &quot;mailto&quot;: &quot;bsmith@example.com&quot;,
-            &quot;kind&quot;: &quot;individual&quot;,
-            &quot;role&quot;: &quot;chair&quot;,
-            &quot;participationStatus&quot;: &quot;accepted&quot;,
-            &quot;expectReply&quot;: false
-          },
-          {
-            &quot;name&quot;: &quot;Alice DOE&quot;,
-            &quot;mailto&quot;: &quot;adoe@example.com&quot;,
-            &quot;kind&quot;: &quot;individual&quot;,
-            &quot;role&quot;: &quot;requested-participant&quot;,
-            &quot;participationStatus&quot;: &quot;needs-action&quot;,
-            &quot;expectReply&quot;: true
+    &quot;Ge682d5d7aad50b3a4f7180a7ed9276476485ea52&quot;: [{
+      &quot;@type&quot;: &quot;Event&quot;,
+      &quot;method&quot;: &quot;publish&quot;,
+      &quot;prodId&quot;: &quot;-//IETF//datatracker.ietf.org ical agenda//EN&quot;,
+      &quot;uid&quot;: &quot;ietf-119-16811-jmap&quot;,
+      &quot;sequence&quot;: 2,
+      &quot;updated&quot;: &quot;2024-02-09T22:49:26Z&quot;,
+      &quot;start&quot;: &quot;2024-03-19T13:00:00&quot;,
+      &quot;duration&quot;: &quot;PT2H&quot;,
+      &quot;timeZone&quot;: &quot;Australia/Brisbane&quot;,
+      &quot;showWithoutTime&quot;: false,
+      &quot;title&quot;: &quot;jmap - JSON Mail Access Protocol&quot;,
+      &quot;freeBusyStatus&quot;: &quot;busy&quot;,
+      &quot;descriptionContentType&quot;: &quot;text/plain&quot;,
+      &quot;description&quot;: &quot;Session II\n\nRemember to sign the blue sheets!&quot;,
+      &quot;locations&quot;: {
+          &quot;eec47e7589ce131d6331b10383f89f91f8d4a4ef&quot;: {
+              &quot;@type&quot;: &quot;Location&quot;,
+              &quot;name&quot;: &quot;P3, Brisbane Convention Centre&quot;
           }
-        ],
-        &quot;extensionFields&quot;: {
-          &quot;X-VIDEOCONFERENCE&quot;: [&quot;https://jitsi.linagora.com/abcd&quot;],
-          &quot;X-CUSTOM-HEADER1&quot;: [&quot;whatever1&quot;, &quot;whatever2&quot;]
-        },
-        &quot;recurrenceRules&quot;:[
-          {
-            &quot;frequency&quot;: &quot;yearly&quot;,
-            &quot;byDay&quot;: [ &quot;mo&quot; ],
-            &quot;byMonth&quot;: [ &quot;10&quot; ],
-            &quot;bySetPosition&quot;: [ 1, 2 ],
-            &quot;until&quot;:&quot;2024-01-11T09:00:00Z&quot;
-          }
-        ]
       },
-      ...
-    ]
-  }
-}, &quot;c1&quot; ]]
+      &quot;status&quot;: &quot;confirmed&quot;
+    }]
+  },
+  &quot;notFound&quot;: null,
+  &quot;notParsable&quot;: null
+}, &quot;c1&quot;]]
 </artwork>
 <t>If the blob id had not been found, the server would have responded:</t>
 
-<artwork>[[ &quot;CalendarEvent/parse&quot;,
-{
+<artwork>[[ &quot;CalendarEvent/parse&quot;, {
   &quot;accountId&quot;: &quot;a0x9&quot;,
-  &quot;notFound&quot;: [ &quot;0f9f65ab-dc7b-4146-850f-6e4881093965&quot; ]
+  &quot;notFound&quot;: [&quot;Ge682d5d7aad50b3a4f7180a7ed9276476485ea52&quot;]
 }, &quot;c1&quot; ]]
 </artwork>
 <t>If the blob id had been found but was not parsable, the server would have responded:</t>
 
-<artwork>[[ &quot;CalendarEvent/parse&quot;,
-{
+<artwork>[[ &quot;CalendarEvent/parse&quot;, {
   &quot;accountId&quot;: &quot;a0x9&quot;,
-  &quot;notParsable&quot;: [ &quot;0f9f65ab-dc7b-4146-850f-6e4881093965&quot; ]
+  &quot;notParsable&quot;: [&quot;Ge682d5d7aad50b3a4f7180a7ed9276476485ea52&quot;]
 }, &quot;c1&quot; ]]
 </artwork>
 </section>

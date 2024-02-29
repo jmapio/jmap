@@ -151,6 +151,7 @@ Suppose the user asks the client to create a new event. The client should defaul
 	          "2":{
 	            "@type":"Participant",
 	            "name":"Joe Bloggs",
+              "scheduleId":"mailto:joe@example.com",
 	            "sendTo":{
 	              "imip":"mailto:joe@example.com"
 	            },
@@ -329,83 +330,53 @@ The client makes a request to parse the calendar event from a blob id representi
     [
       [ "CalendarEvent/parse", {
         "accountId": "a0x9",
-        "blobIds": ["0f9f65ab-dc7b-4146-850f-6e4881093965"]
+        "blobIds": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
       }, "c1"]
     ]
 
 The server responds:
 
-    [[ "CalendarEvent/parse",
-    {
-      "accountId": "a0x9",
+    [[ "CalendarEvent/parse", {
+      "accountId": "ue150411c",
       "parsed": {
-        "0f9f65ab-dc7b-4146-850f-6e4881093965": [
-          {
-            "uid": "ea127690-0440-404b-af98-9823c855a283",
-            "title": "Gatling: break LemonLDAP!",
-            "description": "Let's write some basic OIDC benchmarks",
-            "start": "2023-02-09T10:00:00",
-            "duration": "PT2H0M0S",
-            "end": "2023-02-09T12:00:00",
-            "timeZone": "Asia/Ho_Chi_Minh",
-            "location": "10 Thai Ha, Ha Noi",
-            "method": "REQUEST",
-            "sequence": 0,
-            "priority": 5,
-            "freeBusyStatus": "busy",
-            "privacy": "public",
-            "organizer": {
-              "name": "Bob SMITH",
-              "mailto": "bsmith@example.com"
-            },
-            "participants": [{
-                "name": "Bob SMITH",
-                "mailto": "bsmith@example.com",
-                "kind": "individual",
-                "role": "chair",
-                "participationStatus": "accepted",
-                "expectReply": false
-              },
-              {
-                "name": "Alice DOE",
-                "mailto": "adoe@example.com",
-                "kind": "individual",
-                "role": "requested-participant",
-                "participationStatus": "needs-action",
-                "expectReply": true
+        "Ge682d5d7aad50b3a4f7180a7ed9276476485ea52": [{
+          "@type": "Event",
+          "method": "publish",
+          "prodId": "-//IETF//datatracker.ietf.org ical agenda//EN",
+          "uid": "ietf-119-16811-jmap",
+          "sequence": 2,
+          "updated": "2024-02-09T22:49:26Z",
+          "start": "2024-03-19T13:00:00",
+          "duration": "PT2H",
+          "timeZone": "Australia/Brisbane",
+          "showWithoutTime": false,
+          "title": "jmap - JSON Mail Access Protocol",
+          "freeBusyStatus": "busy",
+          "descriptionContentType": "text/plain",
+          "description": "Session II\n\nRemember to sign the blue sheets!",
+          "locations": {
+              "eec47e7589ce131d6331b10383f89f91f8d4a4ef": {
+                  "@type": "Location",
+                  "name": "P3, Brisbane Convention Centre"
               }
-            ],
-            "extensionFields": {
-              "X-VIDEOCONFERENCE": ["https://jitsi.linagora.com/abcd"],
-              "X-CUSTOM-HEADER1": ["whatever1", "whatever2"]
-            },
-            "recurrenceRules":[
-              {
-                "frequency": "yearly",
-                "byDay": [ "mo" ],
-                "byMonth": [ "10" ],
-                "bySetPosition": [ 1, 2 ],
-                "until":"2024-01-11T09:00:00Z"
-              }
-            ]
           },
-          ...
-        ]
-      }
-    }, "c1" ]]
+          "status": "confirmed"
+        }]
+      },
+      "notFound": null,
+      "notParsable": null
+    }, "c1"]]
 
 If the blob id had not been found, the server would have responded:
 
-    [[ "CalendarEvent/parse",
-    {
+    [[ "CalendarEvent/parse", {
       "accountId": "a0x9",
-      "notFound": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
+      "notFound": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
     }, "c1" ]]
 
 If the blob id had been found but was not parsable, the server would have responded:
 
-    [[ "CalendarEvent/parse",
-    {
+    [[ "CalendarEvent/parse", {
       "accountId": "a0x9",
-      "notParsable": [ "0f9f65ab-dc7b-4146-850f-6e4881093965" ]
+      "notParsable": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
     }, "c1" ]]
