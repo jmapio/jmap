@@ -50,15 +50,11 @@
 
 <section anchor="notational-conventions"><name>Notational Conventions</name>
 <t>The key words &quot;MUST&quot;, &quot;MUST NOT&quot;, &quot;REQUIRED&quot;, &quot;SHALL&quot;, &quot;SHALL NOT&quot;, &quot;SHOULD&quot;, &quot;SHOULD NOT&quot;, &quot;RECOMMENDED&quot;, &quot;NOT RECOMMENDED&quot;, &quot;MAY&quot;, and &quot;OPTIONAL&quot; in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
-<t>Type signatures, examples, and property descriptions in this document follow the conventions established in <xref target="RFC8620" section="1.1" sectionFormat="of" />.  The Id, UnsignedInt, Date and UTCDate data types defined in Sections <xref target="RFC8620" section="1.2" sectionFormat="bare" />, <xref target="RFC8620" section="1.3" sectionFormat="bare" /> and <xref target="RFC8620" section="1.4" sectionFormat="bare" /> of <xref target="RFC8620" /> are also used in this document.</t>
+<t>Type signatures, examples, and property descriptions in this document follow the conventions established in <xref target="RFC8620" section="1.1" sectionFormat="of" />.</t>
 </section>
 
-<section anchor="the-localdate-data-type"><name>The LocalDate Data Type</name>
-<t>Where <tt>LocalDate</tt> is given as a type, it means a string in the same format as <tt>Date</tt> (see <xref target="RFC8620" section="1.4"></xref>), but with the <tt>time-offset</tt> omitted from the end. For example, <tt>2014-10-30T14:12:00</tt>. The interpretation in absolute time depends upon the time zone for the event, which may not be a fixed offset (for example when daylight saving time occurs).</t>
-</section>
-
-<section anchor="the-duration-data-type"><name>The Duration Data Type</name>
-<t>Where <tt>Duration</tt> is given as a type, it means a length of time represented by a subset of the ISO 8601 duration format, as defined in <xref target="RFC8984" section="1.4.6"></xref>.</t>
+<section anchor="the-localdate-data-type"><name>Data Types</name>
+<t>The Id data type defined in <xref target="RFC8620" section="1.2" /> is used in this document. So too are the UnsignedInt, UTCDateTime, LocalDateTime, Duration, and TimeZoneId data types defined in Sections <xref target="RFC8984" section="1.4.3" sectionFormat="bare" />, <xref target="RFC8984" section="1.4.4" sectionFormat="bare" />, <xref target="RFC8984" section="1.4.5" sectionFormat="bare" />, <xref target="RFC8984" section="1.4.6" sectionFormat="bare" />, and <xref target="RFC8984" section="1.4.8" sectionFormat="bare" /> of <xref target="RFC8984" /> respectively.</t>
 </section>
 
 <section anchor="terminology"><name>Terminology</name>
@@ -91,9 +87,9 @@
 <ul spacing="compact">
 <li><t><strong>maxCalendarsPerEvent</strong>: <tt>UnsignedInt|null</tt></t>
 <t>The maximum number of Calendars (see <xref target="calendars" />) that can be can assigned to a single CalendarEvent object (see <xref target="calendar-events" />). This MUST be an integer &gt;= 1, or null for no limit (or rather, the limit is always the number of Calendars in the account).</t></li>
-<li><t><strong>minDateTime</strong>: <tt>LocalDate</tt></t>
+<li><t><strong>minDateTime</strong>: <tt>LocalDateTime</tt></t>
 <t>The earliest date-time the server is willing to accept for any date stored in a CalendarEvent.</t></li>
-<li><t><strong>maxDateTime</strong>: <tt>LocalDate</tt></t>
+<li><t><strong>maxDateTime</strong>: <tt>LocalDateTime</tt></t>
 <t>The latest date-time the server is willing to accept for any date stored in a CalendarEvent.</t></li>
 <li><t><strong>maxExpandedQueryDuration</strong>: <tt>Duration</tt></t>
 <t>The maximum duration the user may query over when asking the server to expand recurrences.</t></li>
@@ -151,9 +147,9 @@ shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
 <t>The id of the account to use.</t></li>
 <li><t><strong>id</strong>: <tt>Id</tt></t>
 <t>The id of the Principal to calculate availability for.</t></li>
-<li><t><strong>utcStart</strong>: <tt>UTCDate</tt></t>
+<li><t><strong>utcStart</strong>: <tt>UTCDateTime</tt></t>
 <t>The start time (inclusive) of the period for which to return availability.</t></li>
-<li><t><strong>utcEnd</strong>: <tt>UTCDate</tt></t>
+<li><t><strong>utcEnd</strong>: <tt>UTCDateTime</tt></t>
 <t>The end time (exclusive) of the period for which to return availability.</t></li>
 <li><t><strong>showDetails</strong>: <tt>Boolean</tt></t>
 <t>If true, event details will be returned if the user has permission to view them.</t></li>
@@ -176,9 +172,9 @@ shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
 <t>The server then generates a BusyPeriod object for each of these events. A <strong>BusyPeriod</strong> object has the following properties:</t>
 
 <ul>
-<li><t><strong>utcStart</strong>: <tt>UTCDate</tt></t>
+<li><t><strong>utcStart</strong>: <tt>UTCDateTime</tt></t>
 <t>The start time (inclusive) of the period this represents.</t></li>
-<li><t><strong>utcEnd</strong>: <tt>UTCDate</tt></t>
+<li><t><strong>utcEnd</strong>: <tt>UTCDateTime</tt></t>
 <t>The end time (exclusive) of the period this represents.</t></li>
 <li><t><strong>busyStatus</strong>: <tt>String</tt> (optional, default &quot;unavailable&quot;)</t>
 <t>This MUST be one of</t>
@@ -333,7 +329,7 @@ and &quot;none&quot; for calendars shared with the user.</t></li>
 <li><t><strong>defaultAlertsWithoutTime</strong>: <tt>Id[Alert]|null</tt></t>
 <t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where &quot;showWithoutTime&quot; is true and &quot;useDefaultAlerts&quot; is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to <tt>null</tt>, or may copy the alerts from the default calendar.</t></li>
-<li><t><strong>timeZone</strong>: <tt>String|null</tt> (default: null)</t>
+<li><t><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</t>
 <t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>. If <tt>null</tt>, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[CalendarRights]|null</tt> (default: null)</t>
 <t>A map of Principal id to rights for principals this calendar is shared with. The principal to which this calendar belongs MUST NOT be in this set. This is null if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the calendar belongs.</t></li>
@@ -466,14 +462,14 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <li><t>the event's &quot;replyTo&quot; property is <tt>null</tt>; or</t></li>
 <li><t>the account will receive messages sent to at least one of the methods specified in the &quot;replyTo&quot; property of the event.</t></li>
 </ul></li>
-<li><t><strong>utcStart</strong>: <tt>UTCDate</tt></t>
+<li><t><strong>utcStart</strong>: <tt>UTCDateTime</tt></t>
 <t>For simple clients that do not implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.</t>
 <t>This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different results if the time zone data has been updated on the server. Time zone data changes are not considered &quot;updates&quot; to the event.</t>
 <t>If set, the server will convert the UTC date to the event's current time zone and store the local time.</t>
 <t>This property is not included in CalendarEvent/get responses by default and must be requested explicitly.</t>
 <t>Floating events (events without a time zone) will be interpreted as per the time zone given as a CalendarEvent/get argument.</t>
 <t>Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the utcStart property rather than the local start time. Even simple recurrences such as &quot;repeat weekly&quot; may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use &quot;utcStart&quot; are RECOMMENDED to request the server expand recurrences (see <xref target="calendarevent-query" />).</t></li>
-<li><t><strong>utcEnd</strong>: <tt>UTCDate</tt></t>
+<li><t><strong>utcEnd</strong>: <tt>UTCDateTime</tt></t>
 <t>The server calculates the end time in UTC from the start/timeZone/duration properties of the event. This property is not included by default and must be requested explicitly. Like utcStart, it is calculated at fetch time if requested and may change due to time zone data changes. Floating events will be interpreted as per the time zone given as a CalendarEvent/get argument.</t></li>
 </ul>
 <t>CalendarEvent objects MUST NOT have a &quot;method&quot; property as this is only used when representing iTIP <xref target="RFC5546"></xref> scheduling messages, not events in a data store.</t>
@@ -551,13 +547,13 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" />, with three extra arguments:</t>
 
 <ul spacing="compact">
-<li><t><strong>recurrenceOverridesBefore</strong>: <tt>UTCDate|null</tt></t>
+<li><t><strong>recurrenceOverridesBefore</strong>: <tt>UTCDateTime|null</tt></t>
 <t>If given, only recurrence overrides with a recurrence id before this date (when translated into UTC) will be returned.</t></li>
-<li><t><strong>recurrenceOverridesAfter</strong>: <tt>UTCDate|null</tt></t>
+<li><t><strong>recurrenceOverridesAfter</strong>: <tt>UTCDateTime|null</tt></t>
 <t>If given, only recurrence overrides with a recurrence id on or after this date (when translated into UTC) will be returned.</t></li>
 <li><t><strong>reduceParticipants</strong>: <tt>Boolean</tt> (default: false)</t>
 <t>If true, only participants with the &quot;owner&quot; role or corresponding to the user's participant identities will be returned in the &quot;participants&quot; property of the base event and any recurrence overrides. If false, all participants will be returned.</t></li>
-<li><t><strong>timeZone</strong>: <tt>String</tt> (default &quot;Etc/UTC&quot;)</t>
+<li><t><strong>timeZone</strong>: <tt>TimeZoneId</tt> (default &quot;Etc/UTC&quot;)</t>
 <t>The time zone to use when calculating the utcStart/utcEnd property of floating events. This argument has no effect if those properties are not requested.</t></li>
 </ul>
 <t>A CalendarEvent object is a JSCalendar Event object so may have arbitrary properties. If the client makes a &quot;CalendarEvent/get&quot; call with a null or omitted &quot;properties&quot; argument, all properties defined on the JSCalendar Event object in the store are returned, along with the &quot;id&quot;, &quot;calendarIds&quot;, &quot;isDraft&quot;, and &quot;isOrigin&quot; properties. The &quot;utcStart&quot; and &quot;utcEnd&quot; computed properties are only returned if explicitly requested. If either are requested, the &quot;recurrenceOverrides&quot; property MUST NOT be requested (recurrence overrides cannot be interpreted accurately with just the UTC times).</t>
@@ -804,7 +800,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <ul spacing="compact">
 <li><t><strong>expandRecurrences</strong>: <tt>Boolean</tt> (default: false)</t>
 <t>If true, the server will expand any recurring event. If true, the filter MUST be just a FilterCondition (not a FilterOperator) and MUST include both a &quot;before&quot; and &quot;after&quot; property. This ensures the server is not asked to return an infinite number of results.</t></li>
-<li><t><strong>timeZone</strong>: <tt>String</tt></t>
+<li><t><strong>timeZone</strong>: <tt>TimeZoneId</tt></t>
 <t>The time zone for before/after filter conditions (default: &quot;Etc/UTC&quot;)</t></li>
 </ul>
 <t>If expandRecurrences is true, a separate id will be returned for each instance of a recurring event that matches the query. This synthetic id is opaque to the client, but allows the server to resolve the id + recurrence id for &quot;/get&quot; and &quot;/set&quot; operations. Otherwise, a single id will be returned for matching recurring events that represents the entire event.</t>
@@ -818,9 +814,9 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <ul spacing="compact">
 <li><t><strong>inCalendars</strong>: <tt>Id[]|null</tt></t>
 <t>A list of calendar ids. An event must be in ANY of these calendars to match the condition.</t></li>
-<li><t><strong>after</strong>: <tt>LocalDate|null</tt></t>
+<li><t><strong>after</strong>: <tt>LocalDateTime|null</tt></t>
 <t>The end of the event, or any recurrence of the event, in the time zone given as the timeZone argument, must be after this date to match the condition.</t></li>
-<li><t><strong>before</strong>: <tt>LocalDate|null</tt></t>
+<li><t><strong>before</strong>: <tt>LocalDateTime|null</tt></t>
 <t>The start of the event, or any recurrence of the event, in the time zone given as the timeZone argument, must be before this date to match the condition.</t></li>
 <li><t><strong>text</strong>: <tt>String|null</tt></t>
 <t>Looks for the text in the "title", "description", "locations" (matching name/description), "participants" (matching name/email) and any other textual properties of the event or any recurrence of the event.</t></li>
@@ -954,7 +950,7 @@ event this is the id of the base event, never a synthetic id for a particular
 instance.</t></li>
 <li><t><strong>uid</strong>: <tt>String</tt></t>
 <t>The uid property of the CalendarEvent for the alert that triggered.</t></li>
-<li><t><strong>recurrenceId</strong>: <tt>LocalDate|null</tt></t>
+<li><t><strong>recurrenceId</strong>: <tt>LocalDateTime|null</tt></t>
 <t>The recurrenceId for the instance of the event for which this alert is being
 triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 <li><t><strong>alertId</strong>: <tt>String</tt></t>
@@ -980,7 +976,7 @@ triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 <ul spacing="compact">
 <li><t><strong>id</strong>: <tt>Id</tt></t>
 <t>The id of the CalendarEventNotification.</t></li>
-<li><t><strong>created</strong>: <tt>UTCDate</tt></t>
+<li><t><strong>created</strong>: <tt>UTCDateTime</tt></t>
 <t>The time this notification was created.</t></li>
 <li><t><strong>changedBy</strong>: <tt>Person</tt></t>
 <t>Who made the change. The Person object has the following properties:</t>
@@ -1041,9 +1037,9 @@ data after the update.</t></li>
 <t>A <strong>FilterCondition</strong> object has the following properties:</t>
 
 <ul spacing="compact">
-<li><t><strong>after</strong>: <tt>UTCDate|null</tt></t>
+<li><t><strong>after</strong>: <tt>UTCDateTime|null</tt></t>
 <t>The creation date must be on or after this date to match the condition.</t></li>
-<li><t><strong>before</strong>: <tt>UTCDate|null</tt></t>
+<li><t><strong>before</strong>: <tt>UTCDateTime|null</tt></t>
 <t>The creation date must be before this date to match the condition.</t></li>
 <li><t><strong>type</strong>: <tt>String</tt></t>
 <t>The type property must be the same to match the condition.</t></li>
