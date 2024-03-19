@@ -49,7 +49,7 @@
 <t>This specification defines a data model for synchronizing calendar data between a client and a server using JMAP. The data model is designed to allow a server to provide consistent access to the same data via CalDAV <xref target="RFC4791"></xref> as well as JMAP, however the functionality offered over the two protocols may differ. Unlike CalDAV, this specification does not define access to tasks or journal entries (VTODO or VJOURNAL iCalendar components in CalDAV).</t>
 
 <section anchor="notational-conventions"><name>Notational Conventions</name>
-<t>The key words &quot;MUST&quot;, &quot;MUST NOT&quot;, &quot;REQUIRED&quot;, &quot;SHALL&quot;, &quot;SHALL NOT&quot;, &quot;SHOULD&quot;, &quot;SHOULD NOT&quot;, &quot;RECOMMENDED&quot;, &quot;NOT RECOMMENDED&quot;, &quot;MAY&quot;, and &quot;OPTIONAL&quot; in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
+<t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
 <t>Type signatures, examples, and property descriptions in this document follow the conventions established in <xref target="RFC8620" section="1.1" sectionFormat="of" />.</t>
 </section>
 
@@ -68,7 +68,7 @@
 <t>CalendarEventNotification objects keep track of the history of changes made to a calendar by other users, allowing calendar clients to notify the user of changes to their schedule.</t>
 <t>The ParticipantIdentity data type represents the identities of the current user within an Account, which determines which events the user is a participant of and possibly their permissions related to that event.</t>
 <t>In servers with support for JMAP Sharing <xref target="I-D.ietf-jmap-sharing" />, data may be shared with other users. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Principals may also represent schedulable entities, such as a meeting room.</t>
-<t>Users can normally subscribe to any calendar to which they have access. This indicates the user wants this calendar to appear in their regular list of calendars. The separate &quot;isVisible&quot; property stores whether the user would currently like to view the events in a subscribed calendar.</t>
+<t>Users can normally subscribe to any calendar to which they have access. This indicates the user wants this calendar to appear in their regular list of calendars. The separate "isVisible" property stores whether the user would currently like to view the events in a subscribed calendar.</t>
 
 <section anchor="uids-and-calendarevent-ids"><name>UIDs and CalendarEvent Ids</name>
 <t>Each CalendarEvent has a <tt>uid</tt> property (<xref target="RFC8984" section="4.1.2" />), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.</t>
@@ -81,7 +81,7 @@
 <t>The capabilities object is returned as part of the JMAP Session object; see <xref target="RFC8620" section="2" />. This document defines three additional capability URIs.</t>
 
 <section anchor="urn-ietf-params-jmap-calendars"><name>urn:ietf:params:jmap:calendars</name>
-<t>This represents support for the Calendar, CalendarEvent, CalendarEventNotification, and ParticipantIdentity data types and associated API methods, except for &quot;CalendarEvent/parse&quot;. The value of this property in the JMAP Session capabilities property is an empty object.</t>
+<t>This represents support for the Calendar, CalendarEvent, CalendarEventNotification, and ParticipantIdentity data types and associated API methods, except for "CalendarEvent/parse". The value of this property in the JMAP Session capabilities property is an empty object.</t>
 <t>The value of this property in an account's accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:</t>
 
 <ul spacing="compact">
@@ -121,14 +121,14 @@
 <t>For systems that also support JMAP Sharing <xref target="I-D.ietf-jmap-sharing" />, the <tt>urn:ietf:params:jmap:calendars</tt> capability is used to indicate that this principal may be used with calendaring. A new method is defined to allow users to query availability when scheduling events.</t>
 
 <section anchor="principal-capability-urn-ietf-params-jmap-calendars"><name>Principal Capability urn:ietf:params:jmap:calendars</name>
-<t>A <tt>urn:ietf:params:jmap:calendars</tt> property is added to the Principal &quot;capabilities&quot; object, the value of which is an object with the following properties:</t>
+<t>A <tt>urn:ietf:params:jmap:calendars</tt> property is added to the Principal "capabilities" object, the value of which is an object with the following properties:</t>
 
 <ul spacing="compact">
 <li><t><strong>accountId</strong>: <tt>Id|null</tt></t>
 <t>Id of Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability that
-contains the calendar data for this principal, or null if none (e.g. the Principal is a group just used for permissions management), or the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property). The corresponding Account object can be found in the principal's &quot;accounts&quot; property, as per <xref target="I-D.ietf-jmap-sharing" section="2" />.</t></li>
+contains the calendar data for this principal, or null if none (e.g. the Principal is a group just used for permissions management), or the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property). The corresponding Account object can be found in the principal's "accounts" property, as per <xref target="I-D.ietf-jmap-sharing" section="2" />.</t></li>
 <li><t><strong>mayGetAvailability</strong>: <tt>Boolean</tt></t>
-<t>May the user call the &quot;Principal/getAvailability&quot; method with this Principal?</t></li>
+<t>May the user call the "Principal/getAvailability" method with this Principal?</t></li>
 <li><t><strong>mayShareWith</strong>: <tt>Boolean</tt></t>
 <t>May the user add this principal as a calendar sharee (by adding them to the
 shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
@@ -160,13 +160,13 @@ shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
 
 <ul spacing="compact">
 <li><t>The principal is subscribed to the calendar.</t></li>
-<li><t>The &quot;includeInAvailability&quot; property of the calendar for the principal is &quot;all&quot; or &quot;attending&quot;.</t></li>
-<li><t>The user has the &quot;mayReadFreeBusy&quot; permission for the calendar.</t></li>
-<li><t>The event finishes after the &quot;utcStart&quot; argument and starts before the &quot;utcEnd&quot; argument.</t></li>
-<li><t>The event's &quot;privacy&quot; property is not &quot;secret&quot;.</t></li>
-<li><t>The &quot;freeBusyStatus&quot; property of the event is &quot;busy&quot; (or omitted, as this is the default).</t></li>
-<li><t>The &quot;status&quot; property of the event is not &quot;cancelled&quot;.</t></li>
-<li><t>If the &quot;includeInAvailability&quot; property of the calendar is &quot;attending&quot;, then the principal is a participant of the event, and has a &quot;participationStatus&quot; of &quot;accepted&quot; or &quot;tentative&quot;.</t></li>
+<li><t>The "includeInAvailability" property of the calendar for the principal is "all" or "attending".</t></li>
+<li><t>The user has the "mayReadFreeBusy" permission for the calendar.</t></li>
+<li><t>The event finishes after the "utcStart" argument and starts before the "utcEnd" argument.</t></li>
+<li><t>The event's "privacy" property is not "secret".</t></li>
+<li><t>The "freeBusyStatus" property of the event is "busy" (or omitted, as this is the default).</t></li>
+<li><t>The "status" property of the event is not "cancelled".</t></li>
+<li><t>If the "includeInAvailability" property of the calendar is "attending", then the principal is a participant of the event, and has a "participationStatus" of "accepted" or "tentative".</t></li>
 </ul>
 <t>If an event is in more than one calendar, it is relevant if all of the above are true for any one calendar that it is in.</t>
 <t>The server then generates a BusyPeriod object for each of these events. A <strong>BusyPeriod</strong> object has the following properties:</t>
@@ -176,14 +176,14 @@ shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
 <t>The start time (inclusive) of the period this represents.</t></li>
 <li><t><strong>utcEnd</strong>: <tt>UTCDateTime</tt></t>
 <t>The end time (exclusive) of the period this represents.</t></li>
-<li><t><strong>busyStatus</strong>: <tt>String</tt> (optional, default &quot;unavailable&quot;)</t>
+<li><t><strong>busyStatus</strong>: <tt>String</tt> (optional, default "unavailable")</t>
 <t>This MUST be one of</t>
 
 <ul spacing="compact">
-<li><t><tt>confirmed</tt>: The event status is &quot;confirmed&quot; and the principal's</t>
-<t>&quot;participationStatus&quot; is &quot;attending&quot;.</t></li>
-<li><t><tt>tentative</tt>: The event status is &quot;tentative&quot; or the principal's</t>
-<t>&quot;participationStatus&quot; is &quot;tentative&quot;.</t></li>
+<li><t><tt>confirmed</tt>: The event status is "confirmed" and the principal's</t>
+<t>"participationStatus" is "attending".</t></li>
+<li><t><tt>tentative</tt>: The event status is "tentative" or the principal's</t>
+<t>"participationStatus" is "tentative".</t></li>
 <li><t><tt>unavailable</tt>: The principal is not available for scheduling at this time</t>
 <t>for any other reason.</t></li>
 </ul></li>
@@ -191,15 +191,15 @@ shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
 <t>The JSCalendar Event representation of the event, or null if any of the following are true:</t>
 
 <ul spacing="compact">
-<li><t>The &quot;showDetails&quot; argument is false.</t></li>
-<li><t>The &quot;privacy&quot; property of the event is &quot;private&quot;.</t></li>
-<li><t>The user does not have the &quot;mayReadItems&quot; permission for any of the calendars the event is in.</t></li>
+<li><t>The "showDetails" argument is false.</t></li>
+<li><t>The "privacy" property of the event is "private".</t></li>
+<li><t>The user does not have the "mayReadItems" permission for any of the calendars the event is in.</t></li>
 </ul>
 <t>If an eventProperties argument was given, any properties in the JSCalendar Event that are not in the eventProperties list are removed from the returned representation.</t>
 </li>
 </ul>
 <t>The server MAY also generate BusyPeriod objects based on other information it has about the principal's availability, such as office hours.</t>
-<t>Finally, the server MUST merge and split BusyPeriod objects where the &quot;event&quot; property is null, such that none of them overlap and either there is a gap in time between any two objects (the utcEnd of one does not equal the utcStart of another) or those objects have a different busyStatus property. If there are overlapping BusyPeriod time ranges with different &quot;busyStatus&quot; properties the server MUST choose the value in the following order: confirmed &gt; unavailable &gt; tentative.</t>
+<t>Finally, the server MUST merge and split BusyPeriod objects where the "event" property is null, such that none of them overlap and either there is a gap in time between any two objects (the utcEnd of one does not equal the utcStart of another) or those objects have a different busyStatus property. If there are overlapping BusyPeriod time ranges with different "busyStatus" properties the server MUST choose the value in the following order: confirmed &gt; unavailable &gt; tentative.</t>
 <t>The response has the following argument:</t>
 
 <ul spacing="compact">
@@ -207,7 +207,7 @@ shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
 <t>The list of BusyPeriod objects calculated as described above.</t></li>
 </ul>
 <t>The following additional errors may be returned instead of the
-&quot;Principal/getAvailability&quot; response:</t>
+"Principal/getAvailability" response:</t>
 <t><tt>notFound</tt>: No principal with this id exists, or the user does not have
 permission to see that this principal exists.</t>
 <t><tt>forbidden</tt>: The user does not have permission to query this principal's availability.</t>
@@ -222,8 +222,8 @@ permission to see that this principal exists.</t>
 <ul>
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
 <t>The id of the ParticipantIdentity.</t></li>
-<li><t><strong>name</strong>: <tt>String</tt> (default: &quot;&quot;)</t>
-<t>The display name of the participant to use when adding this participant to an event, e.g. &quot;Joe Bloggs&quot;.</t></li>
+<li><t><strong>name</strong>: <tt>String</tt> (default: ")</t>
+<t>The display name of the participant to use when adding this participant to an event, e.g. "Joe Bloggs".</t></li>
 <li><t><strong>calendarUserAddress</strong>: <tt>String</tt></t>
 <t>The URI that represents this participant for scheduling. This URI may also be the URI for one of the sendTo methods.</t></li>
 <li><t><strong>sendTo</strong>: <tt>String[String]</tt></t>
@@ -245,29 +245,29 @@ invitees.)</t></li>
 <t>The following JMAP methods are supported.</t>
 
 <section anchor="participantidentity-get"><name>ParticipantIdentity/get</name>
-<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be <tt>null</tt> to fetch all at once.</t>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be <tt>null</tt> to fetch all at once.</t>
 </section>
 
 <section anchor="participantidentity-changes"><name>ParticipantIdentity/changes</name>
-<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620" section="5.2" />.</t>
+<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" />.</t>
 </section>
 
 <section anchor="participantidentity-set"><name>ParticipantIdentity/set</name>
-<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" />, but with the following additional request argument:</t>
+<t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" />, but with the following additional request argument:</t>
 
 <ul spacing="compact">
 <li><t><strong>onSuccessSetIsDefault</strong>: <tt>Id|null</tt></t>
 <t>If an id is given, and all creates, updates and destroys (if any) succeed
 without error, the server will try to set this identity as the default. (For
 references to ParticipantIdentity creations, this is equivalent to a
-creation-reference, so the id will be the creation id prefixed with a &quot;#&quot;.)</t></li>
+creation-reference, so the id will be the creation id prefixed with a "#".)</t></li>
 </ul>
 <t>If the id is not found, or the change is not permitted by the server for
   policy reasons, it MUST be ignored and the currently default
   ParticipantIdentity (if any) will remain as such. No error is returned to
   the client in this case.</t>
 <t>As per <xref target="RFC8620" section="5.3" />, if the default is successfully changed, any
-  changed objects MUST be reported in either the &quot;created&quot; or &quot;updated&quot;
+  changed objects MUST be reported in either the "created" or "updated"
   argument in the response as  appropriate, with the server-set value included.</t>
 <t>The server MAY restrict the uri values the user may claim, for example only allowing <tt>mailto:</tt> URIs with email addresses that belong to the user. A standard <tt>forbidden</tt> error is returned to reject non-permissible changes.</t>
 </section>
@@ -321,13 +321,13 @@ This MUST be one of:</t>
 <li><t><tt>attending</tt>: events the user is a confirmed or tentative participant of are considered.</t></li>
 <li><t><tt>none</tt>: all events are ignored (but may be considered if also in another calendar).</t></li>
 </ul>
-<t>This should default to &quot;all&quot; for the calendars in the user's own account,
-and &quot;none&quot; for calendars shared with the user.</t></li>
+<t>This should default to "all" for the calendars in the user's own account,
+and "none" for calendars shared with the user.</t></li>
 <li><t><strong>defaultAlertsWithTime</strong>: <tt>Id[Alert]|null</tt></t>
-<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where &quot;showWithoutTime&quot; is false and &quot;useDefaultAlerts&quot; is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.</t>
+<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to <tt>null</tt>, or may copy the alerts from the default calendar.</t></li>
 <li><t><strong>defaultAlertsWithoutTime</strong>: <tt>Id[Alert]|null</tt></t>
-<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where &quot;showWithoutTime&quot; is true and &quot;useDefaultAlerts&quot; is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.</t>
+<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to <tt>null</tt>, or may copy the alerts from the default calendar.</t></li>
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</t>
 <t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>. If <tt>null</tt>, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.</t></li>
@@ -338,7 +338,7 @@ and &quot;none&quot; for calendars shared with the user.</t></li>
 
 <ul spacing="compact">
 <li><t>The user may fetch the event if they have the mayReadItems right on any calendar the event is in.</t></li>
-<li><t>The user may remove an event from a calendar (by modifying the event's &quot;calendarIds&quot; property) if the user has the appropriate permission for that
+<li><t>The user may remove an event from a calendar (by modifying the event's "calendarIds" property) if the user has the appropriate permission for that
 calendar.</t></li>
 <li><t>The user may make other changes to the event if they have the right to do so in <strong>all</strong> calendars to which the event belongs.</t></li>
 </ul></li>
@@ -356,7 +356,7 @@ calendar.</t></li>
 <t>The user may create, modify or destroy an event on this calendar if either they are the owner of the event (see below) or the event has no owner. This means the user may also transfer ownership by updating an event so they are no longer an owner.</t></li>
 <li><t><strong>mayUpdatePrivate</strong>: <tt>Boolean</tt></t>
 <t>The user may modify per-user properties (see <xref target="per-user-properties" />) on all events in the calendar, even if they would not otherwise have permission to modify that event. These properties MUST all be stored per-user, and changes do not affect any other user of the calendar.</t>
-<t>The user may also modify these properties on a per-occurrence basis for recurring events (updating the &quot;recurrenceOverrides&quot; property of the event to do so).</t></li>
+<t>The user may also modify these properties on a per-occurrence basis for recurring events (updating the "recurrenceOverrides" property of the event to do so).</t></li>
 <li><t><strong>mayRSVP</strong>: <tt>Boolean</tt></t>
 <t>The user may modify the following properties of any Participant object that corresponds to one of the user's ParticipantIdentity objects in the account, even if they would not otherwise have permission to modify that event:</t>
 
@@ -368,34 +368,34 @@ calendar.</t></li>
 <li><t>scheduleSequence</t></li>
 <li><t>scheduleUpdated</t></li>
 </ul>
-<t>If the event has its &quot;mayInviteSelf&quot; property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with calendarUserAddress/sendTo properties that are the same as the calendarUserAddress/sendTo properties of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain &quot;attendee&quot;.</t>
-<t>If the event has its &quot;mayInviteOthers&quot; property set to true (see <xref target="mayinviteothers" />) and there is an existing Participant in the event corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The roles property of any new participant MUST only contain &quot;attendee&quot;.</t>
+<t>If the event has its "mayInviteSelf" property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with calendarUserAddress/sendTo properties that are the same as the calendarUserAddress/sendTo properties of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain "attendee".</t>
+<t>If the event has its "mayInviteOthers" property set to true (see <xref target="mayinviteothers" />) and there is an existing Participant in the event corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The roles property of any new participant MUST only contain "attendee".</t>
 <t>The user may also do all of the above on a per-occurrence basis for recurring events (updating the recurrenceOverrides property of the event to do so).</t></li>
 <li><t><strong>mayAdmin</strong>: <tt>Boolean</tt></t>
-<t>The user may modify the &quot;shareWith&quot; property for this calendar.</t></li>
+<t>The user may modify the "shareWith" property for this calendar.</t></li>
 <li><t><strong>mayDelete</strong>: <tt>Boolean</tt></t>
 <t>The user may delete the calendar itself.</t></li>
 </ul>
-<t>The user is an <strong>owner</strong> for an event if the CalendarEvent object has a   &quot;participants&quot; property, and one of the Participant objects both:</t>
+<t>The user is an <strong>owner</strong> for an event if the CalendarEvent object has a   "participants" property, and one of the Participant objects both:</t>
 
 <ol type="a">
-<li><t>Has the &quot;owner&quot; role.</t></li>
+<li><t>Has the "owner" role.</t></li>
 <li><t>Corresponds to one of the user's ParticipantIdentity objects in the account (as per <xref target="participant-identities" />).</t></li>
 </ol>
 
-<t>An event has no owner if its participants property is null or omitted, or if none of the Participant objects have the &quot;owner&quot; role.</t>
+<t>An event has no owner if its participants property is null or omitted, or if none of the Participant objects have the "owner" role.</t>
 
 <section anchor="calendar-get"><name>Calendar/get</name>
-<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be <tt>null</tt> to fetch all at once.</t>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be <tt>null</tt> to fetch all at once.</t>
 <t>If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in Calendar/get and Calendar/query; it must behave as though it did not exist. The data is just used as part of Principal/getAvailability.</t>
 </section>
 
 <section anchor="calendar-changes"><name>Calendar/changes</name>
-<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620" section="5.2" />.</t>
+<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" />.</t>
 </section>
 
 <section anchor="calendar-set"><name>Calendar/set</name>
-<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" /> but with the following additional request arguments:</t>
+<t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" /> but with the following additional request arguments:</t>
 
 <ul spacing="compact">
 <li><t><strong>onDestroyRemoveEvents</strong>: <tt>Boolean</tt> (default: false)</t>
@@ -405,19 +405,19 @@ calendar.</t></li>
 <t>If an id is given, and all creates, updates and destroys (if any) succeed
 without error, the server will try to set this calendar as the default. (For
 references to Calendar creations, this is equivalent to a
-creation-reference, so the id will be the creation id prefixed with a &quot;#&quot;.)</t>
+creation-reference, so the id will be the creation id prefixed with a "#".)</t>
 <t>If the id is not found, or the change is not permitted by the server for
   policy reasons, it MUST be ignored and the currently default calendar (if
   any) will remain as such. No error is returned to the client in this case.</t>
 <t>As per <xref target="RFC8620" section="5.3" />, if the default is successfully changed, any
-  changed objects MUST be reported in either the &quot;created&quot; or &quot;updated&quot;
+  changed objects MUST be reported in either the "created" or "updated"
   argument in the response as  appropriate, with the server-set value included.</t>
  </li>
 </ul>
 
-<t>The &quot;shareWith&quot; property may only be set by users that have the mayAdmin right.
+<t>The "shareWith" property may only be set by users that have the mayAdmin right.
 When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a <tt>forbidden</tt> SetError.</t>
-<t>Users can subscribe or unsubscribe to a calendar by setting the &quot;isSubscribed&quot; property. The server MAY forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
+<t>Users can subscribe or unsubscribe to a calendar by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
 <t>The following properties may be set by anyone who is subscribed to the calendar and are always stored per-user:</t>
 
 <ul spacing="compact">
@@ -430,13 +430,13 @@ When modifying the shareWith property, the user cannot give a right to a princip
 <li><t>defaultAlertsWithoutTime</t></li>
 <li><t>defaultAlertsWithTime</t></li>
 </ul>
-<t>The &quot;name&quot;, &quot;color&quot;, and &quot;timeZone&quot; properties are initially inherited from the owner's copy of the calendar, but if set by a sharee then they get their own copy of the property; it does not change for any other principals. If the value of the property in the owner's calendar changes after this, it does not overwrite the sharee's value.</t>
-<t>The &quot;sortOrder&quot;, &quot;isVisible&quot;, &quot;includeInAvailability&quot;, &quot;defaultAlertsWithTime&quot;, and &quot;defaultAlertsWithoutTime&quot; properties are initally the default value for each sharee; they are not inherited from the owner.</t>
+<t>The "name", "color", and "timeZone" properties are initially inherited from the owner's copy of the calendar, but if set by a sharee then they get their own copy of the property; it does not change for any other principals. If the value of the property in the owner's calendar changes after this, it does not overwrite the sharee's value.</t>
+<t>The "sortOrder", "isVisible", "includeInAvailability", "defaultAlertsWithTime", and "defaultAlertsWithoutTime" properties are initally the default value for each sharee; they are not inherited from the owner.</t>
 <t>The following extra SetError types are defined:</t>
-<t>For &quot;destroy&quot;:</t>
+<t>For "destroy":</t>
 
 <ul spacing="compact">
-<li><t><strong>calendarHasEvent</strong>: The Calendar has at least one CalendarEvent assigned to it, and the &quot;onDestroyRemoveEvents&quot; argument was false.</t></li>
+<li><t><strong>calendarHasEvent</strong>: The Calendar has at least one CalendarEvent assigned to it, and the "onDestroyRemoveEvents" argument was false.</t></li>
 </ul>
 </section>
 </section>
@@ -446,33 +446,33 @@ When modifying the shareWith property, the user cannot give a right to a princip
 
 <ul>
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
-<t>The id of the CalendarEvent. The id uniquely identifies a JSCalendar Event with a particular &quot;uid&quot; and &quot;recurrenceId&quot; within a particular account.</t></li>
+<t>The id of the CalendarEvent. The id uniquely identifies a JSCalendar Event with a particular "uid" and "recurrenceId" within a particular account.</t></li>
 <li><t><strong>baseEventId</strong>: <tt>Id|null</tt> (immutable; server-set)</t>
-<t>This is only defined if the &quot;id&quot; property is a synthetic id, generated by the server to represent a particular instance of a recurring event (see <xref target="calendarevent-query" />). This property gives the id of the &quot;real&quot; CalendarEvent this was generated from.</t></li>
+<t>This is only defined if the "id" property is a synthetic id, generated by the server to represent a particular instance of a recurring event (see <xref target="calendarevent-query" />). This property gives the id of the "real" CalendarEvent this was generated from.</t></li>
 <li><t><strong>calendarIds</strong>: <tt>Id[Boolean]</tt></t>
 <t>The set of Calendar ids this event belongs to. An event MUST belong to one or more Calendars at all times (until it is destroyed). The set is represented as an object, with each key being a Calendar id. The value for each key in the object MUST be true.</t></li>
 <li><t><strong>isDraft</strong>: <tt>Boolean</tt> (default: false)</t>
-<t>If true, this event is to be considered a draft. The server will not send any scheduling messages to participants or send push notifications for alerts. This may only be set to true upon creation. Once set to false, the value cannot be updated to true. This property MUST NOT appear in &quot;recurrenceOverrides&quot;.</t></li>
+<t>If true, this event is to be considered a draft. The server will not send any scheduling messages to participants or send push notifications for alerts. This may only be set to true upon creation. Once set to false, the value cannot be updated to true. This property MUST NOT appear in "recurrenceOverrides".</t></li>
 <li><t><strong>isOrigin</strong>: <tt>Boolean</tt> (server-set)</t>
 <t>Is this the authoritative source for this event (i.e., does it control
 scheduling for this event; the event has not been added as a result of an
 invitation from another calendar system)? This is true if, and only if:</t>
 
 <ul spacing="compact">
-<li><t>the event's &quot;replyTo&quot; property is <tt>null</tt>; or</t></li>
-<li><t>the account will receive messages sent to at least one of the methods specified in the &quot;replyTo&quot; property of the event.</t></li>
+<li><t>the event's "replyTo" property is <tt>null</tt>; or</t></li>
+<li><t>the account will receive messages sent to at least one of the methods specified in the "replyTo" property of the event.</t></li>
 </ul></li>
 <li><t><strong>utcStart</strong>: <tt>UTCDateTime</tt></t>
 <t>For simple clients that do not implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.</t>
-<t>This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different results if the time zone data has been updated on the server. Time zone data changes are not considered &quot;updates&quot; to the event.</t>
+<t>This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different results if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the event.</t>
 <t>If set, the server will convert the UTC date to the event's current time zone and store the local time.</t>
 <t>This property is not included in CalendarEvent/get responses by default and must be requested explicitly.</t>
 <t>Floating events (events without a time zone) will be interpreted as per the time zone given as a CalendarEvent/get argument.</t>
-<t>Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the utcStart property rather than the local start time. Even simple recurrences such as &quot;repeat weekly&quot; may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use &quot;utcStart&quot; are RECOMMENDED to request the server expand recurrences (see <xref target="calendarevent-query" />).</t></li>
+<t>Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the utcStart property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are RECOMMENDED to request the server expand recurrences (see <xref target="calendarevent-query" />).</t></li>
 <li><t><strong>utcEnd</strong>: <tt>UTCDateTime</tt></t>
 <t>The server calculates the end time in UTC from the start/timeZone/duration properties of the event. This property is not included by default and must be requested explicitly. Like utcStart, it is calculated at fetch time if requested and may change due to time zone data changes. Floating events will be interpreted as per the time zone given as a CalendarEvent/get argument.</t></li>
 </ul>
-<t>CalendarEvent objects MUST NOT have a &quot;method&quot; property as this is only used when representing iTIP <xref target="RFC5546"></xref> scheduling messages, not events in a data store.</t>
+<t>CalendarEvent objects MUST NOT have a "method" property as this is only used when representing iTIP <xref target="RFC5546"></xref> scheduling messages, not events in a data store.</t>
 
 <section anchor="additional-jscalendar-properties"><name>Additional JSCalendar properties</name>
 <t>This document defines four new JSCalendar properties for common use.</t>
@@ -486,14 +486,14 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <section anchor="mayinviteself"><name>mayInviteSelf</name>
 <t>Type: <tt>Boolean</tt> (default: false)</t>
 <t>Context: Event, Task</t>
-<t>If true, any user may add themselves to the event as a participant with the &quot;attendee&quot; role. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
-<t>This indicates the event will accept &quot;party crasher&quot; RSVPs via iTIP, subject to any other domain-specific restrictions, and users may add themselves to the event via JMAP as long as they have the mayRSVP permission for the calendar.</t>
+<t>If true, any user may add themselves to the event as a participant with the "attendee" role. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
+<t>This indicates the event will accept "party crasher" RSVPs via iTIP, subject to any other domain-specific restrictions, and users may add themselves to the event via JMAP as long as they have the mayRSVP permission for the calendar.</t>
 </section>
 
 <section anchor="mayinviteothers"><name>mayInviteOthers</name>
 <t>Type: <tt>Boolean</tt> (default: false)</t>
 <t>Context: Event, Task</t>
-<t>If true, any current participant with the &quot;attendee&quot; role may add new participants with the &quot;attendee&quot; role to the event. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
+<t>If true, any current participant with the "attendee" role may add new participants with the "attendee" role to the event. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
 <t>The mayRSVP permission for the calendar is also required in conjunction with this event property for users to be allowed to make this change via JMAP.</t>
 </section>
 
@@ -505,12 +505,12 @@ invitation from another calendar system)? This is true if, and only if:</t>
 </section>
 
 <section anchor="attachments"><name>Attachments</name>
-<t>The Link object, as defined in <xref target="RFC8984" section="4.2.7" />, with a &quot;rel&quot; property equal to &quot;enclosure&quot; is used to represent attachments. Instead of mandating an &quot;href&quot; property, clients may set a &quot;blobId&quot; property instead to reference a blob of binary data in the account, as per <xref target="RFC8620" section="6" />.</t>
+<t>The Link object, as defined in <xref target="RFC8984" section="4.2.7" />, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per <xref target="RFC8620" section="6" />.</t>
 <t>The server MUST translate this to an embedded <tt>data:</tt> URL <xref target="RFC2397"></xref> when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments [?@RFC8607].</t>
 </section>
 
 <section anchor="per-user-properties"><name>Per-user properties</name>
-<t>In shared calendars, any top-level property registered in the IANA registry as &quot;Is Per-User: yes&quot; (see <xref target="update-to-the-jscalendar-properties-registry" />) MUST be stored per-user. This includes:</t>
+<t>In shared calendars, any top-level property registered in the IANA registry as "Is Per-User: yes" (see <xref target="update-to-the-jscalendar-properties-registry" />) MUST be stored per-user. This includes:</t>
 
 <ul spacing="compact">
 <li><t>keywords</t></li>
@@ -520,31 +520,31 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <li><t>alerts</t></li>
 </ul>
 <t>If the user modifies any such properties on a per-occurrence basis for recurring events then again, these MUST also be stored per-user. Sharees initially receive the default value for each of these properties, not whatever value another user may have set.</t>
-<t>When writing only per-user properties, the &quot;updated&quot; property MUST also be stored just for that user if set. When fetching the &quot;updated&quot; property, the value to return is whichever is later of the per-user updated time or the updated time of the base event.</t>
+<t>When writing only per-user properties, the "updated" property MUST also be stored just for that user if set. When fetching the "updated" property, the value to return is whichever is later of the per-user updated time or the updated time of the base event.</t>
 </section>
 
 <section anchor="recurring-events"><name>Recurring events</name>
 <t>Events may recur, in which case they represent multiple occurrences or instances. The data store will either contain a single base event, containing a recurrence rule and/or recurrence overrides; or, a set of individual instances (when invited to specific occurrences only).</t>
-<t>The client may ask the server to expand recurrences within a specific time range in &quot;CalendarEvent/query&quot;. This will generate synthetic ids representing individual instances in the requested time range. The client can fetch and update the objects using these ids and the server will make the appropriate changes to the base event. Synthetic ids do not appear in &quot;CalendarEvent/changes&quot; responses; only the ids of events as actually stored on the server.</t>
-<t>If the user is invited to specific instances then later added to the base event, &quot;CalendarEvent/changes&quot; will show the ids of all the individual instances being destroyed and the id for the base event being created.</t>
+<t>The client may ask the server to expand recurrences within a specific time range in "CalendarEvent/query". This will generate synthetic ids representing individual instances in the requested time range. The client can fetch and update the objects using these ids and the server will make the appropriate changes to the base event. Synthetic ids do not appear in "CalendarEvent/changes" responses; only the ids of events as actually stored on the server.</t>
+<t>If the user is invited to specific instances then later added to the base event, "CalendarEvent/changes" will show the ids of all the individual instances being destroyed and the id for the base event being created.</t>
 </section>
 
-<section anchor="updating-for-this-and-future"><name>Updating for &quot;this-and-future&quot;</name>
+<section anchor="updating-for-this-and-future"><name>Updating for "this-and-future"</name>
 <t>When editing a recurring event, you can either update the base event (affecting all instances unless overriden) or update an override for a specific occurrence. To update all occurrences from a specific point onwards, there are therefore two options: split the event, or update the base event and override all occurrences before the split point back to their original values.</t>
 
 <section anchor="splitting-an-event"><name>Splitting an event</name>
-<t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar <xref target="RFC8984" section="4.1.3" />, a &quot;next&quot; and &quot;first&quot; relation MUST be set on the new objects respectively.</t>
+<t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar <xref target="RFC8984" section="4.1.3" />, a "next" and "first" relation MUST be set on the new objects respectively.</t>
 <t>Splitting an event however is problematic in the case of a scheduled event, because the iTIP messages generated make it appear like two unrelated changes, which can be confusing.</t>
 </section>
 
 <section anchor="updating-the-base-event-and-overriding-previous"><name>Updating the base event and overriding previous</name>
-<t>For scheduled events, a better approach is to avoid splitting and instead update the base event with the new property value for &quot;this and future&quot;, then create overrides for all occurrences before the split point to restore the property to its previous value. Indeed, this may be the only option the user has permission to do if not an owner of the event.</t>
-<t>Clients may choose to skip creating the overrides if the old data is not important, for example if the &quot;alerts&quot; property is being updated, it is probably not important to create overrides for events in the past with the alerts that have already fired.</t>
+<t>For scheduled events, a better approach is to avoid splitting and instead update the base event with the new property value for "this and future", then create overrides for all occurrences before the split point to restore the property to its previous value. Indeed, this may be the only option the user has permission to do if not an owner of the event.</t>
+<t>Clients may choose to skip creating the overrides if the old data is not important, for example if the "alerts" property is being updated, it is probably not important to create overrides for events in the past with the alerts that have already fired.</t>
 </section>
 </section>
 
 <section anchor="calendarevent-get"><name>CalendarEvent/get</name>
-<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" />, with three extra arguments:</t>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />, with three extra arguments:</t>
 
 <ul spacing="compact">
 <li><t><strong>recurrenceOverridesBefore</strong>: <tt>UTCDateTime|null</tt></t>
@@ -552,45 +552,45 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <li><t><strong>recurrenceOverridesAfter</strong>: <tt>UTCDateTime|null</tt></t>
 <t>If given, only recurrence overrides with a recurrence id on or after this date (when translated into UTC) will be returned.</t></li>
 <li><t><strong>reduceParticipants</strong>: <tt>Boolean</tt> (default: false)</t>
-<t>If true, only participants with the &quot;owner&quot; role or corresponding to the user's participant identities will be returned in the &quot;participants&quot; property of the base event and any recurrence overrides. If false, all participants will be returned.</t></li>
-<li><t><strong>timeZone</strong>: <tt>TimeZoneId</tt> (default &quot;Etc/UTC&quot;)</t>
+<t>If true, only participants with the "owner" role or corresponding to the user's participant identities will be returned in the "participants" property of the base event and any recurrence overrides. If false, all participants will be returned.</t></li>
+<li><t><strong>timeZone</strong>: <tt>TimeZoneId</tt> (default "Etc/UTC")</t>
 <t>The time zone to use when calculating the utcStart/utcEnd property of floating events. This argument has no effect if those properties are not requested.</t></li>
 </ul>
-<t>A CalendarEvent object is a JSCalendar Event object so may have arbitrary properties. If the client makes a &quot;CalendarEvent/get&quot; call with a null or omitted &quot;properties&quot; argument, all properties defined on the JSCalendar Event object in the store are returned, along with the &quot;id&quot;, &quot;calendarIds&quot;, &quot;isDraft&quot;, and &quot;isOrigin&quot; properties. The &quot;utcStart&quot; and &quot;utcEnd&quot; computed properties are only returned if explicitly requested. If either are requested, the &quot;recurrenceOverrides&quot; property MUST NOT be requested (recurrence overrides cannot be interpreted accurately with just the UTC times).</t>
+<t>A CalendarEvent object is a JSCalendar Event object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties defined on the JSCalendar Event object in the store are returned, along with the "id", "calendarIds", "isDraft", and "isOrigin" properties. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested. If either are requested, the "recurrenceOverrides" property MUST NOT be requested (recurrence overrides cannot be interpreted accurately with just the UTC times).</t>
 <t>If specific properties are requested from the JSCalendar Event and the property is not present on the object in the server's store, the server SHOULD return the default value if known for that property.</t>
-<t>A requested id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in &quot;CalendarEvent/query&quot;. In such a case, the server will resolve any overrides and set the appropriate &quot;start&quot; and &quot;recurrenceId&quot; properties on the CalendarEvent object returned to the client. The &quot;recurrenceRules&quot; and &quot;recurrenceOverrides&quot; properties MUST be returned as null if requested for such an event.</t>
+<t>A requested id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRules" and "recurrenceOverrides" properties MUST be returned as null if requested for such an event.</t>
 <t>An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions, etc.</t>
-<t>The &quot;hideAttendees&quot; property of a JSCalendar Event object allows the event owner(s) to reduce the visibility of sharees into the set of participants. If this is true, when a non-owner sharee fetches the event, the server MUST only return participants with the &quot;owner&quot; role or corresponding to the user's participant identities.</t>
-<t>The &quot;privacy&quot; property of a JSCalendar Event object allows the principal that owns the calendar to override how sharees of the calendar see the event. If set to &quot;private&quot;, then when a sharee fetches the event the server MUST only return properties that are:</t>
+<t>The "hideAttendees" property of a JSCalendar Event object allows the event owner(s) to reduce the visibility of sharees into the set of participants. If this is true, when a non-owner sharee fetches the event, the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.</t>
+<t>The "privacy" property of a JSCalendar Event object allows the principal that owns the calendar to override how sharees of the calendar see the event. If set to "private", then when a sharee fetches the event the server MUST only return properties that are:</t>
 
 <ul spacing="compact">
 <li><t>the basic time and metadata properties of the JSCalendar Event object as specified in <xref target="RFC8984" section="4.4.3" />; or</t></li>
 <li><t>properties that are wholly derived from these permitted properties (i.e., utcStart, utcEnd); or</t></li>
 <li><t>Additional CalendarEvent properties not derived from the JSCalendar Event data (i.e., id, baseEventId, calendarIds, isDraft, isOrigin).</t></li>
 </ul>
-<t>If &quot;privacy&quot; is set to &quot;secret&quot;, the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.</t>
+<t>If "privacy" is set to "secret", the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.</t>
 </section>
 
 <section anchor="calendarevent-changes"><name>CalendarEvent/changes</name>
-<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620" section="5.2" />.</t>
-<t>Synthetic ids generated by the server expanding recurrences in &quot;CalendarEvent/query&quot; do not appear in &quot;CalendarEvent/changes&quot; responses; only the ids of events as actually stored on the server.</t>
+<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" />.</t>
+<t>Synthetic ids generated by the server expanding recurrences in "CalendarEvent/query" do not appear in "CalendarEvent/changes" responses; only the ids of events as actually stored on the server.</t>
 </section>
 
 <section anchor="calendarevent-set"><name>CalendarEvent/set</name>
-<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" />, with the following extra argument:</t>
+<t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" />, with the following extra argument:</t>
 
 <ul spacing="compact">
 <li><t><strong>sendSchedulingMessages</strong>: <tt>Boolean</tt> (default: false)</t>
 <t>If true then any changes to scheduled events will be sent to all the participants (if the server is the origin of the event) or back to the origin (otherwise). If false, the changes only affect this account and no scheduling messages will be sent.</t>
 <t>At time of writing, the most common interoperable protocol for sending scheduling methods between participants on different servers is iMIP. A future document will provide recommendations of what iMIP messages to send based on the change for best compatibility.</t></li>
 </ul>
-<t>An id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in &quot;CalendarEvent/query&quot;. When the synthetic id for such an instance is given, the server MUST process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.</t>
-<t>Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single &quot;/set&quot; request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different <tt>recurrenceId</tt> property) with the base event (same uid, no <tt>recurrenceId</tt>) in a single &quot;/set&quot; call. (So the /set will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.</t>
+<t>An id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". When the synthetic id for such an instance is given, the server MUST process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.</t>
+<t>Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single "/set" request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different <tt>recurrenceId</tt> property) with the base event (same uid, no <tt>recurrenceId</tt>) in a single "/set" call. (So the /set will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.</t>
 <t>If a property is set to null in a create/update, this is equivalent to
 omitting/removing the property from the JSCalendar Event object.</t>
-<t>Servers MUST enforce the user's permissions as returned in the &quot;myRights&quot; property of the Calendar objects and reject changes with a <tt>forbidden</tt> SetError if not allowed.</t>
-<t>The &quot;privacy&quot; property of a JSCalendar Event object allows the principal to override how sharees of the calendar see the event. If this is set to &quot;private&quot;, a sharee may not delete or update the event (even if only modifying per-user properties); any attempt to modify such an event MUST be rejected with a <tt>forbidden</tt> SetError. If set to &quot;secret&quot;, the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.</t>
-<t>The &quot;privacy&quot; property MUST NOT be set to anything other than &quot;public&quot; (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar, or a calendar shared by another user). The server MUST reject this with an <tt>invalidProperties</tt> SetError.</t>
+<t>Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a <tt>forbidden</tt> SetError if not allowed.</t>
+<t>The "privacy" property of a JSCalendar Event object allows the principal to override how sharees of the calendar see the event. If this is set to "private", a sharee may not delete or update the event (even if only modifying per-user properties); any attempt to modify such an event MUST be rejected with a <tt>forbidden</tt> SetError. If set to "secret", the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.</t>
+<t>The "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar, or a calendar shared by another user). The server MUST reject this with an <tt>invalidProperties</tt> SetError.</t>
 <t>If omitted on create, the server MUST set the following properties to an appropriate value:</t>
 
 <ul spacing="compact">
@@ -598,75 +598,75 @@ omitting/removing the property from the JSCalendar Event object.</t>
 <li><t>uid</t></li>
 <li><t>created</t></li>
 </ul>
-<t>If (and only if) the server is the origin of the event (i.e., the event's &quot;isOrigin&quot; property is true), the &quot;updated&quot; property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden &quot;updated&quot; time is now earlier than a client-supplied &quot;created&quot; time, the &quot;created&quot; time MUST also be overridden to the server's time. If the server is not the origin of the event it MUST NOT automatically set an &quot;updated&quot; time, as this can break correct processing of iTIP messages.</t>
+<t>If (and only if) the server is the origin of the event (i.e., the event's "isOrigin" property is true), the "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time. If the server is not the origin of the event it MUST NOT automatically set an "updated" time, as this can break correct processing of iTIP messages.</t>
 <t>Clients SHOULD NOT allow users to manually edit anything other than per-user
-properties when the &quot;isOrigin&quot; property is false, even if the calendar &quot;myRights&quot; allows them to do so. All other properties may be overwritten when a future update arrives to this event from the origin (i.e., via another iTIP REQUEST). Such updates may be directly applied by the server, or applied at the user's request by a client if it has access to the data through some other means (e.g., the client also has access to the user's email and can parse an iMIP message).</t>
+properties when the "isOrigin" property is false, even if the calendar "myRights" allows them to do so. All other properties may be overwritten when a future update arrives to this event from the origin (i.e., via another iTIP REQUEST). Such updates may be directly applied by the server, or applied at the user's request by a client if it has access to the data through some other means (e.g., the client also has access to the user's email and can parse an iMIP message).</t>
 <t>When updating an event, if all of:</t>
 
 <ul spacing="compact">
-<li><t>a property has been changed other than &quot;calendarIds&quot;, &quot;isDraft&quot;, &quot;updated&quot; or a per-user property (see <xref target="per-user-properties" />); and</t></li>
-<li><t>the server is the origin of the event (the &quot;isOrigin&quot; property is true); and</t></li>
-<li><t>the &quot;sequence&quot; property is not explicitly set in the update, or the given
-value is less than or equal to the current &quot;sequence&quot; value on the server;</t></li>
+<li><t>a property has been changed other than "calendarIds", "isDraft", "updated" or a per-user property (see <xref target="per-user-properties" />); and</t></li>
+<li><t>the server is the origin of the event (the "isOrigin" property is true); and</t></li>
+<li><t>the "sequence" property is not explicitly set in the update, or the given
+value is less than or equal to the current "sequence" value on the server;</t></li>
 </ul>
-<t>then the server MUST increment the &quot;sequence&quot; value by one.</t>
-<t>The &quot;method&quot; property MUST NOT be set. Any attempt to do so is rejected with a standard <tt>invalidProperties</tt> SetError.</t>
-<t>If &quot;utcStart&quot; is set, this is translated into a &quot;start&quot; property using the server's current time zone information. It MUST NOT be set in addition to a &quot;start&quot; property and it cannot be set inside &quot;recurrenceOverrides&quot;; this MUST be rejected with an <tt>invalidProperties</tt> SetError.</t>
-<t>Similarly, the &quot;utcEnd&quot; property is translated into a &quot;duration&quot; property if set. It MUST NOT be set in addition to a &quot;duration&quot; property and it cannot be set inside &quot;recurrenceOverrides&quot;; this MUST be rejected with an <tt>invalidProperties</tt> SetError.</t>
-<t>The server does not automatically reset the &quot;partipationStatus&quot; or &quot;expectReply&quot; properties of a Participant when changing other event details. Clients should either be intelligent about whether the change invalidates previous RSVPs, or ask the user whether to reset them.</t>
-<t>The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the &quot;owner&quot; role corresponding to one of the user's ParticipantIdentities (see <xref target="participant-identities" />).</t>
-<t>When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the &quot;replyTo&quot; property of the event if not present. Clients SHOULD NOT set the &quot;replyTo&quot; property for events when the user adds participants; the server is better positioned to add all the methods it supports to receive replies.</t>
+<t>then the server MUST increment the "sequence" value by one.</t>
+<t>The "method" property MUST NOT be set. Any attempt to do so is rejected with a standard <tt>invalidProperties</tt> SetError.</t>
+<t>If "utcStart" is set, this is translated into a "start" property using the server's current time zone information. It MUST NOT be set in addition to a "start" property and it cannot be set inside "recurrenceOverrides"; this MUST be rejected with an <tt>invalidProperties</tt> SetError.</t>
+<t>Similarly, the "utcEnd" property is translated into a "duration" property if set. It MUST NOT be set in addition to a "duration" property and it cannot be set inside "recurrenceOverrides"; this MUST be rejected with an <tt>invalidProperties</tt> SetError.</t>
+<t>The server does not automatically reset the "partipationStatus" or "expectReply" properties of a Participant when changing other event details. Clients should either be intelligent about whether the change invalidates previous RSVPs, or ask the user whether to reset them.</t>
+<t>The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the "owner" role corresponding to one of the user's ParticipantIdentities (see <xref target="participant-identities" />).</t>
+<t>When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the "replyTo" property of the event if not present. Clients SHOULD NOT set the "replyTo" property for events when the user adds participants; the server is better positioned to add all the methods it supports to receive replies.</t>
 
 <section anchor="patching"><name>Patching</name>
-<t>The JMAP &quot;/set&quot; method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, e.g. inside &quot;localizations&quot; or &quot;recurrenceOverrides&quot;. In particular, you cannot add a property with value <tt>null</tt> to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property.</t>
+<t>The JMAP "/set" method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, e.g. inside "localizations" or "recurrenceOverrides". In particular, you cannot add a property with value <tt>null</tt> to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property.</t>
 <t>This is more easily understood with an example. Suppose you have a CalendarEvent object like so:</t>
 
 <artwork>{
-  &quot;id&quot;: &quot;123&quot;,
-  &quot;title&quot;: &quot;FooBar team meeting&quot;,
-  &quot;start&quot;: &quot;2018-01-08T09:00:00&quot;,
-  &quot;recurrenceRules&quot;: [{
-   &quot;@type&quot;: &quot;RecurrenceRule&quot;,
-   &quot;frequency&quot;: &quot;weekly&quot;
+  "id": "123",
+  "title": "FooBar team meeting",
+  "start": "2018-01-08T09:00:00",
+  "recurrenceRules": [{
+   "@type": "RecurrenceRule",
+   "frequency": "weekly"
   }],
-  &quot;replyTo&quot;: {
-   &quot;imip&quot;: &quot;mailto:6489-4f14-a57f-c1@schedule.example.com&quot;
+  "replyTo": {
+   "imip": "mailto:6489-4f14-a57f-c1@schedule.example.com"
   },
-  &quot;participants&quot;: {
-   &quot;dG9tQGZvb2Jhci5xlLmNvbQ&quot;: {
-     &quot;@type&quot;: &quot;Participant&quot;,
-     &quot;name&quot;: &quot;Tom&quot;,
-     &quot;email&quot;: &quot;tom@foobar.example.com&quot;,
-     &quot;calendarUserAddress&quot;: &quot;mailto:6489-4f14-a57f-c1@calendar.example.com&quot;,
-     &quot;sendTo&quot;: {
-       &quot;imip&quot;: &quot;mailto:6489-4f14-a57f-c1@calendar.example.com&quot;
+  "participants": {
+   "dG9tQGZvb2Jhci5xlLmNvbQ": {
+     "@type": "Participant",
+     "name": "Tom",
+     "email": "tom@foobar.example.com",
+     "calendarUserAddress": "mailto:6489-4f14-a57f-c1@calendar.example.com",
+     "sendTo": {
+       "imip": "mailto:6489-4f14-a57f-c1@calendar.example.com"
      },
-     &quot;participationStatus&quot;: &quot;accepted&quot;,
-     &quot;roles&quot;: {
-       &quot;attendee&quot;: true
+     "participationStatus": "accepted",
+     "roles": {
+       "attendee": true
      }
    },
-   &quot;em9lQGZvb2GFtcGxlLmNvbQ&quot;: {
-     &quot;@type&quot;: &quot;Participant&quot;,
-     &quot;name&quot;: &quot;Zoe&quot;,
-     &quot;email&quot;: &quot;zoe@foobar.example.com&quot;,
-     &quot;calendarUserAddress&quot;: &quot;mailto:zoe@foobar.example.com&quot;,
-     &quot;sendTo&quot;: {
-       &quot;imip&quot;: &quot;mailto:zoe@foobar.example.com&quot;,
-       &quot;other&quot;: &quot;https://foobar.example.com/zoe/itip&quot;
+   "em9lQGZvb2GFtcGxlLmNvbQ": {
+     "@type": "Participant",
+     "name": "Zoe",
+     "email": "zoe@foobar.example.com",
+     "calendarUserAddress": "mailto:zoe@foobar.example.com",
+     "sendTo": {
+       "imip": "mailto:zoe@foobar.example.com",
+       "other": "https://foobar.example.com/zoe/itip"
      },
-     &quot;participationStatus&quot;: &quot;accepted&quot;,
-     &quot;roles&quot;: {
-       &quot;owner&quot;: true,
-       &quot;attendee&quot;: true,
-       &quot;chair&quot;: true
+     "participationStatus": "accepted",
+     "roles": {
+       "owner": true,
+       "attendee": true,
+       "chair": true
      }
    },
-   &quot;recurrenceOverrides&quot;: {
-     &quot;2018-03-08T09:00:00&quot;: {
-       &quot;start&quot;: &quot;2018-03-08T10:00:00&quot;,
-       &quot;participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus&quot;:
-                                                           &quot;declined&quot;
+   "recurrenceOverrides": {
+     "2018-03-08T09:00:00": {
+       "start": "2018-03-08T10:00:00",
+       "participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus":
+                                                           "declined"
      }
    }
   }
@@ -675,88 +675,88 @@ value is less than or equal to the current &quot;sequence&quot; value on the ser
 <t>In this example, Tom is normally going to the weekly meeting but has declined
 the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zoe too were to decline that meeting, she could update the event by just sending a patch like so:</t>
 
-<artwork>[[ &quot;CalendarEvent/set&quot;, {
-  &quot;accountId&quot;: &quot;ue150411c&quot;,
-  &quot;update&quot;: {
-    &quot;123&quot;: {
-      &quot;recurrenceOverrides/2018-03-08T09:00:00/
-          participants~1em9lQGZvb2GFtcGxlLmNvbQ~1participationStatus&quot;:
-              &quot;declined&quot;
+<artwork>[[ "CalendarEvent/set", {
+  "accountId": "ue150411c",
+  "update": {
+    "123": {
+      "recurrenceOverrides/2018-03-08T09:00:00/
+          participants~1em9lQGZvb2GFtcGxlLmNvbQ~1participationStatus":
+              "declined"
     }
   }
-}, &quot;0&quot; ]]
+}, "0" ]]
 </artwork>
-<t>This patches the &quot;2018-03-08T09:00:00&quot; PatchObject in recurrenceOverrides so that it ends up like this:</t>
+<t>This patches the "2018-03-08T09:00:00" PatchObject in recurrenceOverrides so that it ends up like this:</t>
 
-<artwork>&quot;recurrenceOverrides&quot;: {
-  &quot;2018-03-08T09:00:00&quot;: {
-    &quot;start&quot;: &quot;2018-03-08T10:00:00&quot;,
-    &quot;participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus&quot;:
-                                                       &quot;declined&quot;,
-    &quot;participants/em9lQGZvb2GFtcGxlLmNvbQ/participationStatus&quot;:
-                                                       &quot;declined&quot;
+<artwork>"recurrenceOverrides": {
+  "2018-03-08T09:00:00": {
+    "start": "2018-03-08T10:00:00",
+    "participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus":
+                                                       "declined",
+    "participants/em9lQGZvb2GFtcGxlLmNvbQ/participationStatus":
+                                                       "declined"
   }
 }
 </artwork>
 <t>Now if Tom were to change his mind and remove his declined status override (thus meaning he is attending, as inherited from the top-level event), he might remove his patch from the overrides like so:</t>
 
-<artwork>[[ &quot;CalendarEvent/set&quot;, {
-  &quot;accountId&quot;: &quot;ue150411c&quot;,
-  &quot;update&quot;: {
-    &quot;123&quot;: {
-      &quot;recurrenceOverrides/2018-03-08T09:00:00/
-          participants~1dG9tQGZvb2Jhci5xlLmNvbQ~1participationStatus&quot;: null
+<artwork>[[ "CalendarEvent/set", {
+  "accountId": "ue150411c",
+  "update": {
+    "123": {
+      "recurrenceOverrides/2018-03-08T09:00:00/
+          participants~1dG9tQGZvb2Jhci5xlLmNvbQ~1participationStatus": null
     }
   }
-}, &quot;0&quot; ]]
+}, "0" ]]
 </artwork>
 <t>However, if you instead want to remove Tom from this instance altogether, you could not send this patch:</t>
 
-<artwork>[[ &quot;CalendarEvent/set&quot;, {
-  &quot;accountId&quot;: &quot;ue150411c&quot;,
-  &quot;update&quot;: {
-    &quot;123&quot;: {
-      &quot;recurrenceOverrides/2018-03-08T09:00:00/
-          participants~1dG9tQGZvb2Jhci5xlLmNvbQ&quot;: null
+<artwork>[[ "CalendarEvent/set", {
+  "accountId": "ue150411c",
+  "update": {
+    "123": {
+      "recurrenceOverrides/2018-03-08T09:00:00/
+          participants~1dG9tQGZvb2Jhci5xlLmNvbQ": null
     }
   }
-}, &quot;0&quot; ]]
+}, "0" ]]
 </artwork>
-<t>This would mean remove the &quot;participants/dG9tQGZvb2Jhci5xlLmNvbQ&quot; property at path &quot;recurrenceOverrides&quot; -&gt; &quot;2018-03-08T09:00:00&quot; inside the object; but this doesn't exist. We actually want to add this property and make it map to <tt>null</tt>. The client must instead send the full object that contains the property mapping to <tt>null</tt>, like so:</t>
+<t>This would mean remove the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at path "recurrenceOverrides" -&gt; "2018-03-08T09:00:00" inside the object; but this doesn't exist. We actually want to add this property and make it map to <tt>null</tt>. The client must instead send the full object that contains the property mapping to <tt>null</tt>, like so:</t>
 
-<artwork>[[ &quot;CalendarEvent/set&quot;, {
-  &quot;accountId&quot;: &quot;ue150411c&quot;,
-  &quot;update&quot;: {
-    &quot;123&quot;: {
-      &quot;recurrenceOverrides/2018-03-08T09:00:00&quot;: {
-        &quot;start&quot;: &quot;2018-03-08T10:00:00&quot;,
-        &quot;participants/em9lQGZvb2GFtcGxlLmNvbQ/participationStatus&quot;:
-                                                       &quot;declined&quot;,
-        &quot;participants/dG9tQGZvb2Jhci5xlLmNvbQ&quot;: null
+<artwork>[[ "CalendarEvent/set", {
+  "accountId": "ue150411c",
+  "update": {
+    "123": {
+      "recurrenceOverrides/2018-03-08T09:00:00": {
+        "start": "2018-03-08T10:00:00",
+        "participants/em9lQGZvb2GFtcGxlLmNvbQ/participationStatus":
+                                                       "declined",
+        "participants/dG9tQGZvb2Jhci5xlLmNvbQ": null
       }
     }
   }
-}, &quot;0&quot; ]]
+}, "0" ]]
 </artwork>
 </section>
 </section>
 
 <section anchor="calendarevent-copy"><name>CalendarEvent/copy</name>
-<t>This is a standard &quot;/copy&quot; method as described in <xref target="RFC8620" section="5.4" />.</t>
+<t>This is a standard "/copy" method as described in <xref target="RFC8620" section="5.4" />.</t>
 </section>
 
 <section anchor="calendarevent-query"><name>CalendarEvent/query</name>
-<t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620" section="5.5" />, with two extra arguments:</t>
+<t>This is a standard "/query" method as described in <xref target="RFC8620" section="5.5" />, with two extra arguments:</t>
 
 <ul spacing="compact">
 <li><t><strong>expandRecurrences</strong>: <tt>Boolean</tt> (default: false)</t>
-<t>If true, the server will expand any recurring event. If true, the filter MUST be just a FilterCondition (not a FilterOperator) and MUST include both a &quot;before&quot; and &quot;after&quot; property. This ensures the server is not asked to return an infinite number of results.</t></li>
+<t>If true, the server will expand any recurring event. If true, the filter MUST be just a FilterCondition (not a FilterOperator) and MUST include both a "before" and "after" property. This ensures the server is not asked to return an infinite number of results.</t></li>
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId</tt></t>
-<t>The time zone for before/after filter conditions (default: &quot;Etc/UTC&quot;)</t></li>
+<t>The time zone for before/after filter conditions (default: "Etc/UTC")</t></li>
 </ul>
-<t>If expandRecurrences is true, a separate id will be returned for each instance of a recurring event that matches the query. This synthetic id is opaque to the client, but allows the server to resolve the id + recurrence id for &quot;/get&quot; and &quot;/set&quot; operations. Otherwise, a single id will be returned for matching recurring events that represents the entire event.</t>
+<t>If expandRecurrences is true, a separate id will be returned for each instance of a recurring event that matches the query. This synthetic id is opaque to the client, but allows the server to resolve the id + recurrence id for "/get" and "/set" operations. Otherwise, a single id will be returned for matching recurring events that represents the entire event.</t>
 <t>There is no necessary correspondence between the ids of different instances of the same expanded event.</t>
-<t>The following additional error may be returned instead of the &quot;CalendarEvent/query&quot; response:</t>
+<t>The following additional error may be returned instead of the "CalendarEvent/query" response:</t>
 <t><tt>cannotCalculateOccurrences</tt>: the server cannot expand a recurrence required to return the results for this query.</t>
 
 <section anchor="filtering"><name>Filtering</name>
@@ -778,9 +778,9 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <li><t><strong>location</strong>: <tt>String|null</tt></t>
 <t>Looks for the text in the "locations" property of the event (matching name/description of a location), or the overridden "locations" property of a recurrence.</t></li>
 <li><t><strong>owner</strong>: <tt>String|null</tt></t>
-<t>Looks for the text in the name or email fields of a participant in the "participants" property of the event, or the overridden "participants" property of a recurrence, where the participant has a role of &quot;owner&quot;.</t></li>
+<t>Looks for the text in the name or email fields of a participant in the "participants" property of the event, or the overridden "participants" property of a recurrence, where the participant has a role of "owner".</t></li>
 <li><t><strong>attendee</strong>: <tt>String|null</tt></t>
-<t>Looks for the text in the name or email fields of a participant in the "participants" property of the event, or the overridden "participants" property of a recurrence, where the participant has a role of &quot;attendee&quot;.</t></li>
+<t>Looks for the text in the name or email fields of a participant in the "participants" property of the event, or the overridden "participants" property of a recurrence, where the participant has a role of "attendee".</t></li>
 <li><t><strong>uid</strong>: <tt>String</tt></t>
 <t>The uid of the event is exactly the given string.</t></li>
 </ul>
@@ -790,9 +790,9 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 
 <ul spacing="compact">
 <li><t>Text SHOULD be matched in a case-insensitive manner.</t></li>
-<li><t>Text contained in either (but matched) single or double quotes SHOULD be treated as a <strong>phrase search</strong>, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use <tt>\&quot;</tt>, <tt>\'</tt> and <tt>\\</tt> to match a literal <tt>&quot;</tt>, <tt>'</tt> and <tt>\</tt> respectively in a phrase.</t></li>
+<li><t>Text contained in either (but matched) single or double quotes SHOULD be treated as a <strong>phrase search</strong>, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use <tt>\"</tt>, <tt>\'</tt> and <tt>\\</tt> to match a literal <tt>"</tt>, <tt>'</tt> and <tt>\</tt> respectively in a phrase.</t></li>
 <li><t>Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the event, but MUST all be present for the event to match the filter.</t></li>
-<li><t>Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for <tt>bus</tt> would match &quot;buses&quot; but not &quot;business&quot;).</t></li>
+<li><t>Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for <tt>bus</tt> would match "buses" but not "business").</t></li>
 </ul>
 </section>
 
@@ -814,7 +814,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 </section>
 
 <section anchor="calendarevent-querychanges"><name>CalendarEvent/queryChanges</name>
-<t>This is a standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620" section="5.6" />.</t>
+<t>This is a standard "/queryChanges" method as described in <xref target="RFC8620" section="5.6" />.</t>
 </section>
 
 <section anchor="calendarevent-parse"><name>CalendarEvent/parse</name>
@@ -857,22 +857,22 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <section anchor="alerts"><name>Alerts</name>
 <t>Alerts may be specified on events as described in <xref target="RFC8984" section="4.5" />.</t>
 <t>Alerts MUST only be triggered for events in calendars where the user is subscribed.</t>
-<t>When an alert with an &quot;email&quot; action is triggered, the server MUST send an email to the user to notify them of the event. The contents of the email is implementation specific. Clients MUST NOT perform an action for these alerts.</t>
-<t>When an alert with a &quot;display&quot; action is triggered, clients SHOULD display an alert in a platform-appropriate manner to the user to remind them of the event. Clients with a full offline cache of events may choose to calculate when alerts should trigger locally. Alternatively, they can subscribe to push events from the server.</t>
+<t>When an alert with an "email" action is triggered, the server MUST send an email to the user to notify them of the event. The contents of the email is implementation specific. Clients MUST NOT perform an action for these alerts.</t>
+<t>When an alert with a "display" action is triggered, clients SHOULD display an alert in a platform-appropriate manner to the user to remind them of the event. Clients with a full offline cache of events may choose to calculate when alerts should trigger locally. Alternatively, they can subscribe to push events from the server.</t>
 
 <section anchor="default-alerts"><name>Default alerts</name>
-<t>If the &quot;useDefaultAlerts&quot; property of an event is true, the alerts are taken from the &quot;defaultAlertsWithTime&quot; or &quot;defaultAlertsWithoutTime&quot; property of all Calendars (see <xref target="calendars" />) the event is in, rather than the &quot;alerts&quot; property of the CalendarEvent.</t>
-<t>When using default alerts, the &quot;alerts&quot; property of the event is ignored except for the following:</t>
+<t>If the "useDefaultAlerts" property of an event is true, the alerts are taken from the "defaultAlertsWithTime" or "defaultAlertsWithoutTime" property of all Calendars (see <xref target="calendars" />) the event is in, rather than the "alerts" property of the CalendarEvent.</t>
+<t>When using default alerts, the "alerts" property of the event is ignored except for the following:</t>
 
 <ul spacing="compact">
-<li><t>The &quot;acknowledged&quot; time for an alert is stored here when a default alert for the event is dismissed. The id of the alert MUST be the same as the id of the default alert in the calendar. See <xref target="acknowledging-an-alert" /> on acknowledging alerts.</t></li>
+<li><t>The "acknowledged" time for an alert is stored here when a default alert for the event is dismissed. The id of the alert MUST be the same as the id of the default alert in the calendar. See <xref target="acknowledging-an-alert" /> on acknowledging alerts.</t></li>
 <li><t>If an alert has a relatedTo property where the parent is the id of one of the calendar default alerts, it is processed as normal and not ignored. This is to support snoozing default alerts; see <xref target="snoozing-an-alert" />.</t></li>
 </ul>
 </section>
 
 <section anchor="acknowledging-an-alert"><name>Acknowledging an alert</name>
-<t>To dismiss an alert, clients set the &quot;acknowledged&quot; property of the Alert object to the current date-time. If the alert was a calendar default, it may need to be added to the event at this point in order to acknowledge it. When other clients fetch the updated CalendarEvent they SHOULD automatically dismiss or suppress duplicate alerts (alerts with the same alert id that triggered on or before the &quot;acknowledged&quot; date-time) and alerts that have been removed from the event.</t>
-<t>Setting the &quot;acknowledged&quot; property MUST NOT create a new recurrence override. For a recurring calendar object, the &quot;acknowledged&quot; property of the parent object MUST be updated, unless the alert is already overridden in the &quot;recurrenceOverrides&quot; property.</t>
+<t>To dismiss an alert, clients set the "acknowledged" property of the Alert object to the current date-time. If the alert was a calendar default, it may need to be added to the event at this point in order to acknowledge it. When other clients fetch the updated CalendarEvent they SHOULD automatically dismiss or suppress duplicate alerts (alerts with the same alert id that triggered on or before the "acknowledged" date-time) and alerts that have been removed from the event.</t>
+<t>Setting the "acknowledged" property MUST NOT create a new recurrence override. For a recurring calendar object, the "acknowledged" property of the parent object MUST be updated, unless the alert is already overridden in the "recurrenceOverrides" property.</t>
 </section>
 
 <section anchor="snoozing-an-alert"><name>Snoozing an alert</name>
@@ -880,19 +880,19 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 
 <ol spacing="compact">
 <li><t>Acknowledge the alert as described in <xref target="acknowledging-an-alert" />.</t></li>
-<li><t>Add a new alert to the event with an <tt>AbsoluteTrigger</tt> for the date-time the alert has been snoozed until. Add a &quot;relatedTo&quot; property to the new alert, setting the &quot;parent&quot; relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same &quot;alerts&quot; property that contains the alert that was acknowledged in step 1.</t></li>
+<li><t>Add a new alert to the event with an <tt>AbsoluteTrigger</tt> for the date-time the alert has been snoozed until. Add a "relatedTo" property to the new alert, setting the "parent" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert that was acknowledged in step 1.</t></li>
 </ol>
-<t>When acknowledging a snoozed alert (i.e. one with a parent relatedTo pointing to the original alert), the client SHOULD delete the alert rather than setting the &quot;acknowledged&quot; property.</t>
+<t>When acknowledging a snoozed alert (i.e. one with a parent relatedTo pointing to the original alert), the client SHOULD delete the alert rather than setting the "acknowledged" property.</t>
 </section>
 
 <section anchor="push-events"><name>Push events</name>
-<t>Servers that support the <tt>urn:ietf:params:jmap:calendars</tt> capability MUST support registering for the pseudo-type &quot;CalendarAlert&quot; in push subscriptions and event source connections, as described in <xref target="RFC8620"></xref>, Sections <xref target="RFC8620" section="7.2" sectionFormat="bare" /> and <xref target="RFC8620" section="7.3" sectionFormat="bare" />.</t>
-<t>If requested, a CalendarAlert notification will be pushed whenever an alert is triggered for the user. For Event Source connections, this notification is pushed as an event called &quot;calendarAlert&quot;.</t>
+<t>Servers that support the <tt>urn:ietf:params:jmap:calendars</tt> capability MUST support registering for the pseudo-type "CalendarAlert" in push subscriptions and event source connections, as described in <xref target="RFC8620"></xref>, Sections <xref target="RFC8620" section="7.2" sectionFormat="bare" /> and <xref target="RFC8620" section="7.3" sectionFormat="bare" />.</t>
+<t>If requested, a CalendarAlert notification will be pushed whenever an alert is triggered for the user. For Event Source connections, this notification is pushed as an event called "calendarAlert".</t>
 <t>A <strong>CalendarAlert</strong> object has the following properties:</t>
 
 <ul spacing="compact">
 <li><t><strong>@type</strong>: <tt>String</tt></t>
-<t>This MUST be the string &quot;CalendarAlert&quot;.</t></li>
+<t>This MUST be the string "CalendarAlert".</t></li>
 <li><t><strong>accountId</strong>: <tt>Id</tt></t>
 <t>The account id for the calendar in which the alert triggered.</t></li>
 <li><t><strong>calendarEventId</strong>: <tt>Id</tt></t>
@@ -912,7 +912,7 @@ triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 
 <section anchor="calendar-event-notifications"><name>Calendar Event Notifications</name>
 <t>The CalendarEventNotification data type records changes made by external entities to events in calendars the user is subscribed to. Notifications are stored in the same Account as the CalendarEvent that was changed.</t>
-<t>Notifications are only created by the server; users cannot create them directly. Clients SHOULD present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard &quot;/set&quot; call to destroy it.</t>
+<t>Notifications are only created by the server; users cannot create them directly. Clients SHOULD present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.</t>
 <t>The server SHOULD create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to. The server SHOULD NOT create notifications for events implicitly deleted due to the containing calendar being deleted.</t>
 <t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all sharees of the notification. The server need only keep track of which users have yet to destroy the notification.</t>
 
@@ -968,21 +968,21 @@ data after the update.</t></li>
 </section>
 
 <section anchor="calendareventnotification-get"><name>CalendarEventNotification/get</name>
-<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" />.</t>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />.</t>
 </section>
 
 <section anchor="calendareventnotification-changes"><name>CalendarEventNotification/changes</name>
-<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620" section="5.2" />.</t>
+<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" />.</t>
 </section>
 
 <section anchor="calendareventnotification-set"><name>CalendarEventNotification/set</name>
-<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" />.</t>
+<t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" />.</t>
 <t>Only destroy is supported; any attempt to create/update MUST be rejected with a
 <tt>forbidden</tt> SetError.</t>
 </section>
 
 <section anchor="calendareventnotification-query"><name>CalendarEventNotification/query</name>
-<t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620" section="5.5" />.</t>
+<t>This is a standard "/query" method as described in <xref target="RFC8620" section="5.5" />.</t>
 
 <section anchor="filtering-1"><name>Filtering</name>
 <t>A <strong>FilterCondition</strong> object has the following properties:</t>
@@ -1000,210 +1000,210 @@ data after the update.</t></li>
 </section>
 
 <section anchor="sorting-1"><name>Sorting</name>
-<t>The &quot;created&quot; property MUST be supported for sorting.</t>
+<t>The "created" property MUST be supported for sorting.</t>
 </section>
 </section>
 
 <section anchor="calendareventnotification-querychanges"><name>CalendarEventNotification/queryChanges</name>
-<t>This is a standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620" section="5.6" />.</t>
+<t>This is a standard "/queryChanges" method as described in <xref target="RFC8620" section="5.6" />.</t>
 </section>
 </section>
 
 <section anchor="examples"><name>Examples</name>
-<t>For brevity, in the following examples only the &quot;methodCalls&quot; property of the Request object, and the &quot;methodResponses&quot; property of the Response object is shown.</t>
+<t>For brevity, in the following examples only the "methodCalls" property of the Request object, and the "methodResponses" property of the Response object is shown.</t>
 
 <section anchor="fetching-initial-data"><name>Fetching initial data</name>
-<t>A user has authenticated and the client has fetched the JMAP Session object. It finds a single Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability, with id &quot;a0x9&quot;, and wants to display all the calendar information for January 2023 in the Australia/Melbourne time zone. It might make the following request:</t>
+<t>A user has authenticated and the client has fetched the JMAP Session object. It finds a single Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability, with id "a0x9", and wants to display all the calendar information for January 2023 in the Australia/Melbourne time zone. It might make the following request:</t>
 
 <artwork>[
-  [&quot;Calendar/get&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;
-  }, &quot;0&quot;],
-  [&quot;ParticipantIdentity/get&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;
-  }, &quot;1&quot;],
-  [&quot;CalendarEvent/query&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;timeZone&quot;: &quot;Australia/Melbourne&quot;,
-    &quot;filter&quot;: {
-      &quot;after&quot;: &quot;2023-01-01T00:00:00&quot;,
-      &quot;before&quot;: &quot;2023-02-01T00:00:00&quot;
+  ["Calendar/get", {
+    "accountId": "a0x9"
+  }, "0"],
+  ["ParticipantIdentity/get", {
+    "accountId": "a0x9"
+  }, "1"],
+  ["CalendarEvent/query", {
+    "accountId": "a0x9",
+    "timeZone": "Australia/Melbourne",
+    "filter": {
+      "after": "2023-01-01T00:00:00",
+      "before": "2023-02-01T00:00:00"
     }
-  }, &quot;2&quot;],
-  [&quot;CalendarEvent/get&quot;, {
-  	&quot;accountId&quot;: &quot;a0x9&quot;,
-  	&quot;#ids&quot;:{
-  	  &quot;resultOf&quot;:&quot;3&quot;,
-  	  &quot;name&quot;:&quot;CalendarEvent/query&quot;,
-  	  &quot;path&quot;:&quot;/ids&quot;
+  }, "2"],
+  ["CalendarEvent/get", {
+  	"accountId": "a0x9",
+  	"#ids":{
+  	  "resultOf":"3",
+  	  "name":"CalendarEvent/query",
+  	  "path":"/ids"
   	}
-  }, &quot;3&quot;]
+  }, "3"]
 ]
 </artwork>
 <t>The server might respond with something like:</t>
 
 <artwork>[
-  [&quot;Calendar/get&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;list&quot;: [{
-       &quot;id&quot;: &quot;062adcfa-105d-455c-bc60-6db68b69c3f3&quot;,
-       &quot;name&quot;: &quot;Private&quot;,
-       &quot;sortOrder&quot;: 12,
-       &quot;isDefault&quot;: false,
-       &quot;defaultAlertsWithTime&quot;: null,
+  ["Calendar/get", {
+    "accountId": "a0x9",
+    "list": [{
+       "id": "062adcfa-105d-455c-bc60-6db68b69c3f3",
+       "name": "Private",
+       "sortOrder": 12,
+       "isDefault": false,
+       "defaultAlertsWithTime": null,
        ...
      }, {
-       &quot;id&quot;: &quot;3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662&quot;,
-       &quot;name&quot;: &quot;Work&quot;,
-       &quot;sortOrder&quot;: 4,
-       &quot;isDefault&quot;: true,
-       &quot;defaultAlertsWithTime&quot;: {
-         &quot;631BE24C-A3B6-11EC-BF4C-B027680D752E&quot;: {
-           &quot;@type&quot;: &quot;Alert&quot;,
-           &quot;action&quot;: &quot;display&quot;,
-           &quot;trigger&quot;: {
-             &quot;@type&quot;: &quot;OffsetTrigger&quot;,
-             &quot;offset&quot;: &quot;-PT1H&quot;,
-             &quot;relativeTo&quot;: &quot;start&quot;
+       "id": "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662",
+       "name": "Work",
+       "sortOrder": 4,
+       "isDefault": true,
+       "defaultAlertsWithTime": {
+         "631BE24C-A3B6-11EC-BF4C-B027680D752E": {
+           "@type": "Alert",
+           "action": "display",
+           "trigger": {
+             "@type": "OffsetTrigger",
+             "offset": "-PT1H",
+             "relativeTo": "start"
            }
          }
        },
        ...
      }],
-     &quot;notFound&quot;: [],
-     &quot;state&quot;: &quot;~506&quot;
-  }, &quot;0&quot;],
-  [&quot;ParticipantIdentity/get&quot;, {
-  	&quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;list&quot;: [{
-       &quot;id&quot;: &quot;3&quot;,
-       &quot;name&quot;: &quot;Jane Doe&quot;,
-       &quot;calendarUserAddress&quot;: &quot;mailto:jane@example.com&quot;,
-       &quot;sendTo&quot;: {
-       	 &quot;imip&quot;: &quot;mailto:jane@example.com&quot;,
-       	 &quot;other&quot;:
-       	 	&quot;https://example.com/uri/for/internal/scheduling&quot;
+     "notFound": [],
+     "state": "~506"
+  }, "0"],
+  ["ParticipantIdentity/get", {
+  	"accountId": "a0x9",
+    "list": [{
+       "id": "3",
+       "name": "Jane Doe",
+       "calendarUserAddress": "mailto:jane@example.com",
+       "sendTo": {
+       	 "imip": "mailto:jane@example.com",
+       	 "other":
+       	 	"https://example.com/uri/for/internal/scheduling"
        },
-       &quot;isDefault&quot;: true
+       "isDefault": true
      }],
-     &quot;notFound&quot;: [],
-     &quot;state&quot;: &quot;lgkf:98144:aae&quot;
-  }, &quot;1&quot;],
-  [&quot;CalendarEvent/query&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;canCalculateChanges&quot;: false,
-    &quot;position&quot;: 0,
-    &quot;queryState&quot;: &quot;~206&quot;,
-    &quot;ids&quot;: [
-      &quot;E-01c9626e-1490-43df-a34f-457021256281&quot;,
-      &quot;E-07a2b89d-96b6-4920-982a-54fdf0a386ce&quot;,
+     "notFound": [],
+     "state": "lgkf:98144:aae"
+  }, "1"],
+  ["CalendarEvent/query", {
+    "accountId": "a0x9",
+    "canCalculateChanges": false,
+    "position": 0,
+    "queryState": "~206",
+    "ids": [
+      "E-01c9626e-1490-43df-a34f-457021256281",
+      "E-07a2b89d-96b6-4920-982a-54fdf0a386ce",
       ...
     ]
-  }, &quot;2&quot;],
-  [&quot;CalendarEvent/get&quot;, {
-  	&quot;accountId&quot;: &quot;a0x9&quot;,
-  	&quot;list&quot;: [{
-       &quot;id&quot;: &quot;E-01c9626e-1490-43df-a34f-457021256281&quot;,
-       &quot;calendarIds&quot;: {
-       	  &quot;3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662&quot;: true
+  }, "2"],
+  ["CalendarEvent/get", {
+  	"accountId": "a0x9",
+  	"list": [{
+       "id": "E-01c9626e-1490-43df-a34f-457021256281",
+       "calendarIds": {
+       	  "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
        },
-       &quot;title&quot;: &quot;Q1 All hands&quot;,
-       &quot;start&quot;: &quot;20230109T10:00:00&quot;,
-       &quot;duration&quot;: &quot;PT1H&quot;,
-       &quot;timeZone&quot;: &quot;Australia/Sydney&quot;,
+       "title": "Q1 All hands",
+       "start": "20230109T10:00:00",
+       "duration": "PT1H",
+       "timeZone": "Australia/Sydney",
        ...
      }, ...],
-     &quot;notFound&quot;: [],
-     &quot;state&quot;: &quot;$$/413/206&quot;
-  }, &quot;3&quot;]
+     "notFound": [],
+     "state": "$$/413/206"
+  }, "3"]
 ]
 </artwork>
 <t>The client now has everything it needs to display that month in full.</t>
 </section>
 
 <section anchor="creating-an-event"><name>Creating an event</name>
-<t>Suppose the user asks the client to create a new event. The client should default to adding it to the &quot;Work&quot; calendar, as this is the default calendar for the user, unless it has information to make a more informed decision. (e.g. The client may have a feature to automatically choose the calendar based on the time of day, and the user indicates the event is at 7pm, so it knows to default to &quot;Private&quot;.)</t>
+<t>Suppose the user asks the client to create a new event. The client should default to adding it to the "Work" calendar, as this is the default calendar for the user, unless it has information to make a more informed decision. (e.g. The client may have a feature to automatically choose the calendar based on the time of day, and the user indicates the event is at 7pm, so it knows to default to "Private".)</t>
 
 <artwork>[
-  [&quot;CalendarEvent/set&quot;, {
-    &quot;accountId&quot;:&quot;a0x9&quot;,
-    &quot;create&quot;:{
-      &quot;k559&quot;:{
-        &quot;uid&quot;:&quot;5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91&quot;,
-        &quot;calendarIds&quot;:{
-          &quot;3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662&quot;:true
+  ["CalendarEvent/set", {
+    "accountId":"a0x9",
+    "create":{
+      "k559":{
+        "uid":"5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
+        "calendarIds":{
+          "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662":true
         },
-        &quot;title&quot;:&quot;Party at Pete’s&quot;,
-        &quot;start&quot;:&quot;2023-02-03T19:00:00&quot;,
-        &quot;duration&quot;:&quot;PT3H0M0S&quot;,
-        &quot;timeZone&quot;:&quot;Australia/Melbourne&quot;,
-        &quot;showWithoutTime&quot;:false,
-        &quot;participants&quot;:{
-          &quot;1&quot;:{
-            &quot;@type&quot;:&quot;Participant&quot;,
-            &quot;name&quot;: &quot;Jane Doe&quot;,
-            &quot;calendarUserAddress&quot;: &quot;mailto:jane@example.com&quot;,
-            &quot;sendTo&quot;: {
-              &quot;imip&quot;: &quot;mailto:jane@example.com&quot;,
-              &quot;other&quot;:
-                 &quot;https://example.com/uri/for/internal/scheduling&quot;
+        "title":"Party at Pete’s",
+        "start":"2023-02-03T19:00:00",
+        "duration":"PT3H0M0S",
+        "timeZone":"Australia/Melbourne",
+        "showWithoutTime":false,
+        "participants":{
+          "1":{
+            "@type":"Participant",
+            "name": "Jane Doe",
+            "calendarUserAddress": "mailto:jane@example.com",
+            "sendTo": {
+              "imip": "mailto:jane@example.com",
+              "other":
+                 "https://example.com/uri/for/internal/scheduling"
             },
-            &quot;kind&quot;:&quot;individual&quot;,
-            &quot;roles&quot;:{
-              &quot;attendee&quot;:true,
-              &quot;owner&quot;:true
+            "kind":"individual",
+            "roles":{
+              "attendee":true,
+              "owner":true
             },
-            &quot;participationStatus&quot;:&quot;accepted&quot;,
-            &quot;expectReply&quot;:false
+            "participationStatus":"accepted",
+            "expectReply":false
           },
-          &quot;2&quot;:{
-            &quot;@type&quot;:&quot;Participant&quot;,
-            &quot;name&quot;:&quot;Joe Bloggs&quot;,
-            &quot;calendarUserAddress&quot;: &quot;mailto:joe@example.com&quot;,
-            &quot;sendTo&quot;:{
-              &quot;imip&quot;:&quot;mailto:joe@example.com&quot;
+          "2":{
+            "@type":"Participant",
+            "name":"Joe Bloggs",
+            "calendarUserAddress": "mailto:joe@example.com",
+            "sendTo":{
+              "imip":"mailto:joe@example.com"
             },
-            &quot;kind&quot;:&quot;individual&quot;,
-            &quot;roles&quot;:{
-              &quot;attendee&quot;:true
+            "kind":"individual",
+            "roles":{
+              "attendee":true
             },
-            &quot;participationStatus&quot;:&quot;needs-action&quot;,
-            &quot;expectReply&quot;:true
+            "participationStatus":"needs-action",
+            "expectReply":true
           }
         },
-        &quot;mayInviteSelf&quot;:false,
-        &quot;mayInviteOthers&quot;:false,
-        &quot;useDefaultAlerts&quot;:false,
-        &quot;alerts&quot;:null
+        "mayInviteSelf":false,
+        "mayInviteOthers":false,
+        "useDefaultAlerts":false,
+        "alerts":null
       }
     },
-    &quot;sendSchedulingMessages&quot;:true
-  }, &quot;0&quot;]
+    "sendSchedulingMessages":true
+  }, "0"]
 ]
 </artwork>
-<t>As the event has participants, the server sets a &quot;replyTo&quot; property. This server uses a special email address for receiving iTIP RSVPs rather than just receiving them at the owner's regular email address, and also provides a web page for people that don't have calendar clients supporting iTIP. The response may look something like this:</t>
+<t>As the event has participants, the server sets a "replyTo" property. This server uses a special email address for receiving iTIP RSVPs rather than just receiving them at the owner's regular email address, and also provides a web page for people that don't have calendar clients supporting iTIP. The response may look something like this:</t>
 
 <artwork>[
-  [&quot;CalendarEvent/set&quot;, {
-    &quot;accountId&quot;:&quot;a0x9&quot;,
-    &quot;created&quot;:{
-      &quot;k559&quot;:{
-        &quot;id&quot;:&quot;E-5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91&quot;,
-        &quot;isOrigin&quot;: true,
-      	&quot;@type&quot;: &quot;Event&quot;,
-        &quot;created&quot;: &quot;20221005T20:42:13Z&quot;,
-        &quot;updated&quot;: &quot;20221005T20:42:13Z&quot;,
-        &quot;sequence&quot;: 1,
-        &quot;replyTo&quot;: {
-          &quot;imip&quot;: &quot;3e87-1b18bb5e6b4@itip.example.com&quot;,
-          &quot;web&quot;: &quot;https://cal.example.com/
+  ["CalendarEvent/set", {
+    "accountId":"a0x9",
+    "created":{
+      "k559":{
+        "id":"E-5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
+        "isOrigin": true,
+      	"@type": "Event",
+        "created": "20221005T20:42:13Z",
+        "updated": "20221005T20:42:13Z",
+        "sequence": 1,
+        "replyTo": {
+          "imip": "3e87-1b18bb5e6b4@itip.example.com",
+          "web": "https://cal.example.com/
           	5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91/?
-          	auth=bfc0-4ba3-9e44&quot;
+          	auth=bfc0-4ba3-9e44"
         }
       }
     },
     ...
-  }, &quot;0&quot;]
+  }, "0"]
 ]
 </artwork>
 </section>
@@ -1212,54 +1212,54 @@ data after the update.</t></li>
 <t>The client is connected to the event source and receives a push:</t>
 
 <artwork>{
-	&quot;@type&quot;: &quot;CalendarAlert&quot;,
-	&quot;accountId&quot;: &quot;a0x9&quot;,
-	&quot;calendarEventId&quot;: &quot;E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f&quot;,
-	&quot;uid&quot;: &quot;b6f7e27b-5872-4b52-b457-0242541bb01c&quot;,
-	&quot;recurrenceId&quot;: null,
-	&quot;alertId&quot;: &quot;7519a951-1e6f-4a6c-b08b-20dd2e5a89cd&quot;
+	"@type": "CalendarAlert",
+	"accountId": "a0x9",
+	"calendarEventId": "E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f",
+	"uid": "b6f7e27b-5872-4b52-b457-0242541bb01c",
+	"recurrenceId": null,
+	"alertId": "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd"
 }
 </artwork>
 <t>Not finding this event in its local cache, the client fetches the information for this event that it needs to show the alert by making the following request:</t>
 
 <artwork>[
-  [&quot;CalendarEvent/get&quot;, {
-  	&quot;accountId&quot;: &quot;a0x9&quot;,
-  	&quot;ids&quot;:[&quot;E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f&quot;],
-  	&quot;properties&quot;: [&quot;calendarIds&quot;, &quot;title&quot;, &quot;start&quot;,
-  	  &quot;timeZone&quot;, &quot;useDefaultAlerts&quot;, &quot;alerts&quot;]
-  }, &quot;0&quot;]
+  ["CalendarEvent/get", {
+  	"accountId": "a0x9",
+  	"ids":["E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f"],
+  	"properties": ["calendarIds", "title", "start",
+  	  "timeZone", "useDefaultAlerts", "alerts"]
+  }, "0"]
 ]
 </artwork>
 <t>In response it receives:</t>
 
 <artwork>[
-  [&quot;CalendarEvent/get&quot;, {
-  	&quot;accountId&quot;: &quot;a0x9&quot;,
-  	&quot;list&quot;: [{
-       &quot;id&quot;: &quot;E-01c9626e-1490-43df-a34f-457021256281&quot;,
-       &quot;calendarIds&quot;: {
-       	  &quot;3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662&quot;: true
+  ["CalendarEvent/get", {
+  	"accountId": "a0x9",
+  	"list": [{
+       "id": "E-01c9626e-1490-43df-a34f-457021256281",
+       "calendarIds": {
+       	  "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
        },
-       &quot;title&quot;: &quot;Team catchup&quot;,
-       &quot;start&quot;: &quot;20230210T17:00:00&quot;,
-       &quot;timeZone&quot;: &quot;America/New_York&quot;,
-       &quot;useDefaultAlerts&quot;: false,
-       &quot;alerts&quot;: {
-         &quot;7519a951-1e6f-4a6c-b08b-20dd2e5a89cd&quot;: {
-           &quot;@type&quot;: &quot;Alert&quot;,
-           &quot;action&quot;: &quot;display&quot;,
-           &quot;trigger&quot;: {
-             &quot;@type&quot;: &quot;OffsetTrigger&quot;,
-             &quot;relativeTo&quot;: &quot;start&quot;,
-             &quot;offset&quot;: &quot;-PT1H&quot;
+       "title": "Team catchup",
+       "start": "20230210T17:00:00",
+       "timeZone": "America/New_York",
+       "useDefaultAlerts": false,
+       "alerts": {
+         "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
+           "@type": "Alert",
+           "action": "display",
+           "trigger": {
+             "@type": "OffsetTrigger",
+             "relativeTo": "start",
+             "offset": "-PT1H"
            }
          }
        }
      }],
-     &quot;notFound&quot;: [],
-     &quot;state&quot;: &quot;$$/414/208&quot;
-  }, &quot;0&quot;]
+     "notFound": [],
+     "state": "$$/414/208"
+  }, "0"]
 ]
 </artwork>
 <t>The client displays an alert in a platform-appropriate manner. Presuming the user here is in the Australia/Melbourne time zone, this might look something like:</t>
@@ -1274,23 +1274,23 @@ data after the update.</t></li>
 <t>The user snoozes the notification for 30 minutes. The client dismisses the current notification and sends an update to the event to the server:</t>
 
 <artwork>[
-  [&quot;CalendarEvent/set&quot;, {
-  	&quot;accountId&quot;: &quot;a0x9&quot;,
-  	&quot;update&quot;: {
-      &quot;E-01c9626e-1490-43df-a34f-457021256281&quot;: {
-       	&quot;alerts/7519a951-1e6f-4a6c-b08b-20dd2e5a89cd
-       		/acknowledged&quot;: &quot;20230110T23:00:31Z&quot;,
-        &quot;alerts/86b0-318b8291045f&quot;: {
-          &quot;@type&quot;: &quot;Alert&quot;,
-          &quot;action&quot;: &quot;display&quot;,
-          &quot;trigger&quot;: {
-            &quot;@type&quot;: &quot;AbsoluteTrigger&quot;,
-            &quot;when&quot;: &quot;20230210T23:30:00Z&quot;,
-            &quot;relatedTo&quot;: {
-              &quot;7519a951-1e6f-4a6c-b08b-20dd2e5a89cd&quot;: {
-                &quot;@type&quot;: &quot;Relation&quot;,
-                &quot;relation&quot;: {
-                  &quot;parent&quot;: true
+  ["CalendarEvent/set", {
+  	"accountId": "a0x9",
+  	"update": {
+      "E-01c9626e-1490-43df-a34f-457021256281": {
+       	"alerts/7519a951-1e6f-4a6c-b08b-20dd2e5a89cd
+       		/acknowledged": "20230110T23:00:31Z",
+        "alerts/86b0-318b8291045f": {
+          "@type": "Alert",
+          "action": "display",
+          "trigger": {
+            "@type": "AbsoluteTrigger",
+            "when": "20230210T23:30:00Z",
+            "relatedTo": {
+              "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
+                "@type": "Relation",
+                "relation": {
+                  "parent": true
                 }
               }
         	}
@@ -1298,37 +1298,37 @@ data after the update.</t></li>
         }
       }
   	}
-  }, &quot;0&quot;]
+  }, "0"]
 ]
 </artwork>
 <t>Any other connected client will receive a push, sync the change and dismiss any duplicate alert. After the snooze time has elapsed, the new alert will trigger.</t>
 </section>
 
 <section anchor="changing-the-default-calendar"><name>Changing the default calendar</name>
-<t>The client tries to change the default calendar from &quot;Work&quot; to &quot;Private&quot; (and
+<t>The client tries to change the default calendar from "Work" to "Private" (and
 makes no other change):</t>
 
 <artwork>[
-  [&quot;Calendar/set&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;onSuccessSetIsDefault&quot;: &quot;062adcfa-105d-455c-bc60-6db68b69c3f3&quot;
-  }, &quot;0&quot;]
+  ["Calendar/set", {
+    "accountId": "a0x9",
+    "onSuccessSetIsDefault": "062adcfa-105d-455c-bc60-6db68b69c3f3"
+  }, "0"]
 ]
 </artwork>
 <t>The server allows the change, returning the following response:</t>
 
 <artwork>[
-  [&quot;Calendar/set&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;updated&quot;: {
-      &quot;062adcfa-105d-455c-bc60-6db68b69c3f3&quot;: {
-        &quot;isDefault&quot;: true
+  ["Calendar/set", {
+    "accountId": "a0x9",
+    "updated": {
+      "062adcfa-105d-455c-bc60-6db68b69c3f3": {
+        "isDefault": true
       },
-      &quot;3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662&quot;: {
-        &quot;isDefault&quot;: false
+      "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": {
+        "isDefault": false
       }
     }
-  }, &quot;0&quot;]
+  }, "0"]
 ]
 </artwork>
 </section>
@@ -1337,58 +1337,58 @@ makes no other change):</t>
 <t>The client makes a request to parse the calendar event from a blob id representing an icalendar file:</t>
 
 <artwork>[
-  [ &quot;CalendarEvent/parse&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;blobIds&quot;: [&quot;Ge682d5d7aad50b3a4f7180a7ed9276476485ea52&quot;]
-  }, &quot;c1&quot;]
+  [ "CalendarEvent/parse", {
+    "accountId": "a0x9",
+    "blobIds": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
+  }, "c1"]
 ]
 </artwork>
 <t>The server responds:</t>
 
-<artwork>[[ &quot;CalendarEvent/parse&quot;, {
-  &quot;accountId&quot;: &quot;ue150411c&quot;,
-  &quot;parsed&quot;: {
-    &quot;Ge682d5d7aad50b3a4f7180a7ed9276476485ea52&quot;: [{
-      &quot;@type&quot;: &quot;Event&quot;,
-      &quot;method&quot;: &quot;publish&quot;,
-      &quot;prodId&quot;: &quot;-//IETF//datatracker.ietf.org ical agenda//EN&quot;,
-      &quot;uid&quot;: &quot;ietf-119-16811-jmap&quot;,
-      &quot;sequence&quot;: 2,
-      &quot;updated&quot;: &quot;2024-02-09T22:49:26Z&quot;,
-      &quot;start&quot;: &quot;2024-03-19T13:00:00&quot;,
-      &quot;duration&quot;: &quot;PT2H&quot;,
-      &quot;timeZone&quot;: &quot;Australia/Brisbane&quot;,
-      &quot;showWithoutTime&quot;: false,
-      &quot;title&quot;: &quot;jmap - JSON Mail Access Protocol&quot;,
-      &quot;freeBusyStatus&quot;: &quot;busy&quot;,
-      &quot;descriptionContentType&quot;: &quot;text/plain&quot;,
-      &quot;description&quot;: &quot;Session II\n\nRemember to sign the blue sheets!&quot;,
-      &quot;locations&quot;: {
-          &quot;eec47e7589ce131d6331b10383f89f91f8d4a4ef&quot;: {
-              &quot;@type&quot;: &quot;Location&quot;,
-              &quot;name&quot;: &quot;P3, Brisbane Convention Centre&quot;
+<artwork>[[ "CalendarEvent/parse", {
+  "accountId": "ue150411c",
+  "parsed": {
+    "Ge682d5d7aad50b3a4f7180a7ed9276476485ea52": [{
+      "@type": "Event",
+      "method": "publish",
+      "prodId": "-//IETF//datatracker.ietf.org ical agenda//EN",
+      "uid": "ietf-119-16811-jmap",
+      "sequence": 2,
+      "updated": "2024-02-09T22:49:26Z",
+      "start": "2024-03-19T13:00:00",
+      "duration": "PT2H",
+      "timeZone": "Australia/Brisbane",
+      "showWithoutTime": false,
+      "title": "jmap - JSON Mail Access Protocol",
+      "freeBusyStatus": "busy",
+      "descriptionContentType": "text/plain",
+      "description": "Session II\n\nRemember to sign the blue sheets!",
+      "locations": {
+          "eec47e7589ce131d6331b10383f89f91f8d4a4ef": {
+              "@type": "Location",
+              "name": "P3, Brisbane Convention Centre"
           }
       },
-      &quot;status&quot;: &quot;confirmed&quot;
+      "status": "confirmed"
     }]
   },
-  &quot;notFound&quot;: null,
-  &quot;notParsable&quot;: null
-}, &quot;c1&quot;]]
+  "notFound": null,
+  "notParsable": null
+}, "c1"]]
 </artwork>
 <t>If the blob id had not been found, the server would have responded:</t>
 
-<artwork>[[ &quot;CalendarEvent/parse&quot;, {
-  &quot;accountId&quot;: &quot;a0x9&quot;,
-  &quot;notFound&quot;: [&quot;Ge682d5d7aad50b3a4f7180a7ed9276476485ea52&quot;]
-}, &quot;c1&quot; ]]
+<artwork>[[ "CalendarEvent/parse", {
+  "accountId": "a0x9",
+  "notFound": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
+}, "c1" ]]
 </artwork>
 <t>If the blob id had been found but was not parsable, the server would have responded:</t>
 
-<artwork>[[ &quot;CalendarEvent/parse&quot;, {
-  &quot;accountId&quot;: &quot;a0x9&quot;,
-  &quot;notParsable&quot;: [&quot;Ge682d5d7aad50b3a4f7180a7ed9276476485ea52&quot;]
-}, &quot;c1&quot; ]]
+<artwork>[[ "CalendarEvent/parse", {
+  "accountId": "a0x9",
+  "notParsable": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
+}, "c1" ]]
 </artwork>
 </section>
 </section>
@@ -1398,7 +1398,7 @@ makes no other change):</t>
 
 <section anchor="privacy"><name>Privacy</name>
 <t>Calendars often contain the precise movements, activities, and contacts of people; all intensely private data. Privacy leaks can have real world consequences, and calendar servers and clients MUST be mindful of the need to keep all data secure.</t>
-<t>Servers MUST enforce the ACLs set on calendars to ensure only authorised data is shared. The additional restrictions specified by the &quot;privacy&quot; property of a JSCalendar Event object (see <xref target="RFC8984" section="4.4.3" />) MUST also be enforced.</t>
+<t>Servers MUST enforce the ACLs set on calendars to ensure only authorised data is shared. The additional restrictions specified by the "privacy" property of a JSCalendar Event object (see <xref target="RFC8984" section="4.4.3" />) MUST also be enforced.</t>
 <t>Users may have multiple Participant Identities that they use for areas of their life kept private from one another. Using one identity with an event MUST NOT leak the existence of any other identity. For example, sending an RSVP from identity worklife@example.com MUST NOT reveal anything about another identity present in the account such as privatelife@example.org.</t>
 <t>Severs SHOULD enforce that invitations sent to external systems are only transmitted via secure encrypted and signed connections to protect against eavesdropping and modification of data.</t>
 </section>
@@ -1417,7 +1417,7 @@ makes no other change):</t>
 <section anchor="firing-alerts"><name>Firing alerts</name>
 <t>An alert firing for an event can cause a notification to be pused to the user's devices, or to send them an email. Servers MUST rate limit the number of alerts sent for any one user. The combination of recurring events with multiple alerts can in particular define unreasonably frequent alerts, leading to denial of service for either the server processing them or the user's devices receiving them.</t>
 <t>Similarly, clients generating alerts from the data on device must take the same precautions.</t>
-<t>The &quot;email&quot; alert type (see <xref target="RFC8984" section="4.5.2" />) causes an email to be sent when triggered. Clients MUST ignore this alert type; the email is sent only be the calendar server. There is no mechanism in JSCalendar to specify a particular email address: the server MUST only allow alerts to be sent to an address it has verified as belonging to the user to avoid this being used as a spamming vector.</t>
+<t>The "email" alert type (see <xref target="RFC8984" section="4.5.2" />) causes an email to be sent when triggered. Clients MUST ignore this alert type; the email is sent only be the calendar server. There is no mechanism in JSCalendar to specify a particular email address: the server MUST only allow alerts to be sent to an address it has verified as belonging to the user to avoid this being used as a spamming vector.</t>
 </section>
 
 <section anchor="load-spikes"><name>Load spikes</name>
@@ -1434,8 +1434,8 @@ makes no other change):</t>
 
 <section anchor="iana-considerations"><name>IANA Considerations</name>
 
-<section anchor="jmap-capability-registration-for-calendars"><name>JMAP Capability Registration for &quot;calendars&quot;</name>
-<t>IANA will register the &quot;calendars&quot; JMAP Capability as follows:</t>
+<section anchor="jmap-capability-registration-for-calendars"><name>JMAP Capability Registration for "calendars"</name>
+<t>IANA will register the "calendars" JMAP Capability as follows:</t>
 <t>Capability Name: <tt>urn:ietf:params:jmap:calendars</tt></t>
 <t>Specification document: this document</t>
 <t>Intended use: common</t>
@@ -1443,8 +1443,8 @@ makes no other change):</t>
 <t>Security and privacy considerations: this document, <xref target="urn-ietf-params-jmap-calendars" /></t>
 </section>
 
-<section anchor="jmap-capability-registration-for-principals-availability"><name>JMAP Capability Registration for &quot;principals:availability&quot;</name>
-<t>IANA will register the &quot;principals:availability&quot; JMAP Capability as follows:</t>
+<section anchor="jmap-capability-registration-for-principals-availability"><name>JMAP Capability Registration for "principals:availability"</name>
+<t>IANA will register the "principals:availability" JMAP Capability as follows:</t>
 <t>Capability Name: <tt>urn:ietf:params:jmap:principals:availability</tt></t>
 <t>Specification document: this document</t>
 <t>Intended use: common</t>
@@ -1453,15 +1453,15 @@ makes no other change):</t>
 </section>
 
 <section anchor="update-to-the-jscalendar-properties-registry"><name>Update to the JSCalendar Properties Registry</name>
-<t>IANA will update the &quot;JSCalendar Properties&quot; registry to add a new column called &quot;Is Per-User&quot;. The value in this column for each entry MUST be either &quot;yes&quot; or &quot;no&quot;, indicating whether each sharee of the object should be able to set their own value for this property without affecting the value for other sharees.</t>
+<t>IANA will update the "JSCalendar Properties" registry to add a new column called "Is Per-User". The value in this column for each entry MUST be either "yes" or "no", indicating whether each sharee of the object should be able to set their own value for this property without affecting the value for other sharees.</t>
 
-<section anchor="update-to-jscalendar-properties-registry-template"><name>Update to &quot;JSCalendar Properties&quot; Registry Template</name>
+<section anchor="update-to-jscalendar-properties-registry-template"><name>Update to "JSCalendar Properties" Registry Template</name>
 <t>An additional field is added to the template:</t>
 <t>Is Per-User</t>
 </section>
 
 <section anchor="initial-values-for-existing-registrations"><name>Initial values for existing registrations</name>
-<t>IANA will set &quot;Is per-user: yes&quot; on the following property registrations:</t>
+<t>IANA will set "Is per-user: yes" on the following property registrations:</t>
 
 <ul spacing="compact">
 <li><t>keywords</t></li>
@@ -1470,7 +1470,7 @@ makes no other change):</t>
 <li><t>useDefaultAlerts</t></li>
 <li><t>alerts</t></li>
 </ul>
-<t>All other existing registrations will have &quot;Is per-user: no&quot;.</t>
+<t>All other existing registrations will have "Is per-user: no".</t>
 </section>
 </section>
 
