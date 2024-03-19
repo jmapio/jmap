@@ -132,8 +132,8 @@ contains the calendar data for this principal, or null if none (e.g. the Princip
 <li><t><strong>mayShareWith</strong>: <tt>Boolean</tt></t>
 <t>May the user add this principal as a calendar sharee (by adding them to the
 shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
-<li><t><strong>scheduleId</strong>: <tt>String</tt></t>
-<t>If this principal may be added as a participant to an event, this is the scheduleId to use to represent it.</t></li>
+<li><t><strong>calendarUserAddress</strong>: <tt>String</tt></t>
+<t>If this principal may be added as a participant to an event, this is the calendarUserAddress to use to represent it.</t></li>
 <li><t><strong>sendTo</strong>: <tt>String[String]|null</tt></t>
 <t>If this principal may be added as a participant to an event, this is the Participant#sendTo property to add (see <xref target="RFC8984" section="4.4.5" />) for scheduling messages to reach it.</t></li>
 </ul>
@@ -224,8 +224,8 @@ permission to see that this principal exists.</t>
 <t>The id of the ParticipantIdentity.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt> (default: &quot;&quot;)</t>
 <t>The display name of the participant to use when adding this participant to an event, e.g. &quot;Joe Bloggs&quot;.</t></li>
-<li><t><strong>scheduleId</strong>: <tt>String</tt></t>
-<t>The URI that represents this participant for scheduling. This URI MAY also be the URI for one of the sendTo methods.</t></li>
+<li><t><strong>calendarUserAddress</strong>: <tt>String</tt></t>
+<t>The URI that represents this participant for scheduling. This URI may also be the URI for one of the sendTo methods.</t></li>
 <li><t><strong>sendTo</strong>: <tt>String[String]</tt></t>
 <t>Represents methods by which the participant may receive invitations and updates to an event.</t>
 <t>The keys in the property value are the available methods and MUST only contain ASCII alphanumeric characters (A-Za-z0-9). The value is a URI for the method specified in the key.</t>
@@ -241,7 +241,7 @@ an owner. (But the client may ignore this if, for example, it has its own
 feature to allow users to choose which identity to use based on the
 invitees.)</t></li>
 </ul>
-<t>A participant in an event corresponds to a ParticipantIdentity if the scheduleId property of the participant is equivalent to the scheduleId property of the identity after syntax-based normalisation, as per <xref target="RFC3986" section="6.2.2" />.</t>
+<t>A participant in an event corresponds to a ParticipantIdentity if the calendarUserAddress property of the participant is equivalent to the calendarUserAddress property of the identity after syntax-based normalisation, as per <xref target="RFC3986" section="6.2.2" />.</t>
 <t>The following JMAP methods are supported.</t>
 
 <section anchor="participantidentity-get"><name>ParticipantIdentity/get</name>
@@ -368,7 +368,7 @@ calendar.</t></li>
 <li><t>scheduleSequence</t></li>
 <li><t>scheduleUpdated</t></li>
 </ul>
-<t>If the event has its &quot;mayInviteSelf&quot; property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with scheduleId/sendTo properties that are the same as the scheduleId/sendTo properties of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain &quot;attendee&quot;.</t>
+<t>If the event has its &quot;mayInviteSelf&quot; property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with calendarUserAddress/sendTo properties that are the same as the calendarUserAddress/sendTo properties of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain &quot;attendee&quot;.</t>
 <t>If the event has its &quot;mayInviteOthers&quot; property set to true (see <xref target="mayinviteothers" />) and there is an existing Participant in the event corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The roles property of any new participant MUST only contain &quot;attendee&quot;.</t>
 <t>The user may also do all of the above on a per-occurrence basis for recurring events (updating the recurrenceOverrides property of the event to do so).</t></li>
 <li><t><strong>mayAdmin</strong>: <tt>Boolean</tt></t>
@@ -477,7 +477,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <section anchor="additional-jscalendar-properties"><name>Additional JSCalendar properties</name>
 <t>This document defines four new JSCalendar properties for common use.</t>
 
-<section anchor="scheduleid"><name>scheduleId</name>
+<section anchor="calendar-user-address"><name>calendarUserAddress</name>
 <t>Type: <tt>String</tt></t>
 <t>Context: Participant</t>
 <t>This is a URI as defined by <xref target="RFC3986"></xref> or any other IANA-registered form for a URI. It is the same as the CAL-ADDRESS value of an ATTENDEE or ORGANIZER in iCalendar (<xref target="RFC5545"></xref>) — it globally identifies a particular participant, even across different events.</t>
@@ -581,7 +581,8 @@ invitation from another calendar system)? This is true if, and only if:</t>
 
 <ul spacing="compact">
 <li><t><strong>sendSchedulingMessages</strong>: <tt>Boolean</tt> (default: false)</t>
-<t>If true then any changes to scheduled events will be sent to all the participants (if the server is the origin of the event) or back to the origin (otherwise). If false, the changes only affect this account and no scheduling messages will be sent.</t></li>
+<t>If true then any changes to scheduled events will be sent to all the participants (if the server is the origin of the event) or back to the origin (otherwise). If false, the changes only affect this account and no scheduling messages will be sent.</t>
+<t>At time of writing, the most common interoperable protocol for sending scheduling methods between participants on different servers is iMIP. A future document will provide recommendations of what iMIP messages to send based on the change for best compatibility.</t></li>
 </ul>
 <t>An id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in &quot;CalendarEvent/query&quot;. When the synthetic id for such an instance is given, the server MUST process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.</t>
 <t>Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single &quot;/set&quot; request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different <tt>recurrenceId</tt> property) with the base event (same uid, no <tt>recurrenceId</tt>) in a single &quot;/set&quot; call. (So the /set will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.</t>
@@ -636,7 +637,7 @@ value is less than or equal to the current &quot;sequence&quot; value on the ser
      &quot;@type&quot;: &quot;Participant&quot;,
      &quot;name&quot;: &quot;Tom&quot;,
      &quot;email&quot;: &quot;tom@foobar.example.com&quot;,
-     &quot;scheduleId&quot;: &quot;mailto:6489-4f14-a57f-c1@calendar.example.com&quot;,
+     &quot;calendarUserAddress&quot;: &quot;mailto:6489-4f14-a57f-c1@calendar.example.com&quot;,
      &quot;sendTo&quot;: {
        &quot;imip&quot;: &quot;mailto:6489-4f14-a57f-c1@calendar.example.com&quot;
      },
@@ -649,7 +650,7 @@ value is less than or equal to the current &quot;sequence&quot; value on the ser
      &quot;@type&quot;: &quot;Participant&quot;,
      &quot;name&quot;: &quot;Zoe&quot;,
      &quot;email&quot;: &quot;zoe@foobar.example.com&quot;,
-     &quot;scheduleId&quot;: &quot;mailto:zoe@foobar.example.com&quot;
+     &quot;calendarUserAddress&quot;: &quot;mailto:zoe@foobar.example.com&quot;
      &quot;sendTo&quot;: {
        &quot;imip&quot;: &quot;mailto:zoe@foobar.example.com&quot;,
        &quot;other&quot;: &quot;https://foobar.example.com/zoe/itip&quot;
@@ -938,8 +939,8 @@ triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 <t>The email of the person who made the change, or null if no email is available.</t></li>
 <li><t><strong>principalId</strong>: <tt>Id|null</tt></t>
 <t>The id of the Principal corresponding to the person who made the change, if any. This will be null if the change was due to receving an iTIP message.</t></li>
-<li><t><strong>scheduleId</strong>: <tt>String|null</tt></t>
-<t>The scheduleId URI of the person who made the change, if any. This will normally be set if the change was made due to receving an iTIP message.</t></li>
+<li><t><strong>calendarUserAddress</strong>: <tt>String|null</tt></t>
+<t>The calendarUserAddress URI of the person who made the change, if any. This will normally be set if the change was made due to receving an iTIP message.</t></li>
 </ul></li>
 <li><t><strong>comment</strong>: <tt>String|null</tt></t>
 <t>Comment sent along with the change by the user that made it. (e.g. COMMENT
@@ -1077,7 +1078,7 @@ data after the update.</t></li>
     &quot;list&quot;: [{
        &quot;id&quot;: &quot;3&quot;,
        &quot;name&quot;: &quot;Jane Doe&quot;
-       &quot;scheduleId&quot;: &quot;mailto:jane@example.com&quot;,
+       &quot;calendarUserAddress&quot;: &quot;mailto:jane@example.com&quot;,
        &quot;sendTo&quot;: {
        	 &quot;imip&quot;: &quot;mailto:jane@example.com&quot;,
        	 &quot;other&quot;:
@@ -1141,7 +1142,7 @@ data after the update.</t></li>
           &quot;1&quot;:{
             &quot;@type&quot;:&quot;Participant&quot;,
             &quot;name&quot;: &quot;Jane Doe&quot;
-            &quot;scheduleId&quot;: &quot;mailto:jane@example.com&quot;,
+            &quot;calendarUserAddress&quot;: &quot;mailto:jane@example.com&quot;,
             &quot;sendTo&quot;: {
               &quot;imip&quot;: &quot;mailto:jane@example.com&quot;,
               &quot;other&quot;:
@@ -1158,7 +1159,7 @@ data after the update.</t></li>
           &quot;2&quot;:{
             &quot;@type&quot;:&quot;Participant&quot;,
             &quot;name&quot;:&quot;Joe Bloggs&quot;,
-            &quot;scheduleId&quot;: &quot;mailto:joe@example.com&quot;,
+            &quot;calendarUserAddress&quot;: &quot;mailto:joe@example.com&quot;,
             &quot;sendTo&quot;:{
               &quot;imip&quot;:&quot;mailto:joe@example.com&quot;
             },
@@ -1531,11 +1532,11 @@ makes no other change):</t>
 <t>Is per-user: no</t>
 </section>
 
-<section anchor="scheduleid-1"><name>scheduleId</name>
-<t>Property Name: scheduleId</t>
+<section anchor="calendar-user-address-1"><name>calendarUserAddress</name>
+<t>Property Name: calendarUserAddress</t>
 <t>Property Type: <tt>String</tt></t>
 <t>Property Context: Participant</t>
-<t>Reference: This document, <xref target="scheduleid" />.</t>
+<t>Reference: This document, <xref target="calendar-user-address" />.</t>
 <t>Intended Use: Common</t>
 <t>Is per-user: no</t>
 </section>
