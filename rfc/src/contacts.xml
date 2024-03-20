@@ -36,7 +36,7 @@
 <t>This specification defines a data model for synchronising contacts between a client and a server using JMAP.</t>
 
 <section anchor="notational-conventions"><name>Notational conventions</name>
-<t>The key words &quot;MUST&quot;, &quot;MUST NOT&quot;, &quot;REQUIRED&quot;, &quot;SHALL&quot;, &quot;SHALL NOT&quot;, &quot;SHOULD&quot;, &quot;SHOULD NOT&quot;, &quot;RECOMMENDED&quot;, &quot;NOT RECOMMENDED&quot;, &quot;MAY&quot;, and &quot;OPTIONAL&quot; in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
+<t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
 <t>Type signatures, examples and property descriptions in this document follow the conventions established in <xref target="RFC8620" section="1.1" sectionFormat="of"></xref>.  The Id and UnsignedInt data types defined in Sections <xref target="RFC8620" section="1.2" sectionFormat="bare"></xref> and <xref target="RFC8620" section="1.3" sectionFormat="bare"></xref> of <xref target="RFC8620"></xref> are also used in this document.</t>
 </section>
 
@@ -114,21 +114,21 @@ the user explicitly requests it or to offer it for the user to subscribe to.</t>
 <li><t><strong>mayWrite</strong>: <tt>Boolean</tt></t>
 <t>The user may create, modify or destroy all ContactCards in this AddressBook, or move them to or from this AddressBook.</t></li>
 <li><t><strong>mayAdmin</strong>: <tt>Boolean</tt></t>
-<t>The user may modify the &quot;shareWith&quot; property for this AddressBook.</t></li>
+<t>The user may modify the "shareWith" property for this AddressBook.</t></li>
 <li><t><strong>mayDelete</strong>: <tt>Boolean</tt></t>
 <t>The user may delete the AddressBook itself.</t></li>
 </ul>
 
 <section anchor="addressbook-get"><name>AddressBook/get</name>
-<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" sectionFormat="comma"></xref>. The <em>ids</em> argument may be <tt>null</tt> to fetch all at once.</t>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" sectionFormat="comma"></xref>. The <em>ids</em> argument may be <tt>null</tt> to fetch all at once.</t>
 </section>
 
 <section anchor="addressbook-changes"><name>AddressBook/changes</name>
-<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620" section="5.2" sectionFormat="comma"></xref>.</t>
+<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" sectionFormat="comma"></xref>.</t>
 </section>
 
 <section anchor="addressbook-set"><name>AddressBook/set</name>
-<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref> but with the following additional request argument:</t>
+<t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref> but with the following additional request argument:</t>
 
 <ul>
 <li><t><strong>onDestroyRemoveContents</strong>: <tt>Boolean</tt> (default: false)</t>
@@ -140,24 +140,24 @@ true, any ContactCards that were in the AddressBook will be removed from it, and
 <t>If an id is given, and all creates, updates and destroys (if any) succeed
 without error, the server will try to set this AddressBook as the default.
 (For references to AddressBook creations, this is equivalent to a
-creation-reference, so the id will be the creation id prefixed with a &quot;#&quot;.)</t>
+creation-reference, so the id will be the creation id prefixed with a "#".)</t>
 </li>
 </ul>
 <t>If the id is not found, or the change is not permitted by the server for
   policy reasons, it MUST be ignored and the currently default AddressBook (if
   any) will remain as such. No error is returned to the client in this case.</t>
 <t>As per <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>, if the default is successfully changed, any
-  changed objects MUST be reported in either the &quot;created&quot; or &quot;updated&quot;
+  changed objects MUST be reported in either the "created" or "updated"
   argument in the response as  appropriate, with the server-set value included.</t>
-<t>The &quot;shareWith&quot; property may only be set by users that have the mayAdmin right.
+<t>The "shareWith" property may only be set by users that have the mayAdmin right.
 When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a <tt>forbidden</tt> SetError.</t>
-<t>Users can subscribe or unsubscribe to an AddressBook by setting the &quot;isSubscribed&quot; property. The server MAY forbid users from subscribing to certain AddressBooks even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
+<t>Users can subscribe or unsubscribe to an AddressBook by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain AddressBooks even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
 <t>The following extra SetError types are defined:</t>
-<t>For &quot;destroy&quot;:</t>
+<t>For "destroy":</t>
 
 <ul spacing="compact">
 <li><strong>addressBookHasContents</strong>: The AddressBook has at least one ContactCard
-assigned to it, and the &quot;onDestroyRemoveContents&quot; argument was false.</li>
+assigned to it, and the "onDestroyRemoveContents" argument was false.</li>
 </ul>
 </section>
 </section>
@@ -167,7 +167,7 @@ assigned to it, and the &quot;onDestroyRemoveContents&quot; argument was false.<
 
 <ul spacing="compact">
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
-<t>The id of the ContactCard. The id uniquely identifies a ContactCard with a particular &quot;uid&quot; within a particular account.</t></li>
+<t>The id of the ContactCard. The id uniquely identifies a ContactCard with a particular "uid" within a particular account.</t></li>
 <li><t><strong>addressBookIds</strong>: <tt>Id[Boolean]</tt></t>
 <t>The set of AddressBook ids this ContactCard belongs to. A card MUST belong to at least one AddressBook at all times (until it is destroyed). The set is represented as an object, with each key being an AddressBook id. The value for each key in the object MUST be true.</t></li>
 </ul>
@@ -177,19 +177,19 @@ assigned to it, and the &quot;onDestroyRemoveContents&quot; argument was false.<
 <li><t><strong>blobId</strong>: <tt>Id</tt></t>
 <t>An id for the Blob representing the binary contents of the resource.</t></li>
 </ul>
-<t>When returning ContactCards, any Media with a <tt>data:</tt> URI SHOULD return a <tt>blobId</tt> property and omit the <tt>uri</tt> property. The &quot;mediaType&quot; property MUST also be set. Similarly, when creating or updating a ContactCard, clients MAY send a <tt>blobId</tt> instead of the <tt>uri</tt> property for a Media object.</t>
-<t>A contact card with a &quot;kind&quot; property equal to &quot;group&quot; represents a group of contacts. Clients often present these separately from other contact cards. The &quot;members&quot; property, as defined in <xref target="I-D.ietf-calext-jscontact" section="2.1.6" />, contains a set of UIDs for other contacts that are the members of this group. Clients should consider the group to contain any ContactCard with a matching UID, from any account they have access to with support for the <tt>urn:ietf:params:jmap:contacts</tt> capability. UIDs that cannot be found SHOULD be ignored but preserved. For example, suppose a user adds contacts from a shared address book to their private group, then temporarily loses access to this address book. The UIDs cannot be resolved so the contacts will disappear from the group. However, if they are given permission to access the data again the UIDs will be found and the contacts will reappear.</t>
+<t>When returning ContactCards, any Media with a <tt>data:</tt> URI SHOULD return a <tt>blobId</tt> property and omit the <tt>uri</tt> property. The "mediaType" property MUST also be set. Similarly, when creating or updating a ContactCard, clients MAY send a <tt>blobId</tt> instead of the <tt>uri</tt> property for a Media object.</t>
+<t>A contact card with a "kind" property equal to "group" represents a group of contacts. Clients often present these separately from other contact cards. The "members" property, as defined in <xref target="I-D.ietf-calext-jscontact" section="2.1.6" />, contains a set of UIDs for other contacts that are the members of this group. Clients should consider the group to contain any ContactCard with a matching UID, from any account they have access to with support for the <tt>urn:ietf:params:jmap:contacts</tt> capability. UIDs that cannot be found SHOULD be ignored but preserved. For example, suppose a user adds contacts from a shared address book to their private group, then temporarily loses access to this address book. The UIDs cannot be resolved so the contacts will disappear from the group. However, if they are given permission to access the data again the UIDs will be found and the contacts will reappear.</t>
 
 <section anchor="contactcard-get"><name>ContactCard/get</name>
-<t>This is a standard &quot;/get&quot; method as described in <xref target="RFC8620" section="5.1" sectionFormat="comma"></xref>.</t>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" sectionFormat="comma"></xref>.</t>
 </section>
 
 <section anchor="contactcard-changes"><name>ContactCard/changes</name>
-<t>This is a standard &quot;/changes&quot; method as described in <xref target="RFC8620" section="5.2" sectionFormat="comma"></xref>.</t>
+<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" sectionFormat="comma"></xref>.</t>
 </section>
 
 <section anchor="contactcard-query"><name>ContactCard/query</name>
-<t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620" section="5.5" sectionFormat="comma"></xref>.</t>
+<t>This is a standard "/query" method as described in <xref target="RFC8620" section="5.5" sectionFormat="comma"></xref>.</t>
 
 <section anchor="filtering"><name>Filtering</name>
 <t>A <strong>FilterCondition</strong> object has the following properties, any of which may be omitted:</t>
@@ -200,194 +200,194 @@ assigned to it, and the &quot;onDestroyRemoveContents&quot; argument was false.<
 <li><t><strong>uid</strong>: <tt>String</tt></t>
 <t>A card must have this string exactly as its uid to match.</t></li>
 <li><t><strong>hasMember</strong>: <tt>String</tt></t>
-<t>A card must have a &quot;members&quot; property that contains this string as one of the uids in the set to match.</t></li>
+<t>A card must have a "members" property that contains this string as one of the uids in the set to match.</t></li>
 <li><t><strong>kind</strong>: <tt>String</tt></t>
 <t>A card must have a type property that equals this string exactly to match.</t></li>
 <li><t><strong>createdBefore</strong>: <tt>UTCDate</tt></t>
-<t>The &quot;created&quot; date-time of the ContactCard must be before this date-time to match the condition.</t></li>
+<t>The "created" date-time of the ContactCard must be before this date-time to match the condition.</t></li>
 <li><t><strong>createdAfter</strong>: <tt>UTCDate</tt></t>
-<t>The &quot;created&quot; date-time of the ContactCard must be the same or after this date-time to match the condition.</t></li>
+<t>The "created" date-time of the ContactCard must be the same or after this date-time to match the condition.</t></li>
 <li><t><strong>updatedBefore</strong>: <tt>UTCDate</tt></t>
-<t>The &quot;updated&quot; date-time of the ContactCard must be before this date-time to match the condition.</t></li>
+<t>The "updated" date-time of the ContactCard must be before this date-time to match the condition.</t></li>
 <li><t><strong>updatedAfter</strong>: <tt>UTCDate</tt></t>
-<t>The &quot;updated&quot; date-time of the ContactCard must be the same or after this date-time to match the condition.</t></li>
+<t>The "updated" date-time of the ContactCard must be the same or after this date-time to match the condition.</t></li>
 <li><t><strong>text</strong>: <tt>String</tt></t>
 <t>A card matches this condition if the text matches with text in the card.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the value of any NameComponent in the &quot;name&quot; property, or the &quot;full&quot; property in the &quot;name&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the value of any NameComponent in the "name" property, or the "full" property in the "name" property of the card matches the value.</t></li>
 <li><t><strong>name/given</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the value of a NameComponent with kind &quot;given&quot; inside the &quot;name&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the value of a NameComponent with kind "given" inside the "name" property of the card matches the value.</t></li>
 <li><t><strong>name/surname</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the value of a NameComponent with kind &quot;surname&quot; inside the &quot;name&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the value of a NameComponent with kind "surname" inside the "name" property of the card matches the value.</t></li>
 <li><t><strong>name/surname2</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the value of a NameComponent with kind &quot;surname2&quot; inside the &quot;name&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the value of a NameComponent with kind "surname2" inside the "name" property of the card matches the value.</t></li>
 <li><t><strong>nickName</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the &quot;name&quot; of any NickName in the &quot;nickNames&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the "name" of any NickName in the "nickNames" property of the card matches the value.</t></li>
 <li><t><strong>organization</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the &quot;name&quot; of any Organization in the &quot;organizations&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the "name" of any Organization in the "organizations" property of the card matches the value.</t></li>
 <li><t><strong>email</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the &quot;address&quot; or &quot;label&quot; of any EmailAddress in the &quot;emails&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the "address" or "label" of any EmailAddress in the "emails" property of the card matches the value.</t></li>
 <li><t><strong>phone</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the &quot;number&quot; or &quot;label&quot; of any Phone in the &quot;phones&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the "number" or "label" of any Phone in the "phones" property of the card matches the value.</t></li>
 <li><t><strong>onlineService</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the &quot;service&quot;, &quot;uri&quot;, &quot;user&quot;, or &quot;label&quot; of any OnlineService in the &quot;onlineServices&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the "service", "uri", "user", or "label" of any OnlineService in the "onlineServices" property of the card matches the value.</t></li>
 <li><t><strong>address</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the value of any StreetComponent in the &quot;street&quot; property, or the &quot;locality&quot;, &quot;region&quot;, &quot;country&quot;, or &quot;postcode&quot; property in any Address in the &quot;addresses&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the value of any StreetComponent in the "street" property, or the "locality", "region", "country", or "postcode" property in any Address in the "addresses" property of the card matches the value.</t></li>
 <li><t><strong>note</strong>: <tt>String</tt></t>
-<t>A card matches this condition if the &quot;note&quot; of any Note in the &quot;notes&quot; property of the card matches the value.</t></li>
+<t>A card matches this condition if the "note" of any Note in the "notes" property of the card matches the value.</t></li>
 </ul>
 <t>If zero properties are specified on the FilterCondition, the condition MUST always evaluate to <tt>true</tt>. If multiple properties are specified, ALL must apply for the condition to be <tt>true</tt> (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).</t>
 <t>The exact semantics for matching <tt>String</tt> fields is <strong>deliberately not defined</strong> to allow for flexibility in indexing implementation, subject to the following:</t>
 
 <ul spacing="compact">
 <li>Text SHOULD be matched in a case-insensitive manner.</li>
-<li>Text contained in either (but matched) single or double quotes SHOULD be treated as a <strong>phrase search</strong>, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use <tt>\&quot;</tt>, <tt>\'</tt> and <tt>\\</tt> to match a literal <tt>&quot;</tt>, <tt>'</tt> and <tt>\</tt> respectively in a phrase.</li>
+<li>Text contained in either (but matched) single or double quotes SHOULD be treated as a <strong>phrase search</strong>, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use <tt>\"</tt>, <tt>\'</tt> and <tt>\\</tt> to match a literal <tt>"</tt>, <tt>'</tt> and <tt>\</tt> respectively in a phrase.</li>
 <li>Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the contact, but MUST all be present for the contact to match the filter.</li>
-<li>Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for <tt>bus</tt> would match &quot;buses&quot; but not &quot;business&quot;).</li>
+<li>Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for <tt>bus</tt> would match "buses" but not "business").</li>
 </ul>
 </section>
 
 <section anchor="sorting"><name>Sorting</name>
-<t>The following value for the &quot;property&quot; field on the Comparator object
+<t>The following value for the "property" field on the Comparator object
 MUST be supported for sorting:</t>
 
 <ul spacing="compact">
-<li>&quot;created&quot; - The &quot;created&quot; date on the ContactCard.</li>
-<li>&quot;updated&quot; - The &quot;updated&quot; date on the ContactCard.</li>
+<li>"created" - The "created" date on the ContactCard.</li>
+<li>"updated" - The "updated" date on the ContactCard.</li>
 </ul>
-<t>The following values for the &quot;property&quot; field on the Comparator object SHOULD be supported for sorting:</t>
+<t>The following values for the "property" field on the Comparator object SHOULD be supported for sorting:</t>
 
 <ul spacing="compact">
-<li>&quot;name/given&quot; - The value of the first NameComponent in the &quot;name&quot; property
-whose &quot;kind&quot; is &quot;given&quot;.</li>
-<li>&quot;name/surname&quot; - The value of the first NameComponent in the &quot;name&quot; property
-whose &quot;kind&quot; is &quot;surname&quot;.</li>
-<li>&quot;name/surname2&quot; - The value of the first NameComponent in the &quot;name&quot;
-property whose &quot;kind&quot; is &quot;surname2&quot;.</li>
+<li>"name/given" - The value of the first NameComponent in the "name" property
+whose "kind" is "given".</li>
+<li>"name/surname" - The value of the first NameComponent in the "name" property
+whose "kind" is "surname".</li>
+<li>"name/surname2" - The value of the first NameComponent in the "name"
+property whose "kind" is "surname2".</li>
 </ul>
 </section>
 </section>
 
 <section anchor="contactcard-querychanges"><name>ContactCard/queryChanges</name>
-<t>This is a standard &quot;/queryChanges&quot; method as described in <xref target="RFC8620" section="5.6" sectionFormat="comma"></xref>.</t>
+<t>This is a standard "/queryChanges" method as described in <xref target="RFC8620" section="5.6" sectionFormat="comma"></xref>.</t>
 </section>
 
 <section anchor="contactcard-set"><name>ContactCard/set</name>
-<t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>.</t>
+<t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>.</t>
 <t>To set a new photo, the file must first be uploaded using the upload mechanism as described in <xref target="RFC8620" section="6.1" sectionFormat="comma"></xref>. This will give the client a valid blobId/size/type to use. The server SHOULD reject attempts to set a file that is not a recognised image type as the photo for a card.</t>
 </section>
 
 <section anchor="contactcard-copy"><name>ContactCard/copy</name>
-<t>This is a standard &quot;/copy&quot; method as described in <xref target="RFC8620" section="5.4" sectionFormat="comma"></xref>.</t>
+<t>This is a standard "/copy" method as described in <xref target="RFC8620" section="5.4" sectionFormat="comma"></xref>.</t>
 </section>
 </section>
 
 <section anchor="examples"><name>Examples</name>
-<t>For brevity, in the following examples only the &quot;methodCalls&quot; property of the Request object, and the &quot;methodResponses&quot; property of the Response object is shown.</t>
+<t>For brevity, in the following examples only the "methodCalls" property of the Request object, and the "methodResponses" property of the Response object is shown.</t>
 
 <section anchor="fetching-initial-data"><name>Fetching initial data</name>
-<t>A user has authenticated and the client has fetched the JMAP Session object. It finds a single Account with the &quot;urn:ietf:params:jmap:contacts&quot; capability, with id &quot;a0x9&quot;, and wants to fetch all the address books and contacts. It might make the following request:</t>
+<t>A user has authenticated and the client has fetched the JMAP Session object. It finds a single Account with the "urn:ietf:params:jmap:contacts" capability, with id "a0x9", and wants to fetch all the address books and contacts. It might make the following request:</t>
 
 <artwork>[
-  [&quot;AddressBook/get&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;
-  }, &quot;0&quot;],
-  [&quot;ContactCard/get&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;
-  }, &quot;1&quot;]
+  ["AddressBook/get", {
+    "accountId": "a0x9"
+  }, "0"],
+  ["ContactCard/get", {
+    "accountId": "a0x9"
+  }, "1"]
 ]
 </artwork>
 <t>The server might respond with something like:</t>
 
 <artwork>[
-  [&quot;AddressBook/get&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;list&quot;: [{
-        &quot;id&quot;: &quot;062adcfa-105d-455c-bc60-6db68b69c3f3&quot;,
-        &quot;name&quot;: &quot;Personal&quot;,
-        &quot;description&quot;: null,
-        &quot;sortOrder&quot;: 0,
-        &quot;isDefault&quot;: true,
-        &quot;isSubscribed&quot;: true,
-        &quot;shareWith&quot;: null,
-        &quot;myRights&quot;: {
-          &quot;mayRead&quot;: true,
-          &quot;mayWrite&quot;: true,
-          &quot;mayAdmin&quot;: true,
-          &quot;mayDelete&quot;: false
+  ["AddressBook/get", {
+    "accountId": "a0x9",
+    "list": [{
+        "id": "062adcfa-105d-455c-bc60-6db68b69c3f3",
+        "name": "Personal",
+        "description": null,
+        "sortOrder": 0,
+        "isDefault": true,
+        "isSubscribed": true,
+        "shareWith": null,
+        "myRights": {
+          "mayRead": true,
+          "mayWrite": true,
+          "mayAdmin": true,
+          "mayDelete": false
         }
       }, {
-        &quot;id&quot;: &quot;cd40089d-35f9-4fd7-980b-ba3a9f1d74fe&quot;,
-        &quot;name&quot;: &quot;Autosaved&quot;,
-        &quot;description&quot;: null,
-        &quot;sortOrder&quot;: 1,
-        &quot;isDefault&quot;: false,
-        &quot;isSubscribed&quot;: true,
-        &quot;shareWith&quot;: null,
-        &quot;myRights&quot;: {
-          &quot;mayRead&quot;: true,
-          &quot;mayWrite&quot;: true,
-          &quot;mayAdmin&quot;: true,
-          &quot;mayDelete&quot;: false
+        "id": "cd40089d-35f9-4fd7-980b-ba3a9f1d74fe",
+        "name": "Autosaved",
+        "description": null,
+        "sortOrder": 1,
+        "isDefault": false,
+        "isSubscribed": true,
+        "shareWith": null,
+        "myRights": {
+          "mayRead": true,
+          "mayWrite": true,
+          "mayAdmin": true,
+          "mayDelete": false
         }
       }],
-      &quot;notFound&quot;: [],
-      &quot;state&quot;: &quot;~4144&quot;
-  }, &quot;0&quot;],
-  [&quot;Contact/get&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;list&quot;: [{
-        &quot;id&quot;: &quot;3&quot;,
-        &quot;addressBookIds&quot;: {
-          &quot;062adcfa-105d-455c-bc60-6db68b69c3f3&quot;: true
+      "notFound": [],
+      "state": "~4144"
+  }, "0"],
+  ["Contact/get", {
+    "accountId": "a0x9",
+    "list": [{
+        "id": "3",
+        "addressBookIds": {
+          "062adcfa-105d-455c-bc60-6db68b69c3f3": true
         },
-        &quot;name&quot;: {
-          &quot;components&quot;: [
-            { &quot;kind&quot;: &quot;given&quot;, &quot;value&quot;: &quot;Joe&quot; },
-            { &quot;kind&quot;: &quot;surname&quot;, &quot;value&quot;: &quot;Bloggs&quot; }
+        "name": {
+          "components": [
+            { "kind": "given", "value": "Joe" },
+            { "kind": "surname", "value": "Bloggs" }
           ],
-          &quot;isOrdered&quot;: true
+          "isOrdered": true
         },
-        &quot;emails&quot;: {
-          &quot;0&quot;: {
-          &quot;contexts&quot;: {
-            &quot;private&quot;: true
+        "emails": {
+          "0": {
+          "contexts": {
+            "private": true
           },
-          &quot;address&quot;: &quot;joe.bloggs@example.com&quot;
+          "address": "joe.bloggs@example.com"
           }
         }
       }],
-      &quot;notFound&quot;: [],
-      &quot;state&quot;: &quot;ewarbckaqJ::112&quot;
-  }, &quot;1&quot;]
+      "notFound": [],
+      "state": "ewarbckaqJ::112"
+  }, "1"]
 ]
 </artwork>
 </section>
 
 <section anchor="changing-the-default-address-book"><name>Changing the default address book</name>
-<t>The client tries to change the default address book from &quot;Personal&quot; to &quot;Autosaved&quot; (and makes no other change):</t>
+<t>The client tries to change the default address book from "Personal" to "Autosaved" (and makes no other change):</t>
 
 <artwork>[
-  [&quot;AddressBook/set&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;onSuccessSetIsDefault&quot;: &quot;cd40089d-35f9-4fd7-980b-ba3a9f1d74fe&quot;
-  }, &quot;0&quot;]
+  ["AddressBook/set", {
+    "accountId": "a0x9",
+    "onSuccessSetIsDefault": "cd40089d-35f9-4fd7-980b-ba3a9f1d74fe"
+  }, "0"]
 ]
 </artwork>
 <t>The server allows the change, returning the following response:</t>
 
 <artwork>[
-  [&quot;AddressBook/set&quot;, {
-    &quot;accountId&quot;: &quot;a0x9&quot;,
-    &quot;updated&quot;: {
-      &quot;cd40089d-35f9-4fd7-980b-ba3a9f1d74fe&quot;: {
-        &quot;isDefault&quot;: true
+  ["AddressBook/set", {
+    "accountId": "a0x9",
+    "updated": {
+      "cd40089d-35f9-4fd7-980b-ba3a9f1d74fe": {
+        "isDefault": true
       },
-      &quot;062adcfa-105d-455c-bc60-6db68b69c3f3&quot;: {
-        &quot;isDefault&quot;: false
+      "062adcfa-105d-455c-bc60-6db68b69c3f3": {
+        "isDefault": false
       }
     }
-  }, &quot;0&quot;]
+  }, "0"]
 ]
 </artwork>
 </section>
@@ -404,8 +404,8 @@ property whose &quot;kind&quot; is &quot;surname2&quot;.</li>
 
 <section anchor="iana-considerations"><name>IANA Considerations</name>
 
-<section anchor="jmap-capability-registration-for-contacts"><name>JMAP capability registration for &quot;contacts&quot;</name>
-<t>IANA will register the &quot;contacts&quot; JMAP Capability as follows:</t>
+<section anchor="jmap-capability-registration-for-contacts"><name>JMAP capability registration for "contacts"</name>
+<t>IANA will register the "contacts" JMAP Capability as follows:</t>
 <t>Capability Name: <tt>urn:ietf:params:jmap:contacts</tt></t>
 <t>Specification document: this document</t>
 <t>Intended use: common</t>
