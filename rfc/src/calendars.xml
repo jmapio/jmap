@@ -296,11 +296,11 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t><
 <t>Defines the sort order of calendars when presented in the client's UI, so it
 is consistent between devices. The number MUST be an integer in the range
 0 &lt;= sortOrder &lt; 2<sup>31.</sup></t>
-<t>A calendar with a lower order should be displayed before a calendar with
-a higher order in any list of calendars in the client's UI. Calendars with equal order SHOULD be sorted in alphabetical order by name.  The sorting should take into account locale-specific character order convention.</t></li>
+<t>A calendar with a lower order is to be displayed before a calendar with
+a higher order in any list of calendars in the client's UI. Calendars with equal order should be sorted in alphabetical order by name.  The sorting should take into account locale-specific character order convention.</t></li>
 <li><t><strong>isSubscribed</strong>: <tt>Boolean</tt></t>
-<t>True if the user has indicated they wish to see this Calendar in their client. This SHOULD default to false for Calendars in shared accounts the user has access to and true for any new Calendars created by the user themself.</t>
-<t>If false, the calendar SHOULD only be displayed when the user explicitly
+<t>True if the user has indicated they wish to see this Calendar in their client. This should default to false for Calendars in shared accounts the user has access to and true for any new Calendars created by the user themself.</t>
+<t>If false, the calendar should only be displayed when the user explicitly
 requests it or to offer it for the user to subscribe to. For example, a company may have a large number of shared calendars which all employees have permission to access, but you would only subscribe to the ones you care about and want to be able to have normally accessible.</t></li>
 <li><t><strong>isVisible</strong>: <tt>Boolean</tt> (default: true)</t>
 <t>Should the calendar's events be displayed to the user at the moment? Clients MUST ignore this property if isSubscribed is false. If an event is in multiple calendars, it should be displayed if isVisible is true for any of those calendars.</t></li>
@@ -376,7 +376,7 @@ calendar.</t></li>
 <li><t><strong>mayDelete</strong>: <tt>Boolean</tt></t>
 <t>The user may delete the calendar itself.</t></li>
 </ul>
-<t>The user is an <strong>owner</strong> for an event if the CalendarEvent object has a   "participants" property, and one of the Participant objects both:</t>
+<t>The user is an <strong>owner</strong> for an event if the CalendarEvent object has a "participants" property, and one of the Participant objects both:</t>
 
 <ol type="a">
 <li><t>Has the "owner" role.</t></li>
@@ -556,7 +556,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>The time zone to use when calculating the utcStart/utcEnd property of floating events. This argument has no effect if those properties are not requested.</t></li>
 </ul>
 <t>A CalendarEvent object is a JSCalendar Event object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties defined on the JSCalendar Event object in the store are returned, along with the "id", "calendarIds", "isDraft", and "isOrigin" properties. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested. If either are requested, the "recurrenceOverrides" property MUST NOT be requested (recurrence overrides cannot be interpreted accurately with just the UTC times).</t>
-<t>If specific properties are requested from the JSCalendar Event and the property is not present on the object in the server's store, the server SHOULD return the default value if known for that property.</t>
+<t>If specific properties are requested from the JSCalendar Event and the property is not present on the object in the server's store, the server MUST return the default value if known for that property.</t>
 <t>A requested id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRules" and "recurrenceOverrides" properties MUST be returned as null if requested for such an event.</t>
 <t>An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions, etc.</t>
 <t>The "hideAttendees" property of a JSCalendar Event object allows the event owner(s) to reduce the visibility of sharees into the set of participants. If this is true, when a non-owner sharee fetches the event, the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.</t>
@@ -864,7 +864,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <t>Alerts may be specified on events as described in <xref target="RFC8984" section="4.5" />.</t>
 <t>Alerts MUST only be triggered for events in calendars where the user is subscribed.</t>
 <t>When an alert with an "email" action is triggered, the server MUST send an email to the user to notify them of the event. The contents of the email is implementation specific. Clients MUST NOT perform an action for these alerts.</t>
-<t>When an alert with a "display" action is triggered, clients SHOULD display an alert in a platform-appropriate manner to the user to remind them of the event. Clients with a full offline cache of events may choose to calculate when alerts should trigger locally. Alternatively, they can subscribe to push events from the server.</t>
+<t>When an alert with a "display" action is triggered, clients should display an alert in a platform-appropriate manner to the user to remind them of the event. Clients with a full offline cache of events may choose to calculate when alerts should trigger locally. Alternatively, they can subscribe to push events from the server.</t>
 
 <section anchor="default-alerts"><name>Default alerts</name>
 <t>If the "useDefaultAlerts" property of an event is true, the alerts are taken from the "defaultAlertsWithTime" or "defaultAlertsWithoutTime" property of all Calendars (see <xref target="calendars" />) the event is in, rather than the "alerts" property of the CalendarEvent.</t>
@@ -918,7 +918,7 @@ triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 
 <section anchor="calendar-event-notifications"><name>Calendar Event Notifications</name>
 <t>The CalendarEventNotification data type records changes made by external entities to events in calendars the user is subscribed to. Notifications are stored in the same Account as the CalendarEvent that was changed.</t>
-<t>Notifications are only created by the server; users cannot create them directly. Clients SHOULD present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.</t>
+<t>Notifications are only created by the server; users cannot create them directly. Clients may present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.</t>
 <t>The server SHOULD create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to. The server SHOULD NOT create notifications for events implicitly deleted due to the containing calendar being deleted.</t>
 <t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all sharees of the notification. The server need only keep track of which users have yet to destroy the notification.</t>
 
