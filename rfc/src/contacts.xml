@@ -152,12 +152,11 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t>
 <t>The "shareWith" property may only be set by users that have the mayAdmin right.
 When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a <tt>forbidden</tt> SetError.</t>
 <t>Users can subscribe or unsubscribe to an AddressBook by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain AddressBooks even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
-<t>The following extra SetError types are defined:</t>
+<t>The following extra SetError type is defined:</t>
 <t>For "destroy":</t>
 
 <ul spacing="compact">
-<li><strong>addressBookHasContents</strong>: The AddressBook has at least one ContactCard
-assigned to it, and the "onDestroyRemoveContents" argument was false.</li>
+<li><strong>addressBookHasContents</strong>: The AddressBook has at least one ContactCard assigned to it, and the "onDestroyRemoveContents" argument was false.</li>
 </ul>
 </section>
 </section>
@@ -411,6 +410,20 @@ property whose "kind" is "surname2".</li>
 <t>Intended use: common</t>
 <t>Change Controller: IETF</t>
 <t>Security and privacy considerations: this document, <xref target="security-considerations" /></t>
+</section>
+
+<section anchor="jmap-error-codes-registry" title="JMAP Error Codes Registry">
+<t>The following subsection registers a new error code in the "JMAP
+Error Codes" registry, as defined in <xref target="RFC8620"/>.
+</t>
+
+<section anchor="addressbookhascontents" title="addressBookHasContents">
+<t>JMAP Error Code: addressBookHasContents</t>
+<t>Intended use: common</t>
+<t>Change controller: IETF</t>
+<t>Reference: This document, <xref target="addressbook-set"/></t>
+<t>Description: The AddressBook has at least one ContactCard assigned to it, and the "onDestroyRemoveContents" argument was false.</t>
+</section>
 </section>
 
 <section anchor="jscontact-property-registrations">
