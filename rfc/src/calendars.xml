@@ -432,7 +432,8 @@ When modifying the shareWith property, the user cannot give a right to a princip
 </ul>
 <t>The "name", "color", and "timeZone" properties are initially inherited from the owner's copy of the calendar, but if set by a sharee then they get their own copy of the property; it does not change for any other principals. If the value of the property in the owner's calendar changes after this, it does not overwrite the sharee's value.</t>
 <t>The "sortOrder", "isVisible", "includeInAvailability", "defaultAlertsWithTime", and "defaultAlertsWithoutTime" properties are initally the default value for each sharee; they are not inherited from the owner.</t>
-<t>The following extra SetError types are defined:</t>
+
+<t>The following extra SetError type is defined:</t>
 <t>For "destroy":</t>
 
 <ul spacing="compact">
@@ -616,6 +617,12 @@ value is less than or equal to the current "sequence" value on the server;</t></
 <t>The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the "owner" role corresponding to one of the user's ParticipantIdentities (see <xref target="participant-identities" />).</t>
 <t>When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the "replyTo" property of the event if not present. Clients SHOULD NOT set the "replyTo" property for events when the user adds participants; the server is better positioned to add all the methods it supports to receive replies.</t>
 
+<t>The following extra SetError type is defined:</t>
+
+<ul spacing="compact">
+<li><t><strong>noSupportedScheduleMethods</strong>: The server was requested to send scheduling messages, but does not support any of the methods available for at least one of the recipients.</t></li>
+</ul>
+
 <section anchor="patching"><name>Patching</name>
 <t>The JMAP "/set" method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, e.g. inside "localizations" or "recurrenceOverrides". In particular, you cannot add a property with value <tt>null</tt> to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property.</t>
 <t>This is more easily understood with an example. Suppose you have a CalendarEvent object like so:</t>
@@ -756,7 +763,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <t>If expandRecurrences is true, a separate id will be returned for each instance of a recurring event that matches the query. This synthetic id is opaque to the client, but allows the server to resolve the id + recurrence id for "/get" and "/set" operations. Otherwise, a single id will be returned for matching recurring events that represents the entire event.</t>
 <t>There is no necessary correspondence between the ids of different instances of the same expanded event.</t>
 <t>The following additional error may be returned instead of the "CalendarEvent/query" response:</t>
-<t><tt>cannotCalculateOccurrences</tt>: the server cannot expand a recurrence required to return the results for this query.</t>
+<t><tt>cannotCalculateOccurrences</tt>: The server cannot expand a recurrence required to return the results for this query.</t>
 
 <section anchor="filtering"><name>Filtering</name>
 <t>A <strong>FilterCondition</strong> object has the following properties:</t>
@@ -1449,6 +1456,36 @@ makes no other change):</t>
 <t>Intended use: common</t>
 <t>Change Controller: IETF</t>
 <t>Security and privacy considerations: this document, <xref target="urn-ietf-params-jmap-principals-availability" /></t>
+</section>
+
+<section anchor="jmap-error-codes-registry" title="JMAP Error Codes Registry">
+<t>The following subsections register some new error codes in the "JMAP
+Error Codes" registry, as defined in <xref target="RFC8620"/>.
+</t>
+
+<section anchor="calendarhasevent" title="calendarHasEvent">
+<t>JMAP Error Code: calendarHasEvent</t>
+<t>Intended use: common</t>
+<t>Change controller: IETF</t>
+<t>Reference: This document, <xref target="calendar-set"/></t>
+<t>Description: The Calendar has at least one CalendarEvent assigned to it, and the "onDestroyRemoveEvents" argument was false.</t>
+</section>
+
+<section anchor="nosupportedschedulemethods" title="noSupportedScheduleMethods">
+<t>JMAP Error Code: noSupportedScheduleMethods</t>
+<t>Intended use: common</t>
+<t>Change controller: IETF</t>
+<t>Reference: This document, <xref target="calendarevent-set"/></t>
+<t>Description: The server was requested to send scheduling messages, but does not support any of the methods available for at least one of the recipients.</t>
+</section>
+
+<section anchor="cannotcalculateoccurrences" title="cannotCalculateOccurrences">
+<t>JMAP Error Code: cannotCalculateOccurrences</t>
+<t>Intended use: common</t>
+<t>Change controller: IETF</t>
+<t>Reference: This document, <xref target="calendarevent-query"/></t>
+<t>Description: The server cannot expand a recurrence required to return the results for the requested query.</t>
+</section>
 </section>
 
 <section anchor="update-to-the-jscalendar-properties-registry"><name>Update to the JSCalendar Properties Registry</name>
