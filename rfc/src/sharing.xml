@@ -303,22 +303,26 @@ for this principal that the user has access to, or null if none.</t></li>
 <t>May the user add this principal as a sharee of a todo list?</t></li>
 </ul>
 
-<t>A client wishing to let the user configure sharing would look at the account capabilities for the Account containing the user's Todo data, and find the "urn:ietf:params:jmap:principals:owner" property, as per <xref target="urn-ietf-params-jmap-principals-owner"></xref>.</t>
+<t>A client wishing to let the user configure sharing would look at the account capabilities for the Account containing the user's Todo data, and find the "urn:ietf:params:jmap:principals:owner" property, as per <xref target="urn-ietf-params-jmap-principals-owner"></xref>. For example, the JMAP Session object might contain:</t>
 
 <figure><artwork>
-In the "accounts" property of the JMAP session object...
-
-"u12345678": {
-    "name": "jane.doe@example.com"
-    "isPersonal": true
-    "isReadOnly": false
-    "accountCapabilities": {
+{
+  "accounts": {
+    "u12345678": {
+      "name": "jane.doe@example.com",
+      "isPersonal": true,
+      "isReadOnly": false,
+      "accountCapabilities": {
         "urn:com.example:jmap:todo": {},
         "urn:ietf:params:jmap:principals:owner": {
-            accountIdForPrincipal: "u33084183",
-            principalId: "P105aga511jaa"
+          "accountIdForPrincipal": "u33084183",
+          "principalId": "P105aga511jaa"
         }
-    }
+      }
+    },
+    ...
+  },
+  ...
 }
 </artwork></figure>
 
@@ -348,11 +352,11 @@ In the "accounts" property of the JMAP session object...
     "timeZone": "Australia/Melbourne",
     "capabilities": {
         "urn:com.example:jmap:todo": {
-            accountId: null,
-            mayShareWith: true
+            "accountId": null,
+            "mayShareWith": true
         }
     },
-    "accounts": null,
+    "accounts": null
   }, {
     "id": "P674pp24095qo49pr",
     "name": "Board room",
