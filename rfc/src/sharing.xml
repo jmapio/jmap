@@ -141,23 +141,24 @@ for this principal that the user has access to, or null if none.</t></li>
 <t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620" section="5.5" sectionFormat="comma"></xref></t>
 
 <section anchor="filtering"><name>Filtering</name>
-<t>A <strong>FilterCondition</strong> object has the following properties:</t>
+<t>A <strong>FilterCondition</strong> object has the following properties, all of which are optional:</t>
 
 <ul spacing="compact">
 <li><t><strong>accountIds</strong>: <tt>String[]</tt></t>
 <t>A list of account ids. The Principal matches if any of the ids in this list are keys in the Principal's &quot;accounts&quot; property (i.e., if any of the account ids belong to the principal).</t></li>
 <li><t><strong>email</strong>: <tt>String</tt></t>
-<t>Looks for the text in the email property.</t></li>
+<t>The email property of the principal contains the given string.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt></t>
-<t>Looks for the text in the name property.</t></li>
+<t>The name property of the principal contains the given string.</t></li>
 <li><t><strong>text</strong> <tt>String</tt></t>
-<t>Looks for the text in the name, email, and description properties.</t></li>
+<t>The name, email, or description property of the principal contains the given string.</t></li>
 <li><t><strong>type</strong>: <tt>String</tt></t>
 <t>The type must be exactly as given to match the condition.</t></li>
 <li><t><strong>timeZone</strong>: <tt>String</tt></t>
 <t>The timeZone must be exactly as given to match the condition.</t></li>
 </ul>
-<t>All conditions in the FilterCondition object must match for the Principal to match.</t>
+<t>All given conditions in the FilterCondition object must match for the Principal to match.</t>
+<t>Text matches for "contains" SHOULD be simple substring matches.</t>
 </section>
 </section>
 
@@ -228,7 +229,7 @@ for this principal that the user has access to, or null if none.</t></li>
 <t>This is a standard &quot;/query&quot; method as described in <xref target="RFC8620" section="5.5" sectionFormat="comma"></xref>.</t>
 
 <section anchor="filtering-1"><name>Filtering</name>
-<t>A <strong>FilterCondition</strong> object has the following properties:</t>
+<t>A <strong>FilterCondition</strong> object has the following properties, all of which are optional:</t>
 
 <ul spacing="compact">
 <li><t><strong>after</strong>: <tt>UTCDate|null</tt></t>
@@ -240,6 +241,7 @@ for this principal that the user has access to, or null if none.</t></li>
 <li><t><strong>objectAccountId</strong>: <tt>Id</tt></t>
 <t>The objectAccountId value must be identical to the given value to match the condition.</t></li>
 </ul>
+<t>All given conditions in the FilterCondition object must match for the ShareNotification to match.</t>
 </section>
 
 <section anchor="sorting"><name>Sorting</name>
