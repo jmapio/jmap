@@ -133,8 +133,8 @@ for this principal that the user has access to, or null if none.</t></li>
 
 <section anchor="principal-set"><name>Principal/set</name>
 <t>This is a standard &quot;/set&quot; method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>.</t>
-<t>Users <bcp14>SHOULD</bcp14> be allowed to update the &quot;name&quot;, &quot;description&quot; and &quot;timeZone&quot; properties of the Principal with the same id as the &quot;currentUserPrincipalId&quot; in the Account capabilities.</t>
-<t>However, the server may reject this change, and probably will reject any other change, with a <tt>forbidden</tt> SetError. Managing principals is likely tied to a directory service or some other vendor-specific solution, and may occur out-of-band, or via an additional capability defined elsewhere.</t>
+<t>Managing principals is likely tied to a directory service or some other vendor-specific solution and may occur out-of-band, or via an additional capability defined elsewhere. Allowing direct user modification of properties has security considerations, as noted in <xref target="security-considerations" />. Servers may reject any change it doesn’t allow with a <tt>forbidden</tt> SetError.</t>
+<t>Where a server does support changes via this API, it <bcp14>SHOULD</bcp14> allow an update to the &quot;name&quot;, &quot;description&quot; and &quot;timeZone&quot; properties of the Principal with the same id as the &quot;currentUserPrincipalId&quot; in the Account capabilities. This allows the user to update their own details.</t>
 </section>
 
 <section anchor="principal-query"><name>Principal/query</name>
