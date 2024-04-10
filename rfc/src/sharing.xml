@@ -25,7 +25,7 @@
 <keyword>sharing</keyword>
 
 <abstract>
-<t>This document specifies a data model for sharing data between users using JMAP. Future documents can reference this one when defining data types to support a consistent model of sharing.</t>
+<t>This document specifies a data model for sharing data between users using JMAP. Future documents can reference this document when defining data types to support a consistent model of sharing.</t>
 </abstract>
 </front>
 
@@ -53,9 +53,9 @@
 </section>
 
 <section anchor="subscriptions"><name>Subscriptions</name>
-<t>Permissions determine whether a user <em>may</em> access data, but not whether they <em>want</em> to. Some shared data is of equal importance as the user's own, while other data is just there should the user wish to explicitly go find it. Clients will often want to differentiate the two; for example, a company may share mailing list archives for all departments with all employees, but a user may only generally be interested in the few they belong to. They would have <em>permission</em> to access many mailboxes, but can <em>subscribe</em> to just the ones they care about. The client would provide separate interfaces for reading mail in subscribed mailboxes and browsing all mailboxes they have permission to access in order to manage their subscriptions.</t>
+<t>Permissions determine whether a user <em>may</em> access data, but not whether they <em>want</em> to. Some shared data is of equal importance as the user's own, while other data is just there should the user wish to explicitly go find it. Clients will often want to differentiate the two. For example, a company may share mailing list archives for all departments with all employees, but a user may only generally be interested in the few they belong to. They would have <em>permission</em> to access many mailboxes, but can <em>subscribe</em> to just the ones they care about. The client would provide separate interfaces for reading mail in subscribed mailboxes and browsing all mailboxes they have permission to access in order to manage their subscriptions.</t>
 <t>The JMAP Session object (see <xref target="RFC8620" section="2" sectionFormat="comma"></xref>) typically includes an object in the <tt>accounts</tt> property for every account that the user has access to. Collaborative systems may share data between a very large number of Principals, most of which the user does not care about day-to-day. The Session object <bcp14>MUST</bcp14> only include Accounts where either the user is subscribed to at least one record (see <xref target="RFC8620" section="1.6.3" sectionFormat="comma"></xref>) in the account, or the account belongs to the user. StateChange events for changes to data <bcp14>SHOULD</bcp14> only be sent for data the user has subscribed to and <bcp14>MUST NOT</bcp14> be sent for any account where the user is not subscribed to any records in the account, except where that account belongs to the user.</t>
-<t>The server <bcp14>MAY</bcp14> reject the user's attempt to subscribe to some resources even if they have permission to access them, e.g., a calendar representing a location.</t>
+<t>The server <bcp14>MAY</bcp14> reject the user's attempt to subscribe to some resources even if they have permission to access them (e.g., a calendar representing a location).</t>
 <t>A user can query the set of Principals they have access to with "Principal/query" (see <xref target="principal-query"/>). The Principal object will contain an Account object for all accounts where the user has permission to access data for that principal, even if they are not yet subscribed.</t>
 </section>
 
@@ -63,7 +63,7 @@
 <t>The capabilities object is returned as part of the JMAP Session object; see <xref target="RFC8620" section="2" sectionFormat="comma"></xref>. This document defines two additional capability URIs.</t>
 
 <section anchor="urn-ietf-params-jmap-principals"><name>urn:ietf:params:jmap:principals</name>
-<t>Represents support for the Principal and ShareNotification data types and associated API methods.</t>
+<t>The <tt>urn:ietf:params:jmap:principals</tt> capability represents support for the Principal and ShareNotification data types and associated API methods.</t>
 <t>The value of this property in the JMAP Session capabilities property is an empty object.</t>
 <t>The value of this property in an account’s accountCapabilities property is an object that <bcp14>MUST</bcp14> contain the following information on server capabilities and permissions for that account:</t>
 
@@ -74,8 +74,8 @@
 </section>
 
 <section anchor="urn-ietf-params-jmap-principals-owner"><name>urn:ietf:params:jmap:principals:owner</name>
-<t>This URI is solely used as a key in an account’s accountCapabilities property; it does not appear in the JMAP Session capabilities. Support is implied by the <tt>urn:ietf:params:jmap:principals</tt> session capability.</t>
-<t>If present, the account (and data therein) is owned by a principal. Some accounts may not be owned by a principal (e.g., the account that contains the data for the principals themselves), in which case this property is omitted.</t>
+<t>The URI <tt>urn:ietf:params:jmap:principals:owner</tt> is solely used as a key in an account’s accountCapabilities property. It does not appear in the JMAP Session capabilities — support is indicated by the <tt>urn:ietf:params:jmap:principals</tt> URI being present in the session capabilities.</t>
+<t>If <tt>urn:ietf:params:jmap:principals:owner</tt> is a key in an account’s accountCapabilities, that account (and data therein) is owned by a principal. Some accounts may not be owned by a principal (e.g., the account that contains the data for the principals themselves), in which case this property is omitted.</t>
 <t>The value of this property is an object with the following properties:</t>
 
 <ul spacing="compact">
@@ -90,9 +90,9 @@ capability that contains the corresponding Principal object.</t></li>
 </section>
 
 <section anchor="principals"><name>Principals</name>
-<t>A Principal represents an individual, group, location (e.g., a room), resource (e.g., a projector) or other entity in a collaborative environment. Sharing in JMAP is generally configured by assigning rights to certain data within an account to other principals, for example a user may assign permission to read their calendar to a principal representing another user, or their team.</t>
+<t>A Principal represents an individual, group, location (e.g., a room), resource (e.g., a projector) or other entity in a collaborative environment. Sharing in JMAP is generally configured by assigning rights to certain data within an account to other principals. For example, a user may assign permission to read their calendar to a principal representing another user or their team.</t>
 <t>In a shared environment such as a workplace, a user may have access to a large number of principals.</t>
-<t>In most systems the user will have access to a single Account containing Principal objects, but they may have access to multiple if, for example, aggregating data from different places.</t>
+<t>In most systems, the user will have access to a single Account containing Principal objects. In some situations, for example when aggregating data from different places, there may be multiple Accounts containing Principal objects.</t>
 <t>A <strong>Principal</strong> object has the following properties:</t>
 
 <ul spacing="compact">
@@ -128,12 +128,12 @@ for this principal that the user has access to, or null if none.</t></li>
 </section>
 
 <section anchor="principal-changes"><name>Principal/changes</name>
-<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" sectionFormat="comma"></xref>. Note, implementations backed by an external directory may be unable to calculate changes, in which they will always return a "cannotCalculateChanges" error, as described in the core JMAP specification.</t>
+<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" sectionFormat="comma"></xref>. Note: implementations backed by an external directory may be unable to calculate changes. In this case, they will always return a "cannotCalculateChanges" error as described in the core JMAP specification.</t>
 </section>
 
 <section anchor="principal-set"><name>Principal/set</name>
 <t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>.</t>
-<t>Managing principals is likely tied to a directory service or some other vendor-specific solution and may occur out-of-band, or via an additional capability defined elsewhere. Allowing direct user modification of properties has security considerations, as noted in <xref target="security-considerations" />. Servers MUST reject any change it doesn’t allow with a <tt>forbidden</tt> SetError.</t>
+<t>Managing principals is likely tied to a directory service or some other vendor-specific solution. This management may occur out-of-band, or via an additional capability defined elsewhere. Allowing direct user modification of properties has security considerations, as noted in <xref target="security-considerations" />. Servers MUST reject any change it doesn’t allow with a <tt>forbidden</tt> SetError.</t>
 <t>Where a server does support changes via this API, it <bcp14>SHOULD</bcp14> allow an update to the "name", "description" and "timeZone" properties of the Principal with the same id as the "currentUserPrincipalId" in the Account capabilities. This allows the user to update their own details.</t>
 </section>
 
@@ -163,7 +163,7 @@ for this principal that the user has access to, or null if none.</t></li>
 </section>
 
 <section anchor="principal-querychanges"><name>Principal/queryChanges</name>
-<t>This is a standard "/queryChanges" method as described in <xref target="RFC8620" section="5.6" sectionFormat="comma"></xref>. Note, implementations backed by an external directory may be unable to calculate changes, in which they will always return a "cannotCalculateChanges" error, as described in the core JMAP specification.</t>
+<t>This is a standard "/queryChanges" method as described in <xref target="RFC8620" section="5.6" sectionFormat="comma"></xref>. Note: implementations backed by an external directory may be unable to calculate changes. In this case, they will always return a "cannotCalculateChanges" error as described in the core JMAP specification.</t>
 </section>
 </section>
 
@@ -207,7 +207,7 @@ for this principal that the user has access to, or null if none.</t></li>
 <li><t><strong>newRights</strong>: <tt>String[Boolean]|null</tt> (immutable; server-set)</t>
 <t>The "myRights" property of the object for the user after the change.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt> (immutable; server-set)</t>
-<t>The name of the object at the time the notification was made. Determining the name will depend on the data type in question, for example it might be the "title" property of a CalendarEvent or the "name" of a Mailbox, and is implementation specific. The name is to show to users who have had their access rights to the object removed, so that they know what it is they can no longer access.</t></li>
+<t>The name of the object at the time the notification was made. Determining the name will depend on the data type in question. For example it might be the "title" property of a CalendarEvent or the "name" of a Mailbox. The name is to show to users who have had their access rights to the object removed, so that these users know what it is they can no longer access.</t></li>
 </ul>
 </section>
 
@@ -259,11 +259,12 @@ for this principal that the user has access to, or null if none.</t></li>
 
 <ul spacing="compact">
 <li><t><strong>isSubscribed</strong>: <tt>Boolean</tt></t>
-<t>Has the user indicated they wish to see this data? The initial value for this when data is shared by another user is implementation dependent, although data types may give advice on appropriate defaults.</t></li>
+<t>> The value true indicates the user wishes to subscribe to see this data. The value false indicates the user does not wish to subscribe to see this data. The initial value for this property when data is shared by another user is implementation dependent, although data types may give advice on appropriate defaults.</t></li>
 <li><t><strong>myRights</strong>: <tt>String[Boolean]</tt></t>
 <t>The set of permissions the user currently has. Appropriate permissions are domain specific and must be defined per data type. Each key is the name of a permission defined for that data type. The value for the key is <tt>true</tt> if the user has the permission, or <tt>false</tt> if they do not.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[String[Boolean]]|null</tt></t>
-<t>A map of principal id to rights to give that principal (in the same format as the <tt>myRights</tt> property), or <tt>null</tt> if not shared with anyone. The account id for the principal id can be found in the capabilities of the Account this object is in (see <xref target="urn-ietf-params-jmap-principals-owner"/>). Users with appropriate permission may set this property to modify who the data is shared with. The principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees; their rights are implicit.</t></li>
+<t>The value of this property is null if the data is not shared with anyone. Otherwise, it is a map where each key is the id of a principal with which this data is shared, and the value associated with that key is the rights to give that principal, in the same format as the <tt>myRights</tt> property. The account id for the principal id can be found in the capabilities of the Account this object is in (see <xref target="urn-ietf-params-jmap-principals-owner"/>). </t>
+<t>Users with appropriate permission may set this property to modify who the data is shared with. The principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees since the owner's rights are implicit.</t></li>
 </ul>
 
 <section anchor="example"><name>Example</name>
@@ -288,7 +289,7 @@ for this principal that the user has access to, or null if none.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt></t>
 <t>A name for this list of todos.</t></li>
 <li><t><strong>isSubscribed</strong>: <tt>Boolean</tt></t>
-<t>Has the user indicated they wish to see this list? If false, clients should not display this todo list with the user's other lists, but should provide a means for users to see and subscribe to all lists that have been shared with them.</t></li>
+<t>True if the user has indicated they wish to see this list. If false, clients should not display this todo list with the user's other lists, but should provide a means for users to see and subscribe to all lists that have been shared with them.</t></li>
 <li><t><strong>myRights</strong>: <tt>TodoListRights</tt></t>
 <t>The set of permissions the user currently has for this todo list.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[TodoListRights]|null</tt></t>
@@ -399,7 +400,7 @@ for this principal that the user has access to, or null if none.</t></li>
 </section>
 
 <section anchor="unnoticed-sharing"><name>Unnoticed sharing</name>
-<t>Sharing data with another user allows someone to turn a transitory account compromise (e.g., brief access to an unlocked, logged in client) into a persistant compromise (by setting up sharing with a user controlled by the attacker). This can be mitigated by requiring further authorisation for configuring sharing, or sending notifications to the sharer via another channel whenever a new sharee is added.</t>
+<t>Sharing data with another user allows someone to turn a transitory account compromise (e.g., brief access to an unlocked or logged-in client) into a persistent compromise (by setting up sharing with a user that is controlled by the attacker). This can be mitigated by requiring further authorisation for configuring sharing, or sending notifications to the sharer via another channel whenever a new sharee is added.</t>
 </section>
 
 <section anchor="unauthorised-principals"><name>Unauthorised principals</name>
