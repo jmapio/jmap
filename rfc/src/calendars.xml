@@ -1189,7 +1189,9 @@ data after the update.</t></li>
 </artwork>
 <t>As the event has participants, the server sets a "replyTo" property. This server uses a special email address for receiving iMIP RSVPs (<xref target="RFC5546" />) rather than just receiving them at the owner's regular email address, and also provides a web page for people that don't have calendar clients supporting iMIP. The response may look something like this:</t>
 
-<artwork>[
+<artwork>NOTE: '\' line wrapping per RFC 8792
+
+[
   ["CalendarEvent/set", {
     "accountId":"a0x9",
     "created":{
@@ -1202,8 +1204,8 @@ data after the update.</t></li>
         "sequence": 1,
         "replyTo": {
           "imip": "3e87-1b18bb5e6b4@itip.example.com",
-          "web": "https://cal.example.com/
-          	5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91/?
+          "web": "https://cal.example.com/\
+          	5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91/?\
           	auth=bfc0-4ba3-9e44"
         }
       }
@@ -1279,12 +1281,14 @@ data after the update.</t></li>
 </artwork>
 <t>The user snoozes the notification for 30 minutes. The client dismisses the current notification and sends an update to the event to the server:</t>
 
-<artwork>[
+<artwork>NOTE: '\' line wrapping per RFC 8792
+
+[
   ["CalendarEvent/set", {
   	"accountId": "a0x9",
   	"update": {
       "E-01c9626e-1490-43df-a34f-457021256281": {
-       	"alerts/7519a951-1e6f-4a6c-b08b-20dd2e5a89cd
+       	"alerts/7519a951-1e6f-4a6c-b08b-20dd2e5a89cd\
        		/acknowledged": "20230110T23:00:31Z",
         "alerts/86b0-318b8291045f": {
           "@type": "Alert",
@@ -1655,6 +1659,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8551.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8792.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8984.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-jmap-sharing.xml"/>
 </references>
