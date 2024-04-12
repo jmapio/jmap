@@ -132,8 +132,8 @@ contains the calendar data for this principal, or null if none (e.g. the Princip
 <li><t><strong>mayShareWith</strong>: <tt>Boolean</tt></t>
 <t>May the user add this principal as a calendar sharee (by adding them to the
 shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
-<li><t><strong>calendarUserAddress</strong>: <tt>String</tt></t>
-<t>If this principal may be added as a participant to an event, this is the calendarUserAddress to use to represent it.</t></li>
+<li><t><strong>calendarAddress</strong>: <tt>String</tt></t>
+<t>If this principal may be added as a participant to an event, this is the calendarAddress to use to represent it.</t></li>
 <li><t><strong>sendTo</strong>: <tt>String[String]|null</tt></t>
 <t>If this principal may be added as a participant to an event, this is the Participant#sendTo property to add (see <xref target="RFC8984" section="4.4.5" />) for scheduling messages to reach it.</t></li>
 </ul>
@@ -224,7 +224,7 @@ permission to see that this principal exists.</t>
 <t>The id of the ParticipantIdentity.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt> (default: ")</t>
 <t>The display name of the participant to use when adding this participant to an event, e.g. "Joe Bloggs".</t></li>
-<li><t><strong>calendarUserAddress</strong>: <tt>String</tt></t>
+<li><t><strong>calendarAddress</strong>: <tt>String</tt></t>
 <t>The URI that represents this participant for scheduling. This URI may also be the URI for one of the sendTo methods.</t></li>
 <li><t><strong>sendTo</strong>: <tt>String[String]</tt></t>
 <t>Represents methods by which the participant may receive invitations and updates to an event.</t>
@@ -241,7 +241,7 @@ an owner. (But the client may ignore this if, for example, it has its own
 feature to allow users to choose which identity to use based on the
 invitees.)</t></li>
 </ul>
-<t>A participant in an event corresponds to a ParticipantIdentity if the calendarUserAddress property of the participant is equivalent to the calendarUserAddress property of the identity after syntax-based normalisation, as per <xref target="RFC3986" section="6.2.2" />.</t>
+<t>A participant in an event corresponds to a ParticipantIdentity if the calendarAddress property of the participant is equivalent to the calendarAddress property of the identity after syntax-based normalisation, as per <xref target="RFC3986" section="6.2.2" />.</t>
 <t>The following JMAP methods are supported.</t>
 
 <section anchor="participantidentity-get"><name>ParticipantIdentity/get</name>
@@ -368,7 +368,7 @@ calendar.</t></li>
 <li><t>scheduleSequence</t></li>
 <li><t>scheduleUpdated</t></li>
 </ul>
-<t>If the event has its "mayInviteSelf" property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with calendarUserAddress/sendTo properties that are the same as the calendarUserAddress/sendTo properties of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain "attendee".</t>
+<t>If the event has its "mayInviteSelf" property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with calendarAddress/sendTo properties that are the same as the calendarAddress/sendTo properties of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain "attendee".</t>
 <t>If the event has its "mayInviteOthers" property set to true (see <xref target="mayinviteothers" />) and there is an existing Participant in the event corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The roles property of any new participant MUST only contain "attendee".</t>
 <t>The user may also do all of the above on a per-occurrence basis for recurring events (updating the recurrenceOverrides property of the event to do so).</t></li>
 <li><t><strong>mayAdmin</strong>: <tt>Boolean</tt></t>
@@ -478,7 +478,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <section anchor="additional-jscalendar-properties"><name>Additional JSCalendar properties</name>
 <t>This document defines four new JSCalendar properties for common use.</t>
 
-<section anchor="calendar-user-address"><name>calendarUserAddress</name>
+<section anchor="calendar-address"><name>calendarAddress</name>
 <t>Type: <tt>String</tt></t>
 <t>Context: Participant</t>
 <t>This is a URI as defined by <xref target="RFC3986"></xref> or any other IANA-registered form for a URI. It is the same as the CAL-ADDRESS value of an ATTENDEE or ORGANIZER in iCalendar (<xref target="RFC5545"></xref>) — it globally identifies a particular participant, even across different events.</t>
@@ -643,7 +643,7 @@ value is less than or equal to the current "sequence" value on the server;</t></
      "@type": "Participant",
      "name": "Tom",
      "email": "tom@foobar.example.com",
-     "calendarUserAddress": "mailto:6489-4f14-a57f-c1@calendar.example.com",
+     "calendarAddress": "mailto:6489-4f14-a57f-c1@calendar.example.com",
      "sendTo": {
        "imip": "mailto:6489-4f14-a57f-c1@calendar.example.com"
      },
@@ -656,7 +656,7 @@ value is less than or equal to the current "sequence" value on the server;</t></
      "@type": "Participant",
      "name": "Zoe",
      "email": "zoe@foobar.example.com",
-     "calendarUserAddress": "mailto:zoe@foobar.example.com",
+     "calendarAddress": "mailto:zoe@foobar.example.com",
      "sendTo": {
        "imip": "mailto:zoe@foobar.example.com",
        "other": "https://foobar.example.com/zoe/itip"
@@ -945,8 +945,8 @@ triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 <t>The email of the person who made the change, or null if no email is available.</t></li>
 <li><t><strong>principalId</strong>: <tt>Id|null</tt></t>
 <t>The id of the Principal corresponding to the person who made the change, if any. This will be null if the change was due to an entity outside of this user's organisation, e.g. an iTIP invitation from an external person.</t></li>
-<li><t><strong>calendarUserAddress</strong>: <tt>String|null</tt></t>
-<t>The calendarUserAddress URI of the person who made the change, if any. This may be set if the change was made due to receving a scheduling message, such as an iTIP message, in addition to changes made by internal users.</t></li>
+<li><t><strong>calendarAddress</strong>: <tt>String|null</tt></t>
+<t>The calendarAddress URI of the person who made the change, if any. This may be set if the change was made due to receving a scheduling message, such as an iTIP message, in addition to changes made by internal users.</t></li>
 </ul></li>
 <li><t><strong>comment</strong>: <tt>String|null</tt></t>
 <t>Comment sent along with the change by the user that made it. (e.g. COMMENT
@@ -1084,7 +1084,7 @@ data after the update.</t></li>
     "list": [{
        "id": "3",
        "name": "Jane Doe",
-       "calendarUserAddress": "mailto:jane@example.com",
+       "calendarAddress": "mailto:jane@example.com",
        "sendTo": {
        	 "imip": "mailto:jane@example.com",
        	 "other":
@@ -1148,7 +1148,7 @@ data after the update.</t></li>
           "1":{
             "@type":"Participant",
             "name": "Jane Doe",
-            "calendarUserAddress": "mailto:jane@example.com",
+            "calendarAddress": "mailto:jane@example.com",
             "sendTo": {
               "imip": "mailto:jane@example.com",
               "other":
@@ -1165,7 +1165,7 @@ data after the update.</t></li>
           "2":{
             "@type":"Participant",
             "name":"Joe Bloggs",
-            "calendarUserAddress": "mailto:joe@example.com",
+            "calendarAddress": "mailto:joe@example.com",
             "sendTo":{
               "imip":"mailto:joe@example.com"
             },
@@ -1605,11 +1605,11 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <t>Is per-user: no</t>
 </section>
 
-<section anchor="calendar-user-address-1"><name>calendarUserAddress</name>
-<t>Property Name: calendarUserAddress</t>
+<section anchor="calendar-address-1"><name>calendarAddress</name>
+<t>Property Name: calendarAddress</t>
 <t>Property Type: <tt>String</tt></t>
 <t>Property Context: Participant</t>
-<t>Reference: This document, <xref target="calendar-user-address" />.</t>
+<t>Reference: This document, <xref target="calendar-address" />.</t>
 <t>Intended Use: Common</t>
 <t>Is per-user: no</t>
 </section>
