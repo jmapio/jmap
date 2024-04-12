@@ -51,7 +51,7 @@
 </section>
 
 <section anchor="addition-to-the-capabilities-object"><name>Addition to the Capabilities Object</name>
-<t>The capabilities object is returned as part of the JMAP Session object; see <xref target="RFC8620" section="2" sectionFormat="comma"></xref>. This document defines two additional capability URIs.</t>
+<t>The capabilities object is returned as part of the JMAP Session object; see <xref target="RFC8620" section="2" sectionFormat="comma"></xref>. This document defines one additional capability URI.</t>
 
 <section anchor="urn-ietf-params-jmap-contacts"><name>urn:ietf:params:jmap:contacts</name>
 <t>This represents support for the AddressBook and ContactCard data types and associated API methods. The value of this property in the JMAP Session capabilities property is an empty object.</t>
@@ -149,8 +149,7 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t>
 <t>As per <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>, if the default is successfully changed, any
   changed objects MUST be reported in either the "created" or "updated"
   argument in the response as  appropriate, with the server-set value included.</t>
-<t>The "shareWith" property may only be set by users that have the mayAdmin right.
-When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a <tt>forbidden</tt> SetError.</t>
+<t>The "shareWith" property may only be set by users that have the mayAdmin right. When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so MUST be rejected with a <tt>forbidden</tt> SetError.</t>
 <t>Users can subscribe or unsubscribe to an AddressBook by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain AddressBooks even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
 <t>The following extra SetError type is defined:</t>
 <t>For "destroy":</t>
