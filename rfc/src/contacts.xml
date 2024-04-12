@@ -75,7 +75,7 @@
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
 <t>The id of the AddressBook.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt></t>
-<t>The user-visible name of the AddressBook. This may be any UTF-8 string of at least 1 character in length and maximum 255 octets in size.</t></li>
+<t>The user-visible name of the AddressBook. This MUST NOT be the empty string and MUST NOT be greater than 255 octets in size when encoded as UTF-8.</t></li>
 <li><t><strong>description</strong>: <tt>String|null</tt> (default: null)</t>
 <t>An optional longer-form description of the AddressBook, to provide context in shared environments where users need more than just the name.</t></li>
 <li><t><strong>sortOrder</strong>: <tt>UnsignedInt</tt> (default: 0)</t>
@@ -391,6 +391,11 @@ property whose "kind" is "surname2".</li>
 </section>
 </section>
 
+<section><name>Internationalisation considerations</name>
+<t>Experience has shown that unrestricted use of Unicode can lead to problems such as inconsistent rendering, users reading text and interpreting it differently than intended, and unexpected results when copying text from one location to another. Servers MAY choose to mitigate this by restricting the set of characters allowed in otherwise unconstrained <tt>String</tt> fields. The FreeformClass, as documented in <xref target="RFC7564" section="4.3" sectionFormat="comma" /> may be a good starting point for this.</t>
+<t>Attempts to set a value containing code points outside of the permissible set can be handled in a few ways by the server. The first option is to simply strip the forbidden characters and store the resulting string. This is likely to be appropriate for control characters for example, where they can end up in data accidentally due to copy-and-paste issues, and are probably invisible to the end user. JMAP allows the server to transform data on create/update, as long as any changed properties are returned to the client in the <tt>/set</tt> response, so it knows what has changed, as per <xref target="RFC8620" section="5.3" sectionFormat="comma" />. Alternatively, the server MAY just reject the create/update with an <tt>invalidProperties</tt> SetError.</t>
+</section>
+
 <section anchor="security-considerations"><name>Security considerations</name>
 <t>All security considerations of JMAP (<xref target="RFC8620"></xref>) apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsection.</t>
 <t>Contacts consist almost entirely of private, personally identifiable information, and represent the social connections of users. Privacy leaks can have real world consequences, and contacts servers and clients MUST be mindful of the need to keep all data secure.</t>
@@ -484,6 +489,10 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-jmap-sharing.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-calext-jscontact.xml"/>
+</references>
+
+<references><name>Informative References</name>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7564.xml"/>
 </references>
 
 </back>
