@@ -48,15 +48,15 @@
 </section>
 
 <section anchor="data-model-overview"><name>Data Model Overview</name>
-<t>A Principal (see <xref target="principals"/>) represents an individual, team, or resource (e.g., a room or projector). The object contains information about the entity being represented, such as a name, description, and time zone. It may also hold domain-specific information. A Principal may be associated with zero or more Accounts (see <xref target="RFC8620" section="1.6.2" sectionFormat="comma"></xref>) containing data belonging to the principal. Managing the set of principals within a system is out of scope for this specification, as it is highly domain specific. It is likely to map directly from a directory service or other user management system.</t>
-<t>Data types may allow users to share data with others by assigning permissions to principals. When a user's permissions are changed, a ShareNotification object is created for them so a client can inform the user of the changes.</t>
+<t>A Principal (see <xref target="principals"/>) represents an individual, team, or resource (e.g., a room or projector). The object contains information about the entity being represented, such as a name, description, and time zone. It may also hold domain-specific information. A Principal may be associated with zero or more Accounts (see <xref target="RFC8620" section="1.6.2" sectionFormat="comma"></xref>) containing data belonging to the Principal. Managing the set of Principals within a system is out of scope for this specification, as it is highly domain specific. It is likely to map directly from a directory service or other user management system.</t>
+<t>Data types may allow users to share data with others by assigning permissions to Principals. When a user's permissions are changed, a ShareNotification object is created for them so a client can inform the user of the changes.</t>
 </section>
 
 <section anchor="subscriptions"><name>Subscriptions</name>
 <t>Permissions determine whether a user <em>may</em> access data, but not whether they <em>want</em> to. Some shared data is of equal importance as the user's own, while other data is just there should the user wish to explicitly go find it. Clients will often want to differentiate the two. For example, a company may share mailing list archives for all departments with all employees, but a user may only generally be interested in the few they belong to. They would have <em>permission</em> to access many mailboxes, but can <em>subscribe</em> to just the ones they care about. The client would provide separate interfaces for reading mail in subscribed mailboxes and browsing all mailboxes they have permission to access in order to manage their subscriptions.</t>
 <t>The JMAP Session object (see <xref target="RFC8620" section="2" sectionFormat="comma"></xref>) typically includes an object in the <tt>accounts</tt> property for every account that the user has access to. Collaborative systems may share data between a very large number of Principals, most of which the user does not care about day-to-day. The Session object <bcp14>MUST</bcp14> only include Accounts where either the user is subscribed to at least one record (see <xref target="RFC8620" section="1.6.3" sectionFormat="comma"></xref>) in the account, or the account belongs to the user. StateChange events for changes to data <bcp14>SHOULD</bcp14> only be sent for data the user has subscribed to and <bcp14>MUST NOT</bcp14> be sent for any account where the user is not subscribed to any records in the account, except where that account belongs to the user.</t>
 <t>The server <bcp14>MAY</bcp14> reject the user's attempt to subscribe to some resources even if they have permission to access them (e.g., a calendar representing a location).</t>
-<t>A user can query the set of Principals they have access to with "Principal/query" (see <xref target="principal-query"/>). The Principal object will contain an Account object for all accounts where the user has permission to access data for that principal, even if they are not yet subscribed.</t>
+<t>A user can query the set of Principals they have access to with "Principal/query" (see <xref target="principal-query"/>). The Principal object will contain an Account object for all accounts where the user has permission to access data for that Principal, even if they are not yet subscribed.</t>
 </section>
 
 <section anchor="addition-to-the-capabilities-object"><name>Addition to the Capabilities Object</name>
@@ -69,13 +69,13 @@
 
 <ul spacing="compact">
 <li><t><strong>currentUserPrincipalId</strong>: <tt>Id|null</tt></t>
-<t>The id of the principal in this account that corresponds to the user fetching this object, if any.</t></li>
+<t>The id of the Principal in this account that corresponds to the user fetching this object, if any.</t></li>
 </ul>
 </section>
 
 <section anchor="urn-ietf-params-jmap-principals-owner"><name>urn:ietf:params:jmap:principals:owner</name>
 <t>The URI <tt>urn:ietf:params:jmap:principals:owner</tt> is solely used as a key in an account’s accountCapabilities property. It does not appear in the JMAP Session capabilities — support is indicated by the <tt>urn:ietf:params:jmap:principals</tt> URI being present in the session capabilities.</t>
-<t>If <tt>urn:ietf:params:jmap:principals:owner</tt> is a key in an account’s accountCapabilities, that account (and data therein) is owned by a principal. Some accounts may not be owned by a principal (e.g., the account that contains the data for the principals themselves), in which case this property is omitted.</t>
+<t>If <tt>urn:ietf:params:jmap:principals:owner</tt> is a key in an account’s accountCapabilities, that account (and data therein) is owned by a Principal. Some accounts may not be owned by a Principal (e.g., the account that contains the data for the Principals themselves), in which case this property is omitted.</t>
 <t>The value of this property is an object with the following properties:</t>
 
 <ul spacing="compact">
@@ -90,37 +90,37 @@ capability that contains the corresponding Principal object.</t></li>
 </section>
 
 <section anchor="principals"><name>Principals</name>
-<t>A Principal represents an individual, group, location (e.g., a room), resource (e.g., a projector) or other entity in a collaborative environment. Sharing in JMAP is generally configured by assigning rights to certain data within an account to other principals. For example, a user may assign permission to read their calendar to a principal representing another user or their team.</t>
-<t>In a shared environment such as a workplace, a user may have access to a large number of principals.</t>
+<t>A Principal represents an individual, group, location (e.g., a room), resource (e.g., a projector) or other entity in a collaborative environment. Sharing in JMAP is generally configured by assigning rights to certain data within an account to other Principals. For example, a user may assign permission to read their calendar to a Principal representing another user or their team.</t>
+<t>In a shared environment such as a workplace, a user may have access to a large number of Principals.</t>
 <t>In most systems, the user will have access to a single Account containing Principal objects. In some situations, for example when aggregating data from different places, there may be multiple Accounts containing Principal objects.</t>
 <t>A <strong>Principal</strong> object has the following properties:</t>
 
 <ul spacing="compact">
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
-<t>The id of the principal.</t></li>
+<t>The id of the Principal.</t></li>
 <li><t><strong>type</strong>: <tt>String</tt></t>
 <t>This <bcp14>MUST</bcp14> be one of the following values:</t>
 
 <ul spacing="compact">
 <li><tt>individual</tt>: This represents a single person.</li>
-<li><tt>group</tt>: This represents a group of other principals.</li>
+<li><tt>group</tt>: This represents a group of other Principals.</li>
 <li><tt>resource</tt>: This represents some resource, e.g., a projector.</li>
 <li><tt>location</tt>: This represents a location.</li>
-<li><tt>other</tt>: This represents some other undefined principal.</li>
+<li><tt>other</tt>: This represents some other undefined Principal.</li>
 </ul></li>
 <li><t><strong>name</strong>: <tt>String</tt></t>
-<t>The name of the principal, e.g., "Jane Doe", or "Room 4B".</t></li>
+<t>The name of the Principal, e.g., "Jane Doe", or "Room 4B".</t></li>
 <li><t><strong>description</strong>: <tt>String|null</tt></t>
-<t>A longer description of the principal, for example details about the facilities of a resource, or null if no description available.</t></li>
+<t>A longer description of the Principal, for example details about the facilities of a resource, or null if no description available.</t></li>
 <li><t><strong>email</strong>: <tt>String|null</tt></t>
-<t>An email address for the principal, or null if no email is available. If given, the value MUST be conform with the "addr-spec" syntax, as defined in <xref target="RFC5322" section="3.4.1" sectionFormat="comma" />.</t></li>
+<t>An email address for the Principal, or null if no email is available. If given, the value MUST be conform with the "addr-spec" syntax, as defined in <xref target="RFC5322" section="3.4.1" sectionFormat="comma" />.</t></li>
 <li><t><strong>timeZone</strong>: <tt>String|null</tt></t>
-<t>The time zone for this principal, if known. If not null, the value <bcp14>MUST</bcp14> be a time zone name from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>.</t></li>
+<t>The time zone for this Principal, if known. If not null, the value <bcp14>MUST</bcp14> be a time zone name from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>.</t></li>
 <li><t><strong>capabilities</strong>: <tt>String[Object]</tt> (server-set)</t>
-<t>A map of JMAP capability URIs to domain specific information about the principal in relation to that capability, as defined in the document that registered the capability.</t></li>
+<t>A map of JMAP capability URIs to domain specific information about the Principal in relation to that capability, as defined in the document that registered the capability.</t></li>
 <li><t><strong>accounts</strong>: <tt>Id[Account]|null</tt> (server-set)</t>
 <t>A map of account id to Account object for each JMAP Account containing data
-for this principal that the user has access to, or null if none.</t></li>
+for this Principal that the user has access to, or null if none.</t></li>
 </ul>
 
 <section anchor="principal-get"><name>Principal/get</name>
@@ -133,7 +133,7 @@ for this principal that the user has access to, or null if none.</t></li>
 
 <section anchor="principal-set"><name>Principal/set</name>
 <t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>.</t>
-<t>Managing principals is likely tied to a directory service or some other vendor-specific solution. This management may occur out-of-band, or via an additional capability defined elsewhere. Allowing direct user modification of properties has security considerations, as noted in <xref target="security-considerations" />. Servers MUST reject any change it doesn’t allow with a <tt>forbidden</tt> SetError.</t>
+<t>Managing Principals is likely tied to a directory service or some other vendor-specific solution. This management may occur out-of-band, or via an additional capability defined elsewhere. Allowing direct user modification of properties has security considerations, as noted in <xref target="security-considerations" />. Servers MUST reject any change it doesn’t allow with a <tt>forbidden</tt> SetError.</t>
 <t>Where a server does support changes via this API, it <bcp14>SHOULD</bcp14> allow an update to the "name", "description" and "timeZone" properties of the Principal with the same id as the "currentUserPrincipalId" in the Account capabilities. This allows the user to update their own details.</t>
 </section>
 
@@ -145,13 +145,13 @@ for this principal that the user has access to, or null if none.</t></li>
 
 <ul spacing="compact">
 <li><t><strong>accountIds</strong>: <tt>String[]</tt></t>
-<t>A list of account ids. The Principal matches if any of the ids in this list are keys in the Principal's "accounts" property (i.e., if any of the account ids belong to the principal).</t></li>
+<t>A list of account ids. The Principal matches if any of the ids in this list are keys in the Principal's "accounts" property (i.e., if any of the account ids belong to the Principal).</t></li>
 <li><t><strong>email</strong>: <tt>String</tt></t>
-<t>The email property of the principal contains the given string.</t></li>
+<t>The email property of the Principal contains the given string.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt></t>
-<t>The name property of the principal contains the given string.</t></li>
+<t>The name property of the Principal contains the given string.</t></li>
 <li><t><strong>text</strong> <tt>String</tt></t>
-<t>The name, email, or description property of the principal contains the given string.</t></li>
+<t>The name, email, or description property of the Principal contains the given string.</t></li>
 <li><t><strong>type</strong>: <tt>String</tt></t>
 <t>The type must be exactly as given to match the condition.</t></li>
 <li><t><strong>timeZone</strong>: <tt>String</tt></t>
@@ -170,7 +170,7 @@ for this principal that the user has access to, or null if none.</t></li>
 <section anchor="share-notifications"><name>Share Notifications</name>
 <t>The ShareNotification data type records when the user's permissions to access a shared object changes. ShareNotification are only created by the server; users cannot create them explicitly. Notifications are stored in the same Account as the Principals.</t>
 <t>Clients may present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.</t>
-<t>The server <bcp14>SHOULD</bcp14> create a ShareNotification whenever the user's permissions change on an object. It <bcp14>MAY</bcp14> choose not to create a notification for permission changes to a group principal, even if the user is in the group, if this is more likely to be overwhelming than helpful, or would create excessive notifications within the system.</t>
+<t>The server <bcp14>SHOULD</bcp14> create a ShareNotification whenever the user's permissions change on an object. It <bcp14>MAY</bcp14> choose not to create a notification for permission changes to a group Principal, even if the user is in the group, if this is more likely to be overwhelming than helpful, or would create excessive notifications within the system.</t>
 
 <section anchor="auto-deletion-of-notifications"><name>Auto-deletion of Notifications</name>
 <t>The server <bcp14>MAY</bcp14> limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.</t>
@@ -194,7 +194,7 @@ for this principal that the user has access to, or null if none.</t></li>
 <li><t><strong>email</strong>: <tt>String|null</tt></t>
 <t>The email of the entity who made the change, or null if no email is available.</t></li>
 <li><t><strong>principalId</strong>: <tt>Id|null</tt></t>
-<t>The id of the Principal corresponding to the entity who made the change, or null if no associated principal.</t></li>
+<t>The id of the Principal corresponding to the entity who made the change, or null if no associated Principal.</t></li>
 </ul></li>
 <li><t><strong>objectType</strong>: <tt>String</tt> (immutable; server-set)</t>
 <t>The name of the data type for the object whose permissions have changed, as registered in the <eref target="https://www.iana.org/assignments/jmap/jmap.xhtml#jmap-data-types">IANA JMAP Data Types registry</eref>. e.g., "Calendar" or "Mailbox".</t></li>
@@ -263,8 +263,8 @@ for this principal that the user has access to, or null if none.</t></li>
 <li><t><strong>myRights</strong>: <tt>String[Boolean]</tt></t>
 <t>The set of permissions the user currently has. Appropriate permissions are domain specific and must be defined per data type. Each key is the name of a permission defined for that data type. The value for the key is <tt>true</tt> if the user has the permission, or <tt>false</tt> if they do not.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[String[Boolean]]|null</tt></t>
-<t>The value of this property is null if the data is not shared with anyone. Otherwise, it is a map where each key is the id of a principal with which this data is shared, and the value associated with that key is the rights to give that principal, in the same format as the <tt>myRights</tt> property. The account id for the principal id can be found in the capabilities of the Account this object is in (see <xref target="urn-ietf-params-jmap-principals-owner"/>). </t>
-<t>Users with appropriate permission may set this property to modify who the data is shared with. The principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees since the owner's rights are implicit.</t></li>
+<t>The value of this property is null if the data is not shared with anyone. Otherwise, it is a map where each key is the id of a Principal with which this data is shared, and the value associated with that key is the rights to give that Principal, in the same format as the <tt>myRights</tt> property. The account id for the Principal id can be found in the capabilities of the Account this object is in (see <xref target="urn-ietf-params-jmap-principals-owner"/>). </t>
+<t>Users with appropriate permission may set this property to modify who the data is shared with. The Principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees since the owner's rights are implicit.</t></li>
 </ul>
 
 <section anchor="example"><name>Example</name>
@@ -293,7 +293,7 @@ for this principal that the user has access to, or null if none.</t></li>
 <li><t><strong>myRights</strong>: <tt>TodoListRights</tt></t>
 <t>The set of permissions the user currently has for this todo list.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[TodoListRights]|null</tt></t>
-<t>A map of principal id to rights to give that principal, or <tt>null</tt> if not shared with anyone or the user does not have the "mayAdmin" right for this list. Users with the "mayAdmin" right may set this property to modify who the data is shared with. The principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees; their rights are implicit.</t></li>
+<t>A map of Principal id to rights to give that Principal, or <tt>null</tt> if not shared with anyone or the user does not have the "mayAdmin" right for this list. Users with the "mayAdmin" right may set this property to modify who the data is shared with. The Principal that owns the account this data is in <bcp14>MUST NOT</bcp14> be in the set of sharees; their rights are implicit.</t></li>
 </ul>
 
 <t>We would define a new Principal capability with two properties:</t>
@@ -301,7 +301,7 @@ for this principal that the user has access to, or null if none.</t></li>
 <li><t><strong>accountId</strong>: <tt>Id|null</tt></t>
 <t>The accountId containing the todo data for this Principal, if it has been shared with the requesting user.</t></li>
 <li><t><strong>mayShareWith</strong>: <tt>Boolean</tt></t>
-<t>May the user add this principal as a sharee of a todo list?</t></li>
+<t>May the user add this Principal as a sharee of a todo list?</t></li>
 </ul>
 
 <t>A client wishing to let the user configure sharing would look at the account capabilities for the Account containing the user's Todo data, and find the "urn:ietf:params:jmap:principals:owner" property, as per <xref target="urn-ietf-params-jmap-principals-owner"></xref>. For example, the JMAP Session object might contain:</t>
@@ -328,7 +328,7 @@ for this principal that the user has access to, or null if none.</t></li>
 </artwork></figure>
 
 
-<t>From this it now knows which account has the Principal data, and can fetch the list of principals to offer the user to share the list with, making an API request like this:</t>
+<t>From this it now knows which account has the Principal data, and can fetch the list of Principals to offer the user to share the list with, making an API request like this:</t>
 
 <figure><artwork>
 [[ "Principal/get", {
@@ -409,7 +409,7 @@ for this principal that the user has access to, or null if none.</t></li>
 </section>
 
 <section anchor="unauthorised-principals"><name>Unauthorised Principals</name>
-<t>The set of principals within a shared environment <bcp14>MUST</bcp14> be strictly controlled. If adding a new principal is open to the public, risks include:</t>
+<t>The set of Principals within a shared environment <bcp14>MUST</bcp14> be strictly controlled. If adding a new Principal is open to the public, risks include:</t>
 <ul spacing="compact">
 <li>An increased risk of a user accidentally sharing data with an unintended person.</li>
 <li>An attacker may share unwanted or offensive information with the user.</li>
