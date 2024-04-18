@@ -408,6 +408,10 @@ for this Principal that the user has access to, or null if none.</t></li>
 <t>Sharing data with another user allows someone to turn a transitory account compromise (e.g., brief access to an unlocked or logged-in client) into a persistent compromise (by setting up sharing with a user that is controlled by the attacker). This can be mitigated by requiring further authorisation for configuring sharing, or sending notifications to the sharer via another channel whenever a new sharee is added.</t>
 </section>
 
+<section anchor="dos"><name>Denial of Service</name>
+<t>By creating many changes to the sharing status of objects, a user can cause many ShareNotifications to be generated, which could lead to resource exhaustion. Servers can mitigate this by coalescing multiple changes to the same object into a single notification, limiting the maximum number of notifications it stores per user, and/or rate limiting the changes to sharing permissions in the first place. Automatically deleting older notifications after reaching a limit can mean the user is not made aware of a sharing change, which can itself be a security issue. For this reason, it is better to coalesce changes and use other mitigation strategies.</t>
+</section>
+
 <section anchor="unauthorised-principals"><name>Unauthorised Principals</name>
 <t>The set of Principals within a shared environment <bcp14>MUST</bcp14> be strictly controlled. If adding a new Principal is open to the public, risks include:</t>
 <ul spacing="compact">
