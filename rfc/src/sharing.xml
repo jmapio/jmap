@@ -254,7 +254,7 @@ for this principal that the user has access to, or null if none.</t></li>
 </section>
 </section>
 
-<section anchor="framework-for-shared-data"><name>Framework for shared data</name>
+<section anchor="framework-for-shared-data"><name>Framework for Shared Data</name>
 <t>Shareable data types <bcp14>MUST</bcp14> define the following three properties:</t>
 
 <ul spacing="compact">
@@ -391,7 +391,7 @@ for this principal that the user has access to, or null if none.</t></li>
 
 </section>
 
-<section><name>Internationalisation considerations</name>
+<section><name>Internationalisation Considerations</name>
 <t>Experience has shown that unrestricted use of Unicode can lead to problems such as inconsistent rendering, users reading text and interpreting it differently than intended, and unexpected results when copying text from one location to another. Servers MAY choose to mitigate this by restricting the set of characters allowed in otherwise unconstrained <tt>String</tt> fields. The FreeformClass, as documented in <xref target="RFC7564" section="4.3" sectionFormat="comma" /> may be a good starting point for this.</t>
 <t>Attempts to set a value containing code points outside of the permissible set can be handled in a few ways by the server. The first option is to simply strip the forbidden characters and store the resulting string. This is likely to be appropriate for control characters for example, where they can end up in data accidentally due to copy-and-paste issues, and are probably invisible to the end user. JMAP allows the server to transform data on create/update, as long as any changed properties are returned to the client in the <tt>/set</tt> response, so it knows what has changed, as per <xref target="RFC8620" section="5.3" sectionFormat="comma" />. Alternatively, the server MAY just reject the create/update with an <tt>invalidProperties</tt> SetError.</t>
 </section>
@@ -404,11 +404,11 @@ for this principal that the user has access to, or null if none.</t></li>
 <t>Note that simply forbidding the use of a name already in the system is insufficient protection, as a malicious user could still change their name to something easily confused with the existing name by using trivial misspellings or visually similar Unicode characters.</t>
 </section>
 
-<section anchor="unnoticed-sharing"><name>Unnoticed sharing</name>
+<section anchor="unnoticed-sharing"><name>Unnoticed Sharing</name>
 <t>Sharing data with another user allows someone to turn a transitory account compromise (e.g., brief access to an unlocked or logged-in client) into a persistent compromise (by setting up sharing with a user that is controlled by the attacker). This can be mitigated by requiring further authorisation for configuring sharing, or sending notifications to the sharer via another channel whenever a new sharee is added.</t>
 </section>
 
-<section anchor="unauthorised-principals"><name>Unauthorised principals</name>
+<section anchor="unauthorised-principals"><name>Unauthorised Principals</name>
 <t>The set of principals within a shared environment <bcp14>MUST</bcp14> be strictly controlled. If adding a new principal is open to the public, risks include:</t>
 <ul spacing="compact">
 <li>An increased risk of a user accidentally sharing data with an unintended person.</li>
