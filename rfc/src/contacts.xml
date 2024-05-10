@@ -35,7 +35,7 @@
 <t>JMAP (<xref target="RFC8620"></xref> JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and aims to provide a consistent interface to different data types.</t>
 <t>This specification defines a data model for synchronising contacts between a client and a server using JMAP.</t>
 
-<section anchor="notational-conventions"><name>Notational conventions</name>
+<section anchor="notational-conventions"><name>Notational Conventions</name>
 <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
 <t>Type signatures, examples and property descriptions in this document follow the conventions established in <xref target="RFC8620" section="1.1" sectionFormat="of"></xref>.  The Id and UnsignedInt data types defined in Sections <xref target="RFC8620" section="1.2" sectionFormat="bare"></xref> and <xref target="RFC8620" section="1.3" sectionFormat="bare"></xref> of <xref target="RFC8620"></xref> are also used in this document.</t>
 </section>
@@ -391,12 +391,12 @@ property whose "kind" is "surname2".</li>
 </section>
 </section>
 
-<section><name>Internationalisation considerations</name>
+<section><name>Internationalisation Considerations</name>
 <t>Experience has shown that unrestricted use of Unicode can lead to problems such as inconsistent rendering, users reading text and interpreting it differently than intended, and unexpected results when copying text from one location to another. Servers MAY choose to mitigate this by restricting the set of characters allowed in otherwise unconstrained <tt>String</tt> fields. The FreeformClass, as documented in <xref target="RFC7564" section="4.3" sectionFormat="comma" /> may be a good starting point for this.</t>
 <t>Attempts to set a value containing code points outside of the permissible set can be handled in a few ways by the server. The first option is to simply strip the forbidden characters and store the resulting string. This is likely to be appropriate for control characters for example, where they can end up in data accidentally due to copy-and-paste issues, and are probably invisible to the end user. JMAP allows the server to transform data on create/update, as long as any changed properties are returned to the client in the <tt>/set</tt> response, so it knows what has changed, as per <xref target="RFC8620" section="5.3" sectionFormat="comma" />. Alternatively, the server MAY just reject the create/update with an <tt>invalidProperties</tt> SetError.</t>
 </section>
 
-<section anchor="security-considerations"><name>Security considerations</name>
+<section anchor="security-considerations"><name>Security Considerations</name>
 <t>All security considerations of JMAP (<xref target="RFC8620"></xref>) apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsection.</t>
 <t>Contacts consist almost entirely of private, personally identifiable information, and represent the social connections of users. Privacy leaks can have real world consequences, and contacts servers and clients MUST be mindful of the need to keep all data secure.</t>
 <t>Servers MUST enforce the ACLs set on address books to ensure only authorised data is shared.</t>
