@@ -46,7 +46,7 @@
 </section>
 
 <section anchor="data-model-overview"><name>Data Model Overview</name>
-<t>An Account (see <xref target="RFC8620" section="1.6.2" sectionFormat="comma"></xref>) with support for the contacts data model contains zero or more AddressBook objects, which is a named collection of zero or more ContactCards. A ContactCard is a representation of a person, company, or other entity, or a group of such entities, in JSContact Card format, as defined in <xref target="I-D.ietf-calext-jscontact" section="2" />. Each ContactCard belongs to one or more AddressBooks.</t>
+<t>An Account (see <xref target="RFC8620" section="1.6.2" sectionFormat="comma"></xref>) with support for the contacts data model contains zero or more AddressBook objects, which is a named collection of zero or more ContactCards. A ContactCard is a representation of a person, company, or other entity, or a group of such entities, in JSContact Card format, as defined in <xref target="RFC9553" section="2" />. Each ContactCard belongs to one or more AddressBooks.</t>
 <t>In servers with support for JMAP Sharing <xref target="I-D.ietf-jmap-sharing" />, users may see and configure sharing of contact data with others. Sharing permissions are managed per AddressBook.</t>
 </section>
 
@@ -161,7 +161,7 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t>
 </section>
 
 <section anchor="contactcards"><name>ContactCards</name>
-<t>A <strong>ContactCard</strong> object contains information about a person, company, or other entity, or represents a group of such entities. It is a JSContact Card object, as defined in <xref target="I-D.ietf-calext-jscontact" section="2" />, with the following additional properties:</t>
+<t>A <strong>ContactCard</strong> object contains information about a person, company, or other entity, or represents a group of such entities. It is a JSContact Card object, as defined in <xref target="RFC9553" section="2" />, with the following additional properties:</t>
 
 <ul spacing="compact">
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
@@ -169,14 +169,14 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t>
 <li><t><strong>addressBookIds</strong>: <tt>Id[Boolean]</tt></t>
 <t>The set of AddressBook ids this ContactCard belongs to. A card MUST belong to at least one AddressBook at all times (until it is destroyed). The set is represented as an object, with each key being an AddressBook id. The value for each key in the object MUST be true.</t></li>
 </ul>
-<t>For any Media object in the card (see <xref target="I-D.ietf-calext-jscontact" section="2.6.4" />), a new property is defined:</t>
+<t>For any Media object in the card (see <xref target="RFC9553" section="2.6.4" />), a new property is defined:</t>
 
 <ul spacing="compact">
 <li><t><strong>blobId</strong>: <tt>Id</tt></t>
 <t>An id for the Blob representing the binary contents of the resource.</t></li>
 </ul>
 <t>When returning ContactCards, any Media with a <tt>data:</tt> URI SHOULD return a <tt>blobId</tt> property and omit the <tt>uri</tt> property, as this lets clients load the (potentially large) image file only when needed, and avoids the overhead of Base64 encoding. The "mediaType" property MUST also be set. Similarly, when creating or updating a ContactCard, clients MAY send a <tt>blobId</tt> instead of the <tt>uri</tt> property for a Media object.</t>
-<t>A contact card with a "kind" property equal to "group" represents a group of contacts. Clients often present these separately from other contact cards. The "members" property, as defined in <xref target="I-D.ietf-calext-jscontact" section="2.1.6" />, contains a set of UIDs for other contacts that are the members of this group. Clients should consider the group to contain any ContactCard with a matching UID, from any account they have access to with support for the <tt>urn:ietf:params:jmap:contacts</tt> capability. UIDs that cannot be found SHOULD be ignored but preserved. For example, suppose a user adds contacts from a shared address book to their private group, then temporarily loses access to this address book. The UIDs cannot be resolved so the contacts will disappear from the group. However, if they are given permission to access the data again the UIDs will be found and the contacts will reappear.</t>
+<t>A contact card with a "kind" property equal to "group" represents a group of contacts. Clients often present these separately from other contact cards. The "members" property, as defined in <xref target="RFC9553" section="2.1.6" />, contains a set of UIDs for other contacts that are the members of this group. Clients should consider the group to contain any ContactCard with a matching UID, from any account they have access to with support for the <tt>urn:ietf:params:jmap:contacts</tt> capability. UIDs that cannot be found SHOULD be ignored but preserved. For example, suppose a user adds contacts from a shared address book to their private group, then temporarily loses access to this address book. The UIDs cannot be resolved so the contacts will disappear from the group. However, if they are given permission to access the data again the UIDs will be found and the contacts will reappear.</t>
 
 <section anchor="contactcard-get"><name>ContactCard/get</name>
 <t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" sectionFormat="comma"></xref>.</t>
@@ -487,8 +487,8 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9553.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-jmap-sharing.xml"/>
-<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-calext-jscontact.xml"/>
 </references>
 
 <references><name>Informative References</name>
