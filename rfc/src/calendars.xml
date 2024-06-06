@@ -332,7 +332,7 @@ and "none" for calendars shared with the user.</t></li>
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</t>
 <t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>. If <tt>null</tt>, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[CalendarRights]|null</tt> (default: null)</t>
-<t>A map of Principal id to rights for principals this calendar is shared with. The principal to which this calendar belongs MUST NOT be in this set. This is null if the calendar is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the calendar belongs.</t></li>
+<t>A map of Principal id to rights for principals this calendar is shared with. The principal to which this calendar belongs MUST NOT be in this set. This is null if the calendar is not shared with anyone. May be modified only if the user has the mayShare right. The account id for the principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the calendar belongs.</t></li>
 <li><t><strong>myRights</strong>: <tt>CalendarRights</tt> (server-set)</t>
 <t>The set of access rights the user has in relation to this Calendar. If any event is in multiple calendars, the user has the following rights:</t>
 
@@ -371,7 +371,7 @@ calendar.</t></li>
 <t>If the event has its "mayInviteSelf" property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with calendarAddress/sendTo properties that are the same as the calendarAddress/sendTo properties of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain "attendee".</t>
 <t>If the event has its "mayInviteOthers" property set to true (see <xref target="mayinviteothers" />) and there is an existing Participant in the event corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The roles property of any new participant MUST only contain "attendee".</t>
 <t>The user may also do all of the above on a per-occurrence basis for recurring events (updating the recurrenceOverrides property of the event to do so).</t></li>
-<li><t><strong>mayAdmin</strong>: <tt>Boolean</tt></t>
+<li><t><strong>mayShare</strong>: <tt>Boolean</tt></t>
 <t>The user may modify the "shareWith" property for this calendar.</t></li>
 <li><t><strong>mayDelete</strong>: <tt>Boolean</tt></t>
 <t>The user may delete the calendar itself.</t></li>
@@ -415,7 +415,7 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t>
  </li>
 </ul>
 
-<t>The "shareWith" property may only be set by users that have the mayAdmin right.
+<t>The "shareWith" property may only be set by users that have the mayShare right.
 When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a <tt>forbidden</tt> SetError.</t>
 <t>Users can subscribe or unsubscribe to a calendar by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
 <t>The following properties may be set by anyone who is subscribed to the calendar and are always stored per-user:</t>
