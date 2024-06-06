@@ -100,7 +100,7 @@ default AddressBook from the user's primary account.</t>
 the user explicitly requests it or to offer it for the user to subscribe to.</t>
 </li>
 <li><t><strong>shareWith</strong>: <tt>Id[AddressBookRights]|null</tt> (default: null)</t>
-<t>A map of Principal (<xref target="I-D.ietf-jmap-sharing" section="2" />) id to rights for principals this AddressBook is shared with. The principal to which this AddressBook belongs MUST NOT be in this set. This is null if the AddressBook is not shared with anyone, or the server does not support <xref target="I-D.ietf-jmap-sharing" />. The value may be modified only if the user has the mayAdmin right. The account id for the principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the AddressBook belongs.</t>
+<t>A map of Principal (<xref target="I-D.ietf-jmap-sharing" section="2" />) id to rights for principals this AddressBook is shared with. The principal to which this AddressBook belongs MUST NOT be in this set. This is null if the AddressBook is not shared with anyone, or the server does not support <xref target="I-D.ietf-jmap-sharing" />. The value may be modified only if the user has the mayShare right. The account id for the principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the AddressBook belongs.</t>
 </li>
 <li><t><strong>myRights</strong>: <tt>AddressBookRights</tt> (server-set)</t>
 <t>The set of access rights the user has in relation to this AddressBook.</t>
@@ -113,7 +113,7 @@ the user explicitly requests it or to offer it for the user to subscribe to.</t>
 <t>The user may fetch the ContactCards in this AddressBook.</t></li>
 <li><t><strong>mayWrite</strong>: <tt>Boolean</tt></t>
 <t>The user may create, modify or destroy all ContactCards in this AddressBook, or move them to or from this AddressBook.</t></li>
-<li><t><strong>mayAdmin</strong>: <tt>Boolean</tt></t>
+<li><t><strong>mayShare</strong>: <tt>Boolean</tt></t>
 <t>The user may modify the "shareWith" property for this AddressBook.</t></li>
 <li><t><strong>mayDelete</strong>: <tt>Boolean</tt></t>
 <t>The user may delete the AddressBook itself.</t></li>
@@ -149,7 +149,7 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t>
 <t>As per <xref target="RFC8620" section="5.3" sectionFormat="comma"></xref>, if the default is successfully changed, any
   changed objects MUST be reported in either the "created" or "updated"
   argument in the response as  appropriate, with the server-set value included.</t>
-<t>The "shareWith" property may only be set by users that have the mayAdmin right. When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so MUST be rejected with a <tt>forbidden</tt> SetError.</t>
+<t>The "shareWith" property may only be set by users that have the mayShare right. When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so MUST be rejected with a <tt>forbidden</tt> SetError.</t>
 <t>Users can subscribe or unsubscribe to an AddressBook by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain AddressBooks even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
 <t>The following extra SetError type is defined:</t>
 <t>For "destroy":</t>
@@ -311,7 +311,7 @@ property whose "kind" is "surname2".</li>
         "myRights": {
           "mayRead": true,
           "mayWrite": true,
-          "mayAdmin": true,
+          "mayShare": true,
           "mayDelete": false
         }
       }, {
@@ -325,7 +325,7 @@ property whose "kind" is "surname2".</li>
         "myRights": {
           "mayRead": true,
           "mayWrite": true,
-          "mayAdmin": true,
+          "mayShare": true,
           "mayDelete": false
         }
       }],
