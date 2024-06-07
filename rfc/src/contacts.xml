@@ -400,7 +400,7 @@ property whose "kind" is "surname2".</li>
 
 <section><name>Internationalisation Considerations</name>
 <t>Experience has shown that unrestricted use of Unicode can lead to problems such as inconsistent rendering, users reading text and interpreting it differently than intended, and unexpected results when copying text from one location to another. Servers MAY choose to mitigate this by restricting the set of characters allowed in otherwise unconstrained <tt>String</tt> fields. The FreeformClass, as documented in <xref target="RFC8264" section="4.3" sectionFormat="comma" /> might be a good starting point for this.</t>
-<t>Attempts to set a value containing code points outside of the permissible set can be handled in a few ways by the server. The first option is to simply strip the forbidden characters and store the resulting string. This is likely to be appropriate for control characters for example, where they can end up in data accidentally due to copy-and-paste issues, and are probably invisible to the end user. JMAP allows the server to transform data on create/update, as long as any changed properties are returned to the client in the <tt>/set</tt> response, so it knows what has changed, as per <xref target="RFC8620" section="5.3" sectionFormat="comma" />. Alternatively, the server MAY just reject the create/update with an <tt>invalidProperties</tt> SetError.</t>
+<t>Attempts to set a value containing code points outside of the permissible set can be handled in a few ways by the server. The server could choose to strip the forbidden characters, or replace them with U+FFFD (the Unicode replacement character), and store the resulting string. This is likely to be appropriate for non-printable characters — such as the "Control Codes" defined in <xref target="UNICODE"/> Section 23.1, excluding newline (U+000A), carriage return (U+000D), and tab (U+0009) — which can end up in data accidentally due to copy-and-paste issues, but are invisible to the end user. JMAP allows the server to transform data on create/update, as long as any changed properties are returned to the client in the <tt>/set</tt> response, so it knows what has changed, as per <xref target="RFC8620" section="5.3" sectionFormat="comma" />. Alternatively, the server MAY just reject the create/update with an <tt>invalidProperties</tt> SetError.</t>
 </section>
 
 <section anchor="security-considerations"><name>Security Considerations</name>
@@ -501,6 +501,16 @@ Error Codes" registry, as defined in <xref target="RFC8620" section="9"/>.
 
 <references><name>Informative References</name>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8264.xml"/>
+<reference anchor="UNICODE" target="http://www.unicode.org/versions/latest/">
+<front>
+<title abbrev="Unicode">The Unicode Standard</title>
+<author><organization>The Unicode Consortium</organization><address /></author>
+</front>
+<annotation>Note that this reference is to the latest version of
+Unicode, rather than to a specific release. It is not expected that
+future changes in the Unicode Standard will affect the referenced
+definitions.</annotation>
+</reference>
 </references>
 
 </back>
