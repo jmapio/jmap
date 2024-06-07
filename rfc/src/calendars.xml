@@ -125,13 +125,11 @@
 
 <ul spacing="compact">
 <li><t><strong>accountId</strong>: <tt>Id|null</tt></t>
-<t>Id of Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability that
-contains the calendar data for this principal, or null if none (e.g. the Principal is a group just used for permissions management), or the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property). The corresponding Account object can be found in the principal's "accounts" property, as per <xref target="I-D.ietf-jmap-sharing" section="2" />.</t></li>
+<t>Id of Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability that contains the calendar data for this principal, or null if either (a) there is none (e.g. the Principal is a group just used for permissions management), or (b) the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property). The corresponding Account object can be found in the principal's "accounts" property, as per <xref target="I-D.ietf-jmap-sharing" section="2" />.</t></li>
 <li><t><strong>mayGetAvailability</strong>: <tt>Boolean</tt></t>
-<t>May the user call the "Principal/getAvailability" method with this Principal?</t></li>
+<t>If true, the user may call the "Principal/getAvailability" method with this Principal.</t></li>
 <li><t><strong>mayShareWith</strong>: <tt>Boolean</tt></t>
-<t>May the user add this principal as a calendar sharee (by adding them to the
-shareWith property of a calendar, see <xref target="calendars" />)?</t></li>
+<t>If true, the user may add this principal as a calendar sharee (by adding them to the shareWith property of a calendar, see <xref target="calendars" />).</t></li>
 <li><t><strong>calendarAddress</strong>: <tt>String</tt></t>
 <t>If this principal may be added as a participant to an event, this is the calendarAddress to use to represent it.</t></li>
 <li><t><strong>sendTo</strong>: <tt>String[String]|null</tt></t>
@@ -269,7 +267,7 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t><
 <t>As per <xref target="RFC8620" section="5.3" />, if the default is successfully changed, any
   changed objects MUST be reported in either the "created" or "updated"
   argument in the response as  appropriate, with the server-set value included.</t>
-<t>The server MAY restrict the uri values the user may claim, for example only allowing <tt>mailto:</tt> URIs with email addresses that belong to the user. A standard <tt>forbidden</tt> error is returned to reject non-permissible changes.</t>
+<t>The server MAY restrict the URI values the user may claim, for example only allowing <tt>mailto:</tt> URIs with email addresses that belong to the user. A standard <tt>forbidden</tt> error is returned to reject non-permissible changes.</t>
 </section>
 </section>
 
@@ -301,9 +299,9 @@ a higher order in any list of calendars in the client's UI. Calendars with equal
 <li><t><strong>isSubscribed</strong>: <tt>Boolean</tt></t>
 <t>True if the user has indicated they wish to see this Calendar in their client. This SHOULD default to false for Calendars in shared accounts the user has access to and true for any new Calendars created by the user themself.</t>
 <t>If false, the calendar SHOULD only be displayed when the user explicitly
-requests it or to offer it for the user to subscribe to. For example, a company may have a large number of shared calendars which all employees have permission to access, but you would only subscribe to the ones you care about and want to be able to have normally accessible.</t></li>
+requests it or to offer it for the user to subscribe to. For example, a company may have a large number of shared calendars which all employees have permission to access, but the user would only subscribe to the ones they care about and want to be able to have normally accessible.</t></li>
 <li><t><strong>isVisible</strong>: <tt>Boolean</tt> (default: true)</t>
-<t>Should the calendar's events be displayed to the user at the moment? Clients MUST ignore this property if isSubscribed is false. If an event is in multiple calendars, it should be displayed if isVisible is true for any of those calendars.</t></li>
+<t>If true, the calendar's events should be displayed to the user. If false, the user has indicated they wish to temporarily hide this calendar's events. Clients MUST ignore this property if isSubscribed is false. If an event is in multiple calendars, it should be displayed if isVisible is true for any of those calendars.</t></li>
 <li><t><strong>isDefault</strong>: <tt>Boolean</tt> (server-set)</t>
 <t>This SHOULD be true for exactly one calendar in any account, and MUST NOT be
 true for more than one calendar within an account. The default calendar
@@ -313,8 +311,7 @@ which to make a choice. For example, if the user creates a new event, the
 client may automatically set the event as belonging to the default calendar
 from the user's primary account.</t></li>
 <li><t><strong>includeInAvailability</strong>: <tt>String</tt></t>
-<t>Should the calendar's events be used as part of availability calculation?
-This MUST be one of:</t>
+<t>This determines which events in this calendar will be used as part of availability calculation. The value MUST be one of:</t>
 
 <ul spacing="compact">
 <li><t><tt>all</tt>: all events are considered.</t></li>
@@ -324,10 +321,10 @@ This MUST be one of:</t>
 <t>This should default to "all" for the calendars in the user's own account,
 and "none" for calendars shared with the user.</t></li>
 <li><t><strong>defaultAlertsWithTime</strong>: <tt>Id[Alert]|null</tt></t>
-<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.</t>
+<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to <tt>null</tt>, or may copy the alerts from the default calendar.</t></li>
 <li><t><strong>defaultAlertsWithoutTime</strong>: <tt>Id[Alert]|null</tt></t>
-<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID is recommended.</t>
+<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to <tt>null</tt>, or may copy the alerts from the default calendar.</t></li>
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</t>
 <t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>. If <tt>null</tt>, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.</t></li>
@@ -399,7 +396,7 @@ calendar.</t></li>
 
 <ul spacing="compact">
 <li><t><strong>onDestroyRemoveEvents</strong>: <tt>Boolean</tt> (default: false)</t>
-<t>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This SHOULD NOT send scheduling messages to participants or create CalendarEventNotification objects.</t>
+<t>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This MUST NOT send scheduling messages to participants. It SHOULD NOT create CalendarEventNotification objects - a calendar with a large number of events would create an overwhelming number of CalendarEventNotifications. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="I-D.ietf-jmap-sharing" section="3"/>) MUST be created for each principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</t>
 </li>
 <li><t><strong>onSuccessSetIsDefault</strong>: <tt>Id|null</tt></t>
 <t>If an id is given, and all creates, updates and destroys (if any) succeed
@@ -505,7 +502,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 
 <section anchor="attachments"><name>Attachments</name>
 <t>The Link object, as defined in <xref target="RFC8984" section="4.2.7" />, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per <xref target="RFC8620" section="6" />.</t>
-<t>The server MUST translate this to an embedded <tt>data:</tt> URL <xref target="RFC2397"></xref> when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments [?@RFC8607].</t>
+<t>The server MUST translate this to an embedded <tt>data:</tt> URL <xref target="RFC2397" /> when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments <xref target="RFC8607" />.</t>
 </section>
 
 <section anchor="per-user-properties"><name>Per-user properties</name>
@@ -599,7 +596,7 @@ omitting/removing the property from the JSCalendar Event object.</t>
 <li><t>created</t></li>
 </ul>
 <t>If (and only if) the server is the origin of the event (i.e., the event's "isOrigin" property is true), the "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time. If the server is not the origin of the event it MUST NOT automatically set an "updated" time, as this can break correct processing of scheduling messages.</t>
-<t>Clients SHOULD NOT allow users to manually edit anything other than per-user
+<t>Clients MUST NOT allow users to edit anything other than per-user
 properties when the "isOrigin" property is false, even if the calendar "myRights" allows them to do so. All other properties may be overwritten when a future update arrives to this event from the origin (e.g., via an iTIP REQUEST message). Such updates may be directly applied by the server, or applied at the user's request by a client if it has access to the data through some other means (e.g., the client also has access to the user's email and can parse an iMIP message).</t>
 <t>When updating an event, if all of:</t>
 
@@ -795,10 +792,10 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <t>The exact semantics for matching <tt>String</tt> fields is <strong>deliberately not defined</strong> to allow for flexibility in indexing implementation, subject to the following:</t>
 
 <ul spacing="compact">
-<li><t>Text SHOULD be matched in a case-insensitive manner.</t></li>
-<li><t>Text contained in either (but matched) single or double quotes SHOULD be treated as a <strong>phrase search</strong>, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use <tt>\"</tt>, <tt>\'</tt> and <tt>\\</tt> to match a literal <tt>"</tt>, <tt>'</tt> and <tt>\</tt> respectively in a phrase.</t></li>
-<li><t>Outside of a phrase, white-space SHOULD be treated as dividing separate tokens that may be searched for separately in the event, but MUST all be present for the event to match the filter.</t></li>
-<li><t>Tokens MAY be matched on a whole-word basis using stemming (so for example a text search for <tt>bus</tt> would match "buses" but not "business").</t></li>
+<li><t>Text should be matched in a case-insensitive manner.</t></li>
+<li><t>Text contained in either (but matched) single or double quotes should be treated as a <strong>phrase search</strong>, that is a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use <tt>\"</tt>, <tt>\'</tt> and <tt>\\</tt> to match a literal <tt>"</tt>, <tt>'</tt> and <tt>\</tt> respectively in a phrase.</t></li>
+<li><t>Outside of a phrase, white-space should be treated as dividing separate tokens that may be searched for separately in the event, but must all be present for the event to match the filter.</t></li>
+<li><t>Tokens may be matched on a whole-word basis using stemming (so for example a text search for <tt>bus</tt> would match "buses" but not "business").</t></li>
 </ul>
 </section>
 
@@ -888,7 +885,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <li><t>Acknowledge the alert as described in <xref target="acknowledging-an-alert" />.</t></li>
 <li><t>Add a new alert to the event with an <tt>AbsoluteTrigger</tt> for the date-time the alert has been snoozed until. Add a "relatedTo" property to the new alert, setting the "parent" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert that was acknowledged in step 1.</t></li>
 </ol>
-<t>When acknowledging a snoozed alert (i.e. one with a parent relatedTo pointing to the original alert), the client SHOULD delete the alert rather than setting the "acknowledged" property.</t>
+<t>When acknowledging a snoozed alert (i.e. one with a parent relatedTo pointing to the original alert), the client should delete the alert rather than setting the "acknowledged" property.</t>
 </section>
 
 <section anchor="push-events"><name>Push events</name>
@@ -919,7 +916,7 @@ triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 <section anchor="calendar-event-notifications"><name>Calendar Event Notifications</name>
 <t>The CalendarEventNotification data type records changes made by external entities to events in calendars the user is subscribed to. Notifications are stored in the same Account as the CalendarEvent that was changed.</t>
 <t>Notifications are only created by the server; users cannot create them directly. Clients may present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.</t>
-<t>The server SHOULD create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to. The server SHOULD NOT create notifications for events implicitly deleted due to the containing calendar being deleted.</t>
+<t>The server should create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to. The server SHOULD NOT create notifications for events implicitly deleted due to the containing calendar being deleted.</t>
 <t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all sharees of the notification. The server need only keep track of which users have yet to destroy the notification.</t>
 
 <section anchor="auto-deletion-of-notifications"><name>Auto-deletion of Notifications</name>
@@ -1529,7 +1526,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </section>
 
 <section anchor="update-to-the-jscalendar-properties-registry"><name>Update to the JSCalendar Properties Registry</name>
-<t>IANA will update the "JSCalendar Properties" registry to add a new column called "Is Per-User". The value in this column for each entry MUST be either "yes" or "no", indicating whether each sharee of the object should be able to set their own value for this property without affecting the value for other sharees.</t>
+<t>IANA will update the "JSCalendar Properties" registry, originally created in <xref target="RFC8984" section="8.2" />, to add a new column called "Is Per-User". The value in this column for each entry MUST be either "yes" or "no", indicating whether each sharee of the object should be able to set their own value for this property without affecting the value for other sharees.</t>
 
 <section anchor="update-to-jscalendar-properties-registry-template"><name>Update to "JSCalendar Properties" Registry Template</name>
 <t>An additional field is added to the template:</t>
@@ -1661,12 +1658,13 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8792.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8984.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9562.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-jmap-sharing.xml"/>
 </references>
 <references><name>Informative References</name>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4791.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5546.xml"/>
-<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6047.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8607.xml"/>
 </references>
 
 </back>
