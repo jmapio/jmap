@@ -129,7 +129,7 @@
 <li><t><strong>mayGetAvailability</strong>: <tt>Boolean</tt></t>
 <t>If true, the user may call the "Principal/getAvailability" method with this Principal.</t></li>
 <li><t><strong>mayShareWith</strong>: <tt>Boolean</tt></t>
-<t>If true, the user may add this principal as a calendar sharee (by adding them to the shareWith property of a calendar, see <xref target="calendars" />).</t></li>
+<t>If true, the user may add this principal as a calendar share target (by adding them to the shareWith property of a calendar, see <xref target="calendars" />).</t></li>
 <li><t><strong>calendarAddress</strong>: <tt>String</tt></t>
 <t>If this principal may be added as a participant to an event, this is the calendarAddress to use to represent it.</t></li>
 <li><t><strong>sendTo</strong>: <tt>String[String]|null</tt></t>
@@ -427,8 +427,8 @@ When modifying the shareWith property, the user cannot give a right to a princip
 <li><t>defaultAlertsWithoutTime</t></li>
 <li><t>defaultAlertsWithTime</t></li>
 </ul>
-<t>The "name", "color", and "timeZone" properties are initially inherited from the owner's copy of the calendar, but if set by a sharee then they get their own copy of the property; it does not change for any other principals. If the value of the property in the owner's calendar changes after this, it does not overwrite the sharee's value.</t>
-<t>The "sortOrder", "isVisible", "includeInAvailability", "defaultAlertsWithTime", and "defaultAlertsWithoutTime" properties are initally the default value for each sharee; they are not inherited from the owner.</t>
+<t>The "name", "color", and "timeZone" properties are initially inherited from the owner's copy of the calendar, but if set by a user with whom the calendar is shared, they then get their own copy of the property. This does not change the value for any other users. If the value of the property in the owner's calendar changes after this, it does not overwrite any user's custom value.</t>
+<t>The "sortOrder", "isVisible", "includeInAvailability", "defaultAlertsWithTime", and "defaultAlertsWithoutTime" properties are initally the default value for each user with whom the calendar is shared; they are not inherited from the owner.</t>
 
 <t>The following extra SetError type is defined:</t>
 <t>For "destroy":</t>
@@ -496,7 +496,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <section anchor="hideattendees"><name>hideAttendees</name>
 <t>Type: <tt>Boolean</tt> (default: false)</t>
 <t>Context: Event, Task</t>
-<t>If true, only the owners of the event may see the full set of participants. Other sharees of the event may only see the owners and themselves. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
+<t>If true, only the owners of the event may see the full set of participants. Other users with access to the event may only see the owners and themselves. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
 </section>
 </section>
 
@@ -556,8 +556,8 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>If specific properties are requested from the JSCalendar Event and the property is not present on the object in the server's store, the server MUST return the default value if known for that property.</t>
 <t>A requested id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRules" and "recurrenceOverrides" properties MUST be returned as null if requested for such an event.</t>
 <t>An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions, etc.</t>
-<t>The "hideAttendees" property of a JSCalendar Event object allows the event owner(s) to reduce the visibility of sharees into the set of participants. If this is true, when a non-owner sharee fetches the event, the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.</t>
-<t>The "privacy" property of a JSCalendar Event object allows the principal that owns the calendar to override how sharees of the calendar see the event. If set to "private", then when a sharee fetches the event the server MUST only return properties that are:</t>
+<t>The "hideAttendees" property of a JSCalendar Event object allows the event owner(s) to hide the full set of participants when sharing the event. If this is true, when a non-owner fetches the event the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.</t>
+<t>The "privacy" property of a JSCalendar Event object allows the principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If set to "private", then when another user fetches the event the server MUST only return properties that are:</t>
 
 <ul spacing="compact">
 <li><t>the basic time and metadata properties of the JSCalendar Event object as specified in <xref target="RFC8984" section="4.4.3" />; or</t></li>
@@ -586,7 +586,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>If a property is set to null in a create/update, this is equivalent to
 omitting/removing the property from the JSCalendar Event object.</t>
 <t>Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a <tt>forbidden</tt> SetError if not allowed.</t>
-<t>The "privacy" property of a JSCalendar Event object allows the principal to override how sharees of the calendar see the event. If this is set to "private", a sharee may not delete or update the event (even if only modifying per-user properties); any attempt to modify such an event MUST be rejected with a <tt>forbidden</tt> SetError. If set to "secret", the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.</t>
+<t>The "privacy" property of a JSCalendar Event object allows the principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If this is set to "private", the event may only be destroyed or updated by the owner of the calendar it is in. Any attempt by another user to modify such an event MUST be rejected with a <tt>forbidden</tt> SetError (even if only modifying per-user properties). If set to "secret", the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.</t>
 <t>The "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar, or a calendar shared by another user). The server MUST reject this with an <tt>invalidProperties</tt> SetError.</t>
 <t>If omitted on create, the server MUST set the following properties to an appropriate value:</t>
 
@@ -917,7 +917,7 @@ triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 <t>The CalendarEventNotification data type records changes made by external entities to events in calendars the user is subscribed to. Notifications are stored in the same Account as the CalendarEvent that was changed.</t>
 <t>Notifications are only created by the server; users cannot create them directly. Clients may present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.</t>
 <t>The server should create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to. The server SHOULD NOT create notifications for events implicitly deleted due to the containing calendar being deleted.</t>
-<t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all sharees of the notification. The server need only keep track of which users have yet to destroy the notification.</t>
+<t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all users with whom the calendar is shared. The server need only keep track of which users have yet to destroy the notification.</t>
 
 <section anchor="auto-deletion-of-notifications"><name>Auto-deletion of Notifications</name>
 <t>The server MAY limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.</t>
@@ -1526,7 +1526,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </section>
 
 <section anchor="update-to-the-jscalendar-properties-registry"><name>Update to the JSCalendar Properties Registry</name>
-<t>IANA will update the "JSCalendar Properties" registry, originally created in <xref target="RFC8984" section="8.2" />, to add a new column called "Is Per-User". The value in this column for each entry MUST be either "yes" or "no", indicating whether each sharee of the object should be able to set their own value for this property without affecting the value for other sharees.</t>
+<t>IANA will update the "JSCalendar Properties" registry, originally created in <xref target="RFC8984" section="8.2" />, to add a new column called "Is Per-User". The value in this column for each entry MUST be either "yes" or "no", indicating whether each user with whom the object is shared should be able to set their own value for this property without affecting the value for other users.</t>
 
 <section anchor="update-to-jscalendar-properties-registry-template"><name>Update to "JSCalendar Properties" Registry Template</name>
 <t>An additional field is added to the template:</t>
