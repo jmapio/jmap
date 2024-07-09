@@ -84,7 +84,7 @@
 <t>This represents support for the Calendar, CalendarEvent, CalendarEventNotification, and ParticipantIdentity data types and associated API methods, except for "CalendarEvent/parse". The value of this property in the JMAP Session capabilities property is an empty object.</t>
 <t>The value of this property in an account's accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>maxCalendarsPerEvent</strong>: <tt>UnsignedInt|null</tt></t>
 <t>The maximum number of Calendars (see <xref target="calendars" />) that can be can assigned to a single CalendarEvent object (see <xref target="calendar-events" />). This MUST be an integer &gt;= 1, or null for no limit (or rather, the limit is always the number of Calendars in the account).</t></li>
 <li><t><strong>minDateTime</strong>: <tt>LocalDateTime</tt></t>
@@ -105,7 +105,7 @@
 <t>The value of this property in the JMAP Session capabilities property is an empty object.</t>
 <t>The value of this property in an account's accountCapabilities property is an object that MUST contain the following information on server capabilities and permissions for that account:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>maxAvailabilityDuration</strong>: <tt>Duration</tt></t>
 <t>The maximum duration over which the server is prepared to calculate availability in a single call (see <xref target="principal-getavailability" />).</t></li>
 </ul>
@@ -123,7 +123,7 @@
 <section anchor="principal-capability-urn-ietf-params-jmap-calendars"><name>Principal Capability urn:ietf:params:jmap:calendars</name>
 <t>A <tt>urn:ietf:params:jmap:calendars</tt> property is added to the Principal "capabilities" object, the value of which is an object with the following properties:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>accountId</strong>: <tt>Id|null</tt></t>
 <t>Id of Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability that contains the calendar data for this principal, or null if either (a) there is none (e.g. the Principal is a group just used for permissions management), or (b) the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property). The corresponding Account object can be found in the principal's "accounts" property, as per <xref target="I-D.ietf-jmap-sharing" section="2" />.</t></li>
 <li><t><strong>mayGetAvailability</strong>: <tt>Boolean</tt></t>
@@ -140,7 +140,7 @@
 <section anchor="principal-getavailability"><name>Principal/getAvailability</name>
 <t>This method calculates the availability of the principal for scheduling within a requested time period. It takes the following arguments:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>accountId</strong>: <tt>Id</tt></t>
 <t>The id of the account to use.</t></li>
 <li><t><strong>id</strong>: <tt>Id</tt></t>
@@ -200,7 +200,7 @@
 <t>Finally, the server MUST merge and split BusyPeriod objects where the "event" property is null, such that none of them overlap and either there is a gap in time between any two objects (the utcEnd of one does not equal the utcStart of another) or those objects have a different busyStatus property. If there are overlapping BusyPeriod time ranges with different "busyStatus" properties the server MUST choose the value in the following order: confirmed &gt; unavailable &gt; tentative.</t>
 <t>The response has the following argument:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>list</strong>: <tt>BusyPeriod[]</tt></t>
 <t>The list of BusyPeriod objects calculated as described above.</t></li>
 </ul>
@@ -253,7 +253,7 @@ invitees.)</t></li>
 <section anchor="participantidentity-set"><name>ParticipantIdentity/set</name>
 <t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" />, but with the following additional request argument:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>onSuccessSetIsDefault</strong>: <tt>Id|null</tt></t>
 <t>If an id is given, and all creates, updates and destroys (if any) succeed
 without error, the server will try to set this identity as the default. (For
@@ -275,7 +275,7 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t><
 <t>A Calendar is a named collection of events. All events are associated with at least one calendar.</t>
 <t>A <strong>Calendar</strong> object has the following properties:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
 <t>The id of the calendar.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt></t>
@@ -285,11 +285,7 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t><
 <li><t><strong>color</strong>: <tt>String|null</tt> (default: null)</t>
 <t>A color to be used when displaying events associated with the calendar.</t>
 <t>If not null, the value MUST be a case-insensitive color name taken from the set of names defined in Section 4.3 of CSS Color Module Level 3 <eref target="https://www.w3.org/TR/css-color-3/">COLORS</eref>, or an RGB value in hexadecimal notation, as defined in Section 4.2.1 of CSS Color Module Level 3.</t>
-
 <t>The color SHOULD have sufficient contrast to be used as text on a white background.</t></li>
-</ul>
-
-<ul>
 <li><t><strong>sortOrder</strong>: <tt>UnsignedInt</tt> (default: 0)</t>
 <t>Defines the sort order of calendars when presented in the client's UI, so it
 is consistent between devices. The number MUST be an integer in the range
@@ -394,7 +390,7 @@ calendar.</t></li>
 <section anchor="calendar-set"><name>Calendar/set</name>
 <t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" /> but with the following additional request arguments:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>onDestroyRemoveEvents</strong>: <tt>Boolean</tt> (default: false)</t>
 <t>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This MUST NOT send scheduling messages to participants. It SHOULD NOT create CalendarEventNotification objects - a calendar with a large number of events would create an overwhelming number of CalendarEventNotifications. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="I-D.ietf-jmap-sharing" section="3"/>) MUST be created for each principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</t>
 </li>
@@ -433,7 +429,7 @@ When modifying the shareWith property, the user cannot give a right to a princip
 <t>The following extra SetError type is defined:</t>
 <t>For "destroy":</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>calendarHasEvent</strong>: The Calendar has at least one CalendarEvent assigned to it, and the "onDestroyRemoveEvents" argument was false.</t></li>
 </ul>
 </section>
@@ -542,7 +538,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <section anchor="calendarevent-get"><name>CalendarEvent/get</name>
 <t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />, with three extra arguments:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>recurrenceOverridesBefore</strong>: <tt>UTCDateTime|null</tt></t>
 <t>If given, only recurrence overrides with a recurrence id before this date (when translated into UTC) will be returned.</t></li>
 <li><t><strong>recurrenceOverridesAfter</strong>: <tt>UTCDateTime|null</tt></t>
@@ -575,7 +571,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <section anchor="calendarevent-set"><name>CalendarEvent/set</name>
 <t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" />, with the following extra argument:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>sendSchedulingMessages</strong>: <tt>Boolean</tt> (default: false)</t>
 <t>If true then any changes to scheduled events will be sent to all the participants (if the server is the origin of the event) or back to the origin (otherwise). If false, the changes only affect this account and no scheduling messages will be sent.</t>
 <t>The server may send the scheduling message via any of the methods defined on the sendTo property of a participant (if the server is the origin) or the replyTo property of the event (otherwise) that it supports. If no supported methods are available for any of the recipients, the server MUST reject the change with a <tt>noSupportedScheduleMethods</tt> SetError.</t>
@@ -616,7 +612,7 @@ value is less than or equal to the current "sequence" value on the server;</t></
 
 <t>The following extra SetError type is defined:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>noSupportedScheduleMethods</strong>: The server was requested to send scheduling messages, but does not support any of the methods available for at least one of the recipients.</t></li>
 </ul>
 
@@ -751,7 +747,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <section anchor="calendarevent-query"><name>CalendarEvent/query</name>
 <t>This is a standard "/query" method as described in <xref target="RFC8620" section="5.5" />, with two extra arguments:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>expandRecurrences</strong>: <tt>Boolean</tt> (default: false)</t>
 <t>If true, the server will expand any recurring event. If true, the filter MUST be just a FilterCondition (not a FilterOperator) and MUST include both a "before" and "after" property. This ensures the server is not asked to return an infinite number of results.</t></li>
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId</tt></t>
@@ -765,7 +761,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <section anchor="filtering"><name>Filtering</name>
 <t>A <strong>FilterCondition</strong> object has the following properties:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>inCalendar</strong>: <tt>Id|null</tt></t>
 <t>A Calendar id. An event must be in this calendar to match the condition.</t></li>
 <li><t><strong>after</strong>: <tt>LocalDateTime|null</tt></t>
@@ -833,7 +829,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 </ul>
 <t>The "CalendarEvent/parse" method takes the following arguments:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>accountId</strong>: <tt>Id</tt></t>
 <t>The id of the account to use.</t></li>
 <li><t><strong>blobIds</strong>: <tt>Id[]</tt></t>
@@ -843,7 +839,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 </ul>
 <t>The response object contains the following arguments:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>accountId</strong>: <tt>Id</tt></t>
 <t>The id of the account used for the call.</t></li>
 <li><t><strong>parsed</strong>: <tt>Id[CalendarEvent[]]|null</tt></t>
@@ -893,7 +889,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <t>If requested, a CalendarAlert notification will be pushed whenever an alert is triggered for the user. For Event Source connections, this notification is pushed as an event called "calendarAlert".</t>
 <t>A <strong>CalendarAlert</strong> object has the following properties:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>@type</strong>: <tt>String</tt></t>
 <t>This MUST be the string "CalendarAlert".</t></li>
 <li><t><strong>accountId</strong>: <tt>Id</tt></t>
@@ -927,7 +923,7 @@ triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 <section anchor="object-properties"><name>Object Properties</name>
 <t>The <strong>CalendarEventNotification</strong> object has the following properties:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>id</strong>: <tt>Id</tt></t>
 <t>The id of the CalendarEventNotification.</t></li>
 <li><t><strong>created</strong>: <tt>UTCDateTime</tt></t>
@@ -990,7 +986,7 @@ data after the update.</t></li>
 <section anchor="filtering-1"><name>Filtering</name>
 <t>A <strong>FilterCondition</strong> object has the following properties:</t>
 
-<ul spacing="compact">
+<ul>
 <li><t><strong>after</strong>: <tt>UTCDateTime|null</tt></t>
 <t>The creation date must be on or after this date to match the condition.</t></li>
 <li><t><strong>before</strong>: <tt>UTCDateTime|null</tt></t>
