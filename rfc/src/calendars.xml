@@ -679,7 +679,7 @@ value is less than or equal to the current "sequence" value on the server;</t></
 the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zoe too were to decline that meeting, she could update the event by just sending a patch like so:</t>
 
 <artwork>[[ "CalendarEvent/set", {
-  "accountId": "ue150411c",
+  "accountId": "a0x9",
   "update": {
     "123": {
       "recurrenceOverrides/2018-03-08T09:00:00/
@@ -704,7 +704,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <t>Now if Tom were to change his mind and remove his declined status override (thus meaning he is attending, as inherited from the top-level event), he might remove his patch from the overrides like so:</t>
 
 <artwork>[[ "CalendarEvent/set", {
-  "accountId": "ue150411c",
+  "accountId": "a0x9",
   "update": {
     "123": {
       "recurrenceOverrides/2018-03-08T09:00:00/
@@ -716,7 +716,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <t>However, if you instead want to remove Tom from this instance altogether, you could not send this patch:</t>
 
 <artwork>[[ "CalendarEvent/set", {
-  "accountId": "ue150411c",
+  "accountId": "a0x9",
   "update": {
     "123": {
       "recurrenceOverrides/2018-03-08T09:00:00/
@@ -728,7 +728,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <t>This would mean remove the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at path "recurrenceOverrides" -&gt; "2018-03-08T09:00:00" inside the object; but this doesn't exist. We actually want to add this property and make it map to <tt>null</tt>. The client must instead send the full object that contains the property mapping to <tt>null</tt>, like so:</t>
 
 <artwork>[[ "CalendarEvent/set", {
-  "accountId": "ue150411c",
+  "accountId": "a0x9",
   "update": {
     "123": {
       "recurrenceOverrides/2018-03-08T09:00:00": {
@@ -1035,11 +1035,11 @@ data after the update.</t></li>
   }, "2"],
   ["CalendarEvent/get", {
   	"accountId": "a0x9",
-  	"#ids":{
-  	  "resultOf":"3",
-  	  "name":"CalendarEvent/query",
-  	  "path":"/ids"
-  	}
+    "#ids": {
+      "resultOf": "2",
+      "name": "CalendarEvent/query",
+      "path": "/ids"
+    }
   }, "3"]
 ]
 </artwork>
@@ -1081,16 +1081,15 @@ data after the update.</t></li>
     "list": [{
        "id": "3",
        "name": "Jane Doe",
-       "calendarAddress": "mailto:jane@example.com",
-       "sendTo": {
-       	 "imip": "mailto:jane@example.com",
-       	 "other":
-       	 	"https://example.com/uri/for/internal/scheduling"
-       },
-       "isDefault": true
-     }],
-     "notFound": [],
-     "state": "lgkf:98144:aae"
+      "calendarAddress": "mailto:jane@example.com",
+      "sendTo": {
+        "imip": "mailto:jane@example.com",
+        "other": "https://example.com/uri/for/internal/scheduling"
+      },
+      "isDefault": true
+    }],
+    "notFound": [],
+    "state": "lgkf:98144:aae"
   }, "1"],
   ["CalendarEvent/query", {
     "accountId": "a0x9",
@@ -1105,19 +1104,19 @@ data after the update.</t></li>
   }, "2"],
   ["CalendarEvent/get", {
   	"accountId": "a0x9",
-  	"list": [{
-       "id": "E-01c9626e-1490-43df-a34f-457021256281",
-       "calendarIds": {
-       	  "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
-       },
-       "title": "Q1 All hands",
-       "start": "20230109T10:00:00",
-       "duration": "PT1H",
-       "timeZone": "Australia/Sydney",
-       ...
-     }, ...],
-     "notFound": [],
-     "state": "$$/413/206"
+    "list": [{
+      "id": "E-01c9626e-1490-43df-a34f-457021256281",
+      "calendarIds": {
+        "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
+      },
+      "title": "Q1 All hands",
+      "start": "2023-01-09T10:00:00",
+      "duration": "PT1H",
+      "timeZone": "Australia/Sydney",
+      ...
+    }, ...],
+    "notFound": [],
+    "state": "$$/413/206"
   }, "3"]
 ]
 </artwork>
@@ -1129,21 +1128,21 @@ data after the update.</t></li>
 
 <artwork>[
   ["CalendarEvent/set", {
-    "accountId":"a0x9",
-    "create":{
-      "k559":{
-        "uid":"5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
-        "calendarIds":{
-          "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662":true
+    "accountId": "a0x9",
+    "create": {
+      "k559": {
+        "uid": "5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
+        "calendarIds": {
+          "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
         },
-        "title":"Party at Pete’s",
-        "start":"2023-02-03T19:00:00",
-        "duration":"PT3H0M0S",
-        "timeZone":"Australia/Melbourne",
-        "showWithoutTime":false,
-        "participants":{
-          "1":{
-            "@type":"Participant",
+        "title": "Party at Pete’s",
+        "start": "2023-02-03T19:00:00",
+        "duration": "PT3H0M0S",
+        "timeZone": "Australia/Melbourne",
+        "showWithoutTime": false,
+        "participants": {
+          "1": {
+            "@type": "Participant",
             "name": "Jane Doe",
             "calendarAddress": "mailto:jane@example.com",
             "sendTo": {
@@ -1151,36 +1150,36 @@ data after the update.</t></li>
               "other":
                  "https://example.com/uri/for/internal/scheduling"
             },
-            "kind":"individual",
-            "roles":{
-              "attendee":true,
-              "owner":true
+            "kind": "individual",
+            "roles": {
+              "attendee": true,
+              "owner": true
             },
-            "participationStatus":"accepted",
-            "expectReply":false
+            "participationStatus": "accepted",
+            "expectReply": false
           },
-          "2":{
-            "@type":"Participant",
-            "name":"Joe Bloggs",
+          "2": {
+            "@type": "Participant",
+            "name": "Joe Bloggs",
             "calendarAddress": "mailto:joe@example.com",
-            "sendTo":{
-              "imip":"mailto:joe@example.com"
+            "sendTo": {
+              "imip": "mailto:joe@example.com"
             },
-            "kind":"individual",
-            "roles":{
-              "attendee":true
+            "kind": "individual",
+            "roles": {
+              "attendee": true
             },
-            "participationStatus":"needs-action",
-            "expectReply":true
+            "participationStatus": "needs-action",
+            "expectReply": true
           }
         },
-        "mayInviteSelf":false,
-        "mayInviteOthers":false,
-        "useDefaultAlerts":false,
+        "mayInviteSelf": false,
+        "mayInviteOthers": false,
+        "useDefaultAlerts": false,
         "alerts":null
       }
     },
-    "sendSchedulingMessages":true
+    "sendSchedulingMessages": true
   }, "0"]
 ]
 </artwork>
@@ -1190,12 +1189,12 @@ data after the update.</t></li>
 
 [
   ["CalendarEvent/set", {
-    "accountId":"a0x9",
-    "created":{
-      "k559":{
-        "id":"E-5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
+    "accountId": "a0x9",
+    "created": {
+      "k559": {
+        "id": "E-5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
         "isOrigin": true,
-      	"@type": "Event",
+        "@type": "Event",
         "created": "20221005T20:42:13Z",
         "updated": "20221005T20:42:13Z",
         "sequence": 1,
@@ -1222,9 +1221,10 @@ data after the update.</t></li>
 	"calendarEventId": "E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f",
 	"uid": "b6f7e27b-5872-4b52-b457-0242541bb01c",
 	"recurrenceId": null,
-	"alertId": "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd"
+  "alertId": "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd"
 }
 </artwork>
+
 <t>Not finding this event in its local cache, the client fetches the information for this event that it needs to show the alert by making the following request:</t>
 
 <artwork>[
@@ -1236,34 +1236,35 @@ data after the update.</t></li>
   }, "0"]
 ]
 </artwork>
+
 <t>In response it receives:</t>
 
 <artwork>[
   ["CalendarEvent/get", {
-  	"accountId": "a0x9",
-  	"list": [{
-       "id": "E-01c9626e-1490-43df-a34f-457021256281",
-       "calendarIds": {
-       	  "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
-       },
-       "title": "Team catchup",
-       "start": "20230210T17:00:00",
-       "timeZone": "America/New_York",
-       "useDefaultAlerts": false,
-       "alerts": {
-         "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
-           "@type": "Alert",
-           "action": "display",
-           "trigger": {
-             "@type": "OffsetTrigger",
-             "relativeTo": "start",
-             "offset": "-PT1H"
-           }
-         }
-       }
-     }],
-     "notFound": [],
-     "state": "$$/414/208"
+    "accountId": "a0x9",
+    "list": [{
+      "id": "E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f",
+      "calendarIds": {
+        "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
+      },
+      "title": "Team catchup",
+      "start": "2023-02-10T17:00:00",
+      "timeZone": "America/New_York",
+      "useDefaultAlerts": false,
+      "alerts": {
+        "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
+          "@type": "Alert",
+          "action": "display",
+          "trigger": {
+            "@type": "OffsetTrigger",
+            "relativeTo": "start",
+            "offset": "-PT1H"
+          }
+        }
+      }
+    }],
+    "notFound": [],
+    "state": "$$/414/208"
   }, "0"]
 ]
 </artwork>
@@ -1283,16 +1284,16 @@ data after the update.</t></li>
 [
   ["CalendarEvent/set", {
   	"accountId": "a0x9",
-  	"update": {
+    "update": {
       "E-01c9626e-1490-43df-a34f-457021256281": {
-       	"alerts/7519a951-1e6f-4a6c-b08b-20dd2e5a89cd\
-       		/acknowledged": "20230110T23:00:31Z",
+        "alerts/7519a951-1e6f-4a6c-b08b-20dd2e5a89cd\
+          /acknowledged": "2023-02-10T23:00:29Z",
         "alerts/86b0-318b8291045f": {
           "@type": "Alert",
           "action": "display",
           "trigger": {
             "@type": "AbsoluteTrigger",
-            "when": "20230210T23:30:00Z",
+            "when": "2023-02-10T23:30:00Z",
             "relatedTo": {
               "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
                 "@type": "Relation",
@@ -1343,17 +1344,15 @@ makes no other change):</t>
 <section anchor="parsing-an-icalendar-file"><name>Parsing an iCalendar file</name>
 <t>The client makes a request to parse the calendar event from a blob id representing an icalendar file:</t>
 
-<artwork>[
-  [ "CalendarEvent/parse", {
-    "accountId": "a0x9",
-    "blobIds": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
-  }, "c1"]
-]
+<artwork>[[ "CalendarEvent/parse", {
+  "accountId": "a0x9",
+  "blobIds": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
+}, "c1"]]
 </artwork>
 <t>The server responds:</t>
 
 <artwork>[[ "CalendarEvent/parse", {
-  "accountId": "ue150411c",
+  "accountId": "a0x9",
   "parsed": {
     "Ge682d5d7aad50b3a4f7180a7ed9276476485ea52": [{
       "@type": "Event",
