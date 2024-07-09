@@ -17,17 +17,17 @@
     </address>
 </author>
 <author role="editor" initials="M." surname="Douglass" fullname="Michael Douglass">
-	<organization>Spherical Cow Group</organization>
-	<address>
-		<postal>
-			<street>226 3rd Street</street>
-			<city>Troy</city>
-			<code>NY 12180</code>
-			<country>United States of America</country>
-		</postal>
-		<email>mdouglass@sphericalcowgroup.com</email>
-		<uri>http://sphericalcowgroup.com</uri>
-	</address>
+  <organization>Spherical Cow Group</organization>
+  <address>
+    <postal>
+      <street>226 3rd Street</street>
+      <city>Troy</city>
+      <code>NY 12180</code>
+      <country>United States of America</country>
+    </postal>
+    <email>mdouglass@sphericalcowgroup.com</email>
+    <uri>http://sphericalcowgroup.com</uri>
+  </address>
 </author>
 <date year="2024" month="June" day="24"></date>
 <area>Applications</area>
@@ -220,7 +220,7 @@ permission to see that this principal exists.</t>
 <ul>
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
 <t>The id of the ParticipantIdentity.</t></li>
-<li><t><strong>name</strong>: <tt>String</tt> (default: ")</t>
+<li><t><strong>name</strong>: <tt>String</tt> (default: "")</t>
 <t>The display name of the participant to use when adding this participant to an event, e.g. "Joe Bloggs".</t></li>
 <li><t><strong>calendarAddress</strong>: <tt>String</tt></t>
 <t>The URI that represents this participant for scheduling. This URI may also be the URI for one of the sendTo methods.</t></li>
@@ -279,7 +279,7 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t><
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
 <t>The id of the calendar.</t></li>
 <li><t><strong>name</strong>: <tt>String</tt></t>
-<t>The user-visible name of the calendar. This may be any UTF-8 string of at least 1 character in length and maximum 255 octets in size.</t></li>
+<t>The user-visible name of the calendar. This MUST NOT be the empty string and MUST NOT be greater than 255 octets in size when encoded as UTF-8.</t></li>
 <li><t><strong>description</strong>: <tt>String|null</tt> (default: null)</t>
 <t>An optional longer-form description of the calendar, to provide context in shared environments where users need more than just the name.</t></li>
 <li><t><strong>color</strong>: <tt>String|null</tt> (default: null)</t>
@@ -324,7 +324,7 @@ and "none" for calendars shared with the user.</t></li>
 <t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to <tt>null</tt>, or may copy the alerts from the default calendar.</t></li>
 <li><t><strong>defaultAlertsWithoutTime</strong>: <tt>Id[Alert]|null</tt></t>
-<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
+<t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is true (commonly referred to as "all day" events) and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to <tt>null</tt>, or may copy the alerts from the default calendar.</t></li>
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</t>
 <t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>. If <tt>null</tt>, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.</t></li>
@@ -462,7 +462,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 </ul></li>
 <li><t><strong>utcStart</strong>: <tt>UTCDateTime</tt></t>
 <t>For simple clients that do not implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.</t>
-<t>This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different results if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the event.</t>
+<t>This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different result if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the event.</t>
 <t>If set, the server will convert the UTC date to the event's current time zone and store the local time.</t>
 <t>This property is not included in CalendarEvent/get responses by default and must be requested explicitly.</t>
 <t>Floating events (events without a time zone) will be interpreted as per the time zone given as a CalendarEvent/get argument.</t>
@@ -578,7 +578,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <ul spacing="compact">
 <li><t><strong>sendSchedulingMessages</strong>: <tt>Boolean</tt> (default: false)</t>
 <t>If true then any changes to scheduled events will be sent to all the participants (if the server is the origin of the event) or back to the origin (otherwise). If false, the changes only affect this account and no scheduling messages will be sent.</t>
-<t>The server may send the scheduling message via any of the methods defined on the sendTo property of a participant (if the server is the origin) or the replyTo property of the event (otherwise) that it supports. If no supported methods are available, the server MUST reject the change with a <tt>noSupportedScheduleMethods</tt> SetError.</t>
+<t>The server may send the scheduling message via any of the methods defined on the sendTo property of a participant (if the server is the origin) or the replyTo property of the event (otherwise) that it supports. If no supported methods are available for any of the recipients, the server MUST reject the change with a <tt>noSupportedScheduleMethods</tt> SetError.</t>
 <t>At time of writing, the most common interoperable protocol for sending scheduling methods between participants on different servers is iMIP <xref target="RFC5546" />. A future document will provide recommendations of what iMIP messages to send based on the change for best compatibility.</t></li>
 </ul>
 <t>An id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". When the synthetic id for such an instance is given, the server MUST process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.</t>
@@ -914,7 +914,7 @@ triggered, or <tt>null</tt> if the event is not recurring.</t></li>
 </section>
 
 <section anchor="calendar-event-notifications"><name>Calendar Event Notifications</name>
-<t>The CalendarEventNotification data type records changes made by external entities to events in calendars the user is subscribed to. Notifications are stored in the same Account as the CalendarEvent that was changed.</t>
+<t>The CalendarEventNotification data type represents changes made by external entities to events in calendars that the user is subscribed to. Notifications are stored in the same Account as the CalendarEvent that was changed.</t>
 <t>Notifications are only created by the server; users cannot create them directly. Clients may present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.</t>
 <t>The server should create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to. The server SHOULD NOT create notifications for events implicitly deleted due to the containing calendar being deleted.</t>
 <t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all users with whom the calendar is shared. The server need only keep track of which users have yet to destroy the notification.</t>
@@ -1034,7 +1034,7 @@ data after the update.</t></li>
     }
   }, "2"],
   ["CalendarEvent/get", {
-  	"accountId": "a0x9",
+    "accountId": "a0x9",
     "#ids": {
       "resultOf": "2",
       "name": "CalendarEvent/query",
@@ -1049,38 +1049,38 @@ data after the update.</t></li>
   ["Calendar/get", {
     "accountId": "a0x9",
     "list": [{
-       "id": "062adcfa-105d-455c-bc60-6db68b69c3f3",
-       "name": "Private",
-       "sortOrder": 12,
-       "isDefault": false,
-       "defaultAlertsWithTime": null,
-       ...
-     }, {
-       "id": "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662",
-       "name": "Work",
-       "sortOrder": 4,
-       "isDefault": true,
-       "defaultAlertsWithTime": {
-         "631BE24C-A3B6-11EC-BF4C-B027680D752E": {
-           "@type": "Alert",
-           "action": "display",
-           "trigger": {
-             "@type": "OffsetTrigger",
-             "offset": "-PT1H",
-             "relativeTo": "start"
-           }
-         }
-       },
-       ...
-     }],
-     "notFound": [],
-     "state": "~506"
+      "id": "062adcfa-105d-455c-bc60-6db68b69c3f3",
+      "name": "Private",
+      "sortOrder": 12,
+      "isDefault": false,
+      "defaultAlertsWithTime": null,
+      ...
+    }, {
+      "id": "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662",
+      "name": "Work",
+      "sortOrder": 4,
+      "isDefault": true,
+      "defaultAlertsWithTime": {
+        "631BE24C-A3B6-11EC-BF4C-B027680D752E": {
+          "@type": "Alert",
+          "action": "display",
+          "trigger": {
+            "@type": "OffsetTrigger",
+            "offset": "-PT1H",
+            "relativeTo": "start"
+          }
+        }
+      },
+      ...
+    }],
+    "notFound": [],
+    "state": "~506"
   }, "0"],
   ["ParticipantIdentity/get", {
-  	"accountId": "a0x9",
+    "accountId": "a0x9",
     "list": [{
-       "id": "3",
-       "name": "Jane Doe",
+      "id": "3",
+      "name": "Jane Doe",
       "calendarAddress": "mailto:jane@example.com",
       "sendTo": {
         "imip": "mailto:jane@example.com",
@@ -1103,7 +1103,7 @@ data after the update.</t></li>
     ]
   }, "2"],
   ["CalendarEvent/get", {
-  	"accountId": "a0x9",
+    "accountId": "a0x9",
     "list": [{
       "id": "E-01c9626e-1490-43df-a34f-457021256281",
       "calendarIds": {
@@ -1201,8 +1201,8 @@ data after the update.</t></li>
         "replyTo": {
           "imip": "3e87-1b18bb5e6b4@itip.example.com",
           "web": "https://cal.example.com/\
-          	5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91/?\
-          	auth=bfc0-4ba3-9e44"
+            5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91/?\
+            auth=bfc0-4ba3-9e44"
         }
       }
     },
@@ -1216,11 +1216,11 @@ data after the update.</t></li>
 <t>The client is connected to the event source and receives a push:</t>
 
 <artwork>{
-	"@type": "CalendarAlert",
-	"accountId": "a0x9",
-	"calendarEventId": "E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f",
-	"uid": "b6f7e27b-5872-4b52-b457-0242541bb01c",
-	"recurrenceId": null,
+  "@type": "CalendarAlert",
+  "accountId": "a0x9",
+  "calendarEventId": "E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f",
+  "uid": "b6f7e27b-5872-4b52-b457-0242541bb01c",
+  "recurrenceId": null,
   "alertId": "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd"
 }
 </artwork>
@@ -1229,10 +1229,10 @@ data after the update.</t></li>
 
 <artwork>[
   ["CalendarEvent/get", {
-  	"accountId": "a0x9",
-  	"ids":["E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f"],
-  	"properties": ["calendarIds", "title", "start",
-  	  "timeZone", "useDefaultAlerts", "alerts"]
+    "accountId": "a0x9",
+    "ids":["E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f"],
+    "properties": ["calendarIds", "title", "start",
+      "timeZone", "useDefaultAlerts", "alerts"]
   }, "0"]
 ]
 </artwork>
@@ -1283,7 +1283,7 @@ data after the update.</t></li>
 
 [
   ["CalendarEvent/set", {
-  	"accountId": "a0x9",
+    "accountId": "a0x9",
     "update": {
       "E-01c9626e-1490-43df-a34f-457021256281": {
         "alerts/7519a951-1e6f-4a6c-b08b-20dd2e5a89cd\
@@ -1301,7 +1301,7 @@ data after the update.</t></li>
                   "parent": true
                 }
               }
-        	}
+            }
           }
         }
       }
@@ -1370,10 +1370,10 @@ makes no other change):</t>
       "descriptionContentType": "text/plain",
       "description": "Session II\n\nRemember to sign the blue sheets!",
       "locations": {
-          "eec47e7589ce131d6331b10383f89f91f8d4a4ef": {
-              "@type": "Location",
-              "name": "P3, Brisbane Convention Centre"
-          }
+        "eec47e7589ce131d6331b10383f89f91f8d4a4ef": {
+          "@type": "Location",
+          "name": "P3, Brisbane Convention Centre"
+        }
       },
       "status": "confirmed"
     }]
