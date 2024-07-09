@@ -676,13 +676,15 @@ value is less than or equal to the current "sequence" value on the server;</t></
 <t>In this example, Tom is normally going to the weekly meeting but has declined
 the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zoe too were to decline that meeting, she could update the event by just sending a patch like so:</t>
 
-<artwork>[[ "CalendarEvent/set", {
+<artwork>NOTE: '\' line wrapping per RFC 8792
+
+[[ "CalendarEvent/set", {
   "accountId": "a0x9",
   "update": {
     "123": {
-      "recurrenceOverrides/2018-03-08T09:00:00/
-          participants~1em9lQGZvb2GFtcGxlLmNvbQ~1participationStatus":
-              "declined"
+      "recurrenceOverrides/2018-03-08T09:00:00/\
+        participants~1em9lQGZvb2GFtcGxlLmNvbQ~1participationStatus":
+          "declined"
     }
   }
 }, "0" ]]
@@ -701,24 +703,28 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 </artwork>
 <t>Now if Tom were to change his mind and remove his declined status override (thus meaning he is attending, as inherited from the top-level event), he might remove his patch from the overrides like so:</t>
 
-<artwork>[[ "CalendarEvent/set", {
+<artwork>NOTE: '\' line wrapping per RFC 8792
+
+[[ "CalendarEvent/set", {
   "accountId": "a0x9",
   "update": {
     "123": {
-      "recurrenceOverrides/2018-03-08T09:00:00/
-          participants~1dG9tQGZvb2Jhci5xlLmNvbQ~1participationStatus": null
+      "recurrenceOverrides/2018-03-08T09:00:00/\
+        participants~1dG9tQGZvb2Jhci5xlLmNvbQ~1participationStatus": null
     }
   }
 }, "0" ]]
 </artwork>
 <t>However, if you instead want to remove Tom from this instance altogether, you could not send this patch:</t>
 
-<artwork>[[ "CalendarEvent/set", {
+<artwork>NOTE: '\' line wrapping per RFC 8792
+
+[[ "CalendarEvent/set", {
   "accountId": "a0x9",
   "update": {
     "123": {
-      "recurrenceOverrides/2018-03-08T09:00:00/
-          participants~1dG9tQGZvb2Jhci5xlLmNvbQ": null
+      "recurrenceOverrides/2018-03-08T09:00:00/\
+        participants~1dG9tQGZvb2Jhci5xlLmNvbQ": null
     }
   }
 }, "0" ]]
