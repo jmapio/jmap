@@ -101,7 +101,7 @@
 </section>
 
 <section anchor="urn-ietf-params-jmap-principals-availability"><name>urn:ietf:params:jmap:principals:availability</name>
-<t>Represents support for the Principal/getAvailability method. Any account with this capability MUST also have the <tt>urn:ietf:params:jmap:principals</tt> capability (see <xref target="I-D.ietf-jmap-sharing" section="1.5.1" />).</t>
+<t>Represents support for the "Principal/getAvailability" method. Any account with this capability MUST also have the <tt>urn:ietf:params:jmap:principals</tt> capability (see <xref target="I-D.ietf-jmap-sharing" section="1.5.1" />).</t>
 <t>The value of this property in the JMAP Session "capabilities" property is an empty object.</t>
 <t>The value of this property in an account's "accountCapabilities" property is an object that MUST contain the following information on server capabilities and permissions for that account:</t>
 
@@ -342,7 +342,7 @@ calendar.</t></li>
 
 <ul>
 <li><t><strong>mayReadFreeBusy</strong>: <tt>Boolean</tt></t>
-<t>The user may read the free-busy information for this calendar as part of a call to Principal/getAvailability (see <xref target="principal-getavailability" />).</t></li>
+<t>The user may read the free-busy information for this calendar as part of a call to "Principal/getAvailability" (see <xref target="principal-getavailability" />).</t></li>
 <li><t><strong>mayReadItems</strong>: <tt>Boolean</tt></t>
 <t>The user may fetch the events in this calendar.</t></li>
 <li><t><strong>mayWriteAll</strong>: <tt>Boolean</tt></t>
@@ -382,7 +382,7 @@ calendar.</t></li>
 
 <section anchor="calendar-get"><name>Calendar/get</name>
 <t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be null to fetch all at once.</t>
-<t>If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in Calendar/get and Calendar/query; it must behave as though it did not exist. The data is just used as part of Principal/getAvailability.</t>
+<t>If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in "Calendar/get" and "Calendar/query"; it must behave as though it did not exist. The data is just used as part of "Principal/getAvailability".</t>
 </section>
 
 <section anchor="calendar-changes"><name>Calendar/changes</name>
@@ -462,7 +462,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>For simple clients that do not implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.</t>
 <t>This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different result if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the event.</t>
 <t>If set, the server will convert the UTC date to the event's current time zone and store the local time.</t>
-<t>This property is not included in CalendarEvent/get responses by default and must be requested explicitly.</t>
+<t>This property is not included in "CalendarEvent/get" responses by default and must be requested explicitly.</t>
 <t>Floating events (events without a time zone) will be interpreted as per the time zone given as a "CalendarEvent/get" argument.</t>
 <t>Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the "utcStart" property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are RECOMMENDED to request the server expand recurrences (see <xref target="calendarevent-query" />).</t></li>
 <li><t><strong>utcEnd</strong>: <tt>UTCDateTime</tt></t>
@@ -580,7 +580,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>At time of writing, the most common interoperable protocol for sending scheduling methods between participants on different servers is iMIP <xref target="RFC5546" />. A future document will provide recommendations of what iMIP messages to send based on the change for best compatibility.</t></li>
 </ul>
 <t>An id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". When the synthetic id for such an instance is given, the server MUST process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.</t>
-<t>Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single "/set" request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different "recurrenceId" property) with the base event (same uid, no recurrenceId) in a single "/set" call. (So the /set will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.</t>
+<t>Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single "/set" request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different "recurrenceId" property) with the base event (same uid, no recurrenceId) in a single "/set" call. (So the "/set" will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.</t>
 <t>If a property is set to null in a create/update, this is equivalent to
 omitting/removing the property from the JSCalendar Event object.</t>
 <t>Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a <tt>forbidden</tt> SetError if not allowed.</t>
