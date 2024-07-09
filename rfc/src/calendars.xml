@@ -152,7 +152,7 @@
 <li><t><strong>showDetails</strong>: <tt>Boolean</tt></t>
 <t>If true, event details will be returned if the user has permission to view them.</t></li>
 <li><t><strong>eventProperties</strong>: <tt>String[]|null</tt></t>
-<t>A list of properties to include in any JSCalendar Event object returned. If <tt>null</tt>, all properties of the event will be returned. Otherwise, only properties with names in the given list will be returned.</t></li>
+<t>A list of properties to include in any JSCalendar Event object returned. If null, all properties of the event will be returned. Otherwise, only properties with names in the given list will be returned.</t></li>
 </ul>
 <t>The server will first find all relevant events, expanding any recurring events. Relevant events are ones where all of the following is true:</t>
 
@@ -243,7 +243,7 @@ invitees.)</t></li>
 <t>The following JMAP methods are supported.</t>
 
 <section anchor="participantidentity-get"><name>ParticipantIdentity/get</name>
-<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be <tt>null</tt> to fetch all at once.</t>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be null to fetch all at once.</t>
 </section>
 
 <section anchor="participantidentity-changes"><name>ParticipantIdentity/changes</name>
@@ -318,12 +318,12 @@ from the user's primary account.</t></li>
 and "none" for calendars shared with the user.</t></li>
 <li><t><strong>defaultAlertsWithTime</strong>: <tt>Id[Alert]|null</tt></t>
 <t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
-<t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to <tt>null</tt>, or may copy the alerts from the default calendar.</t></li>
+<t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to null, or may copy the alerts from the default calendar.</t></li>
 <li><t><strong>defaultAlertsWithoutTime</strong>: <tt>Id[Alert]|null</tt></t>
 <t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is true (commonly referred to as "all day" events) and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
-<t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to <tt>null</tt>, or may copy the alerts from the default calendar.</t></li>
+<t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to null, or may copy the alerts from the default calendar.</t></li>
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</t>
-<t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>. If <tt>null</tt>, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.</t></li>
+<t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>. If null, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[CalendarRights]|null</tt> (default: null)</t>
 <t>This is a map configuring who the calendar is shared with, or null if it is not shared with anyone. Each key in the map is the id of a Principal with whom the calendar is shared. The value for each key is the set of access rights that Principal has for the calendar. The account id for the Principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the calendar belongs.</t>
 <t>The Principal to which this calendar belongs MUST NOT be in the map.</t>
@@ -381,7 +381,7 @@ calendar.</t></li>
 <t>An event has no owner if its "participants" property is null or omitted, or if none of the Participant objects have the "owner" role.</t>
 
 <section anchor="calendar-get"><name>Calendar/get</name>
-<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be <tt>null</tt> to fetch all at once.</t>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be null to fetch all at once.</t>
 <t>If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in Calendar/get and Calendar/query; it must behave as though it did not exist. The data is just used as part of Principal/getAvailability.</t>
 </section>
 
@@ -455,7 +455,7 @@ scheduling for this event; the event has not been added as a result of an
 invitation from another calendar system)? This is true if, and only if:</t>
 
 <ul spacing="compact">
-<li><t>the event's "replyTo" property is <tt>null</tt>; or</t></li>
+<li><t>the event's "replyTo" property is null; or</t></li>
 <li><t>the account will receive messages sent to at least one of the methods specified in the "replyTo" property of the event.</t></li>
 </ul></li>
 <li><t><strong>utcStart</strong>: <tt>UTCDateTime</tt></t>
@@ -619,7 +619,7 @@ value is less than or equal to the current "sequence" value on the server;</t></
 </ul>
 
 <section anchor="patching"><name>Patching</name>
-<t>The JMAP "/set" method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, e.g. inside "localizations" or "recurrenceOverrides". In particular, you cannot add a property with value <tt>null</tt> to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property.</t>
+<t>The JMAP "/set" method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, e.g. inside "localizations" or "recurrenceOverrides". In particular, you cannot add a property with value null to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property.</t>
 <t>This is more easily understood with an example. Suppose you have a CalendarEvent object like so:</t>
 
 <artwork>{
@@ -729,7 +729,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
   }
 }, "0" ]]
 </artwork>
-<t>This would mean removing the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at path "recurrenceOverrides" -&gt; "2018-03-08T09:00:00" inside the object; but this doesn't exist. We actually want to add this property and make it map to <tt>null</tt>. The client must instead send the full object that contains the property mapping to <tt>null</tt>, like so:</t>
+<t>This would mean removing the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at path "recurrenceOverrides" -&gt; "2018-03-08T09:00:00" inside the object; but this doesn't exist. We actually want to add this property and make it map to null. The client must instead send the full object that contains the property mapping to null, like so:</t>
 
 <artwork>[[ "CalendarEvent/set", {
   "accountId": "a0x9",
@@ -826,7 +826,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 
 <section anchor="calendarevent-parse"><name>CalendarEvent/parse</name>
 <t>This method allows the client to parse blobs as <tt>iCalendar</tt> files <xref target="RFC5545"></xref> to get <tt>CalendarEvent</tt> objects. This can be used to parse, display, and import information from iCalendar files without having to implement iCalendar parsing in the client. Server support for this is optional, and indicated via the <tt>urn:ietf:params:jmap:calendars:parse</tt> capability, as per <xref target="urn-ietf-params-jmap-calendars-parse" />.</t>
-<t>The following metadata properties on the CalendarEvent objects will be <tt>null</tt> if requested:</t>
+<t>The following metadata properties on the CalendarEvent objects will be null if requested:</t>
 
 <ul spacing="compact">
 <li><t>id</t></li>
@@ -851,11 +851,11 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <li><t><strong>accountId</strong>: <tt>Id</tt></t>
 <t>The id of the account used for the call.</t></li>
 <li><t><strong>parsed</strong>: <tt>Id[CalendarEvent[]]|null</tt></t>
-<t>A map of blob ids to parsed <tt>CalendarEvent</tt> objects representations for each successfully parsed blob, or <tt>null</tt> if none.</t></li>
+<t>A map of blob ids to parsed <tt>CalendarEvent</tt> objects representations for each successfully parsed blob, or null if none.</t></li>
 <li><t><strong>notFound</strong>: <tt>Id[]|null</tt></t>
-<t>A list of blob ids given that could not be found, or <tt>null</tt> if none.</t></li>
+<t>A list of blob ids given that could not be found, or null if none.</t></li>
 <li><t><strong>notParsable</strong>: <tt>Id[]|null</tt></t>
-<t>A list of blob ids given that corresponded to blobs that could not be parsed as CalendarEvents, or <tt>null</tt> if none.</t></li>
+<t>A list of blob ids given that corresponded to blobs that could not be parsed as CalendarEvents, or null if none.</t></li>
 </ul>
 <t>Parsed <tt>iCalendars</tt> are to be converted into <tt>CalendarEvent</tt> objects following the process defined in the <eref target="https://datatracker.ietf.org/doc/draft-ietf-calext-jscalendar-icalendar">JSCalendar: Converting from and to iCalendar</eref> document.</t>
 </section>
@@ -910,7 +910,7 @@ instance.</t></li>
 <t>The "uid" property of the CalendarEvent for the alert that triggered.</t></li>
 <li><t><strong>recurrenceId</strong>: <tt>LocalDateTime|null</tt></t>
 <t>The recurrenceId for the instance of the event for which this alert is being
-triggered, or <tt>null</tt> if the event is not recurring.</t></li>
+triggered, or null if the event is not recurring.</t></li>
 <li><t><strong>alertId</strong>: <tt>String</tt></t>
 <t>The id for the alert that triggered.</t></li>
 </ul>
