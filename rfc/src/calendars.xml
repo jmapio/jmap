@@ -71,8 +71,8 @@
 <t>Users can normally subscribe to any calendar to which they have access. This indicates the user wants this calendar to appear in their regular list of calendars. The separate "isVisible" property stores whether the user would currently like to view the events in a subscribed calendar.</t>
 
 <section anchor="uids-and-calendarevent-ids"><name>UIDs and CalendarEvent Ids</name>
-<t>Each CalendarEvent has a <tt>uid</tt> property (<xref target="RFC8984" section="4.1.2" />), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.</t>
-<t>An Account MUST NOT contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their <tt>recurrenceId</tt> property. (This situation occurs if the Principal is added to one or more specific instances of a recurring event without being invited to the whole series.)</t>
+<t>Each CalendarEvent has a "uid" property (<xref target="RFC8984" section="4.1.2" />), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.</t>
+<t>An Account MUST NOT contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their "recurrenceId" property. (This situation occurs if the Principal is added to one or more specific instances of a recurring event without being invited to the whole series.)</t>
 <t>Each CalendarEvent also has an id, which is scoped to the JMAP Account and used for referencing it in JMAP methods. There is no necessary link between the uid property and the CalendarEvent's id. CalendarEvents with the same uid in different Accounts MAY have different ids.</t>
 </section>
 </section>
@@ -121,7 +121,7 @@
 <t>For systems that also support JMAP Sharing <xref target="I-D.ietf-jmap-sharing" />, the <tt>urn:ietf:params:jmap:calendars</tt> capability is used to indicate that this Principal may be used with calendaring. A new method is defined to allow users to query availability when scheduling events.</t>
 
 <section anchor="principal-capability-urn-ietf-params-jmap-calendars"><name>Principal Capability urn:ietf:params:jmap:calendars</name>
-<t>A <tt>urn:ietf:params:jmap:calendars</tt> property is added to the Principal "capabilities" object, the value of which is an object with the following properties:</t>
+<t>A "urn:ietf:params:jmap:calendars" property is added to the Principal "capabilities" object, the value of which is an object with the following properties:</t>
 
 <ul>
 <li><t><strong>accountId</strong>: <tt>Id|null</tt></t>
@@ -580,7 +580,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>At time of writing, the most common interoperable protocol for sending scheduling methods between participants on different servers is iMIP <xref target="RFC5546" />. A future document will provide recommendations of what iMIP messages to send based on the change for best compatibility.</t></li>
 </ul>
 <t>An id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". When the synthetic id for such an instance is given, the server MUST process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.</t>
-<t>Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single "/set" request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different <tt>recurrenceId</tt> property) with the base event (same uid, no <tt>recurrenceId</tt>) in a single "/set" call. (So the /set will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.</t>
+<t>Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single "/set" request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different "recurrenceId" property) with the base event (same uid, no recurrenceId) in a single "/set" call. (So the /set will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.</t>
 <t>If a property is set to null in a create/update, this is equivalent to
 omitting/removing the property from the JSCalendar Event object.</t>
 <t>Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a <tt>forbidden</tt> SetError if not allowed.</t>
@@ -627,49 +627,49 @@ value is less than or equal to the current "sequence" value on the server;</t></
   "title": "FooBar team meeting",
   "start": "2018-01-08T09:00:00",
   "recurrenceRules": [{
-   "@type": "RecurrenceRule",
-   "frequency": "weekly"
+    "@type": "RecurrenceRule",
+    "frequency": "weekly"
   }],
   "replyTo": {
-   "imip": "mailto:6489-4f14-a57f-c1@schedule.example.com"
+    "imip": "mailto:6489-4f14-a57f-c1@schedule.example.com"
   },
   "participants": {
-   "dG9tQGZvb2Jhci5xlLmNvbQ": {
-     "@type": "Participant",
-     "name": "Tom",
-     "email": "tom@foobar.example.com",
-     "calendarAddress": "mailto:6489-4f14-a57f-c1@calendar.example.com",
-     "sendTo": {
-       "imip": "mailto:6489-4f14-a57f-c1@calendar.example.com"
-     },
-     "participationStatus": "accepted",
-     "roles": {
-       "attendee": true
-     }
-   },
-   "em9lQGZvb2GFtcGxlLmNvbQ": {
-     "@type": "Participant",
-     "name": "Zoe",
-     "email": "zoe@foobar.example.com",
-     "calendarAddress": "mailto:zoe@foobar.example.com",
-     "sendTo": {
-       "imip": "mailto:zoe@foobar.example.com",
-       "other": "https://foobar.example.com/zoe/itip"
-     },
-     "participationStatus": "accepted",
-     "roles": {
-       "owner": true,
-       "attendee": true,
-       "chair": true
-     }
-   },
-   "recurrenceOverrides": {
-     "2018-03-08T09:00:00": {
-       "start": "2018-03-08T10:00:00",
-       "participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus":
-                                                           "declined"
-     }
-   }
+    "dG9tQGZvb2Jhci5xlLmNvbQ": {
+      "@type": "Participant",
+      "name": "Tom",
+      "email": "tom@foobar.example.com",
+      "calendarAddress": "mailto:6489-4f14-a57f-c1@calendar.example.com",
+      "sendTo": {
+        "imip": "mailto:6489-4f14-a57f-c1@calendar.example.com"
+      },
+      "participationStatus": "accepted",
+      "roles": {
+        "attendee": true
+      }
+    },
+    "em9lQGZvb2GFtcGxlLmNvbQ": {
+      "@type": "Participant",
+      "name": "Zoe",
+      "email": "zoe@foobar.example.com",
+      "calendarAddress": "mailto:zoe@foobar.example.com",
+      "sendTo": {
+        "imip": "mailto:zoe@foobar.example.com",
+        "other": "https://foobar.example.com/zoe/itip"
+      },
+      "participationStatus": "accepted",
+      "roles": {
+        "owner": true,
+        "attendee": true,
+        "chair": true
+      }
+    },
+    "recurrenceOverrides": {
+      "2018-03-08T09:00:00": {
+        "start": "2018-03-08T10:00:00",
+        "participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus":
+          "declined"
+      }
+    }
   }
 }
 </artwork>
@@ -695,9 +695,9 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
   "2018-03-08T09:00:00": {
     "start": "2018-03-08T10:00:00",
     "participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus":
-                                                       "declined",
+      "declined",
     "participants/em9lQGZvb2GFtcGxlLmNvbQ/participationStatus":
-                                                       "declined"
+      "declined"
   }
 }
 </artwork>
@@ -738,7 +738,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
       "recurrenceOverrides/2018-03-08T09:00:00": {
         "start": "2018-03-08T10:00:00",
         "participants/em9lQGZvb2GFtcGxlLmNvbQ/participationStatus":
-                                                       "declined",
+          "declined",
         "participants/dG9tQGZvb2Jhci5xlLmNvbQ": null
       }
     }
