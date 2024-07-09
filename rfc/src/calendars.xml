@@ -325,7 +325,9 @@ and "none" for calendars shared with the user.</t></li>
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</t>
 <t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>. If <tt>null</tt>, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[CalendarRights]|null</tt> (default: null)</t>
-<t>A map of Principal id to rights for principals this calendar is shared with. The principal to which this calendar belongs MUST NOT be in this set. This is null if the calendar is not shared with anyone. May be modified only if the user has the mayShare right. The account id for the principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the calendar belongs.</t></li>
+<t>This is a map configuring who the calendar is shared with, or null if it is not shared with anyone. Each key in the map is the id of a Principal with whom the calendar is shared. The value for each key is the set of access rights that Principal has for the calendar. The account id for the Principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the calendar belongs.</t>
+<t>The Principal to which this calendar belongs MUST NOT be in the map.</t>
+<t>The property may only be modified if the user has the mayShare right.</t></li>
 <li><t><strong>myRights</strong>: <tt>CalendarRights</tt> (server-set)</t>
 <t>The set of access rights the user has in relation to this Calendar. If any event is in multiple calendars, the user has the following rights:</t>
 
@@ -522,7 +524,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 </section>
 
 <section anchor="updating-for-this-and-future"><name>Updating for "this-and-future"</name>
-<t>When editing a recurring event, you can either update the base event (affecting all instances unless overriden) or update an override for a specific occurrence. To update all occurrences from a specific point onwards, there are therefore two options: split the event, or update the base event and override all occurrences before the split point back to their original values.</t>
+<t>When editing a recurring event, you can either update the base event (affecting all instances unless overridden) or update an override for a specific occurrence. To update all occurrences from a specific point onwards, there are therefore two options: split the event, or update the base event and override all occurrences before the split point back to their original values.</t>
 
 <section anchor="splitting-an-event"><name>Splitting an event</name>
 <t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar <xref target="RFC8984" section="4.1.3" />, a "next" and "first" relation MUST be set on the new objects respectively.</t>
@@ -582,7 +584,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>If a property is set to null in a create/update, this is equivalent to
 omitting/removing the property from the JSCalendar Event object.</t>
 <t>Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a <tt>forbidden</tt> SetError if not allowed.</t>
-<t>The "privacy" property of a JSCalendar Event object allows the principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If this is set to "private", the event may only be destroyed or updated by the owner of the calendar it is in. Any attempt by another user to modify such an event MUST be rejected with a <tt>forbidden</tt> SetError (even if only modifying per-user properties). If set to "secret", the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.</t>
+<t>The "privacy" property of a JSCalendar Event object allows the Principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If this is set to "private", the event may only be destroyed or updated by the owner of the calendar it is in. Any attempt by another user to modify such an event MUST be rejected with a <tt>forbidden</tt> SetError (even if only modifying per-user properties). If set to "secret", the server MUST behave as though the event does not exist for all users other than the Principal that owns the calendar.</t>
 <t>The "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar, or a calendar shared by another user). The server MUST reject this with an <tt>invalidProperties</tt> SetError.</t>
 <t>If omitted on create, the server MUST set the following properties to an appropriate value:</t>
 
@@ -721,7 +723,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
   }
 }, "0" ]]
 </artwork>
-<t>This would mean remove the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at path "recurrenceOverrides" -&gt; "2018-03-08T09:00:00" inside the object; but this doesn't exist. We actually want to add this property and make it map to <tt>null</tt>. The client must instead send the full object that contains the property mapping to <tt>null</tt>, like so:</t>
+<t>This would mean removing the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at path "recurrenceOverrides" -&gt; "2018-03-08T09:00:00" inside the object; but this doesn't exist. We actually want to add this property and make it map to <tt>null</tt>. The client must instead send the full object that contains the property mapping to <tt>null</tt>, like so:</t>
 
 <artwork>[[ "CalendarEvent/set", {
   "accountId": "a0x9",
@@ -856,7 +858,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <section anchor="alerts"><name>Alerts</name>
 <t>Alerts may be specified on events as described in <xref target="RFC8984" section="4.5" />.</t>
 <t>Alerts MUST only be triggered for events in calendars where the user is subscribed.</t>
-<t>When an alert with an "email" action is triggered, the server MUST send an email to the user to notify them of the event. The contents of the email is implementation specific. Clients MUST NOT perform an action for these alerts.</t>
+<t>When an alert with an "email" action is triggered, the server MUST send an email to the user to notify them of the event. The content of the email is implementation specific. Clients MUST NOT perform an action for these alerts.</t>
 <t>When an alert with a "display" action is triggered, clients should display an alert in a platform-appropriate manner to the user to remind them of the event. Clients with a full offline cache of events may choose to calculate when alerts should trigger locally. Alternatively, they can subscribe to push events from the server.</t>
 
 <section anchor="default-alerts"><name>Default alerts</name>
@@ -879,7 +881,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 
 <ol spacing="compact">
 <li><t>Acknowledge the alert as described in <xref target="acknowledging-an-alert" />.</t></li>
-<li><t>Add a new alert to the event with an <tt>AbsoluteTrigger</tt> for the date-time the alert has been snoozed until. Add a "relatedTo" property to the new alert, setting the "parent" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert that was acknowledged in step 1.</t></li>
+<li><t>Add a new alert to the event that has an <tt>AbsoluteTrigger</tt> specifying the date-time when the alert will trigger again. Add a "relatedTo" property to the new alert, setting the "parent" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert that was acknowledged in step 1.</t></li>
 </ol>
 <t>When acknowledging a snoozed alert (i.e. one with a parent relatedTo pointing to the original alert), the client should delete the alert rather than setting the "acknowledged" property.</t>
 </section>
@@ -955,7 +957,7 @@ property in an iTIP message), if any.</t></li>
 <li><t><strong>calendarEventId</strong>: <tt>Id</tt></t>
 <t>The id of the CalendarEvent that this notification is about.</t></li>
 <li><t><strong>isDraft</strong>: <tt>Boolean</tt> (created/updated only)</t>
-<t>Is this event a draft?</t></li>
+<t>True if the event is a draft.</t></li>
 <li><t><strong>event</strong>: <tt>JSCalendar Event</tt></t>
 <t>The data before the change (if updated or destroyed), or the data
 after creation (if created).</t></li>
@@ -1419,7 +1421,7 @@ makes no other change):</t>
 <section anchor="firing-alerts"><name>Firing alerts</name>
 <t>An alert firing for an event can cause a notification to be pushed to the user's devices, or to send them an email. Servers MUST rate limit the number of alerts sent for any one user. The combination of recurring events with multiple alerts can in particular define unreasonably frequent alerts, leading to denial of service for either the server processing them or the user's devices receiving them.</t>
 <t>Similarly, clients generating alerts from the data on device must take the same precautions.</t>
-<t>The "email" alert type (see <xref target="RFC8984" section="4.5.2" />) causes an email to be sent when triggered. Clients MUST ignore this alert type; the email is sent only be the calendar server. There is no mechanism in JSCalendar to specify a particular email address: the server MUST only allow alerts to be sent to an address it has verified as belonging to the user to avoid this being used as a spamming vector.</t>
+<t>The "email" alert type (see <xref target="RFC8984" section="4.5.2" />) causes an email to be sent when triggered. Clients MUST ignore this alert type; the email is sent only by the calendar server. There is no mechanism in JSCalendar to specify a particular email address: the server MUST only allow alerts to be sent to an address it has verified as belonging to the user to avoid this being used as a spamming vector.</t>
 </section>
 
 <section anchor="load-spikes"><name>Load spikes</name>
