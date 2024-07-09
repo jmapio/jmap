@@ -72,7 +72,7 @@
 
 <section anchor="uids-and-calendarevent-ids"><name>UIDs and CalendarEvent Ids</name>
 <t>Each CalendarEvent has a <tt>uid</tt> property (<xref target="RFC8984" section="4.1.2" />), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.</t>
-<t>An Account MUST NOT contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their <tt>recurrenceId</tt> property. (This situation occurs if the principal is added to one or more specific instances of a recurring event without being invited to the whole series.)</t>
+<t>An Account MUST NOT contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their <tt>recurrenceId</tt> property. (This situation occurs if the Principal is added to one or more specific instances of a recurring event without being invited to the whole series.)</t>
 <t>Each CalendarEvent also has an id, which is scoped to the JMAP Account and used for referencing it in JMAP methods. There is no necessary link between the uid property and the CalendarEvent's id. CalendarEvents with the same uid in different Accounts MAY have different ids.</t>
 </section>
 </section>
@@ -118,27 +118,27 @@
 </section>
 
 <section anchor="principals-and-sharing"><name>Principals and Sharing</name>
-<t>For systems that also support JMAP Sharing <xref target="I-D.ietf-jmap-sharing" />, the <tt>urn:ietf:params:jmap:calendars</tt> capability is used to indicate that this principal may be used with calendaring. A new method is defined to allow users to query availability when scheduling events.</t>
+<t>For systems that also support JMAP Sharing <xref target="I-D.ietf-jmap-sharing" />, the <tt>urn:ietf:params:jmap:calendars</tt> capability is used to indicate that this Principal may be used with calendaring. A new method is defined to allow users to query availability when scheduling events.</t>
 
 <section anchor="principal-capability-urn-ietf-params-jmap-calendars"><name>Principal Capability urn:ietf:params:jmap:calendars</name>
 <t>A <tt>urn:ietf:params:jmap:calendars</tt> property is added to the Principal "capabilities" object, the value of which is an object with the following properties:</t>
 
 <ul>
 <li><t><strong>accountId</strong>: <tt>Id|null</tt></t>
-<t>Id of Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability that contains the calendar data for this principal, or null if either (a) there is none (e.g. the Principal is a group just used for permissions management), or (b) the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property). The corresponding Account object can be found in the principal's "accounts" property, as per <xref target="I-D.ietf-jmap-sharing" section="2" />.</t></li>
+<t>Id of Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability that contains the calendar data for this Principal, or null if either (a) there is none (e.g. the Principal is a group just used for permissions management), or (b) the user does not have access to any data in the account (with the exception of free/busy, which is governed by the mayGetAvailability property). The corresponding Account object can be found in the Principal's "accounts" property, as per <xref target="I-D.ietf-jmap-sharing" section="2" />.</t></li>
 <li><t><strong>mayGetAvailability</strong>: <tt>Boolean</tt></t>
 <t>If true, the user may call the "Principal/getAvailability" method with this Principal.</t></li>
 <li><t><strong>mayShareWith</strong>: <tt>Boolean</tt></t>
-<t>If true, the user may add this principal as a calendar share target (by adding them to the shareWith property of a calendar, see <xref target="calendars" />).</t></li>
+<t>If true, the user may add this Principal as a calendar share target (by adding them to the shareWith property of a calendar, see <xref target="calendars" />).</t></li>
 <li><t><strong>calendarAddress</strong>: <tt>String</tt></t>
-<t>If this principal may be added as a participant to an event, this is the calendarAddress to use to represent it.</t></li>
+<t>If this Principal may be added as a participant to an event, this is the calendarAddress to use to represent it.</t></li>
 <li><t><strong>sendTo</strong>: <tt>String[String]|null</tt></t>
-<t>If this principal may be added as a participant to an event, this is the Participant#sendTo property to add (see <xref target="RFC8984" section="4.4.5" />) for scheduling messages to reach it.</t></li>
+<t>If this Principal may be added as a participant to an event, this is the Participant#sendTo property to add (see <xref target="RFC8984" section="4.4.5" />) for scheduling messages to reach it.</t></li>
 </ul>
 </section>
 
 <section anchor="principal-getavailability"><name>Principal/getAvailability</name>
-<t>This method calculates the availability of the principal for scheduling within a requested time period. It takes the following arguments:</t>
+<t>This method calculates the availability of the Principal for scheduling within a requested time period. It takes the following arguments:</t>
 
 <ul>
 <li><t><strong>accountId</strong>: <tt>Id</tt></t>
@@ -157,14 +157,14 @@
 <t>The server will first find all relevant events, expanding any recurring events. Relevant events are ones where all of the following is true:</t>
 
 <ul spacing="compact">
-<li><t>The principal is subscribed to the calendar.</t></li>
-<li><t>The "includeInAvailability" property of the calendar for the principal is "all" or "attending".</t></li>
+<li><t>The Principal is subscribed to the calendar.</t></li>
+<li><t>The "includeInAvailability" property of the calendar for the Principal is "all" or "attending".</t></li>
 <li><t>The user has the "mayReadFreeBusy" permission for the calendar.</t></li>
 <li><t>The event finishes after the "utcStart" argument and starts before the "utcEnd" argument.</t></li>
 <li><t>The event's "privacy" property is not "secret".</t></li>
 <li><t>The "freeBusyStatus" property of the event is "busy" (or omitted, as this is the default).</t></li>
 <li><t>The "status" property of the event is not "cancelled".</t></li>
-<li><t>If the "includeInAvailability" property of the calendar is "attending", then the principal is a participant of the event, and has a "participationStatus" of "accepted" or "tentative".</t></li>
+<li><t>If the "includeInAvailability" property of the calendar is "attending", then the Principal is a participant of the event, and has a "participationStatus" of "accepted" or "tentative".</t></li>
 </ul>
 <t>If an event is in more than one calendar, it is relevant if all of the above are true for any one calendar that it is in.</t>
 <t>The server then generates a BusyPeriod object for each of these events. A <strong>BusyPeriod</strong> object has the following properties:</t>
@@ -178,11 +178,11 @@
 <t>This MUST be one of</t>
 
 <ul spacing="compact">
-<li><t><tt>confirmed</tt>: The event status is "confirmed" and the principal's</t>
+<li><t><tt>confirmed</tt>: The event status is "confirmed" and the Principal's</t>
 <t>"participationStatus" is "attending".</t></li>
-<li><t><tt>tentative</tt>: The event status is "tentative" or the principal's</t>
+<li><t><tt>tentative</tt>: The event status is "tentative" or the Principal's</t>
 <t>"participationStatus" is "tentative".</t></li>
-<li><t><tt>unavailable</tt>: The principal is not available for scheduling at this time</t>
+<li><t><tt>unavailable</tt>: The Principal is not available for scheduling at this time</t>
 <t>for any other reason.</t></li>
 </ul></li>
 <li><t><strong>event</strong>: <tt>JSCalendar Event|null</tt></t>
@@ -196,7 +196,7 @@
 <t>If an eventProperties argument was given, any properties in the JSCalendar Event that are not in the eventProperties list are removed from the returned representation.</t>
 </li>
 </ul>
-<t>The server MAY also generate BusyPeriod objects based on other information it has about the principal's availability, such as office hours.</t>
+<t>The server MAY also generate BusyPeriod objects based on other information it has about the Principal's availability, such as office hours.</t>
 <t>Finally, the server MUST merge and split BusyPeriod objects where the "event" property is null, such that none of them overlap and either there is a gap in time between any two objects (the utcEnd of one does not equal the utcStart of another) or those objects have a different busyStatus property. If there are overlapping BusyPeriod time ranges with different "busyStatus" properties the server MUST choose the value in the following order: confirmed &gt; unavailable &gt; tentative.</t>
 <t>The response has the following argument:</t>
 
@@ -206,9 +206,9 @@
 </ul>
 <t>The following additional errors may be returned instead of the
 "Principal/getAvailability" response:</t>
-<t><tt>notFound</tt>: No principal with this id exists, or the user does not have
-permission to see that this principal exists.</t>
-<t><tt>forbidden</tt>: The user does not have permission to query this principal's availability.</t>
+<t><tt>notFound</tt>: No Principal with this id exists, or the user does not have
+permission to see that this Principal exists.</t>
+<t><tt>forbidden</tt>: The user does not have permission to query this Principal's availability.</t>
 <t><tt>tooLarge</tt>: The duration between utcStart and utcEnd is longer than the server is willing to calculate availability for.</t>
 <t><tt>rateLimit</tt>: Too many availability requests have been made recently and the user is being rate limited. It may work to try again later.</t>
 </section>
@@ -392,7 +392,7 @@ calendar.</t></li>
 
 <ul>
 <li><t><strong>onDestroyRemoveEvents</strong>: <tt>Boolean</tt> (default: false)</t>
-<t>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This MUST NOT send scheduling messages to participants. It SHOULD NOT create CalendarEventNotification objects - a calendar with a large number of events would create an overwhelming number of CalendarEventNotifications. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="I-D.ietf-jmap-sharing" section="3"/>) MUST be created for each principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</t>
+<t>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This MUST NOT send scheduling messages to participants. It SHOULD NOT create CalendarEventNotification objects - a calendar with a large number of events would create an overwhelming number of CalendarEventNotifications. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="I-D.ietf-jmap-sharing" section="3"/>) MUST be created for each Principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</t>
 </li>
 <li><t><strong>onSuccessSetIsDefault</strong>: <tt>Id|null</tt></t>
 <t>If an id is given, and all creates, updates and destroys (if any) succeed
@@ -409,7 +409,7 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t>
 </ul>
 
 <t>The "shareWith" property may only be set by users that have the mayShare right.
-When modifying the shareWith property, the user cannot give a right to a principal if the principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a <tt>forbidden</tt> SetError.</t>
+When modifying the shareWith property, the user cannot give a right to a Principal if the Principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a <tt>forbidden</tt> SetError.</t>
 <t>Users can subscribe or unsubscribe to a calendar by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
 <t>The following properties may be set by anyone who is subscribed to the calendar and are always stored per-user:</t>
 
@@ -553,14 +553,14 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>A requested id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRules" and "recurrenceOverrides" properties MUST be returned as null if requested for such an event.</t>
 <t>An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions, etc.</t>
 <t>The "hideAttendees" property of a JSCalendar Event object allows the event owner(s) to hide the full set of participants when sharing the event. If this is true, when a non-owner fetches the event the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.</t>
-<t>The "privacy" property of a JSCalendar Event object allows the principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If set to "private", then when another user fetches the event the server MUST only return properties that are:</t>
+<t>The "privacy" property of a JSCalendar Event object allows the Principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If set to "private", then when another user fetches the event the server MUST only return properties that are:</t>
 
 <ul spacing="compact">
 <li><t>the basic time and metadata properties of the JSCalendar Event object as specified in <xref target="RFC8984" section="4.4.3" />; or</t></li>
 <li><t>properties that are wholly derived from these permitted properties (i.e., utcStart, utcEnd); or</t></li>
 <li><t>Additional CalendarEvent properties not derived from the JSCalendar Event data (i.e., id, baseEventId, calendarIds, isDraft, isOrigin).</t></li>
 </ul>
-<t>If "privacy" is set to "secret", the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.</t>
+<t>If "privacy" is set to "secret", the server MUST behave as though the event does not exist for all users other than the Principal that owns the calendar.</t>
 </section>
 
 <section anchor="calendarevent-changes"><name>CalendarEvent/changes</name>
