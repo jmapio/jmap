@@ -1,0 +1,429 @@
+# Introduction
+
+This document pulls together several existing standards and specifies a specific profile using them to allow for interoperable modern authentication for clients of open protocols, such as IMAP, JMAP, SMTP, POP, CalDAV, and CardDAV. For these protocols, there are many servers and many clients with no pre-existing relationship, that need to be able to connect. At the moment, the only interoperable way to do so is with a basic username and password, which have many deficiences from a security standpoint.
+
+## Presumptions
+
+This OAuth flow presumes you have a username that is used to identify the user, along with:
+
+1. The set of services that may be available for this username
+   (e.g., JMAP/IMAP/SMTP/POP/CardDAV/CalDAV);
+2. The Application Server endpoint to connect to in order to access them;
+   (e.g. a JMAP session endpoint `https://api.example.com/jmap/session`, or an IMAP endpoint `imaps://imap.example.com:993`).
+3. The authorization server issuer identifier, needed to do OAuth, e.g.
+   `https://auth.example.com`.
+
+Ideally, the client may use an autodiscovery mechanism to find these given the username. Such a mechanism is out of scope of this document.
+
+## Scopes
+
+To work interoperably, clients and server must use a standard set of scopes for access. A separate document will bring together an autodiscovery mechanism (to get the details described above), this document (for authorization), and a set of standard scopes.
+
+## Notational Conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
+
+# The Open Public Client OAuth Profile
+
+## Overview
+
+OAuth 2 can be used in many different ways. This document specifies one particular set of options to ensure interoperability and security. Servers may implement more options, but MUST support the flow as described in this document for interoperability with clients. Similarly, clients may choose to support additional flows but there is no guarantee that this will be interoperable.
+
+The general flow works like this:
+
+1. The OAuth 2.0 Authorization Server Metadata ([@!RFC8414]) is fetched.
+2. The client registers with the authorization server to get a client id using
+   the OAuth 2.0 Dynamic Client Registration Protocol ([@!RFC7591]).
+3. The client authorizes using the Authorization Code Grant flow ([@!RFC6749],
+   Section 4.1) with PKCE ([@!RFC7636]), Issuer Identification ([@!RFC9207]) and
+   Resource Indicators ([@!RFC8707]).
+4. The client gets an access token and refresh token (as per [@!RFC6749],
+   Section 5).
+
+The access token can now be used as a Bearer token to authenticate requests to the application servers as per [@!RFC6750] for HTTP requests, or [@!RFC7628] for SASL authentication. When it expires, a new one can be requested using the refresh token as per [@!RFC6749], Section 6.
+
+The rest of this document describes in detail each of the above steps.
+
+## Fetching the Authorization Server Data
+
+The authorization server issuer identifier MUST be an HTTPS URL with no query parameters or fragment part. Otherwise, abort the flow. The authorization server metadata may be fetched by a GET request to the path found by removing any trailing `/` and then appending `/.well-known/oauth-authorization-server` to this URL.
+
+When fetched, a successful response is indicated by a 200 OK HTTP status code. The reponse MUST have an "application/json" content type. Anything else MUST be treated as an error, and the flow MUST be aborted.
+
+The authorization server metadata is a JSON document with properties as specified in [@!RFC8414]. It MUST include the following properties:
+
+* issuer
+
+      The authorization server's issuer identifier. This MUST be identical to the issuer identifier used to fetch this document. For example, if this document was fetched from https://example.com/foo/.well-known/oauth-authorization-server, the issuer MUST be "https://example.com/foo". If not, the flow MUST be aborted.
+
+      This MUST be verified again during the authorization flow (see Section XXX), to prevent against mix-up attacks (as defined in [@!RFC9207]).
+
+* registration_endpoint
+
+      The URL the client will use to register, to get a client id it needs for authentication (see Section XXX).
+
+* authorization_endpoint
+
+      The URL the client will use to start the authentication process (see Section XXX) once it has registered.
+
+* token_endpoint
+
+      The URL the client will use to get an access token after successful authentication (see Section XXX).
+
+* scopes_supported
+
+      An array of supported scopes on the server (see Section XXX).
+
+* response_types_supported
+
+      A list of response types supported in the OAuth authorization flow. This is an array of strings that MUST include "code".
+
+* grant_types_supported
+
+      A list of the OAuth 2.0 grant type values that this authorization server supports. This is an array of strings that MUST include "authorization_code" and "refresh_token".
+
+* token_endpoint_auth_methods_supported
+
+      This is an array of strings that MUST include "none".
+
+* code_challenge_methods_supported
+
+      An array of strings listing Proof Key for Code Exchange (PKCE) [@!RFC7636]
+      code challenge methods supported by this authorization server.
+      This MUST include "S256".
+
+* authorization_response_iss_parameter_supported
+
+      This MUST have the boolean value true.
+
+The metadata MAY include other properties, or other values for multi-valued properties, however clients are not required to understand or use any of them for interoperability.
+
+It is RECOMMENDED servers support DPoP ([@!RFC9449]) to allow sender-constrained refresh and access tokens for HTTP-based protocols. Servers that support DPoP MUST include the following property:
+
+* dpop_signing_alg_values_supported
+
+      A JSON array containing a list of the JWS alg values (from the [IANA.JOSE.ALGS] registry) supported by the authorization server for DPoP proof JWTs, as defined in [@!RFC9449], Section 5.1.
+
+Also of possible interest to client/server implementors following this document:
+
+* revocation_endpoint
+
+      The URL the client can use to revoke their tokens, as per [@!RFC7009].
+
+* revocation_endpoint_auth_methods_supported
+
+      If a revocation_endpoint is included, this property MUST be included,
+      and is an array of strings that MUST include "none".
+
+Clients MUST verify the required properties are present and conform to the requirements of this document. If not, the server is not using OAuth in conformance with this document and no compatibility may be presumed. It is RECOMMENDED clients abort the flow in such a case.
+
+## Dynamic Client Registration
+
+To register, the client sends an HTTP POST to the client registration endpoint (as found in the metadata) with a content type of "application/json", and a body consisting of a JSON document with the following properties:
+
+* redirect_uris
+
+      An array of URIs the client may use to receive back information at the
+      end of the authorization flow. Each URI MUST satisfy all of these
+      conditions:
+
+      * The URI MUST start with one of the following:
+        - http://127.0.0.1/
+        - http://::1/
+        - A private-use scheme in reverse domain notation,
+          e.g., `com.example:/`. Such a scheme MUST have at
+          least one dot in it.
+      * The URI MUST NOT include two consecutive dots (e.g., `/../`).
+      * The URI MUST NOT include a fragment part (`#`).
+
+      The URI may include a path and query parameters. Clients MUST generate
+      a unique redirect URI for each authorization server they register with
+      to ensure they can protect against mix up attacks (see later).
+
+* token_endpoint_auth_method
+
+      This MUST be "none".
+
+* grant_types
+
+      This is an array of strings that MUST include "authorization_code" and "refresh_token".
+
+* response_types
+
+      This is an array of strings that MUST include "code".
+
+* scope
+
+      A string containing a space-separated list of scope values the client
+      may request access for. (Note! This is not a JSON array.)
+
+* client_name
+
+      Human-readable string name of the client to be presented to the
+      end-user during authorization.
+
+* client_uri
+
+      A URL string of a web page providing information about the client. This
+      MUST use HTTPS.
+
+* logo_uri
+
+      A URL for a logo to display for this client. This SHOULD be square, and
+      in a PNG or SVG image format. This MUST use HTTPS.
+
+* tos_uri
+
+      A URL that points to a human-readable terms of service or license document for the client. This MUST use HTTPS.
+
+* policy_uri
+
+      A URL that points to a human-readable privacy policy document for the
+      client. This MUST use HTTPS.
+
+* software_id
+
+      A unique identifier string (e.g., a Universally Unique Identifier
+      (UUID)) assigned by the client developer or software publisher, used by
+      registration endpoints to identify the client software to be
+      dynamically registered.  Unlike "client_id", which is issued by the
+      authorization server and SHOULD vary between instances, the
+      "software_id" SHOULD remain the same for all instances of the client
+      software.  The "software_id" SHOULD remain the same across multiple
+      updates or versions of the same piece of software. The value of this
+      field is not intended to be human readable and is usually opaque to the
+      client and authorization server.
+
+* software_version
+
+      A version identifier string for the client software identified by
+      "software_id".  The value of the "software_version" SHOULD change on
+      any update to the client software identified by the same
+      "software_id".  The value of this field is intended to be compared
+      using string equality matching and no other comparison semantics are
+      defined by this specification.
+
+If the server indicated in its metadata that it supports DPoP [@!RFC9449] and the client is intending to authenticate all requests using DPoP, the client SHOULD also include the following property:
+
+* dpop_bound_access_tokens
+
+      true
+
+(If set, the server MUST then require all token requests from this client use DPoP. Note, DPoP is only currently defined for HTTP protocols, so this precludes usage for non-HTTP procols as of time of writing.)
+
+The server will check that all required properties are present and have valid values. Any unknown properties supplied by the client MUST just be ignored. The authorization server MAY replace any of the client's requested metadata values submitted during the registration and substitute them with suitable values.
+
+If there is an exact match for all properties except for software_version, an existing registration may be returned. Otherwise, servers SHOULD create a new registration and client id.
+
+There is no way to verify the authenticity of the information supplied by the client, however the general case of accurate information is still useful to the server, for example to be able to contact client authors to help debug issues if aberrant behaviour is observed. Servers MAY choose to ignore all of the information instead and just return a static client id to all requests.
+
+The redirect URI restrictions MUST be enforced. These ensure the OAuth flow can only be completed by native clients — not web clients. Since a malicious native client could present the user with a custom browser to phish credentials anyway, the lack of verification of client registration details does not provide additional danger beyond existing threats. Allowing seamless dynamic registration for web-based clients however, unfortunately makes it much easier for a phishing site to gain access to an account, by sending the user through the OAuth flow.
+
+If successful, the server responds with an HTTP 201 Created status code and a body of type "application/json", with the content being a JSON object containing all the properties submitted during registration (with their values as set by the server, if overwritten), plus the following property:
+
+* client_id
+
+      The OAuth 2.0 client identifier string, used in the authorization flow (
+      see Section XXX).
+
+If the registration fails, the server will respond with an HTTP 400 status code and a JSON body as described in [@!RFC7591], section 3.2.2.
+
+## Authorization
+
+Clients initiate authorization by opening the authorization_endpoint URL in a web browser, with the following additional query parameters:
+
+* client_id
+
+      The client id as returned in the registration.
+
+* redirect_uri
+
+      One of the redirect uris registered by the client. This MUST be identical to the registered URI. The one exception to this is if a
+      URI with the prefix "http://127.0.0.1/" or "http://::1/" was registered, in which case the matching URI MUST also include an arbitrary port.
+
+      For example, if "http://127.0.0.1/redirect" was registered, then the
+      client could send "http://127.0.0.1:49152/redirect" as the redirect_uri
+      for authorization.
+
+* response_type
+
+      This MUST be "code".
+
+* scope
+
+      A space delimited set of scopes the client would like access to. This
+        MUST be a subset of the scopes registered for the client.
+
+* code_challenge
+
+      A PKCE code challenge as per [@!RFC7636], using SHA 256. To generate a
+      challenge, first generate a code_verifier: a high-entropy cryptographic
+      random STRING using the unreserved characters
+      `[A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"`
+      from Section 2.3 of [@!RFC3986], with a minimum length of 43 characters
+      and a maximum length of 128 characters.
+
+      The code_challenge is then
+      `BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))`
+
+* code_challenge_method
+
+      This MUST be "S256".
+
+* resource
+
+      The URL for the initial resource endpoint (as returned in the autodiscover) you wish to access after successful authorization. For example, "https://api.example.com/jmap/session". If you wish to use multiple protocols, the client MUST include multiple "resource" query parameters: one for each endpoint. The server MUST verify that all requested endpoints are permitted locations to send access tokens to (i.e., they are the real endpoints resource associated with this authentication server), in order to prevent mix up attacks.
+
+* state
+
+      An opaque value used by the client to verify that an authorization
+      response is due to a request that the client initiated. The
+      authorization server will include this value when redirecting the
+      user-agent back to the client.  Clients MUST generate a state with a
+      unique, unguessable random string when initiating an authorization
+      request.
+
+* login_hint (optional)
+
+      The username the user originally asked to log in with. The server can prefill this in a login form. Note, the user may choose to log in with a different username.
+
+The authorization server MUST verify all required parameters, and that they conform to the restrictions in this document. Other URL parameters MAY be supplied but will be ignored.
+
+If verified, the authorization server will authenticate the user and ask them if they wish to grant authorization to the client. If successful, the client will receive a response via the redirect_uri, which will include the following query parameters:
+
+* code
+
+      The authorization code. This may be exchanged for the refresh token. This code MUST have a limited expiry, which MUST be at least 10 minutes from authorization. It MUST NOT be used again once the client has successfully exchanged it for a refresh token. Doing so may cause the server to detect it as stolen and revoke all associated tokens.
+
+* state
+
+      The value of the state parameter that was passed in with the initial
+      request.
+
+* iss
+
+      The issuer identifier of the authorization server.
+
+The client MUST verify all of the following:
+
+* The "iss" returned is identical to the "issuer" property in the metadata
+  object. This is critical for preventing against various mix-up attacks should a malicious OAuth metadata object be fetched, as discussed in the security considerations.
+* The state returned matches exactly the state it sent, to verify that this
+  request was indeed initiated by the client and not an attacker.
+* The redirect URI the authorization response came in on was the one they used
+  when generating the request. This prevents mix-up attacks when the client supports more than one authorization server, where it thinks it was authenticating against one AS, but actually the user authenticated with another AS.
+
+If any verification fails, the client MUST abort the flow and not send the authorization code anywhere.
+
+## Obtaining a Refresh Token
+
+Following authorization, the client will obtain initial refresh and
+access tokens by making a POST request to the token_endpoint URL. The following parameters MUST be present, using the "application/x-www-form-urlencoded" format with a character encoding of UTF-8 in the HTTP request entity-body:
+
+* client_id
+
+      The client id as returned in the registration.
+
+* redirect_uri
+
+      The redirect_uri parameter sent with the authorization request from
+      which the code was obtained.
+
+* grant_type
+
+      This MUST be "authorization_code".
+
+* code
+
+      The code returned via the redirect back from authorization.
+
+* code_verifier
+
+      The code_verifier generated for the authorization (the random string generated in the authorization step, as per [@!RFC7636]).
+
+Other parameters MAY be supplied but will be ignored. If using DPoP, the client MUST also set a DPoP header in accordance with [@!RFC9449], Section 5.
+
+The server will verify the parameters and if successful, return a `200 OK`
+response with a content type of application/json. The body will be a JSON
+object with the following properties:
+
+* access_token
+
+      A bearer token used to authenticate API requests. This will be valid for a fixed, limited time.
+
+* token_type
+
+      The type of the access token. This MUST be "bearer".
+
+* expires_in
+
+      The lifetime in seconds of the access token. For example, the value `3600` denotes that the access token will expire in one hour from the time the response was generated.
+
+* scope
+
+      The space delimited set of scopes that this access token may use.
+
+* refresh_token
+
+      The refresh token to use next time the client needs to get a new access token.
+
+## Using the access_token
+
+The client is now authenticated. It can connect to the servers given in the discovered auto config with the Bearer scheme [@!RFC6750]. For HTTP based protocols, this means setting an `Authorization` header with the value `Bearer {access_token}`.
+
+If using DPoP, the client must also set a DPoP header in accordance with [@!RFC9449], Section 7.
+
+## Getting a New Access Token
+
+Client should keep using an access token they have been issued until it expires,
+which will result in getting a `401` error back.
+
+When the access token expires, the client must get a new one by making another POST request to the authorization server token endpoint. The following parameters MUST be present, using the "application/x-www-form-urlencoded" format with a character encoding of UTF-8 in the HTTP request entity-body:
+
+* client_id
+
+      The client id as returned in the registration.
+
+* grant_type
+
+      This MUST be "refresh_token".
+
+* refresh_token
+
+      The refresh token returned last time the client obtained a new access
+      token.
+
+The success and failures responses are identical to those documented in
+"Obtaining a refresh token" (Section XXX).
+
+A new refresh token SHOULD be returned in the response and the client MUST replace their previous refresh token with this if given. The client MUST NOT try to use an old refresh token again; this SHOULD result in the authorization being revoked as a protection against leaked refresh tokens.
+
+If a user has multiple devices with a client installed, each instance of the client MUST obtain separate authorization. You cannot share a refresh token between devices.
+
+# Security Considerations
+
+This profile mandates OAuth best practices, as defined in [draft-ietf-oauth-security-topics]. Implementors are encouraged to read this document for a more thorough consideration of the specific threats and mitigations with OAuth.
+
+The choices made for this profile are intended to mitigate as far as possible the inherent risks that come from allowing arbitrary clients to talk to arbitrary servers.
+
+The key restriction of this profile is that the redirect_uri MUST be something only a native client can access. If the user has downloaded and run a malicious native app, it could already indetectably spoof the user's browser to phish them, or in unsandboxed environments install malware, so supporting the OAuth flow from an unknown client is not increasing risks. Indeed, it is more secure than the current alternative, which is legitimate clients storing the user's password.
+
+The dynamic registration part of this document is not a security component, as there is no way to verify any of the data. The data in the registration may be shown to the user as part of the authorisation flow, which may help with phishing, but as noted above the redirect_uri can only be used by a native app, which could already phish the user. However, the registration gives the server more information to detect suspicious behaviour, which can help it to detect compromised users and devices more easily.
+
+The issuer is expected to be autodetected from the user's email address. A threat scenario that must be considered is the user making a small typo in the domain (especially for a common email service), and an attacker controlling this domain. In this scenario the client will fetch the OAuth metadata from the attacker's server, and has no way to know it is not the real server the user wishes to connect to. This leads to a number of threats:
+
+1. The attacker defines a malicious authorization_endpoint under their control.
+   They attempt to phish the user's credentials with this. This is not something that can be specifically mitigated by the requirements of this document, however requiring origin-bound authentication such as passkeys for authentication will mitigate this, and most browsers have a block list of known phishing sites that can also help mitigate this.
+
+2. The attacker defines the real authorization_endpoint and token_endpoint, but
+   their own resource servers. This is protected against by the use of Resource Indicators ([@!RFC8707]) - the client must send the list of all resource endpoints it intends to connect to with the authorization request. If an unknown resource server is present, the server can reject the request.
+
+      It is also protected against via the issuer identifier. The authorization response will include an "iss" parameter which will be the legitimate issuer identifier. However, the issuer for the metadata will not match, as this must be at the attacker's domain (if it were not, the client will have aborted the flow after fetching the metadata, as it would not match the domain it was fetched from). Therefore a client following this specification will abort the flow and not send the authorization code to the token endpoint.
+
+3. The attacker defines the real authorization_endpoint and resource servers,
+   but their own token_endpoint. The issuer identifier check above will also protect against this.
+
+# IANA Considerations
+
+This document does not introduce any IANA considerations.
+
