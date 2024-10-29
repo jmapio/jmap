@@ -284,8 +284,8 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</t><
 <t>An optional longer-form description of the calendar, to provide context in shared environments where users need more than just the name.</t></li>
 <li><t><strong>color</strong>: <tt>String|null</tt> (default: null)</t>
 <t>A color to be used when displaying events associated with the calendar.</t>
-<t>If not null, the value MUST be a case-insensitive color name taken from the set of names defined in Section 4.3 of CSS Color Module Level 3 <eref target="https://www.w3.org/TR/css-color-3/">COLORS</eref>, or an RGB value in hexadecimal notation, as defined in Section 4.2.1 of CSS Color Module Level 3.</t>
-<t>The color SHOULD have sufficient contrast to be used as text on a white background.</t></li>
+<t>If not null, the value MUST be a case-insensitive color name taken from the set of names defined in Section 4.3 of CSS Color Module Level 3 <xref target="COLORS" />, or an RGB value in hexadecimal notation, as defined in Section 4.2.1 of CSS Color Module Level 3.</t>
+<t>The color SHOULD have sufficient contrast when used as text on a white background, unless the user explicitly chooses otherwise. The Web Content Accessibility Guidelines <xref target="WCAG" /> recommend at least a 4.5:1 contrast ratio for readability.</t></li>
 <li><t><strong>sortOrder</strong>: <tt>UnsignedInt</tt> (default: 0)</t>
 <t>Defines the sort order of calendars when presented in the client's UI, so it
 is consistent between devices. The number MUST be an integer in the range
@@ -323,7 +323,7 @@ and "none" for calendars shared with the user.</t></li>
 <t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is true (commonly referred to as "all day" events) and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to null, or may copy the alerts from the default calendar.</t></li>
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</t>
-<t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <eref target="https://www.iana.org/time-zones">TZDB</eref>. If null, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new events in this calendar if set.</t></li>
+<t>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <xref target="IANA-TZDB" />. If null, the timeZone of the account's associated Principal will be used.</t></li>
 <li><t><strong>shareWith</strong>: <tt>Id[CalendarRights]|null</tt> (default: null)</t>
 <t>This is a map configuring who the calendar is shared with, or null if it is not shared with anyone. Each key in the map is the id of a Principal with whom the calendar is shared. The value for each key is the set of access rights that Principal has for the calendar. The account id for the Principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the calendar belongs.</t>
 <t>The Principal to which this calendar belongs MUST NOT be in the map.</t>
@@ -394,7 +394,7 @@ calendar.</t></li>
 
 <ul>
 <li><t><strong>onDestroyRemoveEvents</strong>: <tt>Boolean</tt> (default: false)</t>
-<t>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This MUST NOT send scheduling messages to participants. It SHOULD NOT create CalendarEventNotification objects - a calendar with a large number of events would create an overwhelming number of CalendarEventNotifications. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="I-D.ietf-jmap-sharing" section="3"/>) MUST be created for each Principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</t>
+<t>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This MUST NOT send scheduling messages to participants. It MAY create CalendarEventNotification objects, if deemed likely to be helpful to the user. In the case of a calendar with a large number of events, the large number of notifications resulting from the single deletion is unlikely to be useful to the user, and the server MAY choose to omit creating them. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="I-D.ietf-jmap-sharing" section="3"/>) MUST be created for each Principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</t>
 </li>
 <li><t><strong>onSuccessSetIsDefault</strong>: <tt>Id|null</tt></t>
 <t>If an id is given, and all creates, updates and destroys (if any) succeed
@@ -920,7 +920,7 @@ triggered, or null if the event is not recurring.</t></li>
 <section anchor="calendar-event-notifications"><name>Calendar Event Notifications</name>
 <t>The CalendarEventNotification data type represents changes made by external entities to events in calendars that the user is subscribed to. Notifications are stored in the same Account as the CalendarEvent that was changed.</t>
 <t>Notifications are only created by the server; users cannot create them directly. Clients may present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.</t>
-<t>The server should create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to. The server SHOULD NOT create notifications for events implicitly deleted due to the containing calendar being deleted.</t>
+<t>The server should create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to.</t>
 <t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all users with whom the calendar is shared. The server need only keep track of which users have yet to destroy the notification.</t>
 
 <section anchor="auto-deletion-of-notifications"><name>Auto-deletion of Notifications</name>
@@ -1436,7 +1436,7 @@ makes no other change):</t>
 </section>
 
 <section anchor="spam"><name>Spam</name>
-<t>Invitations received from an untrusted source may be spam. If this is added to the user's calendar automatically it can be very obtrusive, especially if it is a recurring event that now appears every day. Incoming invitations to events should be subject to spam scanning, and suspicious events should not be added to the calendar automatically.</t>
+<t>Invitations received from an untrusted source may be spam. If this is added to the user's calendar automatically it can be very obtrusive, especially if it is a recurring event that now appears every day. It could also be used to attempt to phish the user, or cause them to physically go to a location included in the event. Incoming invitations to events should be subject to spam scanning, and suspicious events should not be added to the calendar automatically.</t>
 <t>Servers should strip any alerts on invitations when adding to the user's calendar; the "useDefaultAlerts" property should be set instead to apply the user's preferences.</t>
 <t>Similarly, a malicious user may use a calendar system to send spam by inviting people to an event. Outbound scheduling messages should be subject to all the same controls used on outbound email systems, and rate limited as appropriate. A rate limit on the number of distinct recipients as well as overall messages is recommended.</t>
 </section>
@@ -1446,56 +1446,68 @@ makes no other change):</t>
 
 <section anchor="jmap-capability-registration-for-calendars"><name>JMAP Capability Registration for "calendars"</name>
 <t>IANA will register the "calendars" JMAP Capability as follows:</t>
-<t>Capability Name: <tt>urn:ietf:params:jmap:calendars</tt></t>
-<t>Specification document: this document</t>
-<t>Intended use: common</t>
-<t>Change Controller: IETF</t>
-<t>Security and privacy considerations: this document, <xref target="urn-ietf-params-jmap-calendars" /></t>
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd><tt>urn:ietf:params:jmap:calendars</tt></dd>
+<dt>Specification document:</dt> <dd>this document</dd>
+<dt>Intended use:</dt> <dd>common</dd>
+<dt>Change Controller:</dt> <dd>IETF</dd>
+<dt>Security and privacy considerations:</dt> <dd>this document, <xref target="urn-ietf-params-jmap-calendars" /></dd>
+</dl>
 </section>
 
 <section anchor="jmap-capability-registration-for-principals-availability"><name>JMAP Capability Registration for "principals:availability"</name>
 <t>IANA will register the "principals:availability" JMAP Capability as follows:</t>
-<t>Capability Name: <tt>urn:ietf:params:jmap:principals:availability</tt></t>
-<t>Specification document: this document</t>
-<t>Intended use: common</t>
-<t>Change Controller: IETF</t>
-<t>Security and privacy considerations: this document, <xref target="urn-ietf-params-jmap-principals-availability" /></t>
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd><tt>urn:ietf:params:jmap:principals:availability</tt></dd>
+<dt>Specification document:</dt> <dd>this document</dd>
+<dt>Intended use:</dt> <dd>common</dd>
+<dt>Change Controller:</dt> <dd>IETF</dd>
+<dt>Security and privacy considerations:</dt> <dd>this document, <xref target="urn-ietf-params-jmap-principals-availability" /></dd>
+</dl>
 </section>
 
 <section anchor="jmap-data-type-registration-for-calendar"><name>JMAP Data Type Registration for "Calendar"</name>
-<t>IANA will register the "Calendar" JMAP Data Type as follows:</t>
-<t>Type Name: <tt>Calendar</tt></t>
-<t>Can reference blobs: no</t>
-<t>Can Use for State Change: yes</t>
-<t>Capability: <tt>urn:ietf:params:jmap:calendars</tt></t>
-<t>Specification document: this document</t>
+<t>IANA will register "Calendar" in the "JMAP Data Types" registry as follows:</t>
+<dl newline="false" spacing="compact">
+<dt>Type Name:</dt> <dd>Calendar</dd>
+<dt>Can reference blobs:</dt> <dd>no</dd>
+<dt>Can Use for State Change:</dt> <dd>yes</dd>
+<dt>Capability:</dt> <dd><tt>urn:ietf:params:jmap:calendars</tt></dd>
+<dt>Specification document:</dt> <dd>this document</dd>
+</dl>
 </section>
 
 <section anchor="jmap-data-type-registration-for-calendarevent"><name>JMAP Data Type Registration for "CalendarEvent"</name>
-<t>IANA will register the "CalendarEvent" JMAP Data Type as follows:</t>
-<t>Type Name: <tt>CalendarEvent</tt></t>
-<t>Can reference blobs: yes</t>
-<t>Can Use for State Change: yes</t>
-<t>Capability: <tt>urn:ietf:params:jmap:calendars</tt></t>
-<t>Specification document: this document</t>
+<t>IANA will register "CalendarEvent" in the "JMAP Data Types" registry as follows:</t>
+<dl newline="false" spacing="compact">
+<dt>Type Name:</dt> <dd>CalendarEvent</dd>
+<dt>Can reference blobs:</dt> <dd>yes</dd>
+<dt>Can Use for State Change:</dt> <dd>yes</dd>
+<dt>Capability:</dt> <dd><tt>urn:ietf:params:jmap:calendars</tt></dd>
+<dt>Specification document:</dt> <dd>this document</dd>
+</dl>
 </section>
 
 <section anchor="jmap-data-type-registration-for-calendareventnotification"><name>JMAP Data Type Registration for "CalendarEventNotification"</name>
-<t>IANA will register the "CalendarEventNotification" JMAP Data Type as follows:</t>
-<t>Type Name: <tt>CalendarEventNotification</tt></t>
-<t>Can reference blobs: no</t>
-<t>Can Use for State Change: yes</t>
-<t>Capability: <tt>urn:ietf:params:jmap:calendars</tt></t>
-<t>Specification document: this document</t>
+<t>IANA will register "CalendarEventNotification" in the "JMAP Data Types" registry as follows:</t>
+<dl newline="false" spacing="compact">
+<dt>Type Name:</dt> <dd>CalendarEventNotification</dd>
+<dt>Can reference blobs:</dt> <dd>no</dd>
+<dt>Can Use for State Change:</dt> <dd>yes</dd>
+<dt>Capability:</dt> <dd><tt>urn:ietf:params:jmap:calendars</tt></dd>
+<dt>Specification document:</dt> <dd>this document</dd>
+</dl>
 </section>
 
 <section anchor="jmap-data-type-registration-for-participantidentity"><name>JMAP Data Type Registration for "ParticipantIdentity"</name>
-<t>IANA will register the "ParticipantIdentity" JMAP Data Type as follows:</t>
-<t>Type Name: <tt>ParticipantIdentity</tt></t>
-<t>Can reference blobs: no</t>
-<t>Can Use for State Change: yes</t>
-<t>Capability: <tt>urn:ietf:params:jmap:calendars</tt></t>
-<t>Specification document: this document</t>
+<t>IANA will register "ParticipantIdentity" in the "JMAP Data Types" registry as follows:</t>
+<dl newline="false" spacing="compact">
+<dt>Type Name:</dt> <dd>ParticipantIdentity</dd>
+<dt>Can reference blobs:</dt> <dd>no</dd>
+<dt>Can Use for State Change:</dt> <dd>yes</dd>
+<dt>Capability:</dt> <dd><tt>urn:ietf:params:jmap:calendars</tt></dd>
+<dt>Specification document:</dt> <dd>this document</dd>
+</dl>
 </section>
 
 <section anchor="jmap-error-codes-registry" title="JMAP Error Codes Registry">
@@ -1504,27 +1516,33 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </t>
 
 <section anchor="calendarhasevent" title="calendarHasEvent">
-<t>JMAP Error Code: calendarHasEvent</t>
-<t>Intended use: common</t>
-<t>Change controller: IETF</t>
-<t>Reference: This document, <xref target="calendar-set"/></t>
-<t>Description: The Calendar has at least one CalendarEvent assigned to it, and the "onDestroyRemoveEvents" argument was false.</t>
+<dl newline="false" spacing="compact">
+<dt>JMAP Error Code:</dt> <dd>calendarHasEvent</dd>
+<dt>Intended use:</dt> <dd>common</dd>
+<dt>Change controller:</dt> <dd>IETF</dd>
+<dt>Reference:</dt> <dd>This document, <xref target="calendar-set"/></dd>
+<dt>Description:</dt> <dd>The Calendar has at least one CalendarEvent assigned to it, and the "onDestroyRemoveEvents" argument was false.</dd>
+</dl>
 </section>
 
 <section anchor="nosupportedschedulemethods" title="noSupportedScheduleMethods">
-<t>JMAP Error Code: noSupportedScheduleMethods</t>
-<t>Intended use: common</t>
-<t>Change controller: IETF</t>
-<t>Reference: This document, <xref target="calendarevent-set"/></t>
-<t>Description: The server was requested to send scheduling messages, but does not support any of the methods available for at least one of the recipients.</t>
+<dl newline="false" spacing="compact">
+<dt>JMAP Error Code:</dt> <dd>noSupportedScheduleMethods</dd>
+<dt>Intended use:</dt> <dd>common</dd>
+<dt>Change controller:</dt> <dd>IETF</dd>
+<dt>Reference:</dt> <dd>This document, <xref target="calendarevent-set"/></dd>
+<dt>Description:</dt> <dd>The server was requested to send scheduling messages, but does not support any of the methods available for at least one of the recipients.</dd>
+</dl>
 </section>
 
 <section anchor="cannotcalculateoccurrences" title="cannotCalculateOccurrences">
-<t>JMAP Error Code: cannotCalculateOccurrences</t>
-<t>Intended use: common</t>
-<t>Change controller: IETF</t>
-<t>Reference: This document, <xref target="calendarevent-query"/></t>
-<t>Description: The server cannot expand a recurrence required to return the results for the requested query.</t>
+<dl newline="false" spacing="compact">
+<dt>JMAP Error Code:</dt> <dd>cannotCalculateOccurrences</dd>
+<dt>Intended use:</dt> <dd>common</dd>
+<dt>Change controller:</dt> <dd>IETF</dd>
+<dt>Reference:</dt> <dd>This document, <xref target="calendarevent-query"/></dd>
+<dt>Description:</dt> <dd>The server cannot expand a recurrence required to return the results for the requested query.</dd>
+</dl>
 </section>
 </section>
 
@@ -1554,95 +1572,117 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <t>IANA will register the following additional properties in the JSCalendar Properties Registry.</t>
 
 <section anchor="id"><name>id</name>
-<t>Property Name: id</t>
-<t>Property Type: Not applicable</t>
-<t>Property Context: Event, Task</t>
-<t>Intended Use: Reserved</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>id</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="baseeventid"><name>baseEventId</name>
-<t>Property Name: baseEventId</t>
-<t>Property Type: Not applicable</t>
-<t>Property Context: Event, Task</t>
-<t>Intended Use: Reserved</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>baseEventId</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="calendarids"><name>calendarIds</name>
-<t>Property Name: calendarIds</t>
-<t>Property Type: Not applicable</t>
-<t>Property Context: Event, Task</t>
-<t>Intended Use: Reserved</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>calendarIds</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="isdraft"><name>isDraft</name>
-<t>Property Name: isDraft</t>
-<t>Property Type: Not applicable</t>
-<t>Property Context: Event, Task</t>
-<t>Intended Use: Reserved</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>isDraft</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="isorigin"><name>isOrigin</name>
-<t>Property Name: isOrigin</t>
-<t>Property Type: Not applicable</t>
-<t>Property Context: Event, Task</t>
-<t>Intended Use: Reserved</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>isOrigin</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="utcstart"><name>utcStart</name>
-<t>Property Name: utcStart</t>
-<t>Property Type: Not applicable</t>
-<t>Property Context: Event, Task</t>
-<t>Intended Use: Reserved</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>utcStart</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="utcend"><name>utcEnd</name>
-<t>Property Name: utcEnd</t>
-<t>Property Type: Not applicable</t>
-<t>Property Context: Event, Task</t>
-<t>Intended Use: Reserved</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>utcEnd</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="calendar-address-1"><name>calendarAddress</name>
-<t>Property Name: calendarAddress</t>
-<t>Property Type: <tt>String</tt></t>
-<t>Property Context: Participant</t>
-<t>Reference: This document, <xref target="calendar-address" />.</t>
-<t>Intended Use: Common</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>calendarAddress</dd>
+<dt>Property Type:</dt> <dd><tt>String</tt></dd>
+<dt>Property Context:</dt> <dd>Participant</dd>
+<dt>Reference:</dt> <dd>This document, <xref target="calendar-address" />.</dd>
+<dt>Intended Use:</dt> <dd>Common</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="mayinviteself-1"><name>mayInviteSelf</name>
-<t>Property Name: mayInviteSelf</t>
-<t>Property Type: <tt>Boolean</tt> (default: false)</t>
-<t>Property Context: Event, Task</t>
-<t>Reference: This document, <xref target="mayinviteself" />.</t>
-<t>Intended Use: Common</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>mayInviteSelf</dd>
+<dt>Property Type:</dt> <dd><tt>Boolean</tt> (default: false)</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Reference:</dt> <dd>This document, <xref target="mayinviteself" />.</dd>
+<dt>Intended Use:</dt> <dd>Common</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="mayinviteothers-1"><name>mayInviteOthers</name>
-<t>Property Name: mayInviteOthers</t>
-<t>Property Type: <tt>Boolean</tt> (default: false)</t>
-<t>Property Context: Event, Task</t>
-<t>Reference: This document, <xref target="mayinviteothers" />.</t>
-<t>Intended Use: Common</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>mayInviteOthers</dd>
+<dt>Property Type:</dt> <dd><tt>Boolean</tt> (default: false)</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Reference:</dt> <dd>This document, <xref target="mayinviteothers" />.</dd>
+<dt>Intended Use:</dt> <dd>Common</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 
 <section anchor="hideattendees-1"><name>hideAttendees</name>
-<t>Property Name: hideAttendees</t>
-<t>Property Type: <tt>Boolean</tt> (default: false)</t>
-<t>Property Context: Event, Task</t>
-<t>Reference: This document, <xref target="hideattendees" />.</t>
-<t>Intended Use: Common</t>
-<t>Is per-user: no</t>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>hideAttendees</dd>
+<dt>Property Type:</dt> <dd><tt>Boolean</tt> (default: false)</dd>
+<dt>Property Context:</dt> <dd>Event, Task</dd>
+<dt>Reference:</dt> <dd>This document, <xref target="hideattendees" />.</dd>
+<dt>Intended Use:</dt> <dd>Common</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
 </section>
 </section>
 </section>
@@ -1663,11 +1703,41 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8984.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9562.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-jmap-sharing.xml"/>
+<reference anchor="IANA-TZDB"
+ target="https://www.iana.org/time-zones">
+ <front>
+   <title>Time Zone Database</title>
+   <author>
+     <organization>IANA</organization>
+   </author>
+   <date/>
+ </front>
+</reference>
+<reference anchor="COLORS"
+ target="https://www.w3.org/TR/css-color-3/">
+ <front>
+   <title>CSS Color Module Level 3</title>
+   <author>
+     <organization>W3C</organization>
+   </author>
+   <date/>
+ </front>
+</reference>
 </references>
 <references><name>Informative References</name>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4791.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5546.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8607.xml"/>
+<reference anchor="WCAG"
+ target="https://www.w3.org/TR/WCAG21/">
+ <front>
+   <title>Web Content Accessibility Guidelines</title>
+   <author>
+     <organization>W3C</organization>
+   </author>
+   <date/>
+ </front>
+</reference>
 </references>
 
 </back>
