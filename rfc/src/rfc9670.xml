@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- pre-edited by ST 04/19/24 -->
-
-<!-- draft submitted in xml v3 --> 
-
 <!DOCTYPE rfc [
  <!ENTITY nbsp    "&#160;">
  <!ENTITY zwsp   "&#8203;">
@@ -14,13 +10,6 @@
 <rfc version="3" ipr="trust200902" docName="draft-ietf-jmap-sharing-09" number="9670" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" tocInclude="true" consensus="true" updates="8620" obsoletes="" symRefs="true" sortRefs="true">
 
   <front>
-
-<!-- [rfced] Please note that the title of the document has been
-updated as follows
-
-[neilj] OK.
--->
-
 
     <title abbrev="JMAP Sharing">JSON Meta Application Protocol (JMAP) Sharing</title>
     <seriesInfo name="RFC" value="9670"/> 
@@ -108,11 +97,6 @@ updated as follows
 <t>If <tt>urn:ietf:params:jmap:principals:owner</tt> is a key in an Account's "accountCapabilities" property, that Account (and the data therein) is owned by a Principal. Some Accounts may not be owned by a Principal (e.g., the Account that contains the data for the Principals themselves), in which case this property is omitted.</t>
 <t>The value of this property is an object with the following properties:</t>
 
-<!--[rfced] Formatting of lists. 
-
-[neilj] I think the <dl> option you've done is probably the best, thanks. I have updated a sublist that was still using the old format to match.
--->
-
 <dl spacing="normal" newline="true">
 <dt><strong>accountIdForPrincipal</strong>: <tt>Id</tt></dt><dd>
 The id of an Account with the <tt>urn:ietf:params:jmap:principals</tt>
@@ -129,14 +113,6 @@ capability that contains the corresponding Principal object.</dd>
 <t>In a shared environment, such as a workplace, a user may have access to a large number of Principals.</t>
 <t>In most systems, the user will have access to a single Account containing Principal objects. In some situations, for example, when aggregating data from different places, there may be multiple Accounts containing Principal objects.</t>
 <t>A <strong>Principal</strong> object has the following properties:</t>
-
-<!--[rfced] Section 2. Should the links to the IANA Time Zone Database
-and "JMAP Data Types" registry perhaps be citations with
-corresponding entries in the Informative Reference section as
-shown below?
-
-[neilj]: Yes, this is better, thanks. I have done this.
--->
 
 <dl spacing="normal" newline="true">
 <dt><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</dt>
@@ -171,12 +147,6 @@ for this Principal that the user has access to, or <tt>null</tt> if none.</dd>
 
 <section anchor="principal-changes"><name>Principal/changes</name>
 <t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" sectionFormat="comma"></xref>.</t>
-
-<!--[rfced] Sections 2.2 and 2.5. FYI: We enclosed the "Notes" (two
-instances) in the aside element.
-
-[neilj] This is fine, thanks.
--->
 
 <aside><t>Note: Implementations backed by an external directory may be unable to calculate changes. In this case, they will always return a "cannotCalculateChanges" error as described in the core JMAP specification.</t></aside>
 </section>
@@ -218,20 +188,6 @@ instances) in the aside element.
 <aside><t>Note: Implementations backed by an external directory may be unable to calculate changes. In this case, they will always return a "cannotCalculateChanges" error as described in the core JMAP specification.</t></aside>
 </section>
 </section>
-
-<!-- [rfced] We have a couple of questions regarding "ShareNotification":
-
-A) Section 3 has the title "Share Notifications" (with a space) while the
-information that follows uses "ShareNotification" (no space). Should we update
-the title to no space (e.g., "ShareNotifications")?
-
-[neilj] Yes, I have done this.
-
-B) We see ShareNotification with <tt> tags, <strong> tags, and no tags. 
-How may we update for consistency?
-
-[neilj] I have removed the <tt> tags for the name in the IANA registration, which I don't think is needed (and done the same with Principal). The only <strong>ShareNotification</strong> is when defining the set of properties that make up the data type, which is a convention used throughout this document, so I think is fine and not inconsistent.
--->
 
 <section anchor="share-notifications"><name>ShareNotifications</name>
 <t>The ShareNotification data type records when the user's permissions to access a shared object changes. ShareNotifications are only created by the server; users cannot create them explicitly. Notifications are stored in the same Account as the Principals.</t>
@@ -350,13 +306,6 @@ How may we update for consistency?
 <dd>The user may see and modify the "myRights" property of this TodoList and may destroy this TodoList.</dd>
 </dl>
 
-<!--[rfced] Are the three common properties that this sentence refers
-to the ones that are explained directly above (i.e., mayRead,
-mayWrite, and mayAdmin)?
-
-[neilj] No, it's the "isSubscribed", "myRights", and "shareWith" as described in Section 4. I have updated the text to reference this.
--->
-
 <t>Then in the TodoList data type, we would include the three common
    properties described in <xref target="framework-for-shared-data" />, in addition to any type-specific
    properties (like "name" in this case):</t>
@@ -371,15 +320,7 @@ mayWrite, and mayAdmin)?
 <dt><strong>myRights</strong>: <tt>TodoListRights</tt></dt>
 <dd>The set of permissions the user currently has for this TodoList.</dd>
 <dt><strong>shareWith</strong>: <tt>Id[TodoListRights]|null</tt></dt>
-
-<!--[rfced] Section 4.1. Would it be correct to say that the
-id-to-rights map is "given to the Principal" (instead of
-"to give that Principal") as shown below?
-
-[neilj] I don't think that's quite right. I have attempted to rewrite this to be clearer. If you think it's still unclear, please let me know and we can iterate again.
--->
-
-<dd>If not shared with anyone, the value is <tt>null</tt>. Otherwise, it's a map where the keys are Principal ids and the values are the rights given to the Principal. Users with the "mayAdmin" right may set this property to modify who the data is shared with. The Principal that owns the Account that this data is in <bcp14>MUST NOT</bcp14> be in the map; their rights are implicit.</dd>
+<dd>If not shared with anyone, the value is <tt>null</tt>. Otherwise, it's a map where the keys are Principal ids and the values are the rights given to those Principals. Users with the "mayAdmin" right may set this property to modify who the data is shared with. The Principal that owns the Account that this data is in <bcp14>MUST NOT</bcp14> be in the map; their rights are implicit.</dd>
 </dl>
 
 <t>We would also define a new Principal capability with two properties:</t>
@@ -391,16 +332,10 @@ id-to-rights map is "given to the Principal" (instead of
 <dd>The user may give this Principal permission to access a TodoList.</dd>
 </dl>
 
-<!--[rfced] Section 4.1. Figures 1-4 do not have titles. If you would
-like to include titles, please provide the text.
-
-[neilj] Done.
--->
-
 <t>A client wishing to let the user configure sharing would look at the "capabilities" for the Account containing the user's Todo data and find the "urn:ietf:params:jmap:principals:owner" property, as per <xref target="urn-ietf-params-jmap-principals-owner"></xref>. For example, the JMAP Session object might contain:</t>
 
 <figure>
-<name>Part of a JMAP Session object</name>
+<name>Part of a JMAP Session Object</name>
 <sourcecode type="json">
 {
   "accounts": {
@@ -422,19 +357,12 @@ like to include titles, please provide the text.
 }</sourcecode>
 </figure>
 
-<!--[rfced] Section 4.1. Does "it" refer to the "client" in this
-sentence? Please let us know if we may rephrase the text as shown
-below for clarity.
-
-[neilj] Yes, I have adopted your suggested text.
--->
-
 <t>From this, the client now knows which Account has the Principal data,
    and it can fetch the list of Principals and offer to share it with
    the user by making an API request like this:</t>
 
 <figure>
-<name>"methodCalls" property of a JMAP Request</name>
+<name>"methodCalls" Property of a JMAP Request</name>
 <sourcecode type="json">
 [[ "Principal/get", {
   "accountId": "u33084183",
@@ -442,18 +370,11 @@ below for clarity.
 }, "0" ]]</sourcecode>
 </figure>
 
-<!--[rfced] Section 4.1. May we update "but who has not" to "even
-though Joe has not" as shown below? Please let us know if the
-suggested update provides clarity or if you prefer otherwise.
-
-[neilj] The suggested text is not quite correct. I have rewritten it to try to better convey what I was attempting to explain. Let me know if this is still unclear.
--->
-
 <t>Here's an example response (where "Joe Bloggs" is another user that this user could share their TodoList with; Joe has not shared any of their own data with this user, so the "accounts" property is <tt>null</tt>):
 </t>
 
 <figure>
-<name>"methodResponses" property of a JMAP Response</name>
+<name>"methodResponses" Property of a JMAP Response</name>
 <sourcecode type="json">
 [[ "Principal/get", {
   "accountId": "u33084183",
@@ -485,7 +406,7 @@ suggested update provides clarity or if you prefer otherwise.
 <t>A TodoList can be shared with "Joe Bloggs" by updating its shareWith property, as in this example request:</t>
 
 <figure>
-<name>"methodCalls" property of a JMAP Request</name>
+<name>"methodCalls" Property of a JMAP Request</name>
 <sourcecode type="json">
 [[ "TodoList/set", {
   "accountId": "u12345678",
@@ -540,16 +461,8 @@ suggested update provides clarity or if you prefer otherwise.
 
 <section anchor="iana-considerations"><name>IANA Considerations</name>
 
-<!--[rfced] IANA Considerations (Section 7)
-
-Please review all of the IANA-related updates carefully and
-let us know if any further updates are needed.
-
-[neilj] These all look good, thank you.
--->
-
 <section anchor="jmap-capability-registration-for-principals"><name>JMAP Capability Registration for "principals"</name>
-<t>IANA has registered the "principals" JMAP Capability in the "JMAP Capabilities" registry as follows:</t>
+<t>IANA has registered "principals" in the "JMAP Capabilities" registry as follows:</t>
 <dl newline="false" spacing="compact">
   <dt>Capability Name:</dt> <dd><tt>urn:ietf:params:jmap:principals</tt></dd>
   <dt>Intended Use:</dt> <dd>common</dd>
@@ -561,7 +474,7 @@ let us know if any further updates are needed.
 </section>
 
 <section anchor="jmap-capability-registration-for-principals-owner"><name>JMAP Capability Registration for "principals:owner"</name>
-<t>IANA has registered the "principals:owner" JMAP Capability in the "JMAP Capabilities" registry as follows:</t>
+<t>IANA has registered "principals:owner" in the "JMAP Capabilities" registry as follows:</t>
 <dl newline="false" spacing="compact">
   <dt>Capability Name:</dt> <dd><tt>urn:ietf:params:jmap:principals:owner</tt></dd>
   <dt>Intended Use:</dt> <dd>common</dd>
@@ -572,7 +485,7 @@ let us know if any further updates are needed.
 </section>
 
 <section anchor="jmap-data-type-registration-for-principal"><name>JMAP Data Type Registration for "Principal"</name>
-<t>IANA has registered the "Principal" JMAP Data Type in the "JMAP Data Types" registry as follows:</t>
+<t>IANA has registered "Principal" in the "JMAP Data Types" registry as follows:</t>
 <dl newline="false" spacing="compact">
   <dt>Type Name:</dt> <dd>Principal</dd>
   <dt>Can Reference Blobs:</dt> <dd>No</dd>
@@ -583,7 +496,7 @@ let us know if any further updates are needed.
 </section>
 
 <section anchor="jmap-data-type-registration-for-sharenotification"><name>JMAP Data Type Registration for "ShareNotification"</name>
-<t>IANA has registered the "ShareNotification" JMAP Data Type in the "JMAP Data Types" registry as follows:</t>
+<t>IANA has registered "ShareNotification" in the "JMAP Data Types" registry as follows:</t>
 <dl newline="false" spacing="compact">
   <dt>Type Name:</dt> <dd>ShareNotification</dd>
   <dt>Can Reference Blobs:</dt> <dd>No</dd>
@@ -630,44 +543,5 @@ let us know if any further updates are needed.
 </references>
 </references>
 </back>
-
-<!-- [rfced] The files below list terms enclosed in <tt>, <em>, and <strong>,
-respectively, in this document.  Please review to ensure the usage of
-these attributes is correct and consistent.
-
-[neilj] Thanks I have reviewed and have made a few updates. I believe:
-
-* <em> Is being consistently used for emphasis, where it is important for conveying meaning in the sentence.
-* <strong> Is being consistently used to highlight the name of a data type or property where its being defined in the document.
-* <tt> Is used to mark up capabilities, type signatures, and literal JSON values (such as null, true, or false) when referred to in the text.
-
-[rfced] Specifically, please review the following terms that appear both inside and outside of <tt> tags and sometimes <strong> tags:
-
-[neilj] I have reviewed these and made some changes; I believe this is now consistent. The main change is to capitalise "Account" everywhere this refers to the JMAP concept.
--->
-
-<!-- [rfced] For the terms related to "todo", we spotted several variations of
-capitalization and formatting. Please review and let us know if/how we can make 
-these consistent. Should the lowercase forms of "todo" perhaps be capital?
-
-[neilj] Thanks, I have gone through and fixed this so anything referring to the data type is using Todo/TodoList as appropriate.
--->
-
-<!-- [rfced] FYI - we updated the artwork elements to sourcecode with the type
-set to "json". Please review the XML file to ensure correctness. 
-
-[neilj] This is fine, thanks, it is json.
--->
-
-<!-- [rfced] Please review the "Inclusive Language" portion of the online 
-Style Guide <https://www.rfc-editor.org/styleguide/part2/#inclusive_language>
-and let us know if any changes are needed.  Updates of this nature typically
-result in more precise language, which is helpful for readers.
-
-Note that our script did not flag any words in particular, but this should 
-still be reviewed as a best practice.
-
-[neilj] I have not identified anything I believe needs changing here.
--->
 
 </rfc>
