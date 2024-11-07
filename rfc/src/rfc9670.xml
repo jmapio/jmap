@@ -190,17 +190,14 @@ for this Principal that the user has access to, or <tt>null</tt> if none.</dd>
 </section>
 
 <section anchor="share-notifications"><name>ShareNotifications</name>
-<t>The ShareNotification data type records when the user's permissions to access a shared object changes. ShareNotifications are only created by the server; users cannot create them explicitly. Notifications are stored in the same Account as the Principals.</t>
+<t>The ShareNotification data type records when the user's permissions to access a shared object changes. ShareNotifications are only created by the server; users cannot create them explicitly. They are stored in the same Account as the Principals.</t>
 <t>Clients may present the list of notifications to the user and allow the user to dismiss them. To dismiss a notification, use a standard "/set" call to destroy it.</t>
 <t>The server <bcp14>SHOULD</bcp14> create a ShareNotification whenever the user's permissions change on an object. It <bcp14>MAY</bcp14> choose not to create a notification for permission changes to a group Principal, even if the user is in the group, if this is more likely to be overwhelming than helpful, or if it would create excessive notifications within the system.</t>
 
-<section anchor="auto-deletion-of-notifications"><name>Auto-Deletion of Notifications</name>
 <t>The server <bcp14>MAY</bcp14> limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.</t>
 <t>The server <bcp14>MAY</bcp14> coalesce notifications if appropriate or remove notifications after a certain period of time or that it deems are no longer relevant.</t>
-</section>
 
-<section anchor="object-properties"><name>Object Properties</name>
-<t>The <strong>ShareNotification</strong> object has the following properties:</t>
+<t>A <strong>ShareNotification</strong> object has the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>id</strong>: <tt>String</tt> (immutable; server-set)</dt>
@@ -232,8 +229,6 @@ for this Principal that the user has access to, or <tt>null</tt> if none.</dd>
 
 </dd>
 </dl>
-
-</section>
 
 <section anchor="sharenotification-get"><name>ShareNotification/get</name>
 <t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" sectionFormat="comma"></xref>.</t>
