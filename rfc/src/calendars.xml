@@ -220,7 +220,9 @@
 </section>
 
 <section anchor="participant-identities"><name>Participant Identities</name>
-<t>A ParticipantIdentity stores information about a URI that represents the user within that account in an event's participants. It has the following properties:</t>
+<t>A ParticipantIdentity stores information about a URI that represents the user within that account in an event's participants.</t>
+
+<t>A <strong>ParticipantIdentity</strong> object has the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</dt>
@@ -960,18 +962,15 @@ triggered, or null if the event is not recurring.</dd>
 </section>
 
 <section anchor="calendar-event-notifications"><name>Calendar Event Notifications</name>
-<t>The CalendarEventNotification data type represents changes made by external entities to events in calendars that the user is subscribed to. Notifications are stored in the same Account as the CalendarEvent that was changed.</t>
-<t>Notifications are only created by the server; users cannot create them directly. Clients may present the list of notifications to the user and allow them to dismiss them. To dismiss a notification you use a standard "/set" call to destroy it.</t>
+<t>The CalendarEventNotification data type represents changes made by external entities to events in calendars that the user is subscribed to. CalendarEventNotifications are only created by the server; users cannot create them explicitly. They are stored in the same Account as the CalendarEvent that was changed.</t>
+<t>Clients may present the list of notifications to the user and allow the user to dismiss them. To dismiss a notification, use a standard "/set" call to destroy it.</t>
 <t>The server should create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to.</t>
 <t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all users with whom the calendar is shared. The server need only keep track of which users have yet to destroy the notification.</t>
 
-<section anchor="auto-deletion-of-notifications"><name>Auto-deletion of Notifications</name>
-<t>The server MAY limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.</t>
-<t>The server MAY coalesce events if appropriate, or remove events that it deems are no longer relevant or after a certain period of time. The server SHOULD automatically destroy a notification about an event if the user updates or destroys that event (e.g. if the user sends an RSVP for the event).</t>
-</section>
+<t>The server <bcp14>MAY</bcp14> limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.</t>
+<t>The server <bcp14>MAY</bcp14> coalesce notifications if appropriate or remove notifications after a certain period of time or that it deems are no longer relevant.</t>
 
-<section anchor="object-properties"><name>Object Properties</name>
-<t>The <strong>CalendarEventNotification</strong> object has the following properties:</t>
+<t>A <strong>CalendarEventNotification</strong> object has the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>id</strong>: <tt>Id</tt></dt>
