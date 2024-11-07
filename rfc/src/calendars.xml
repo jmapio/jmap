@@ -641,7 +641,7 @@ value is less than or equal to the current "sequence" value on the server;</li>
 <artwork>{
   "id": "123",
   "title": "FooBar team meeting",
-  "start": "2018-01-08T09:00:00",
+  "start": "2025-01-08T09:00:00",
   "recurrenceRules": [{
     "@type": "RecurrenceRule",
     "frequency": "weekly"
@@ -680,8 +680,8 @@ value is less than or equal to the current "sequence" value on the server;</li>
       }
     },
     "recurrenceOverrides": {
-      "2018-03-08T09:00:00": {
-        "start": "2018-03-08T10:00:00",
+      "2025-03-05T09:00:00": {
+        "start": "2025-03-05T10:00:00",
         "participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus":
           "declined"
       }
@@ -690,7 +690,7 @@ value is less than or equal to the current "sequence" value on the server;</li>
 }
 </artwork>
 <t>In this example, Tom is normally going to the weekly meeting but has declined
-the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zoe too were to decline that meeting, she could update the event by just sending a patch like so:</t>
+the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zoe too were to decline that meeting, she could update the event by just sending a patch like so:</t>
 
 <artwork>NOTE: '\' line wrapping per RFC 8792
 
@@ -698,18 +698,18 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
   "accountId": "a0x9",
   "update": {
     "123": {
-      "recurrenceOverrides/2018-03-08T09:00:00/\
+      "recurrenceOverrides/2025-03-05T09:00:00/\
         participants~1em9lQGZvb2GFtcGxlLmNvbQ~1participationStatus":
           "declined"
     }
   }
 }, "0" ]]
 </artwork>
-<t>This patches the "2018-03-08T09:00:00" PatchObject in recurrenceOverrides so that it ends up like this:</t>
+<t>This patches the "2025-03-05T09:00:00" PatchObject in recurrenceOverrides so that it ends up like this:</t>
 
 <artwork>"recurrenceOverrides": {
-  "2018-03-08T09:00:00": {
-    "start": "2018-03-08T10:00:00",
+  "2025-03-05T09:00:00": {
+    "start": "2025-03-05T10:00:00",
     "participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus":
       "declined",
     "participants/em9lQGZvb2GFtcGxlLmNvbQ/participationStatus":
@@ -725,7 +725,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
   "accountId": "a0x9",
   "update": {
     "123": {
-      "recurrenceOverrides/2018-03-08T09:00:00/\
+      "recurrenceOverrides/2025-03-05T09:00:00/\
         participants~1dG9tQGZvb2Jhci5xlLmNvbQ~1participationStatus": null
     }
   }
@@ -739,20 +739,20 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
   "accountId": "a0x9",
   "update": {
     "123": {
-      "recurrenceOverrides/2018-03-08T09:00:00/\
+      "recurrenceOverrides/2025-03-05T09:00:00/\
         participants~1dG9tQGZvb2Jhci5xlLmNvbQ": null
     }
   }
 }, "0" ]]
 </artwork>
-<t>This would mean removing the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at path "recurrenceOverrides" -&gt; "2018-03-08T09:00:00" inside the object; but this doesn't exist. We actually want to add this property and make it map to null. The client must instead send the full object that contains the property mapping to null, like so:</t>
+<t>This would mean removing the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at path "recurrenceOverrides" -&gt; "2025-03-05T09:00:00" inside the object; but this doesn't exist. We actually want to add this property and make it map to null. The client must instead send the full object that contains the property mapping to null, like so:</t>
 
 <artwork>[[ "CalendarEvent/set", {
   "accountId": "a0x9",
   "update": {
     "123": {
-      "recurrenceOverrides/2018-03-08T09:00:00": {
-        "start": "2018-03-08T10:00:00",
+      "recurrenceOverrides/2025-03-05T09:00:00": {
+        "start": "2025-03-05T10:00:00",
         "participants/em9lQGZvb2GFtcGxlLmNvbQ/participationStatus":
           "declined",
         "participants/dG9tQGZvb2Jhci5xlLmNvbQ": null
