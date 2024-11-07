@@ -2,7 +2,7 @@
 <rfc version="3" ipr="trust200902" docName="draft-ietf-jmap-calendars-20" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
 
 <front>
-<title abbrev="JMAP Calendars">JMAP for Calendars</title><seriesInfo value="draft-ietf-jmap-calendars-20" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
+<title abbrev="JMAP Calendars">JSON Meta Application Protocol (JMAP) for Calendars</title><seriesInfo value="draft-ietf-jmap-calendars-20" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
 <author role="editor" initials="N.M." surname="Jenkins" fullname="Neil Jenkins">
     <organization>Fastmail</organization>
     <address>
@@ -37,7 +37,7 @@
 <keyword>calendars</keyword>
 
 <abstract>
-<t>This document specifies a data model for synchronizing calendar data with a server using JMAP.</t>
+<t>This document specifies a data model for synchronizing calendar data with a server using JMAP. Clients can use this to efficiently read, write, and share calendars and events, receive push notifications for changes or event reminders, and keep track of changes made by others in a multi-user environment.</t>
 </abstract>
 
 </front>
@@ -73,7 +73,7 @@
 <section anchor="uids-and-calendarevent-ids"><name>UIDs and CalendarEvent Ids</name>
 <t>Each CalendarEvent has a "uid" property (<xref target="RFC8984" section="4.1.2" />), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.</t>
 <t>An Account MUST NOT contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their "recurrenceId" property. (This situation occurs if the Principal is added to one or more specific instances of a recurring event without being invited to the whole series.)</t>
-<t>Each CalendarEvent also has an id, which is scoped to the JMAP Account and used for referencing it in JMAP methods. There is no necessary link between the "uid" property and the CalendarEvent's id. CalendarEvents with the same uid in different Accounts MAY have different ids.</t>
+<t>Each CalendarEvent also has an id, which is scoped to the JMAP Account and used for referencing it in JMAP methods. There is no necessary link between the uid and the CalendarEvent's id. CalendarEvents with the same uid in different Accounts may have different ids.</t>
 </section>
 </section>
 
@@ -87,10 +87,10 @@
 <ul>
 <li><t><strong>maxCalendarsPerEvent</strong>: <tt>UnsignedInt|null</tt></t>
 <t>The maximum number of Calendars (see <xref target="calendars" />) that can be can assigned to a single CalendarEvent object (see <xref target="calendar-events" />). This MUST be an integer &gt;= 1, or null for no limit (or rather, the limit is always the number of Calendars in the account).</t></li>
-<li><t><strong>minDateTime</strong>: <tt>LocalDateTime</tt></t>
-<t>The earliest date-time the server is willing to accept for any date stored in a CalendarEvent.</t></li>
-<li><t><strong>maxDateTime</strong>: <tt>LocalDateTime</tt></t>
-<t>The latest date-time the server is willing to accept for any date stored in a CalendarEvent.</t></li>
+<li><t><strong>minDateTime</strong>: <tt>UTCDateTime</tt></t>
+<t>The earliest date-time value the server is willing to accept for any date stored in a CalendarEvent.</t></li>
+<li><t><strong>maxDateTime</strong>: <tt>UTCDateTime</tt></t>
+<t>The latest date-time value the server is willing to accept for any date stored in a CalendarEvent.</t></li>
 <li><t><strong>maxExpandedQueryDuration</strong>: <tt>Duration</tt></t>
 <t>The maximum duration the user may query over when asking the server to expand recurrences.</t></li>
 <li><t><strong>maxParticipantsPerEvent</strong>: <tt>UnsignedInt|null</tt></t>
@@ -237,7 +237,8 @@ information on which to make a choice. For example, if creating a scheduled
 event in this account, the default identity may be automatically added as
 an owner. (But the client may ignore this if, for example, it has its own
 feature to allow users to choose which identity to use based on the
-invitees.)</t></li>
+invitees.)</t>
+<t>If no participant identities have "isDefault" set, users with multiple clients may experience different default choices in each client, which can be confusing or lead to the wrong identity being used by accident.</t></li>
 </ul>
 <t>A participant in an event corresponds to a ParticipantIdentity if the "calendarAddress" property of the participant is equivalent to the "calendarAddress" property of the identity after syntax-based normalisation, as per <xref target="RFC3986" section="6.2.2" />.</t>
 <t>The following JMAP methods are supported.</t>
@@ -442,7 +443,7 @@ When modifying the "shareWith" property, the user cannot give a right to a Princ
 
 <ul>
 <li><t><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</t>
-<t>The id of the CalendarEvent. The id uniquely identifies a JSCalendar Event with a particular "uid" and "recurrenceId" within a particular account.</t></li>
+<t>The id of the CalendarEvent. The id uniquely identifies a JSCalendar Event with a particular uid and recurrenceId within a particular account.</t></li>
 <li><t><strong>baseEventId</strong>: <tt>Id|null</tt> (immutable; server-set)</t>
 <t>This is only defined if the "id" property is a synthetic id, generated by the server to represent a particular instance of a recurring event (see <xref target="calendarevent-query" />). This property gives the id of the "real" CalendarEvent this was generated from.</t></li>
 <li><t><strong>calendarIds</strong>: <tt>Id[Boolean]</tt></t>
@@ -586,12 +587,11 @@ omitting/removing the property from the JSCalendar Event object.</t>
 <t>Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a <tt>forbidden</tt> SetError if not allowed.</t>
 <t>The "privacy" property of a JSCalendar Event object allows the Principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If this is set to "private", the event may only be destroyed or updated by the owner of the calendar it is in. Any attempt by another user to modify such an event MUST be rejected with a <tt>forbidden</tt> SetError (even if only modifying per-user properties). If set to "secret", the server MUST behave as though the event does not exist for all users other than the Principal that owns the calendar.</t>
 <t>The "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar, or a calendar shared by another user). The server MUST reject this with an <tt>invalidProperties</tt> SetError.</t>
-<t>If omitted on create, the server MUST set the following properties to an appropriate value:</t>
-
+<t>If omitted on create, the server MUST set the following properties:</t>
 <ul spacing="compact">
-<li><t>@type</t></li>
-<li><t>uid</t></li>
-<li><t>created</t></li>
+<li><t>@type</t> MUST be set to "Event"</li>
+<li><t>uid</t> MUST be set to a new globally unique identifier, such as a UUID.</li>
+<li><t>created</t> MUST be set to the current date-time.</li>
 </ul>
 <t>If (and only if) the server is the origin of the event (i.e., the event's "isOrigin" property is true), the "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time. If the server is not the origin of the event it MUST NOT automatically set an "updated" time, as this can break correct processing of scheduling messages.</t>
 <t>Clients MUST NOT allow users to edit anything other than per-user
@@ -761,7 +761,7 @@ the occurrence on 2018-03-08, which starts an hour later than normal. Now, if Zo
 <li><t><strong>timeZone</strong>: <tt>TimeZoneId</tt></t>
 <t>The time zone for before/after filter conditions (default: "Etc/UTC")</t></li>
 </ul>
-<t>If expandRecurrences is true, a separate id will be returned for each instance of a recurring event that matches the query. This synthetic id is opaque to the client, but allows the server to resolve the id + recurrence id for "/get" and "/set" operations. Otherwise, a single id will be returned for matching recurring events that represents the entire event.</t>
+<t>If expandRecurrences is true, a separate id will be returned for each instance of a recurring event that matches the query. This synthetic id is opaque to the client, but uniquely identifies the base event id + recurrence id within the account, allowing the server to resolve these for "/get" and "/set" operations. Otherwise, a single id will be returned for matching recurring events that represents the entire event.</t>
 <t>There is no necessary correspondence between the ids of different instances of the same expanded event.</t>
 <t>The following additional error may be returned instead of the "CalendarEvent/query" response:</t>
 <t><tt>cannotCalculateOccurrences</tt>: The server cannot expand a recurrence required to return the results for this query.</t>
