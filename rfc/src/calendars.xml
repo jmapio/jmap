@@ -638,7 +638,10 @@ value is less than or equal to the current "sequence" value on the server;</li>
 <t>The JMAP "/set" method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, e.g. inside "localizations" or "recurrenceOverrides". In particular, you cannot add a property with value null to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property.</t>
 <t>This is more easily understood with an example. Suppose you have a CalendarEvent object like so:</t>
 
-<artwork>{
+<figure>
+<name>A CalendarEvent object</name>
+<sourcecode type="json">
+{
   "id": "123",
   "title": "FooBar team meeting",
   "start": "2025-01-08T09:00:00",
@@ -688,12 +691,14 @@ value is less than or equal to the current "sequence" value on the server;</li>
     }
   }
 }
-</artwork>
+</sourcecode>
+</figure>
 <t>In this example, Tom is normally going to the weekly meeting but has declined
 the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zoe too were to decline that meeting, she could update the event by just sending a patch like so:</t>
 
-<artwork>NOTE: '\' line wrapping per RFC 8792
-
+<figure>
+<name>"methodCalls" Property of a JMAP Request. NOTE: '\' line wrapping per <xref target="RFC8792" />.</name>
+<sourcecode type="json">
 [[ "CalendarEvent/set", {
   "accountId": "a0x9",
   "update": {
@@ -704,10 +709,15 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
     }
   }
 }, "0" ]]
-</artwork>
+</sourcecode>
+</figure>
+
 <t>This patches the "2025-03-05T09:00:00" PatchObject in recurrenceOverrides so that it ends up like this:</t>
 
-<artwork>"recurrenceOverrides": {
+<figure>
+<name>"recurrenceOverrides" Property in a CalendarEvent Object</name>
+<sourcecode type="json">
+"recurrenceOverrides": {
   "2025-03-05T09:00:00": {
     "start": "2025-03-05T10:00:00",
     "participants/dG9tQGZvb2Jhci5xlLmNvbQ/participationStatus":
@@ -716,11 +726,14 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
       "declined"
   }
 }
-</artwork>
+</sourcecode>
+</figure>
+
 <t>Now if Tom were to change his mind and remove his declined status override (thus meaning he is attending, as inherited from the top-level event), he might remove his patch from the overrides like so:</t>
 
-<artwork>NOTE: '\' line wrapping per RFC 8792
-
+<figure>
+<name>"methodCalls" Property of a JMAP Request. NOTE: '\' line wrapping per <xref target="RFC8792" />.</name>
+<sourcecode type="json">
 [[ "CalendarEvent/set", {
   "accountId": "a0x9",
   "update": {
@@ -730,11 +743,14 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
     }
   }
 }, "0" ]]
-</artwork>
+</sourcecode>
+</figure>
+
 <t>However, if you instead want to remove Tom from this instance altogether, you could not send this patch:</t>
 
-<artwork>NOTE: '\' line wrapping per RFC 8792
-
+<figure>
+<name>"methodCalls" Property of a JMAP Request. NOTE: '\' line wrapping per <xref target="RFC8792" />.</name>
+<sourcecode type="json">
 [[ "CalendarEvent/set", {
   "accountId": "a0x9",
   "update": {
@@ -744,10 +760,15 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
     }
   }
 }, "0" ]]
-</artwork>
+</sourcecode>
+</figure>
+
 <t>This would mean removing the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at path "recurrenceOverrides" -&gt; "2025-03-05T09:00:00" inside the object; but this doesn't exist. We actually want to add this property and make it map to null. The client must instead send the full object that contains the property mapping to null, like so:</t>
 
-<artwork>[[ "CalendarEvent/set", {
+<figure>
+<name>"methodCalls" Property of a JMAP Request</name>
+<sourcecode type="json">
+[[ "CalendarEvent/set", {
   "accountId": "a0x9",
   "update": {
     "123": {
@@ -760,7 +781,8 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
     }
   }
 }, "0" ]]
-</artwork>
+</sourcecode>
+</figure>
 </section>
 </section>
 
@@ -1042,7 +1064,10 @@ data after the update.</dd>
 <section anchor="fetching-initial-data"><name>Fetching initial data</name>
 <t>A user has authenticated and the client has fetched the JMAP Session object. It finds a single Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability, with id "a0x9", and wants to display all the calendar information for January 2023 in the Australia/Melbourne time zone. It might make the following request:</t>
 
-<artwork>[
+<figure>
+<name>"methodCalls" Property of a JMAP Request</name>
+<sourcecode type="json">
+[
   ["Calendar/get", {
     "accountId": "a0x9"
   }, "0"],
@@ -1066,10 +1091,14 @@ data after the update.</dd>
     }
   }, "3"]
 ]
-</artwork>
+</sourcecode>
+</figure>
 <t>The server might respond with something like:</t>
 
-<artwork>[
+<figure>
+<name>"methodResponses" Property of a JMAP Response</name>
+<sourcecode type="json">
+[
   ["Calendar/get", {
     "accountId": "a0x9",
     "list": [{
@@ -1143,103 +1172,109 @@ data after the update.</dd>
     "state": "$$/413/206"
   }, "3"]
 ]
-</artwork>
+</sourcecode>
+</figure>
 <t>The client now has everything it needs to display that month in full.</t>
 </section>
 
 <section anchor="creating-an-event"><name>Creating an event</name>
 <t>Suppose the user asks the client to create a new event. The client should default to adding it to the "Work" calendar, as this is the default calendar for the user, unless it has information to make a more informed decision. (e.g. The client may have a feature to automatically choose the calendar based on the time of day, and the user indicates the event is at 7pm, so it knows to default to "Private".)</t>
 
-<artwork>[
-  ["CalendarEvent/set", {
-    "accountId": "a0x9",
-    "create": {
-      "k559": {
-        "uid": "5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
-        "calendarIds": {
-          "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
-        },
-        "title": "Party at Pete’s",
-        "start": "2023-02-03T19:00:00",
-        "duration": "PT3H0M0S",
-        "timeZone": "Australia/Melbourne",
-        "showWithoutTime": false,
-        "participants": {
-          "1": {
-            "@type": "Participant",
-            "name": "Jane Doe",
-            "calendarAddress": "mailto:jane@example.com",
-            "sendTo": {
-              "imip": "mailto:jane@example.com",
-              "other":
-                 "https://example.com/uri/for/internal/scheduling"
-            },
-            "kind": "individual",
-            "roles": {
-              "attendee": true,
-              "owner": true
-            },
-            "participationStatus": "accepted",
-            "expectReply": false
+<figure>
+<name>"methodCalls" Property of a JMAP Request</name>
+<sourcecode type="json">
+[["CalendarEvent/set", {
+  "accountId": "a0x9",
+  "create": {
+    "k559": {
+      "uid": "5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
+      "calendarIds": {
+        "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
+      },
+      "title": "Party at Pete’s",
+      "start": "2023-02-03T19:00:00",
+      "duration": "PT3H0M0S",
+      "timeZone": "Australia/Melbourne",
+      "showWithoutTime": false,
+      "participants": {
+        "1": {
+          "@type": "Participant",
+          "name": "Jane Doe",
+          "calendarAddress": "mailto:jane@example.com",
+          "sendTo": {
+            "imip": "mailto:jane@example.com",
+            "other":
+               "https://example.com/uri/for/internal/scheduling"
           },
-          "2": {
-            "@type": "Participant",
-            "name": "Joe Bloggs",
-            "calendarAddress": "mailto:joe@example.com",
-            "sendTo": {
-              "imip": "mailto:joe@example.com"
-            },
-            "kind": "individual",
-            "roles": {
-              "attendee": true
-            },
-            "participationStatus": "needs-action",
-            "expectReply": true
-          }
+          "kind": "individual",
+          "roles": {
+            "attendee": true,
+            "owner": true
+          },
+          "participationStatus": "accepted",
+          "expectReply": false
         },
-        "mayInviteSelf": false,
-        "mayInviteOthers": false,
-        "useDefaultAlerts": false,
-        "alerts":null
-      }
-    },
-    "sendSchedulingMessages": true
-  }, "0"]
-]
-</artwork>
+        "2": {
+          "@type": "Participant",
+          "name": "Joe Bloggs",
+          "calendarAddress": "mailto:joe@example.com",
+          "sendTo": {
+            "imip": "mailto:joe@example.com"
+          },
+          "kind": "individual",
+          "roles": {
+            "attendee": true
+          },
+          "participationStatus": "needs-action",
+          "expectReply": true
+        }
+      },
+      "mayInviteSelf": false,
+      "mayInviteOthers": false,
+      "useDefaultAlerts": false,
+      "alerts":null
+    }
+  },
+  "sendSchedulingMessages": true
+}, "0"]]
+</sourcecode>
+</figure>
 <t>As the event has participants, the server sets a "replyTo" property. This server uses a special email address for receiving iMIP RSVPs (<xref target="RFC5546" />) rather than just receiving them at the owner's regular email address, and also provides a web page for people that don't have calendar clients supporting iMIP. The response may look something like this:</t>
 
-<artwork>NOTE: '\' line wrapping per RFC 8792
-
-[
-  ["CalendarEvent/set", {
-    "accountId": "a0x9",
-    "created": {
-      "k559": {
-        "id": "E-5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
-        "isOrigin": true,
-        "@type": "Event",
-        "created": "20221005T20:42:13Z",
-        "updated": "20221005T20:42:13Z",
-        "sequence": 1,
-        "replyTo": {
-          "imip": "3e87-1b18bb5e6b4@itip.example.com",
-          "web": "https://cal.example.com/\
-            5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91/?\
-            auth=bfc0-4ba3-9e44"
-        }
+<figure>
+<name>"methodResponses" Property of a JMAP Response. NOTE: '\' line wrapping per <xref target="RFC8792" />.</name>
+<sourcecode type="json">
+[["CalendarEvent/set", {
+  "accountId": "a0x9",
+  "created": {
+    "k559": {
+      "id": "E-5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
+      "isOrigin": true,
+      "@type": "Event",
+      "created": "20221005T20:42:13Z",
+      "updated": "20221005T20:42:13Z",
+      "sequence": 1,
+      "replyTo": {
+        "imip": "3e87-1b18bb5e6b4@itip.example.com",
+        "web": "https://cal.example.com/\
+          5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91/?\
+          auth=bfc0-4ba3-9e44"
       }
-    },
-    ...
-  }, "0"]
-]
-</artwork>
+    }
+  },
+  ...
+}, "0"]]
+</sourcecode>
+</figure>
 </section>
 
 <section anchor="snoozing-an-alert-1"><name>Snoozing an alert</name>
 <t>The client is connected to the event source and receives a push:</t>
 
-<artwork>{
+<figure>
+<name>Object Received via Push Connection</name>
+<sourcecode type="json">
+{
   "@type": "CalendarAlert",
   "accountId": "a0x9",
   "calendarEventId": "E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f",
@@ -1247,51 +1282,56 @@ data after the update.</dd>
   "recurrenceId": null,
   "alertId": "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd"
 }
-</artwork>
+</sourcecode>
+</figure>
 
 <t>Not finding this event in its local cache, the client fetches the information for this event that it needs to show the alert by making the following request:</t>
 
-<artwork>[
-  ["CalendarEvent/get", {
-    "accountId": "a0x9",
-    "ids":["E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f"],
-    "properties": ["calendarIds", "title", "start",
-      "timeZone", "useDefaultAlerts", "alerts"]
-  }, "0"]
-]
-</artwork>
+<figure>
+<name>"methodCalls" Property of a JMAP Request</name>
+<sourcecode type="json">
+[["CalendarEvent/get", {
+  "accountId": "a0x9",
+  "ids":["E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f"],
+  "properties": ["calendarIds", "title", "start",
+    "timeZone", "useDefaultAlerts", "alerts"]
+}, "0"]]
+</sourcecode>
+</figure>
 
 <t>In response it receives:</t>
 
-<artwork>[
-  ["CalendarEvent/get", {
-    "accountId": "a0x9",
-    "list": [{
-      "id": "E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f",
-      "calendarIds": {
-        "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
-      },
-      "title": "Team catchup",
-      "start": "2023-02-10T17:00:00",
-      "timeZone": "America/New_York",
-      "useDefaultAlerts": false,
-      "alerts": {
-        "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
-          "@type": "Alert",
-          "action": "display",
-          "trigger": {
-            "@type": "OffsetTrigger",
-            "relativeTo": "start",
-            "offset": "-PT1H"
-          }
+<figure>
+<name>"methodResponses" Property of a JMAP Response</name>
+<sourcecode type="json">
+[["CalendarEvent/get", {
+  "accountId": "a0x9",
+  "list": [{
+    "id": "E-7e93e3ee-4e6e-408a-9adc-cbaf1dbd0a3f",
+    "calendarIds": {
+      "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
+    },
+    "title": "Team catchup",
+    "start": "2023-02-10T17:00:00",
+    "timeZone": "America/New_York",
+    "useDefaultAlerts": false,
+    "alerts": {
+      "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
+        "@type": "Alert",
+        "action": "display",
+        "trigger": {
+          "@type": "OffsetTrigger",
+          "relativeTo": "start",
+          "offset": "-PT1H"
         }
       }
-    }],
-    "notFound": [],
-    "state": "$$/414/208"
-  }, "0"]
-]
-</artwork>
+    }
+  }],
+  "notFound": [],
+  "state": "$$/414/208"
+}, "0"]]
+</sourcecode>
+</figure>
 <t>The client displays an alert in a platform-appropriate manner. Presuming the user here is in the Australia/Melbourne time zone, this might look something like:</t>
 
 <artwork>+----------------------------------------+
@@ -1301,10 +1341,12 @@ data after the update.</dd>
 |                             [Snooze\/] |
 +----------------------------------------+
 </artwork>
+
 <t>The user snoozes the notification for 30 minutes. The client dismisses the current notification and sends an update to the event to the server:</t>
 
-<artwork>NOTE: '\' line wrapping per RFC 8792
-
+<figure>
+<name>"methodCalls" Property of a JMAP Request. NOTE: '\' line wrapping per <xref target="RFC8792" />.</name>
+<sourcecode type="json">
 [
   ["CalendarEvent/set", {
     "accountId": "a0x9",
@@ -1331,8 +1373,8 @@ data after the update.</dd>
       }
     }
   }, "0"]
-]
-</artwork>
+]</sourcecode>
+</figure>
 <t>Any other connected client will receive a push, sync the change and dismiss any duplicate alert. After the snooze time has elapsed, the new alert will trigger.</t>
 </section>
 
@@ -1340,42 +1382,53 @@ data after the update.</dd>
 <t>The client tries to change the default calendar from "Work" to "Private" (and
 makes no other change):</t>
 
-<artwork>[
-  ["Calendar/set", {
-    "accountId": "a0x9",
-    "onSuccessSetIsDefault": "062adcfa-105d-455c-bc60-6db68b69c3f3"
-  }, "0"]
-]
-</artwork>
+<figure>
+<name>"methodCalls" Property of a JMAP Request</name>
+<sourcecode type="json">
+[["Calendar/set", {
+  "accountId": "a0x9",
+  "onSuccessSetIsDefault": "062adcfa-105d-455c-bc60-6db68b69c3f3"
+}, "0"]]
+</sourcecode>
+</figure>
 <t>The server allows the change, returning the following response:</t>
 
-<artwork>[
-  ["Calendar/set", {
-    "accountId": "a0x9",
-    "updated": {
-      "062adcfa-105d-455c-bc60-6db68b69c3f3": {
-        "isDefault": true
-      },
-      "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": {
-        "isDefault": false
-      }
+<figure>
+<name>"methodResponses" Property of a JMAP Response</name>
+<sourcecode type="json">
+[["Calendar/set", {
+  "accountId": "a0x9",
+  "updated": {
+    "062adcfa-105d-455c-bc60-6db68b69c3f3": {
+      "isDefault": true
+    },
+    "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": {
+      "isDefault": false
     }
-  }, "0"]
-]
-</artwork>
+  }
+}, "0"]]
+</sourcecode>
+</figure>
 </section>
 
 <section anchor="parsing-an-icalendar-file"><name>Parsing an iCalendar file</name>
 <t>The client makes a request to parse the calendar event from a blob id representing an icalendar file:</t>
 
-<artwork>[[ "CalendarEvent/parse", {
+<figure>
+<name>"methodCalls" Property of a JMAP Request</name>
+<sourcecode type="json">
+[[ "CalendarEvent/parse", {
   "accountId": "a0x9",
   "blobIds": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
 }, "c1"]]
-</artwork>
+</sourcecode>
+</figure>
 <t>The server responds:</t>
 
-<artwork>[[ "CalendarEvent/parse", {
+<figure>
+<name>"methodResponses" Property of a JMAP Response</name>
+<sourcecode type="json">
+[[ "CalendarEvent/parse", {
   "accountId": "a0x9",
   "parsed": {
     "Ge682d5d7aad50b3a4f7180a7ed9276476485ea52": [{
@@ -1405,21 +1458,30 @@ makes no other change):</t>
   "notFound": null,
   "notParsable": null
 }, "c1"]]
-</artwork>
+</sourcecode>
+</figure>
 <t>If the blob id had not been found, the server would have responded:</t>
 
-<artwork>[[ "CalendarEvent/parse", {
+<figure>
+<name>"methodResponses" Property of a JMAP Response</name>
+<sourcecode type="json">
+[[ "CalendarEvent/parse", {
   "accountId": "a0x9",
   "notFound": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
 }, "c1" ]]
-</artwork>
+</sourcecode>
+</figure>
 <t>If the blob id had been found but was not parsable, the server would have responded:</t>
 
-<artwork>[[ "CalendarEvent/parse", {
+<figure>
+<name>"methodResponses" Property of a JMAP Response</name>
+<sourcecode type="json">
+[[ "CalendarEvent/parse", {
   "accountId": "a0x9",
   "notParsable": ["Ge682d5d7aad50b3a4f7180a7ed9276476485ea52"]
 }, "c1" ]]
-</artwork>
+</sourcecode>
+</figure>
 </section>
 </section>
 
