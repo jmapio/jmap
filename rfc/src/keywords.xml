@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rfc version="3" ipr="trust200902" docName="draft-jenkins-mail-keywords-01" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
+
+<front>
+<title abbrev="OAuth Public">Registration of further IMAP/JMAP keywords and mailbox names</title><seriesInfo value="draft-jenkins-mail-keywords-01" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
+<author role="editor" initials="N.M." surname="Jenkins" fullname="Neil Jenkins"><organization>Fastmail</organization><address><postal><street>PO Box 234, Collins St West</street>
+<city>Melbourne</city>
+<code>VIC 8007</code>
+<country>Australia</country>
+</postal><email>neilj@fastmailteam.com</email>
+<uri>https://www.fastmail.com</uri>
+</address></author><date year="2024" month="October" day="16"></date>
+<area>Art</area>
+<workgroup>MailMaint</workgroup>
+<keyword>IMAP</keyword>
+<keyword>JMAP</keyword>
+
+<abstract>
+<t>Fastmail uses a number of keywords and mailbox names to implement mail functionality that others may wish to interoperate with. This document notes what they are and how to use them, and registers them with IANA to avoid name collisions.</t>
+</abstract>
+
+</front>
+
+<middle>
+
+<section anchor="iana-considerations"><name>IANA Considerations</name>
+<t>This document is all IANA considerations! A number of IMAP/JMAP keywords are registered in the IMAP/JMAP Keywords registry, as established in RFC5788.
+It also registers three new entries for the Mailbox Name Attributes registry, as established in RFC8457, Section 6.</t>
+</section>
+
+<section anchor="imap-jmap-keyword-registrations"><name>IMAP/JMAP Keyword Registrations</name>
+
+<section anchor="notify-keyword-registration"><name>$notify keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$notify</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that a notification should be shown for this message.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> <t>This keyword can cause automatic action. On supporting clients, when a new message is added to the mailstore with this keyword, the client should show the user a notification.</t>
+<t>Mail clients commonly show notifications for new mail, but often the only option is to show a notification for every message that arrvies in the inbox. This keyword allows the user to create rules (or the server to automatically determine) specific messages that should show a notification.</t>
+<t>Notifications for these messages may be in addition to notifications for messages matching other criteria, according to user preference set on the client.</t></dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP server on delivery when a message meets criteria such that the user should be shown a notification. It may be cleared by a client when the user opens, archives, or otherwise interacts with th message. Other clients connected to the same account may choose to automatically close the notification if the flag is cleared.</dd>
+<dt>Related keywords:</dt> <dd> None</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="muted-keyword-registration"><name>$muted keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$muted</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the server that the user is not interested in future replies to a particular thread.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd><t> This keyword can cause automatic action. On supporting servers, when a new message arrives that is in the same thread as a message with this keyword the server may automatically process it in some way to deprioritise it for the user, for example by moving it to the archive or trash, or marking it read. The exact action, whether this is customisable by the user, and interaction with user rules is vendor specific.</t>
+<t>A message is defined to be in the same thread as another if the server assigns them both the same thread id, as defined in <xref target="RFC8474"></xref> Section 5.2 for IMAP or <xref target="RFC8621"></xref>, Section 3 for JMAP.</t></dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP client when the user indicates they wish to mute or unmute a thread. When unmuting a thread, the client must remove the keyword from every message in the thread that has it.</dd>
+<dt>Related keywords:</dt> <dd> Mutually exclusive with <tt>$followed</tt>. If both are specified on a thread, servers MUST behave as though only <tt>$followed</tt> were set.</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> Muting a thread can mean a user won't see a reply. If someone compromises a user's account, they may mute threads where they don't want the user to see the reply, for example when sending phishing to the user's contacts. There are many other ways an attacker with access to the user's mailbox can also achieve this however, so this is not greatly increasing the attack surface.</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="followed-keyword-registration"><name>$followed keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$followed</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the server that the user is particularly interested in future replies to a particular thread.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd><t>This keyword can cause automatic action. On supporting servers, when a new message arrives that is in the same thread as a message with this keyword the server may automatically process it in some way to prioritise it for the user, for example by ignoring rules that would make it skip the inbox, or automatically adding the <tt>$notify</tt> keyword. The exact action, whether this is customisable by the user, and interaction with user rules is vendor specific.</t>
+<t>A message is defined to be in the same thread as another if the server assigns them both the same thread id, as defined in <xref target="RFC8474"></xref> Section 5.2 for IMAP or <xref target="RFC8621"></xref>, Section 3 for JMAP.</t></dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP client when the user indicates they wish to follow or unfollow a thread. When unfollowing a thread, the client must remove the keyword from every message in the thread that has it.</dd>
+<dt>Related keywords:</dt> <dd> Mutually exclusive with <tt>$muted</tt>. If both are specified on a thread, servers MUST behave as though only <tt>$followed</tt> were set.</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="memo-keyword-registration"><name>$memo keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$memo</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that a message is a note-to-self from the user regarding another message in the same thread.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP client when creating such a message. The message should otherwise be contructed like a reply to the message to which this memo is attached (i.e. appropriate Subject and Reply-To headers set). In supporting clients, messages with this flag may be presented differently to the user, attached to the message the memo is commenting on, and may offer the user the ability to edit or delete the memo. (As messages are immutable, editing requires replacing the message.)</dd>
+<dt>Related keywords:</dt> <dd> The <tt>$hasmemo</tt> keyword should be set/cleared at the same time.</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="hasmemo-keyword-registration"><name>$hasmemo keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$hasmemo</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that a message has an associated memo with the <tt>$memo</tt> keyword.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP client when creating a memo. The memo gets the <tt>$memo</tt> keyword, the message it is a note for gets the <tt>$hasmemo</tt> keyword. This keyword can help in searching for messages with memos, or deciding whether to fetch the whole thread to look for memos when loading a mailbox.</dd>
+<dt>Related keywords:</dt> <dd> A message with the <tt>$memo</tt> keyword should be created/destroyed at the same time.</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="hasattachment-keyword-registration"><name>$hasattachment keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$hasattachment</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that a message has an attachment.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP server on messages it determines have an attachment. This can help mailbox clients indicate this to the user without having to fetch the full message body structure. Over JMAP, the &quot;hasAttachment&quot; Email property should indicate the same value.</dd>
+<dt>Related keywords:</dt> <dd> None</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="autosent-keyword-registration"><name>$autosent keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$autosent</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that a message was sent automatically as a response due to a user rule or setting.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP server on the user's copy of their vacation response and other automated messages sent on behalf of the user. Clients may use this to indicate to the user that this message was sent automatically, as if they have forgotten the rule or vacation response is set up they may be surprised to see it among their sent items.</dd>
+<dt>Related keywords:</dt> <dd> None</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="unsubscribed-keyword-registration"><name>$unsubscribed keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$unsubscribed</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that it has unsubscribed from the thread this message is on.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP client on a message after attempting to unsubscribe from the mailing list this message came from (e.g., after attempting RFC8058 one-click List-Unsubscribe). It allows clients to remind the user that they have unsubscribed if they open the message again.</dd>
+<dt>Related keywords:</dt> <dd> None</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="canunsubscribe-keyword-registration"><name>$canunsubscribe keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$canunsubscribe</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that this message has an RFC8058-compliant List-Unsubscribe header.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP server on messages with an RFC8058-compliant List-Unsubscribe header. It may only do so if the message passes vendor-specific reputation checks. It is intended to indicate to clients that they may be able to do a one-click unsubscribe, without them having to fetch the List-Unsubscribe header to determint themself.</dd>
+<dt>Related keywords:</dt> <dd> None</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="imported-keyword-registration"><name>$imported keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$imported</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that this message was imported from another mailbox.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP server on messages in imports from another mailbox.</dd>
+<dt>Related keywords:</dt> <dd> None</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="istrusted-keyword-registration"><name>$istrusted keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$istrusted</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that the authenticity of the from name and email address have been verified with complete confidence by the server.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory. Clients may show a verification mark (often a tick icon) on messages with this keyword to indicate their trusted status to the user.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP server on messages it delivers where it wishes to confirm to the user that this is a legitimate email they can trust. It is usually only used for the mailbox provider's own messages to the customer, where they can know with absolute certainty that the friendly from name and email address are legitimate.</dd>
+<dt>Related keywords:</dt> <dd> None</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> Servers should make sure this keyword is only set for messages that really are trusted!</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> COMMON</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="maskedemail-keyword-registration"><name>$maskedemail keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$maskedemail</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that the message was received via an alias created for an individual sender.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory. Clients may show an icon to indicate to the user this was received via a masked email address - an alias created for a specific sender to hide the user's real email address.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP server on messages it delivers that arrived via such an alias.</dd>
+<dt>Related keywords:</dt> <dd> None</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> LIMITED</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+
+<section anchor="new-keyword-registration"><name>$new keyword registration</name>
+<dl newline="false" spacing="compact">
+<dt>IMAP/JMAP keyword name:</dt> <dd> <tt>$new</tt></dd>
+<dt>Purpose:</dt> <dd> Indicate to the client that a message should be made more prominent to the user due to a recent action.</dd>
+<dt>Private or Shared on a server:</dt> <dd> SHARED</dd>
+<dt>Is it an advisory keyword or may it cause an automatic action:</dt> <dd> This keyword is advisory. Clients may show the status of the message.</dd>
+<dt>When/by whom the keyword is set/cleared:</dt> <dd> This keyword is set by an IMAP or JMAP server on messages after awakening them from snooze. Clients should clear the keyword when the message is opened.</dd>
+<dt>Related keywords:</dt> <dd> None</dd>
+<dt>Related IMAP capabilities:</dt> <dd> None</dd>
+<dt>Security considerations:</dt> <dd> None</dd>
+<dt>Published specification:</dt> <dd> This document</dd>
+<dt>Intended usage:</dt> <dd> LIMITED</dd>
+<dt>Scope:</dt> <dd>BOTH</dd>
+<dt>Owner/Change controller:</dt> <dd> IESG</dd>
+</dl>
+</section>
+</section>
+
+<section anchor="imap-jmap-mailbox-name-registrations"><name>IMAP Mailbox Name Attributes Registrations</name>
+
+<section anchor="snoozed-mailbox-name-attribute-registration"><name>Snoozed mailbox name attribute registration</name>
+<dl newline="false" spacing="compact">
+<dt>Attribute Name:</dt> <dd> Snoozed</dd>
+<dt>Description:</dt> <dd> Messages that have been snoozed are moved to this mailbox until the &quot;awaken&quot; time, when they are moved out of it again automatically by the server.</dd>
+<dt>Reference:</dt> <dd> This document.</dd>
+<dt>Usage Notes:</dt> <dd> Snooze functionality is common among services but not yet standardised. This attribute marks the mailbox where snoozed messages may be found, but does not on its own provide a way for clients to snooze messages.</dd>
+</dl>
+</section>
+
+<section anchor="scheduled-mailbox-name-attribute-registration"><name>Scheduled mailbox name attribute registration</name>
+<dl newline="false" spacing="compact">
+<dt>Attribute Name:</dt> <dd> Scheduled</dd>
+<dt>Description:</dt> <dd> Messages that have been scheduled to send at a later time. Once the server has sent them at the scheduled time, they will automatically be deleted or moved from this mailbox by the server (probably to the \Sent mailbox).</dd>
+<dt>Reference:</dt> <dd> This document.</dd>
+<dt>Usage Notes:</dt> <dd> Scheduled sending functionality is common among services but not yet standardised. This attribute marks the mailbox where scheduled messages may be found, but does not on its own provide a way for clients to schedule messages for sending.</dd>
+</dl>
+</section>
+
+<section anchor="memos-mailbox-name-attribute-registration"><name>Memos mailbox name attribute registration</name>
+<dl newline="false" spacing="compact">
+<dt>Attribute Name:</dt> <dd> Memos</dd>
+<dt>Description:</dt> <dd> Messages that have the <tt>$memo</tt> keyword. Clients creating memos are recommended to store them in this mailbox. This allows them to more easily be hidden from the user as &quot;messages&quot;, and presented only as memos instead.</dd>
+<dt>Reference:</dt> <dd> This document.</dd>
+<dt>Usage Notes:</dt> <dd> None.</dd>
+</dl>
+</section>
+</section>
+
+</middle>
+
+<back>
+<references><name>Normative References</name>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8474.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8621.xml"/>
+</references>
+
+</back>
+
+</rfc>
