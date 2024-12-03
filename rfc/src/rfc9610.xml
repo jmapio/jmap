@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE rfc [
+ <!ENTITY nbsp    "&#160;">
+ <!ENTITY zwsp   "&#8203;">
+ <!ENTITY nbhy   "&#8209;">
+ <!ENTITY wj     "&#8288;">
+]> 
+
+<rfc version="3" ipr="trust200902" docName="draft-ietf-jmap-contacts-10" number="9610" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" sortRefs="true" symRefs="true" tocInclude="true" consensus="true" updates="" obsoletes="">
+
+  <front>
+    <title abbrev="JMAP Contacts">JSON Meta Application Protocol (JMAP) for Contacts</title>
+    <seriesInfo name="RFC" value="9610"/>
+    <author role="editor" initials="N." surname="Jenkins" fullname="Neil Jenkins">
+      <organization>Fastmail</organization>
+      <address>
+        <postal>
+          <street>PO Box 234, Collins St West</street>
+          <city>Melbourne</city>
+          <code>VIC 8007</code>
+          <country>Australia</country>
+        </postal>
+        <email>neilj@fastmailteam.com</email>
+        <uri>https://www.fastmail.com</uri>
+      </address>
+    </author>
+    <date year="2024" month="December"/>
+    <area>ART</area>
+    <workgroup>jmap</workgroup>
+    <keyword>JMAP</keyword>
+    <keyword>JSON</keyword>
+    <keyword>contacts</keyword>
+
+<abstract>
+<t>This document specifies a data model for synchronising contact data with a server using the JSON Meta Application Protocol (JMAP).</t>
+</abstract>
+
+</front>
+
+<middle>
+
+<section anchor="introduction"><name>Introduction</name>
+<t>The JSON Meta Application Protocol (JMAP) <xref target="RFC8620"></xref> is a generic protocol for synchronising data, such as mail, calendars, or contacts, between a client and a server. It is optimised for mobile and web environments and aims to provide a consistent interface to different data types.</t>
+<t>This specification defines a data model for synchronising contacts between a client and a server using JMAP.</t>
+
+<section anchor="notational-conventions"><name>Notational Conventions</name>
+        <t>
+    The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>", "<bcp14>REQUIRED</bcp14>", "<bcp14>SHALL</bcp14>", "<bcp14>SHALL
+    NOT</bcp14>", "<bcp14>SHOULD</bcp14>", "<bcp14>SHOULD NOT</bcp14>", "<bcp14>RECOMMENDED</bcp14>", "<bcp14>NOT RECOMMENDED</bcp14>",
+    "<bcp14>MAY</bcp14>", and "<bcp14>OPTIONAL</bcp14>" in this document are to be interpreted as
+    described in BCP&nbsp;14 <xref target="RFC2119"/> <xref target="RFC8174"/> 
+    when, and only when, they appear in all capitals, as shown here.
+        </t>
+
+<t>Type signatures, examples, and property descriptions in this document follow the conventions established in <xref target="RFC8620" section="1.1" sectionFormat="of" />.  The Id, UnsignedInt, and UTCDate data types defined in Sections <xref target="RFC8620" section="1.2" sectionFormat="bare" />, <xref target="RFC8620" section="1.3" sectionFormat="bare" />, and <xref target="RFC8620" section="1.4" sectionFormat="bare" /> of <xref target="RFC8620" /> are also used in this document.</t>
+</section>
+
+<section anchor="terminology"><name>Terminology</name>
+<t>The same terminology used in the core JMAP specification (see <xref target="RFC8620" section="1.6" sectionFormat="of"></xref>) is also used in this document.</t>
+<t>The terms AddressBook and ContactCard (with these specific capitalizations) are used to refer to the data types defined in this document and instances of those data types.</t>
+</section>
+
+<section anchor="data-model-overview"><name>Data Model Overview</name>
+<t>An Account (see <xref target="RFC8620" section="1.6.2" sectionFormat="of"></xref>) with support for the contact data model contains zero or more AddressBook objects, which is a named collection of zero or more ContactCards. A ContactCard is a representation of a person, company, entity, or a group of such entities in JSContact Card format, as defined in <xref target="RFC9553" section="2" />. Each ContactCard belongs to one or more AddressBooks.</t>
+<t>In servers with support for JMAP Sharing <xref target="RFC9670" />, users may see and configure sharing of contact data with others. Sharing permissions are managed per AddressBook.</t>
+</section>
+
+<section anchor="addition-to-the-capabilities-object"><name>Addition to the Capabilities Object</name>
+<t>The capabilities object is returned as part of the JMAP Session object; see <xref target="RFC8620" section="2" sectionFormat="of"></xref>. This document defines one additional capability URI.</t>
+
+<section anchor="urn-ietf-params-jmap-contacts"><name>urn:ietf:params:jmap:contacts</name>
+<t>This represents support for the AddressBook and ContactCard data types and associated API methods. The value of this property in the JMAP Session "capabilities" property is an empty object.</t>
+<t>The value of this property in an account's "accountCapabilities" property is an object that <bcp14>MUST</bcp14> contain the following information on server capabilities and permissions for that account:</t>
+
+<dl spacing="normal" newline="true">
+<dt><strong>maxAddressBooksPerCard</strong>: <tt>UnsignedInt|null</tt></dt>
+<dd>The maximum number of AddressBooks (see <xref target="addressbooks" />) that can be assigned to a single ContactCard object (see <xref target="contactcards" />). This <bcp14>MUST</bcp14> be an integer &gt;= 1, or null for no limit (or rather, the limit is always the number of AddressBooks in the account).</dd>
+<dt><strong>mayCreateAddressBook</strong>: <tt>Boolean</tt></dt>
+<dd>The user may create an AddressBook in this account if, and only if, this is true.</dd>
+</dl>
+</section>
+</section>
+</section>
+
+<section anchor="addressbooks"><name>AddressBooks</name>
+<t>An AddressBook is a named collection of ContactCards. All ContactCards are associated with one or more AddressBooks.</t>
+<t>An <strong>AddressBook</strong> object has the following properties:</t>
+
+<dl spacing="normal" newline="true">
+<dt><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</dt>
+<dd>The id of the AddressBook.</dd>
+<dt><strong>name</strong>: <tt>String</tt></dt>
+<dd>The user-visible name of the AddressBook. This <bcp14>MUST NOT</bcp14> be the empty string and <bcp14>MUST NOT</bcp14> be greater than 255 octets in size when encoded as UTF-8.</dd>
+<dt><strong>description</strong>: <tt>String|null</tt> (default: null)</dt>
+<dd>An optional long-form description of the AddressBook that provides context in shared environments where users need more than just the name.</dd>
+<dt><strong>sortOrder</strong>: <tt>UnsignedInt</tt> (default: 0)</dt>
+<dd><t>Defines the sort order of AddressBooks when presented in the client's UI so it is consistent between devices. The number <bcp14>MUST</bcp14> be an integer in the range 0 &lt;= sortOrder &lt; 2<sup>31</sup>.</t>
+<t>An AddressBook with a lower order is to be displayed before a AddressBook with a higher order in any list of AddressBooks in the client's UI. AddressBooks with equal order should be sorted in alphabetical order by name.  The sorting should take into account locale-specific character order convention.</t></dd>
+<dt><strong>isDefault</strong>: <tt>Boolean</tt> (server-set)</dt>
+<dd>This <bcp14>SHOULD</bcp14> be true for exactly one AddressBook in any account and <bcp14>MUST NOT</bcp14>
+be true for more than one AddressBook within an account. The default
+AddressBook should be used by clients whenever they need to choose an
+AddressBook for the user within this account and they do not have any other
+information on which to make a choice. For example, if the user creates a new
+contact card, the client may automatically set the card as belonging to the
+default AddressBook from the user's primary account.</dd>
+<dt><strong>isSubscribed</strong>: <tt>Boolean</tt></dt>
+<dd><t>True if the user has indicated they wish to see this AddressBook in their client. This <bcp14>SHOULD</bcp14> default to false for AddressBooks in shared accounts that the user has access to and true for any new AddressBooks created by the user themself.</t>
+<t>If false, the AddressBook and its contents <bcp14>SHOULD</bcp14> only be
+displayed when the user explicitly requests it. The UI may offer to the user the option of subscribing to it.</t>
+</dd>
+<dt><strong>shareWith</strong>: <tt>Id[AddressBookRights]|null</tt> (default: null)</dt>
+<dd>A map of the Principal id (<xref target="RFC9670" section="2" />) to rights for Principals this AddressBook is shared with. The Principal to which this AddressBook belongs <bcp14>MUST NOT</bcp14> be in this set. This is null if the AddressBook is not shared with anyone or if the server does not support <xref target="RFC9670" />. The value may be modified only if the user has the "mayShare" right. The account id for the Principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the AddressBook belongs.</dd>
+<dt><strong>myRights</strong>: <tt>AddressBookRights</tt> (server-set)</dt>
+<dd>The set of access rights the user has in relation to this AddressBook.</dd>
+</dl>
+
+<t>An <strong>AddressBookRights</strong> object has the following properties:</t>
+
+<dl spacing="normal" newline="true">
+<dt><strong>mayRead</strong>: <tt>Boolean</tt></dt>
+<dd>The user may fetch the ContactCards in this AddressBook.</dd>
+<dt><strong>mayWrite</strong>: <tt>Boolean</tt></dt>
+<dd>The user may create, modify, or destroy all ContactCards in this AddressBook, or move them to or from this AddressBook.</dd>
+<dt><strong>mayShare</strong>: <tt>Boolean</tt></dt>
+<dd>The user may modify the "shareWith" property for this AddressBook.</dd>
+<dt><strong>mayDelete</strong>: <tt>Boolean</tt></dt>
+<dd>The user may delete the AddressBook itself.</dd>
+</dl>
+
+<section anchor="addressbook-get"><name>AddressBook/get</name>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" sectionFormat="of"></xref>. The "ids" argument may be null to fetch all at once.</t>
+</section>
+
+<section anchor="addressbook-changes"><name>AddressBook/changes</name>
+<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" sectionFormat="of"></xref>.</t>
+</section>
+
+<section anchor="addressbook-set"><name>AddressBook/set</name>
+<t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" sectionFormat="of"></xref>, but with the following additional request arguments:</t>
+
+<dl spacing="normal" newline="true">
+<dt><strong>onDestroyRemoveContents</strong>: <tt>Boolean</tt> (default: false)</dt>
+<dd>If false, any attempt to destroy an AddressBook that still has a ContactCard
+in it will be rejected with an "addressBookHasContents" SetError. If
+true, any ContactCard that is in the AddressBook will be removed from it, and if such a ContactCard does not belong to any other AddressBook, it will be destroyed.</dd>
+<dt><strong>onSuccessSetIsDefault</strong>: <tt>Id|null</tt></dt>
+<dd>If an id is given, and all creates, updates, and destroys (if any) succeed
+without error, the server will try to set this AddressBook as the default.
+(For references to AddressBook creations, this is equivalent to a
+creation-reference, so the id will be the creation id prefixed with a "#".)</dd>
+</dl>
+
+<t>If the id is not found or if the change is not permitted by the server for
+policy reasons, it <bcp14>MUST</bcp14> be ignored and the current default
+AddressBook (if any) will remain as such. No error is returned to the client
+in this case.</t>
+<t>As per <xref target="RFC8620" section="5.3" sectionFormat="of"></xref>, if the default AddressBook is successfully changed, any changed objects <bcp14>MUST</bcp14> be reported in either the "created" or "updated" argument in the response as appropriate, with the server-set value included.</t>
+<t>The "shareWith" property may only be set by users that have the "mayShare" right. When modifying the "shareWith" property, the user cannot give a right to a Principal if the Principal did not already have that right and the user making the change also does not have that right. Any attempt to do so <bcp14>MUST</bcp14> be rejected with a "forbidden" SetError.</t>
+<t>Users can subscribe or unsubscribe to an AddressBook by setting the "isSubscribed" property. The server <bcp14>MAY</bcp14> forbid users from subscribing to certain AddressBooks even though they have permission to see them, rejecting the update with a "forbidden" SetError.</t>
+<t>The following extra SetError type is defined for "destroy":</t>
+
+<dl spacing="normal">
+<dt><strong>addressBookHasContents</strong>:</dt> <dd>The AddressBook has at least one ContactCard assigned to it and the "onDestroyRemoveContents" argument was false.</dd>
+</dl>
+</section>
+</section>
+
+<section anchor="contactcards"><name>ContactCards</name>
+<t>A <strong>ContactCard</strong> object contains information about a person, company, or other entity, or represents a group of such entities. It is a JSContact Card object as defined in <xref target="RFC9553" section="2" /> with the following additional properties:</t>
+
+<dl spacing="normal" newline="true">
+<dt><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</dt>
+<dd>The id of the ContactCard. The "id" property <bcp14>MAY</bcp14> be different to the ContactCard's "uid" property (as defined in <xref target="RFC9553" section="2.1.9" />). However, there <bcp14>MUST NOT</bcp14> be more than one ContactCard with the same uid in an Account.</dd>
+<dt><strong>addressBookIds</strong>: <tt>Id[Boolean]</tt></dt>
+<dd>The set of AddressBook ids that this ContactCard belongs to. A card <bcp14>MUST</bcp14> belong to at least one AddressBook at all times (until it is destroyed). The set is represented as an object, with each key being an AddressBook id. The value for each key in the object <bcp14>MUST</bcp14> be true.</dd>
+</dl>
+<t>For any Media object in the card (see <xref target="RFC9553" section="2.6.4" />), a new property is defined:</t>
+
+<dl spacing="normal" newline="true">
+<dt><strong>blobId</strong>: <tt>Id</tt></dt>
+<dd>An id for the Blob representing the binary contents of the resource.</dd>
+</dl>
+<t>When returning ContactCards, any Media with a URI that uses the "data:" URL scheme <xref target="RFC2397" /> <bcp14>SHOULD</bcp14> return a "blobId" property and omit the "uri" property, as this lets clients load the (potentially large) image file only when needed and avoids the overhead of Base64 encoding. The "mediaType" property <bcp14>MUST</bcp14> also be set. Similarly, when creating or updating a ContactCard, clients <bcp14>MAY</bcp14> send a "blobId" instead of the "uri" property for a Media object.</t>
+<t>A contact card with a "kind" property equal to "group" represents a group of contacts. Clients often present these separately from other contact cards. The "members" property, as defined in <xref target="RFC9553" section="2.1.6" />, contains a set of uids (as defined in <xref target="RFC9553" section="2.1.9" />) for other contacts that are the members of this group.
+Clients should consider the group to contain any ContactCard with a matching uid from any account they have access to that has support for the <tt>urn:ietf:params:jmap:contacts</tt> capability. Any uid that cannot be found <bcp14>SHOULD</bcp14> be ignored but preserved. For example, suppose a user adds contacts from a shared address book to their private group, then temporarily loses access to this address book. The uids cannot be resolved, so the contacts will disappear from the group. However, if they are given permission to access the data again, the uids will be found and the contacts will reappear.</t>
+<section anchor="contactcard-get"><name>ContactCard/get</name>
+<t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" sectionFormat="of"></xref>.</t>
+</section>
+
+<section anchor="contactcard-changes"><name>ContactCard/changes</name>
+<t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" sectionFormat="of"></xref>.</t>
+</section>
+
+<section anchor="contactcard-query"><name>ContactCard/query</name>
+<t>This is a standard "/query" method as described in <xref target="RFC8620" section="5.5" sectionFormat="of"></xref>.</t>
+
+<section anchor="filtering"><name>Filtering</name>
+<t>A <strong>FilterCondition</strong> object has the following properties, any of which may be omitted:</t>
+
+<dl spacing="normal" newline="true">
+<dt><strong>inAddressBook</strong>: <tt>Id</tt></dt>
+<dd>An AddressBook id. A card must be in this address book to match the condition.</dd>
+<dt><strong>uid</strong>: <tt>String</tt></dt>
+<dd>A card must have this string exactly as its uid (as defined in <xref target="RFC9553" section="2.1.9" />) to match.</dd>
+<dt><strong>hasMember</strong>: <tt>String</tt></dt>
+<dd>A card must have a "members" property (as defined in <xref target="RFC9553" section="2.1.6" />) that contains this string as one of the uids in the set to match.</dd>
+<dt><strong>kind</strong>: <tt>String</tt></dt>
+<dd>A card must have a "kind" property (as defined in <xref target="RFC9553" section="2.1.4" />) that equals this string exactly to match.</dd>
+<dt><strong>createdBefore</strong>: <tt>UTCDate</tt></dt>
+<dd>The "created" date-time of the ContactCard (as defined in <xref target="RFC9553" section="2.1.3" />) must be before this date-time to match the condition.</dd>
+<dt><strong>createdAfter</strong>: <tt>UTCDate</tt></dt>
+<dd>The "created" date-time of the ContactCard (as defined in <xref target="RFC9553" section="2.1.3" />) must be the same or after this date-time to match the condition.</dd>
+<dt><strong>updatedBefore</strong>: <tt>UTCDate</tt></dt>
+<dd>The "updated" date-time of the ContactCard (as defined in <xref target="RFC9553" section="2.1.10" />) must be before this date-time to match the condition.</dd>
+<dt><strong>updatedAfter</strong>: <tt>UTCDate</tt></dt>
+<dd>The "updated" date-time of the ContactCard (as defined in <xref target="RFC9553" section="2.1.10" />) must be the same or after this date-time to match the condition.</dd>
+<dt><strong>text</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the text matches with text in the card.</dd>
+<dt><strong>name</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the value of any NameComponent in the "name" property or the "full" property in the "name" property of the card (as defined in <xref target="RFC9553" section="2.2.1.2" />) matches the value.</dd>
+<dt><strong>name/given</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the value of a NameComponent with kind "given" inside the "name" property of the card (as defined in <xref target="RFC9553" section="2.2.1.2" />) matches the value.</dd>
+<dt><strong>name/surname</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the value of a NameComponent with kind "surname" inside the "name" property of the card (as defined in <xref target="RFC9553" section="2.2.1.2" />) matches the value.</dd>
+<dt><strong>name/surname2</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the value of a NameComponent with kind "surname2" inside the "name" property of the card (as defined in <xref target="RFC9553" section="2.2.1.2" />) matches the value.</dd>
+<dt><strong>nickname</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the "name" of any Nickname in the "nicknames" property of the card (as defined in <xref target="RFC9553" section="2.2.2" />) matches the value.</dd>
+<dt><strong>organization</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the "name" of any Organization in the "organizations" property of the card (as defined in <xref target="RFC9553" section="2.2.3" />) matches the value.</dd>
+<dt><strong>email</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the "address" or "label" of any EmailAddress in the "emails" property of the card (as defined in <xref target="RFC9553" section="2.3.1" />) matches the value.</dd>
+<dt><strong>phone</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the "number" or "label" of any Phone in the "phones" property of the card (as defined in <xref target="RFC9553" section="2.3.3" />) matches the value.</dd>
+<dt><strong>onlineService</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the "service", "uri", "user", or "label" of any OnlineService in the "onlineServices" property of the card (as defined in <xref target="RFC9553" section="2.3.2" />) matches the value.</dd>
+<dt><strong>address</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the value of any AddressComponent in the "addresses" property or the "full" property in the "addresses" property of the card (as defined in <xref target="RFC9553" section="2.5.1" />) matches the value.</dd>
+<dt><strong>note</strong>: <tt>String</tt></dt>
+<dd>A card matches this condition if the "note" of any Note in the "notes" property of the card (as defined in <xref target="RFC9553" section="2.8.3" />) matches the value.</dd>
+</dl>
+<t>If zero properties are specified on the FilterCondition, the condition <bcp14>MUST</bcp14> always evaluate to true. If multiple properties are specified, ALL must apply for the condition to be true (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).</t>
+<t>The exact semantics for matching <tt>String</tt> fields is deliberately not defined to allow for flexibility in indexing implementation, subject to the following:</t>
+
+<ul spacing="normal">
+<li>Text <bcp14>SHOULD</bcp14> be matched in a case-insensitive manner.</li>
+<li>Text contained in either (but matched) single or double quotes <bcp14>SHOULD</bcp14> be treated as a phrase search. That is, a match is required for that exact sequence of words, excluding the surrounding quotation marks. Use <tt>\"</tt>, <tt>\'</tt>, and <tt>\\</tt> to match a literal <tt>"</tt>, <tt>'</tt>, and <tt>\</tt> respectively in a phrase.</li>
+<li>Outside of a phrase, whitespace <bcp14>SHOULD</bcp14> be treated as dividing separate tokens that may be searched for separately in the contact, but <bcp14>MUST</bcp14> all be present for the contact to match the filter.</li>
+<li>Tokens <bcp14>MAY</bcp14> be matched on a whole-word basis using stemming (e.g., a text search for <tt>bus</tt> would match "buses", but not "business").</li>
+</ul>
+</section>
+
+<section anchor="sorting"><name>Sorting</name>
+<t>The following values for the "property" field on the Comparator object
+<bcp14>MUST</bcp14> be supported for sorting:</t>
+
+<ul spacing="normal">
+<li>"created" - The "created" date on the ContactCard.</li>
+<li>"updated" - The "updated" date on the ContactCard.</li>
+</ul>
+<t>The following values for the "property" field on the Comparator object <bcp14>SHOULD</bcp14> be supported for sorting:</t>
+
+<ul spacing="normal">
+<li>"name/given" - The value of the first NameComponent in the "name" property
+whose "kind" is "given".</li>
+<li>"name/surname" - The value of the first NameComponent in the "name" property
+whose "kind" is "surname".</li>
+<li>"name/surname2" - The value of the first NameComponent in the "name"
+property whose "kind" is "surname2".</li>
+</ul>
+</section>
+</section>
+
+<section anchor="contactcard-querychanges"><name>ContactCard/queryChanges</name>
+<t>This is a standard "/queryChanges" method as described in <xref target="RFC8620" section="5.6" sectionFormat="of"></xref>.</t>
+</section>
+
+<section anchor="contactcard-set"><name>ContactCard/set</name>
+<t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" sectionFormat="of"></xref>.</t>
+<t>To set a new photo, the file must first be uploaded using the upload mechanism as described in <xref target="RFC8620" section="6.1" sectionFormat="of"></xref>. This will give the client a valid blobId, size, and type to use. The server <bcp14>MUST</bcp14> reject attempts to set a file that is not a recognised image type as the photo for a card.</t>
+</section>
+
+<section anchor="contactcard-copy"><name>ContactCard/copy</name>
+<t>This is a standard "/copy" method as described in <xref target="RFC8620" section="5.4" sectionFormat="of"></xref>.</t>
+</section>
+</section>
+
+<section anchor="examples"><name>Examples</name>
+<t>For brevity, only the "methodCalls" property of the Request object and the "methodResponses" property of the Response object is shown in the following examples.</t>
+
+<section anchor="fetching-initial-data"><name>Fetching Initial Data</name>
+<t>A user has authenticated and the client has fetched the JMAP Session object. It finds a single Account with the "urn:ietf:params:jmap:contacts" capability with id "a0x9" and wants to fetch all the address books and contacts. It might make the following request:</t>
+
+<figure>
+<name>"methodCalls" Property of a JMAP Request</name>
+<sourcecode type="json">[
+  ["AddressBook/get", {
+    "accountId": "a0x9"
+  }, "0"],
+  ["ContactCard/get", {
+    "accountId": "a0x9"
+  }, "1"]
+]</sourcecode>
+</figure>
+
+<t>The server might respond with something like:</t>
+
+<figure>
+<name>"methodResponses" Property of a JMAP Response</name>
+<sourcecode type="json">[
+  ["AddressBook/get", {
+    "accountId": "a0x9",
+    "list": [{
+      "id": "062adcfa-105d-455c-bc60-6db68b69c3f3",
+      "name": "Personal",
+      "description": null,
+      "sortOrder": 0,
+      "isDefault": true,
+      "isSubscribed": true,
+      "shareWith": {
+        "3f1502e0-63fe-4335-9ff3-e739c188f5dd": {
+          "mayRead": true,
+          "mayWrite": false,
+          "mayShare": false,
+          "mayDelete": false
+        }
+      },
+      "myRights": {
+        "mayRead": true,
+        "mayWrite": true,
+        "mayShare": true,
+        "mayDelete": false
+      }
+    }, {
+      "id": "cd40089d-35f9-4fd7-980b-ba3a9f1d74fe",
+      "name": "Autosaved",
+      "description": null,
+      "sortOrder": 1,
+      "isDefault": false,
+      "isSubscribed": true,
+      "shareWith": null,
+      "myRights": {
+        "mayRead": true,
+        "mayWrite": true,
+        "mayShare": true,
+        "mayDelete": false
+      }
+    }],
+    "notFound": [],
+    "state": "~4144"
+  }, "0"],
+  ["ContactCard/get", {
+    "accountId": "a0x9",
+    "list": [{
+      "id": "3",
+      "addressBookIds": {
+        "062adcfa-105d-455c-bc60-6db68b69c3f3": true
+      },
+      "name": {
+        "components": [
+          { "kind": "given", "value": "Joe" },
+          { "kind": "surname", "value": "Bloggs" }
+        ],
+        "isOrdered": true
+      },
+      "emails": {
+        "0": {
+          "contexts": {
+            "private": true
+          },
+          "address": "joe.bloggs@example.com"
+        }
+      }
+    }],
+    "notFound": [],
+    "state": "ewarbckaqJ::112"
+  }, "1"]
+]</sourcecode>
+</figure>
+</section>
+
+<section anchor="changing-the-default-address-book"><name>Changing the Default Address Book</name>
+<t>The client tries to change the default address book from "Personal" to "Autosaved" (and makes no other change):</t>
+
+<figure>
+<name>"methodCalls" Property of a JMAP Request</name>
+<sourcecode type="json">[
+  ["AddressBook/set", {
+    "accountId": "a0x9",
+    "onSuccessSetIsDefault": "cd40089d-35f9-4fd7-980b-ba3a9f1d74fe"
+  }, "0"]
+]</sourcecode>
+</figure>
+
+<t>The server allows the change, returning the following response:</t>
+
+<figure>
+<name>"methodResponses" Property of a JMAP Response</name>
+<sourcecode type="json">[
+  ["AddressBook/set", {
+    "accountId": "a0x9",
+    "updated": {
+      "cd40089d-35f9-4fd7-980b-ba3a9f1d74fe": {
+        "isDefault": true
+      },
+      "062adcfa-105d-455c-bc60-6db68b69c3f3": {
+        "isDefault": false
+      },
+      "oldState": "~4144",
+      "newState": "~4148"
+    }
+  }, "0"]
+]</sourcecode>
+</figure>
+</section>
+</section>
+
+<section><name>Internationalisation Considerations</name>
+<t>Experience has shown that unrestricted use of Unicode can lead to problems such as inconsistent rendering, users reading text and interpreting it differently than intended, and unexpected results when copying text from one location to another. Servers <bcp14>MAY</bcp14> choose to mitigate this by restricting the set of characters allowed in otherwise unconstrained <tt>String</tt> fields. The FreeformClass, as documented in <xref target="RFC8264" section="4.3" sectionFormat="of"/>, might be a good starting point for 
+this.</t>
+
+
+<t>Attempts to set a value containing code points outside of the permissible set can be handled in a few ways by the server. The server could choose to strip the forbidden characters or replace them with U+FFFD (the Unicode replacement character) and store the resulting string. This is likely to be appropriate for non-printable characters -- such as the "Control Codes" defined in <eref target="https://www.unicode.org/versions/latest/core-spec/chapter-23/#G20365">Section 23.1</eref> of <xref target="UNICODE"/>, excluding newline (U+000A), carriage return (U+000D), and tab (U+0009) -- that can end up in data accidentally due to copy-and-paste issues but are invisible to the end user. JMAP allows the server to transform data on create/update as long as any changed properties are returned to the client in the "/set" response so it knows what has changed, as per <xref target="RFC8620" section="5.3" sectionFormat="of" />. Alternatively, the server <bcp14>MAY</bcp14> just reject the create/update with an "invalidProperties" SetError.</t>
+</section>
+
+<section anchor="security-considerations"><name>Security Considerations</name>
+<t>All security considerations of JMAP <xref target="RFC8620"></xref> apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsection.</t>
+<t>Contacts consist almost entirely of private, personally identifiable information, and represent the social connections of users. Privacy leaks can have real world consequences, and contact servers and clients <bcp14>MUST</bcp14> be mindful of the need to keep all data secure.</t>
+<t>Servers <bcp14>MUST</bcp14> enforce the Access Control Lists (ACLs) set on address books to ensure only authorised data is shared.</t>
+</section>
+
+<section anchor="iana-considerations"><name>IANA Considerations</name>
+
+<section anchor="jmap-capability-registration-for-contacts"><name>JMAP Capability Registration for "contacts"</name>
+<t>IANA has registered "contacts" in the "JMAP Capabilities" registry as follows:</t>
+
+<dl newline="false" spacing="compact">
+  <dt>Capability Name:</dt><dd><tt>urn:ietf:params:jmap:contacts</tt></dd>
+  <dt>Intended Use:</dt><dd>common</dd>
+  <dt>Change Controller:</dt><dd>IETF</dd>
+  <dt>Security and Privacy Considerations:</dt><dd>this document, <xref target="security-considerations" /></dd>
+  <dt>Reference:</dt><dd>this document</dd>
+</dl>
+</section>
+
+<section anchor="jmap-data-type-registration-for-addressbook"><name>JMAP Data Type Registration for "AddressBook"</name>
+<t>IANA has registered "AddressBook" in the "JMAP Data Types" registry as follows:</t>
+<dl newline="false" spacing="compact">
+  <dt>Type Name:</dt><dd><tt>AddressBook</tt></dd>
+  <dt>Can Reference Blobs:</dt><dd>No</dd>
+  <dt>Can Use for State Change:</dt><dd>Yes</dd>
+  <dt>Capability:</dt><dd><tt>urn:ietf:params:jmap:contacts</tt></dd>
+  <dt>Reference:</dt><dd>this document</dd>
+</dl>
+</section>
+
+<section anchor="jmap-data-type-registration-for-contactcard"><name>JMAP Data Type Registration for "ContactCard"</name>
+<t>IANA has registered "ContactCard" in the "JMAP Data Types" registry as follows:</t>
+
+<dl newline="false" spacing="compact">
+  <dt>Type Name:</dt><dd><tt>ContactCard</tt></dd>
+  <dt>Can Reference Blobs:</dt><dd>Yes</dd>
+  <dt>Can Use for State Change:</dt><dd>Yes</dd>
+  <dt>Capability:</dt><dd><tt>urn:ietf:params:jmap:contacts</tt></dd>
+  <dt>Reference:</dt><dd>this document</dd>
+</dl>
+</section>
+
+<section anchor="jmap-error-codes-registry" title="JMAP Error Codes Registry">
+<t>The following subsection has registered a new error code in the "JMAP
+Error Codes" registry, as defined in <xref target="RFC8620" section="9"/>.
+</t>
+
+<section anchor="addressbookhascontents" title="addressBookHasContents">
+<dl newline="false" spacing="compact">
+<dt>JMAP Error Code:</dt><dd>addressBookHasContents</dd>
+<dt>Intended Use:</dt><dd>common</dd>
+<dt>Change Controller:</dt><dd>IETF</dd>
+<dt>Description:</dt><dd>The AddressBook has at least one ContactCard assigned to it, and the "onDestroyRemoveContents" argument was false.</dd>
+<dt>Reference:</dt><dd>This document, <xref target="addressbook-set"/></dd>
+</dl>
+</section>
+</section>
+
+<section anchor="jscontact-property-registrations">
+<name>JSContact Property Registrations</name>
+<t>IANA has registered the following additional properties in the "JSContact Properties" registry, as defined in <xref target="RFC9553" section="3"/>.</t>
+
+<section anchor="id"><name>id</name>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt><dd>id</dd>
+<dt>Property Type:</dt><dd>not applicable</dd>
+<dt>Property Context:</dt><dd>Card</dd>
+<dt>Intended Usage:</dt><dd>reserved</dd>
+<dt>Since Version:</dt><dd>1.0</dd>
+<dt>Change Controller:</dt><dd>IETF</dd>
+<dt>Reference:</dt><dd>this document</dd>
+</dl>
+</section>
+
+<section anchor="addressBookIds"><name>addressBookIds</name>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt><dd>addressBookIds</dd>
+<dt>Property Type:</dt><dd>not applicable</dd>
+<dt>Property Context:</dt><dd>Card</dd>
+<dt>Intended Usage:</dt><dd>reserved</dd>
+<dt>Since Version:</dt><dd>1.0</dd>
+<dt>Change Controller:</dt><dd>IETF</dd>
+<dt>Reference:</dt><dd>this document</dd>
+</dl>
+</section>
+
+<section anchor="blobId"><name>blobId</name>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt><dd>blobId</dd>
+<dt>Property Type:</dt><dd>not applicable</dd>
+<dt>Property Context:</dt><dd>Media</dd>
+<dt>Intended Usage:</dt><dd>reserved</dd>
+<dt>Since Version:</dt><dd>1.0</dd>
+<dt>Change Controller:</dt><dd>IETF</dd>
+<dt>Reference:</dt><dd>this document</dd>
+</dl>
+</section>
+
+</section>
+
+</section>
+
+</middle>
+
+<back>
+<references>
+<name>References</name>
+<references><name>Normative References</name>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2397.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9553.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9670.xml"/>
+</references>
+
+<references><name>Informative References</name>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8264.xml"/>
+<reference anchor="UNICODE" target="https://www.unicode.org/versions/latest/">
+<front>
+<title abbrev="Unicode">The Unicode Standard</title>
+<author><organization>The Unicode Consortium</organization><address /></author>
+</front>
+</reference>
+
+</references>
+</references>
+</back>
+</rfc>
