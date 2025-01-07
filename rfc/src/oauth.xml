@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rfc version="3" ipr="trust200902" docName="draft-mailmaint-oauth-public-00" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
+
+<front>
+<title abbrev="OAuth Public">OAuth Profile for Open Public Clients</title><seriesInfo value="draft-mailmaint-oauth-public-00" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
+<author role="editor" initials="N.M." surname="Jenkins" fullname="Neil Jenkins"><organization>Fastmail</organization><address><postal><street>PO Box 234, Collins St West</street>
+<city>Melbourne</city>
+<code>VIC 8007</code>
+<country>Australia</country>
+</postal><email>neilj@fastmailteam.com</email>
+<uri>https://www.fastmail.com</uri>
+</address></author><date year="2025" month="January" day="7"></date>
+<area>ART</area>
+<workgroup>Mail Maintenance</workgroup>
+<keyword>OAuth</keyword>
+<keyword>IMAP</keyword>
+<keyword>JMAP</keyword>
+<keyword>SMTP</keyword>
+<keyword>POP</keyword>
+<keyword>CardDAV</keyword>
+<keyword>CalDAV</keyword>
+
+<abstract>
+<t>This document specifies a profile of the OAuth authorization protocol to allow for interoperability between native clients and servers using open protocols, such as JMAP, IMAP, SMTP, POP, CalDAV, and CardDAV.</t>
+</abstract>
+
+</front>
+
+<middle>
+
+<section anchor="introduction"><name>Introduction</name>
+<t>This document pulls together several existing standards and uses them to specifiy a specific OAuth profile, allowing interoperable modern authentication for native clients of open protocols, such as IMAP, JMAP, SMTP, POP, CalDAV, and CardDAV. For these protocols, there are many servers and many clients with no pre-existing relationship, that need to be able to connect. At the moment, the only interoperable way to do so is with a basic username and password, which has many deficiences from a security standpoint.</t>
+
+<section anchor="presumptions"><name>Presumptions</name>
+<t>This OAuth flow presumes you have a username that is used to identify the user, along with:</t>
+
+<ol spacing="compact">
+<li>The set of services that may be available for this username
+(e.g., JMAP/IMAP/SMTP/POP/CardDAV/CalDAV);</li>
+<li>The Application Server endpoint to connect to in order to access them;
+(e.g., a JMAP session endpoint <tt>https://api.example.com/jmap/session</tt>, or an IMAP endpoint <tt>imaps://imap.example.com:993</tt>).</li>
+<li>The authorization server issuer identifier, needed to do OAuth, e.g., <tt>https://auth.example.com</tt>.</li>
+</ol>
+<t>Ideally, the client may use an autodiscovery mechanism to find these given the username. Servers supporting this OAuth profile MUST support [TODO:RFC-To-Be-Defined] for autodiscovery.</t>
+</section>
+
+<section anchor="scopes"><name>Scopes</name>
+<t>To work interoperably, clients and server must use a standard set of scopes for access. This document creates a new IANA registry for such scopes (see <xref target="iana-considerations" />), and registers scopes to cover IMAP, SMTP, CardDAV, CalDAV, WebDAV, and JMAP.</t>
+</section>
+
+<section anchor="notational-conventions"><name>Notational Conventions</name>
+<t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119" /> <xref target="RFC8174" /> when, and only when, they appear in all capitals, as shown here.</t>
+</section>
+</section>
+
+<section anchor="the-open-public-client-oauth-profile"><name>The Open Public Client OAuth Profile</name>
+
+<section anchor="overview"><name>Overview</name>
+<t>OAuth 2 <xref target="RFC6749" />, can be used in many different ways. This document specifies one particular set of options to ensure interoperability and security. Servers may implement more options, but MUST support the flow as described in this document for interoperability with clients. Similarly, clients may choose to support additional flows but there is no guarantee that this will be interoperable.</t>
+<t>The general flow works like this:</t>
+
+<ol spacing="compact">
+<li>The OAuth 2.0 Authorization Server Metadata <xref target="RFC8414" /> is fetched.</li>
+<li>The client registers with the authorization server to get a client id using the OAuth 2.0 Dynamic Client Registration Protocol <xref target="RFC7591" />.</li>
+<li>The client authorizes using the Authorization Code Grant flow <xref target="RFC6749" />, Section 4.1) with PKCE <xref target="RFC7636" />, Issuer Identification <xref target="RFC9207" /> and Resource Indicators <xref target="RFC8707" />.</li>
+<li>The client gets an access token and refresh token, as per <xref target="RFC6749" section="5" />.</li>
+</ol>
+<t>The access token can now be used as a Bearer token to authenticate requests to the application servers as per <xref target="RFC6750" /> for HTTP requests, or <xref target="RFC7628" /> for SASL authentication. When it expires, a new one can be requested using the refresh token as per <xref target="RFC6749" section="6"/>.</t>
+<t>The rest of this document describes in detail each of the above steps.</t>
+</section>
+
+<section anchor="fetching-the-authorization-server-data"><name>Fetching the Authorization Server Metadata</name>
+<t>The authorization server issuer identifier MUST be an HTTPS URL with no query parameters or fragment part. Otherwise, abort the flow. The authorization server metadata may be fetched by a GET request to the path found by removing any trailing slash (<tt>/</tt>) and then appending <tt>/.well-known/oauth-authorization-server</tt> to this URL.</t>
+<t>When fetched, a successful response is indicated by a 200 OK HTTP status code. The reponse MUST have an "application/json" content type. Anything else MUST be treated as an error, and the flow MUST be aborted.</t>
+<t>The authorization server metadata is a JSON document with properties as specified in <xref target="RFC8414" />. It MUST include the following properties:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>issuer</tt></dt>
+<dd><t>The authorization server's issuer identifier. This MUST be identical to the issuer identifier used to fetch this document. For example, if this document was fetched from <tt>https://example.com/foo/.well-known/oauth-authorization-server</tt>, the issuer MUST be <tt>https://example.com/foo</tt>. If not, the flow MUST be aborted.</t>
+<t>This MUST be verified again during the authorization flow (see <xref target="authorization" />, or <xref target="RFC9207" /> for more details), to prevent against mix-up attacks.</t>
+</dd>
+<dt><tt>registration_endpoint</tt></dt>
+<dd><t>The URL the client will use to register, to get a client id it needs for authorization (see <xref target="dynamic-client-registration" />).</t>
+</dd>
+<dt><tt>authorization_endpoint</tt></dt>
+<dd><t>The URL the client will use to start the authorization process (see <xref target="authorization" />) once it has registered.</t>
+</dd>
+<dt><tt>token_endpoint</tt></dt>
+<dd><t>The URL the client will use to get refresh and access tokens after successful authorization (see <xref target="obtaining-a-refresh-token" />).</t>
+</dd>
+<dt><tt>scopes_supported</tt></dt>
+<dd><t>An array of supported scopes on the server (see <xref target="scopes" />).</t>
+</dd>
+<dt><tt>response_types_supported</tt></dt>
+<dd><t>A list of response types supported in the OAuth authorization flow. This is an array of strings that MUST include "code".</t>
+</dd>
+<dt><tt>grant_types_supported</tt></dt>
+<dd><t>A list of the OAuth 2.0 grant type values that this authorization server supports. This is an array of strings that MUST include "authorization_code" and "refresh_token".</t>
+</dd>
+<dt><tt>token_endpoint_auth_methods_supported</tt></dt>
+<dd><t>This is an array of strings that MUST include "none".</t>
+</dd>
+<dt><tt>code_challenge_methods_supported</tt></dt>
+<dd><t>An array of strings listing Proof Key for Code Exchange (PKCE) <xref target="RFC7636" />
+code challenge methods supported by this authorization server.
+This MUST include "S256".</t>
+</dd>
+<dt><tt>authorization_response_iss_parameter_supported</tt></dt>
+<dd><t>This MUST have the boolean value true.</t>
+</dd>
+</dl>
+<t>The metadata MAY include other properties, or other values for multi-valued properties, however clients are not required to understand or use any of them for interoperability.</t>
+<t>It is RECOMMENDED servers support DPoP (<xref target="RFC9449" />) to allow sender-constrained refresh and access tokens for HTTP-based protocols. Servers that support DPoP MUST include the following property:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>dpop_signing_alg_values_supported</tt></dt>
+<dd>A JSON array containing a list of the JWS alg values (from the [IANA.JOSE.ALGS] registry) supported by the authorization server for DPoP proof JWTs, as defined in <xref target="RFC9449" />, Section 5.1.</dd>
+</dl>
+<t>Also of possible interest to client/server implementors following this document:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>revocation_endpoint</tt></dt>
+<dd>The URL the client can use to revoke their tokens, as per <xref target="RFC7009" />.</dd>
+<dt><tt>revocation_endpoint_auth_methods_supported</tt></dt>
+<dd>If a revocation_endpoint is included, this property MUST be included, and is an array of strings that MUST include "none".</dd>
+</dl>
+<t>Clients MUST verify the required properties are present and conform to the requirements of this document. If not, the server is not using OAuth in conformance with this document and no compatibility may be presumed. It is RECOMMENDED clients abort the flow in such a case.</t>
+</section>
+
+<section anchor="dynamic-client-registration">
+<name>Dynamic Client Registration</name>
+
+<t>To register, the client sends an HTTP POST to the client registration endpoint (as found in the metadata) with a content type of "application/json", and a body consisting of a JSON document with the following properties:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>redirect_uris</tt></dt>
+<dd><t>An array of URIs the client may use to receive back information at the end of the authorization flow. Each URI MUST satisfy all of these conditions:</t>
+
+<ul spacing="compact">
+<li><t>The URI MUST start with one of the following:</t>
+<ul>
+  <li><tt>http://127.0.0.1/</tt></li>
+  <li><tt>http://::1/</tt></li>
+  <li>A private-use scheme in reverse domain notation, e.g., <tt>com.example:/</tt>. Such a scheme MUST have at least one dot in it.</li>
+</ul></li>
+<li>The URI MUST NOT include two consecutive dots (e.g., <tt>/../</tt>).</li>
+<li>The URI MUST NOT include a fragment part (<tt>#</tt>).</li>
+</ul>
+<t>The URI may include a path and query parameters. Clients MUST generate
+  a unique redirect URI for each authorization server they register with
+  to ensure they can protect against mix up attacks (see later).</t></dd>
+<dt><tt>token_endpoint_auth_method</tt></dt>
+<dd>This MUST be "none".</dd>
+<dt><tt>grant_types</tt></dt>
+<dd>This is an array of strings that MUST include "authorization_code" and "refresh_token".</dd>
+<dt><tt>response_types</tt></dt>
+<dd>This is an array of strings that MUST include "code".</dd>
+<dt><tt>scope</tt></dt>
+<dd><t>A string containing a space-separated list of scope values the client may request access for. (Note! This is not a JSON array.)</t>
+<t>For compatibility with servers implementing OpenID Connect [openid-connect], if the server advertised the offline_access scope in the "scopes_supported" property of the Authorization Server Data, the client MUST also register for this scope.</t></dd>
+<dt><tt>client_name</tt></dt>
+<dd>The name of the client to be presented to the end-user during authorization.</dd>
+<dt><tt>client_uri</tt></dt>
+<dd>A URL for a web page providing information about the client. This MUST use HTTPS.</dd>
+<dt><tt>logo_uri</tt></dt>
+<dd>A URL for a logo to display for this client. This SHOULD be square, and in a PNG or SVG image format. This MUST use HTTPS.</dd>
+<dt><tt>tos_uri</tt></dt>
+<dd>A URL that points to a human-readable terms of service or license document for the client. This MUST use HTTPS.</dd>
+<dt><tt>policy_uri</tt></dt>
+<dd>A URL that points to a human-readable privacy policy document for the client. This MUST use HTTPS.</dd>
+<dt><tt>software_id</tt></dt>
+<dd>A unique identifier string (e.g., a Universally Unique Identifier
+  (UUID)) assigned by the client developer or software publisher, used by
+  registration endpoints to identify the client software to be
+  dynamically registered.  Unlike "client_id", which is issued by the
+  authorization server and may vary between instances, the
+  "software_id" SHOULD remain the same for all instances of the client
+  software.  The "software_id" SHOULD remain the same across multiple
+  updates or versions of the same piece of software. The value of this
+  field is not intended to be human readable and is usually opaque to the
+  client and authorization server.</dd>
+<dt><tt>software_version</tt></dt>
+<dd>A version identifier string for the client software identified by
+  "software_id".  The value of the "software_version" SHOULD change on
+  any update to the client software identified by the same
+  "software_id".  The value of this field is intended to be compared
+  using string equality matching and no other comparison semantics are
+  defined by this specification.</dd>
+</dl>
+<t>If the server indicated in its metadata that it supports DPoP <xref target="RFC9449" /> and the client is intending to authenticate all requests using DPoP, the client SHOULD also include the following property:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>dpop_bound_access_tokens</tt></dt>
+<dd>true</dd>
+</dl>
+<t>(If set, the server MUST then require all token requests from this client use DPoP. Note, DPoP is only currently defined for HTTP protocols, so this precludes usage for non-HTTP procols as of time of writing.)</t>
+<t>The server will check that all required properties are present and have valid values. Any unknown properties supplied by the client MUST just be ignored. The authorization server MAY replace any of the client's requested metadata values submitted during the registration and substitute them with suitable values.</t>
+<t>If there is an exact match for all properties except for software_version, an existing registration may be returned. Otherwise, servers SHOULD create a new registration and client id.</t>
+<t>There is no way to verify the authenticity of the information supplied by the client, however the general case of accurate information is still useful to the server, for example to be able to contact client authors to help debug issues if aberrant behaviour is observed. Servers MAY choose to ignore all of the information instead and just return a static client id to all requests.</t>
+<t>The redirect URI restrictions MUST be enforced. These ensure the OAuth flow can only be completed by native clients — not web clients. Since a malicious native client could present the user with a custom browser to phish credentials anyway, the lack of verification of client registration details does not provide additional danger beyond existing threats. Allowing seamless dynamic registration for web-based clients, however, unfortunately makes it much easier for a phishing site to gain access to an account, by sending the user through the OAuth flow.</t>
+<t>If successful, the server responds with an HTTP 201 Created status code and a body of type "application/json", with the content being a JSON object containing all the properties submitted during registration (with their values as set by the server, if overwritten), plus the following property:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>client_id</tt></dt>
+<dd>The OAuth 2.0 client identifier string, used in the authorization flow (see <xref target="authorization" />).</dd>
+</dl>
+<t>If the registration fails, the server will respond with an HTTP 400 status code and a JSON body as described in <xref target="RFC7591" />, section 3.2.2.</t>
+</section>
+
+<section anchor="authorization"><name>Authorization</name>
+<t>Clients construct an authorization request URL by taking the <tt>authorization_endpoint</tt> from the authorization server metadata and adding the following additional query parameters:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>client_id</tt></dt>
+<dd>The client id as returned in the registration.</dd>
+<dt><tt>redirect_uri</tt></dt>
+<dd><t>One of the redirect uris registered by the client. This MUST be identical to the registered URI. The one exception to this is if a URI with the prefix "http://127.0.0.1/" or "http://::1/" was registered, in which case the matching URI MUST also include an arbitrary port.</t>
+<t>For example, if <tt>http://127.0.0.1/redirect</tt> was registered, then the client could send <tt>http://127.0.0.1:49152/redirect</tt> as the redirect_uri for authorization.</t></dd>
+<dt><tt>response_type</tt></dt>
+<dd>This MUST be "code".</dd>
+<dt><tt>scope</tt></dt>
+<dd><t>A space delimited set of scopes the client would like access to. This MUST be a subset of the scopes registered for the client.</t>
+<t>For compatibility with servers implementing OpenID Connect <xref target="openid-connect" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client MUST also request this scope.</t></dd>
+<dt><tt>code_challenge</tt></dt>
+<dd><t>A PKCE code challenge as per <xref target="RFC7636" />, using SHA 256. To generate a challenge, first generate a code_verifier: a high-entropy cryptographic random string using the unreserved characters <tt>[A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"</tt> from Section 2.3 of <xref target="RFC3986" />, with a minimum length of 43 characters and a maximum length of 128 characters.</t>
+<t>The code_challenge is then <tt>BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))</tt>.</t></dd>
+<dt><tt>code_challenge_method</tt></dt>
+<dd>This MUST be "S256".</dd>
+<dt><tt>resource</tt></dt>
+<dd>The URL for the initial resource endpoint (as returned in the autodiscover) you wish to access after successful authorization. For example, <tt>https://api.example.com/jmap/session</tt>. If you wish to use multiple protocols, the client MUST include multiple "resource" query parameters: one for each endpoint. The server MUST verify that all requested endpoints are permitted locations to send access tokens to (i.e., they are the real resource endpoints associated with this authorization server), in order to prevent mix up attacks.</dd>
+<dt><tt>state</tt></dt>
+<dd>An opaque value used by the client to verify that an authorization response is due to a request that the client initiated. The authorization server will include this value when redirecting the user-agent back to the client.  Clients MUST generate a state with a unique, unguessable random string when initiating an authorization request.</dd>
+<dt><tt>login_hint (optional)</tt></dt>
+<dd>The username the user originally asked to log in with. The server can prefill this in a login form. Note, the user may choose to log in with a different username.</dd>
+</dl>
+
+<t>After constructing the authorization request URL, the app uses platform-specific APIs to open it in an external user-agent. Typically, the external user-agent used is the default browser, that is, the application configured for handling "http" and "https" scheme URIs on the system. See <xref target="RFC8252" section="6"/> for a discussion of best practices and alternatives. The user-agent MUST support session cookies, JavaScript, and the Web Authentication API <xref target="webauthn" />.</t>
+
+<t>The authorization server MUST verify all required parameters, and that they conform to the restrictions in this document. Other URL parameters MAY be supplied but will be ignored.</t>
+
+<t>If verified, the authorization server will authenticate the user and ask them if they wish to grant authorization to the client.</t>
+
+<t> If the request fails due to a missing, invalid, or mismatching redirection URI, or if the client identifier is missing or invalid, the authorization server SHOULD inform the user of the error and MUST NOT automatically redirect the user-agent to the invalid redirection URI. If the authorization request fails for any other reason, the client will receive an error response via the redirect_uri. This MUST include an error query parameter with an appropriate error code, as defined in <xref target="RFC6749" section="4.1.2.1"/>.</t>
+
+<t>If authorization is successful, the client will receive a response via the redirect_uri, which will include the following query parameters:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>code</tt></dt>
+<dd>The authorization code. This may be exchanged for the refresh token. This code MUST have a limited expiry, which MUST be at least 10 minutes from authorization. It MUST NOT be used again once the client has successfully exchanged it for a refresh token. Doing so may cause the server to detect it as stolen and revoke all associated tokens.</dd>
+<dt><tt>state</tt></dt>
+<dd>The value of the state parameter that was passed in with the initial request.</dd>
+<dt><tt>iss</tt></dt>
+<dd>The issuer identifier of the authorization server.</dd>
+</dl>
+<t>The client MUST verify all of the following:</t>
+
+<ul spacing="compact">
+<li>The "iss" returned is identical to the "issuer" property in the authorization server metadata. This is critical for preventing against various mix-up attacks should a malicious OAuth metadata object be fetched, as discussed in the security considerations.</li>
+<li>The state returned matches exactly the state it sent, to verify that this
+request was indeed initiated by the client and not an attacker.</li>
+<li>The redirect URI the authorization response came in on was the one they used
+when generating the request. This prevents mix-up attacks when the client supports more than one authorization server, where it thinks it was authenticating against one AS, but actually the user authenticated with another AS.</li>
+</ul>
+<t>If any verification fails, the client MUST abort the flow and not send the authorization code anywhere. It MUST return a page to the user-agent with a description of what went wrong and what the user can do next to solve the problem.</t>
+</section>
+
+<section anchor="obtaining-a-refresh-token"><name>Obtaining a Refresh Token</name>
+<t>Following authorization, the client will obtain initial refresh and
+access tokens by making a POST request to the token_endpoint URL. The following parameters MUST be present, using the "application/x-www-form-urlencoded" format with a character encoding of UTF-8 in the HTTP request entity-body:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>client_id</tt></dt>
+<dd>The client id as returned in the registration.</dd>
+<dt><tt>redirect_uri</tt></dt>
+<dd>The redirect_uri parameter sent with the authorization request from which the code was obtained.</dd>
+<dt><tt>grant_type</tt></dt>
+<dd>This MUST be "authorization_code".</dd>
+<dt><tt>code</tt></dt>
+<dd>The code returned via the redirect back from authorization.</dd>
+<dt><tt>code_verifier</tt></dt>
+<dd>The code_verifier generated for the authorization (the random string generated in the authorization step, as per <xref target="RFC7636" />).</dd>
+</dl>
+<t>Other parameters MAY be supplied but will be ignored. If using DPoP, the client MUST also set a DPoP header in accordance with <xref target="RFC9449" section="5" />.</t>
+<t>The server will verify the parameters and if successful, return a <tt>200 OK</tt> response with a content type of application/json. The body will be a JSON
+object with the following properties:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>access_token</tt></dt>
+<dd>A bearer token used to authenticate API requests. This will be valid for a fixed, limited time.</dd>
+<dt><tt>token_type</tt></dt>
+<dd>The type of the access token. This MUST be "bearer".</dd>
+<dt><tt>expires_in</tt></dt>
+<dd>The lifetime in seconds of the access token. For example, the value <tt>3600</tt> denotes that the access token will expire in one hour from the time the response was generated.</dd>
+<dt><tt>scope</tt></dt>
+<dd><t>The space delimited set of scopes that this access token may use.</t>
+<t>Note, this MAY be different to the set of scopes requested. Servers MAY allow users to choose to authorize only a subset of the requested scopes. Clients MUST check the set of scopes granted is sufficient for its needs. The server MAY also return scopes beyond those requested, for example a server that adds JMAP support when previously it only supported IMAP may choose to give scopes that enable JMAP access to the same data, even if only the IMAP scope was requested, so the client can seamlessly upgrade protocols.</t></dd>
+<dt><tt>refresh_token</tt></dt>
+<dd>The refresh token to use next time the client needs to get a new access token.</dd>
+</dl>
+
+<t>If the request fails, the server MUST return a <tt>400 Bad Request</tt> response with a content type of application/json. The body will be a JSON object with properties as described in <xref target="RFC6749" section="5.2"/></t>
+</section>
+
+<section anchor="using-the-access-token"><name>Using the Access Token</name>
+<t>The client is now authenticated. It can connect to the servers given in the discovered auto config with the Bearer scheme <xref target="RFC6750" />. For HTTP-based protocols, this means setting an <tt>Authorization</tt> header with the value <tt>Bearer {access_token}</tt> (where <tt>{access_token}</tt> is replaced with the value of the access_token). If using DPoP, the client must also set a DPoP header in accordance with <xref target="RFC9449" section="7"/>.</t>
+<t>For protocols that use SASL authentication, such as IMAP, POP, and SMTP, the access token is used in accordance with the OAUTHBEARER mechanism defined in <xref target="RFC7628" />. Servers MUST NOT require the username associated with the resource (the "authzid") be included in the GS2 header.</t>
+</section>
+
+<section anchor="getting-a-new-access-token"><name>Getting a New Access Token</name>
+<t>Client should keep using an access token they have been issued until it expires,
+which will result in getting a <tt>401</tt> error back.</t>
+<t>When the access token expires, the client must get a new one by making another POST request to the authorization server token endpoint. The following parameters MUST be present, using the "application/x-www-form-urlencoded" format with a character encoding of UTF-8 in the HTTP request entity-body:</t>
+
+<dl spacing="normal" newline="true">
+<dt><tt>client_id</tt></dt>
+<dd>The client id as returned in the registration.</dd>
+<dt><tt>grant_type</tt></dt>
+<dd>This MUST be "refresh_token".</dd>
+<dt><tt>refresh_token</tt></dt>
+<dd>The refresh token returned last time the client obtained a new access token.</dd>
+</dl>
+<t>The success and failures responses are identical to those documented in
+"Obtaining a refresh token" (<xref target="obtaining-a-refresh-token" />).</t>
+<t>A new refresh token SHOULD be returned in the response and the client MUST replace their previous refresh token with this if given. The client MUST NOT try to use an old refresh token again; this SHOULD result in the authorization being revoked as a protection against leaked refresh tokens.</t>
+<t>If a user has multiple devices with a client installed, each instance of the client MUST obtain separate authorization. You cannot share a refresh token between devices.</t>
+</section>
+
+<section anchor="token-expiry-times"><name>Token Expiry Times</name>
+<t>To ensure a good user experience, access tokens MUST have a lifetime of at least 1 hour. Refresh tokens SHOULD NOT expire, unless the user explicitly revokes the token or it has been unused for a considerable period of time (at least 30 days).</t>
+<t>For stateful connection-based protocols such as SMTP and IMAP the access token is only presented on first connection. Expiry of the access token SHOULD NOT affect current IMAP/SMTP etc. sessions that have already authenticated. However, should the server choose to force reauthorization it MUST do so by unilaterally closing the connection, as there is no way to reauthenticate an existing session in these protocols and all clients have to be able to handle reconnection in the case of dropped connections.</t>
+<t>If the refresh token is revoked, all existing stateful connections MUST immediately be closed.</t>
+</section>
+
+<section anchor="dynamic-client-registration-considerations">
+<name>Client Id Validity</name>
+<t>The client id MUST remain valid for as long as there is a valid refresh token associated with that client id.</t>
+<t>To ensure a good user experience, the client id assigned upon dynamic registration SHOULD be valid for use in the authorization flow (<xref target="authorization"/>) for at least one hour after issuance.</t>
+<t>Clients MUST associate a client id with each refresh token it has. If the refresh token is invalidated and the client has to reauthenticate, it MUST submit the dynamic client registration (<xref target="dynamic-client-registration" />) again and use the client id returned, which MAY be different to the previous time.</t>
+<t>Servers that wish to store client registration information MUST be careful of resource exhaustion attacks. A RECOMMENDED approach is to:</t>
+<ul>
+  <li>Normalize and securely hash the submitted registration data.</li>
+  <li>Check if this hash already exists in the database, and if so return the existing client id issued for this registration.</li>
+  <li>Otherwise, keep the registration in temporary storage and only insert it into the database upon successful authorization.</li>
+  <li>Remove any client registrations from the database whenever there are no valid refresh tokens associated with that client id.</li>
+</ul>
+</section>
+</section>
+
+<section anchor="security-considerations"><name>Security Considerations</name>
+<t>This profile mandates best practices for OAuth with native clients, as defined in <xref target="RFC8252" />.  A thorough discussion of the security considerations generally applicable to OAuth is out of scope for this document, but can be found in <xref target="RFC6819" />, as well as the security considerations (Section 10) of <xref target="RFC6749" />.</t>
+<t>Implementors are encouraged to read all of the above documents for a more thorough consideration of the specific threats and mitigations with OAuth.</t>
+<t>The choices made for this profile are intended to mitigate as far as possible the inherent risks that come from allowing arbitrary clients to talk to arbitrary servers.</t>
+<t>The key restriction of this profile is that the redirect_uri MUST be something only a native client can access. If the user has downloaded and run a malicious native app, it could already indetectably spoof the user's browser to phish them, or in unsandboxed environments install malware, so supporting the OAuth flow from an unknown client is not increasing risks. Indeed, it is more secure than the current alternative, which is legitimate clients storing the user's password.</t>
+<t>The dynamic registration part of this document is not a security component, as there is no way to verify any of the data. The data in the registration may be shown to the user as part of the authorisation flow, which may help with phishing, but as noted above the redirect_uri can only be used by a native app, which could already phish the user. However, the registration gives the server more information to detect suspicious behaviour, which can help it to detect compromised users and devices more easily.</t>
+<t>The issuer is expected to be autodetected from the user's email address. A threat scenario that must be considered is the user making a small typo in the domain (especially for a common email service), and an attacker controlling this domain. In this scenario the client will fetch the OAuth metadata from the attacker's server, and has no way to know it is not the real server the user wishes to connect to. This leads to a number of threats:</t>
+
+<ol>
+<li><t>The attacker defines a malicious authorization_endpoint under their control. They attempt to phish the user's credentials with this. This is not something that can be specifically mitigated by the requirements of this document, however requiring origin-bound authentication such as passkeys for authentication will mitigate this, and most browsers have a block list of known phishing sites that can also help mitigate this.</t>
+</li>
+<li><t>The attacker defines the real authorization_endpoint and token_endpoint, but their own resource servers. This is protected against by the use of Resource Indicators (<xref target="RFC8707" />) — the client must send the list of all resource endpoints it intends to connect to with the authorization request. If an unknown resource server is present, the server can reject the request.</t>
+<t>It is also protected against via the issuer identifier. The authorization response will include an "iss" parameter which will be the legitimate issuer identifier. However, the issuer for the metadata will not match, as this must be at the attacker's domain (if it were not, the client will have aborted the flow after fetching the metadata, as it would not match the domain it was fetched from). Therefore a client following this specification will abort the flow and not send the authorization code to the token endpoint.</t></li>
+<li><t>The attacker defines the real authorization_endpoint and resource servers, but their own token_endpoint. The issuer identifier check above will also protect against this.</t></li>
+</ol>
+</section>
+
+<section anchor="iana-considerations">
+<name>IANA Considerations</name>
+
+<section anchor="scopes-registry">
+<name>Interoperable OAuth Scopes Registry</name>
+
+<t>IANA shall add a new registry called "Interoperable OAuth Scopes" to the "OAuth Parameters" registry group. The registry records interoperable OAuth scope values. Each scope provides specific access rights to protected resources.</t>
+
+<section anchor="registration-procedure">
+<name>Registration Procedure</name>
+
+<t>The "Specification Required" policy, as defined in <xref target="RFC8126" section="4.6" />, shall govern registrations in this registry. The Designated Expert shall verify that:</t>
+
+<ol>
+<li>The proposed scope name follows established naming conventions.</li>
+<li>The description clearly defines the access rights granted by the scope, with reference to publicly available and stable documentation sufficient for interoperability.</li>
+<li>The change controller is clearly identified.</li>
+</ol>
+
+</section>
+
+<section anchor="registration-template">
+<name>Registration Template</name>
+
+<dl newline="false" spacing="compact">
+<dt>Scope Name:</dt>
+    <dd>The name of the OAuth scope value.</dd>
+
+<dt>Description:</dt>
+    <dd>A clear description of what access rights this scope grants to the client, with reference to publicly available and stable documentation sufficient for interoperability.</dd>
+
+<dt>Change Controller:</dt>
+    <dd>The name of the person, organization, or entity controlling changes to the scope definition.</dd>
+</dl>
+
+</section>
+
+<section anchor="initial-registry-contents">
+<name>Initial Registry Contents</name>
+
+<dl newline="false" spacing="compact">
+<dt>Scope Name:</dt> <dd><tt>carddav</tt></dd>
+<dt>Description:</dt> <dd>Grants the right to use the CardDAV protocol <xref target="RFC6352" />.</dd>
+<dt>Change Controller</dt> <dd>IETF</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Scope Name:</dt> <dd><tt>caldav</tt></dd>
+<dt>Description:</dt> <dd>Grants the right to use the CalDAV protocol <xref target="RFC4791" />.</dd>
+<dt>Change Controller</dt> <dd>IETF</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Scope Name:</dt> <dd><tt>imap</tt></dd>
+<dt>Description:</dt> <dd>Grants the right to use the IMAP protocol <xref target="RFC9051" />.</dd>
+<dt>Change Controller</dt> <dd>IETF</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Scope Name:</dt> <dd><tt>pop</tt></dd>
+<dt>Description:</dt> <dd>Grants the right to use the POP protocol <xref target="RFC1939" />.</dd>
+<dt>Change Controller</dt> <dd>IETF</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Scope Name:</dt> <dd><tt>smtp</tt></dd>
+<dt>Description:</dt> <dd>Grants the right to use the SMTP submission protocol <xref target="RFC6409" />.</dd>
+<dt>Change Controller</dt> <dd>IETF</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Scope Name:</dt> <dd><tt>jmap</tt></dd>
+<dt>Description:</dt> <dd>Grants the right to use the JMAP protocol <xref target="RFC8620" /> with all capabilities supported by the server.</dd>
+<dt>Change Controller</dt> <dd>IETF</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Scope Name:</dt> <dd><tt>offline_access</tt></dd>
+<dt>Description:</dt> <dd>May be advertised or requested for compatibility with OpenID connect, as described in this document.</dd>
+<dt>Change Controller</dt> <dd>IETF</dd>
+</dl>
+</section>
+</section>
+</section>
+
+</middle>
+
+<back>
+
+<references><name>Informative References</name>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.1939.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4791.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6352.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6409.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9051.xml"/>
+<reference anchor="openid-connect" target="https://openid.net/developers/specs/">
+ <front>
+   <title>OpenID Connect</title>
+   <author><organization>OpenID Foundation</organization></author>
+ </front>
+</reference>
+</references>
+
+<references><name>Normative References</name>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6749.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6750.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6819.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7009.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7591.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7628.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7636.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8126.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8252.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8414.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8707.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9207.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9449.xml"/>
+<reference anchor="webauthn" target="https://www.w3.org/TR/webauthn/">
+ <front>
+   <title>Web Authentication: An API for accessing Public Key Credentials, Level 2</title>
+   <author><organization>W3C</organization></author>
+ </front>
+</reference>
+</references>
+
+</back>
+
+</rfc>
