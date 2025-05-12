@@ -468,8 +468,8 @@ When modifying the "shareWith" property, the user cannot give a right to a Princ
 scheduling for this event; the event has not been added as a result of an
 invitation from another calendar system)? This is true if, and only if:</t>
   <ul spacing="compact">
-    <li>the event's "replyTo" property is null; or</li>
-    <li>the account will receive messages sent to at least one of the methods specified in the "replyTo" property of the event.</li>
+    <li>the event's "organizerCalendarAddress" property is null; or</li>
+    <li>the account will receive messages sent to the "organizerCalendarAddress" URI.</li>
   </ul>
 </dd>
 <dt><strong>utcStart</strong>: <tt>UTCDateTime</tt></dt>
@@ -592,8 +592,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <dt><strong>sendSchedulingMessages</strong>: <tt>Boolean</tt> (default: false)</dt>
 <dd>
 <t>If true then any changes to scheduled events will be sent to all the participants (if the server is the origin of the event) or back to the origin (otherwise). If false, the changes only affect this account and no scheduling messages will be sent.</t>
-<t>The server may send the scheduling message via any of the methods defined on the "sendTo" property of a participant (if the server is the origin) or the "replyTo" property of the event (otherwise) that it supports. If no supported methods are available for any of the recipients, the server MUST reject the change with a <tt>noSupportedScheduleMethods</tt> SetError.</t>
-<t>At time of writing, the most common interoperable protocol for sending scheduling methods between participants on different servers is iMIP <xref target="RFC5546" />. A future document will provide recommendations of what iMIP messages to send based on the change for best compatibility.</t>
+<t>The server sends the scheduling message via iTIP <xref target="RFC5546" /> to the "calendarAddress" property of a participant (if the server is the origin) or the "organizerCalendarAddress" property of the event (otherwise). If any of the recipients do not have a calendar address the server can send to, the server MUST reject the change with a <tt>noSupportedScheduleMethods</tt> SetError.</t>
 </dd>
 </dl>
 
@@ -627,7 +626,7 @@ value is less than or equal to the current "sequence" value on the server;</li>
 <t>Similarly, the "utcEnd" property is translated into a "duration" property if set. It MUST NOT be set in addition to a "duration" property and it cannot be set inside "recurrenceOverrides"; this MUST be rejected with an <tt>invalidProperties</tt> SetError.</t>
 <t>The server does not automatically reset the "partipationStatus" or "expectReply" properties of a Participant when changing other event details. Clients should either be intelligent about whether the change invalidates previous RSVPs, or ask the user whether to reset them.</t>
 <t>The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the "owner" role corresponding to one of the user's ParticipantIdentities (see <xref target="participant-identities" />).</t>
-<t>When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the "replyTo" property of the event if not present. Clients SHOULD NOT set the "replyTo" property for events when the user adds participants; the server is better positioned to add all the methods it supports to receive replies.</t>
+<t>When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the "organizerCalendarAddress" property of the event if not present. Clients SHOULD NOT set the "organizerCalendarAddress" property for events when the user adds participants, as the server is better placed to choose the best address (for example, it might choose to user a different address per event).</t>
 
 <t>The following extra SetError type is defined:</t>
 
@@ -651,9 +650,7 @@ value is less than or equal to the current "sequence" value on the server;</li>
     "@type": "RecurrenceRule",
     "frequency": "weekly"
   }],
-  "replyTo": {
-    "imip": "mailto:6489-4f14-a57f-c1@schedule.example.com"
-  },
+  "organizerCalendarAddress": "mailto:6489-4f14-a57f-c1@schedule.example.com",
   "participants": {
     "dG9tQGZvb2Jhci5xlLmNvbQ": {
       "@type": "Participant",
@@ -1237,7 +1234,7 @@ data after the update.</dd>
 }, "0"]]
 </sourcecode>
 </figure>
-<t>As the event has participants, the server sets a "replyTo" property. This server uses a special email address for receiving iMIP RSVPs (<xref target="RFC5546" />) rather than just receiving them at the owner's regular email address, and also provides a web page for people that don't have calendar clients supporting iMIP. The response may look something like this:</t>
+<t>As the event has participants, the server sets an "organizerCalendarAddress" property. This server uses a special email address for receiving iMIP RSVPs (<xref target="RFC5546" />) rather than just receiving them at the owner's regular email address. The response may look something like this:</t>
 
 <figure>
 <name>"methodResponses" Property of a JMAP Response. NOTE: '\' line wrapping per <xref target="RFC8792" />.</name>
@@ -1252,12 +1249,7 @@ data after the update.</dd>
       "created": "20221005T20:42:13Z",
       "updated": "20221005T20:42:13Z",
       "sequence": 1,
-      "replyTo": {
-        "imip": "3e87-1b18bb5e6b4@itip.example.com",
-        "web": "https://cal.example.com/\
-          5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91/?\
-          auth=bfc0-4ba3-9e44"
-      }
+      "organizerCalendarAddress": "mailto:3e87-1b18bb5e6b4@itip.example.com"
     }
   },
   ...
@@ -1796,6 +1788,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2397.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5545.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5546.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6376.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8551.xml"/>
@@ -1827,7 +1820,6 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 </references>
 <references><name>Informative References</name>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4791.xml"/>
-<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5546.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8607.xml"/>
 <reference anchor="WCAG"
  target="https://www.w3.org/TR/WCAG21/">
