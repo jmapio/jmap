@@ -476,6 +476,8 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the "utcStart" property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are RECOMMENDED to request the server expand recurrences (see <xref target="calendarevent-query" />).</t></dd>
 <dt><strong>utcEnd</strong>: <tt>UTCDateTime</tt></dt>
 <dd>The server calculates the end time in UTC from the start/timeZone/duration properties of the event. This property is not included by default and must be requested explicitly. Like utcStart, it is calculated at fetch time if requested and may change due to time zone data changes. Floating events will be interpreted as per the time zone given as a "CalendarEvent/get" argument.</dd>
+<dt><strong>useDefaultAlerts</strong>: <tt>Boolean</tt> (optional, default: false)</dt>
+<dd>If true, use the user's default alerts and ignore the value of the <tt>alerts</tt> property (see <xref target="default-alerts" />).</dd>
 </dl>
 
 <t>CalendarEvent objects MUST NOT have a "method" property as this is only used when representing iTIP <xref target="RFC5546"></xref> scheduling messages, not events in a data store.</t>
@@ -1707,6 +1709,16 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <dt>Property Context:</dt> <dd>Event, Task</dd>
 <dt>Intended Use:</dt> <dd>Reserved</dd>
 <dt>Is per-user:</dt> <dd>no</dd>
+</dl>
+</section>
+
+<section anchor="usedefaultalerts"><name>useDefaultAlerts</name>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>useDefaultAlerts</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Event</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>yes</dd>
 </dl>
 </section>
 
