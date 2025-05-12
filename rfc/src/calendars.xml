@@ -362,7 +362,6 @@ calendar.</li>
 
 <ul spacing="compact">
 <li>participationStatus</li>
-<li>participationComment</li>
 <li>expectReply</li>
 <li>scheduleAgent</li>
 <li>scheduleSequence</li>
@@ -482,7 +481,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 
 <t>CalendarEvent objects MUST NOT have a "method" property as this is only used when representing iTIP <xref target="RFC5546"></xref> scheduling messages, not events in a data store.</t>
 
-<section anchor="additional-jscalendar-properties"><name>Additional JSCalendar properties</name>
+<section anchor="additional-jscalendar-properties"><name>Additional common-use JSCalendar properties</name>
 <t>This document defines four new JSCalendar properties for common use.</t>
 
 <section anchor="mayinviteself"><name>mayInviteSelf</name>
@@ -502,6 +501,42 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>Context: Event, Task</t>
 <t>If true, only the owners of the event may see the full set of participants. Other users with access to the event may only see the owners and themselves. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
 </section>
+</section>
+
+<section anchor="additional-reserved-jscalendar-properties"><name>Additional reserved JSCalendar properties</name>
+<t>This document also reserves three new JSCalendar properties for the Participant object for use in JMAP Calendars:</t>
+
+<section anchor="scheduleagent"><name>scheduleAgent</name>
+<t>Type: <tt>String</tt> (default: "server")</t>
+<t>Context: Participant</t>
+<t>Determines whether the server will send scheduling messages to this participant, or whether it is being handled entirely by the client (see <xref target="sending-invitations-and-responses" />).</t>
+<t>The value MUST be one of the following values:</t>
+<dl spacing="normal" newline="false">
+  <dt><tt>server</tt>:</dt>
+  <dd>The calendar server will send the scheduling messages.</dd>
+  <dt><tt>client</tt>:</dt>
+  <dd>The calendar client will send the scheduling messages.</dd>
+  <dt><tt>none</tt>:</dt>
+  <dd>No scheduling messages are to be sent to this participant.</dd>
+</dl>
+</section>
+
+<section anchor="schedulesequence"><name>scheduleSequence</name>
+<t>Type: <tt>UnsignedInt</tt> (default: 0)</t>
+<t>Context: Participant</t>
+<t>This is the <tt>sequence</tt> property of the most recent iTIP response that has been applied for this participant. It can be compared to the <tt>sequence</tt> property in future responses to detect and discard older responses
+delivered out of order.</t>
+<t>Whenever an event is updated due to an iTIP response, whether by the server or the client, this property MUST be set appropriately.</t>
+</section>
+
+<section anchor="scheduleupdated"><name>scheduleUpdated</name>
+<t>Type: <tt>UTCDateTime</tt> (optional)</t>
+<t>Context: Participant</t>
+<t>This is the <tt>updated</tt> property of the most recent iTIP response that has been applied for this participant. It can be compared to the <tt>updated</tt> property in future responses to detect and discard older responses
+delivered out of order (if the "scheduleSequence" is the same).</t>
+<t>Whenever an event is updated due to an iTIP response, whether by the server or the client, this property MUST be set appropriately.</t>
+</section>
+
 </section>
 
 <section anchor="attachments"><name>Attachments</name>
@@ -1799,6 +1834,36 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <dt>Property Context:</dt> <dd>Event, Task</dd>
 <dt>Reference:</dt> <dd>This document, <xref target="hideattendees" />.</dd>
 <dt>Intended Use:</dt> <dd>Common</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
+</section>
+
+<section anchor="scheduleagent-1"><name>scheduleAgent</name>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>scheduleAgent</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Participant</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
+</section>
+
+<section anchor="schedulesequence-1"><name>scheduleSequence</name>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>scheduleSequence</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Participant</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
+<dt>Is per-user:</dt> <dd>no</dd>
+</dl>
+</section>
+
+<section anchor="scheduleupdated-1"><name>scheduleUpdated</name>
+<dl newline="false" spacing="compact">
+<dt>Property Name:</dt> <dd>scheduleUpdated</dd>
+<dt>Property Type:</dt> <dd>Not applicable</dd>
+<dt>Property Context:</dt> <dd>Participant</dd>
+<dt>Intended Use:</dt> <dd>Reserved</dd>
 <dt>Is per-user:</dt> <dd>no</dd>
 </dl>
 </section>
