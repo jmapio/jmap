@@ -131,9 +131,7 @@
 <dt><strong>mayShareWith</strong>: <tt>Boolean</tt></dt>
 <dd>If true, the user may add this Principal as a calendar share target (by adding them to the "shareWith" property of a calendar, see <xref target="calendars" />).</dd>
 <dt><strong>calendarAddress</strong>: <tt>String</tt></dt>
-<dd>If this Principal may be added as a participant to an event, this is the calendarAddress to use to represent it.</dd>
-<dt><strong>sendTo</strong>: <tt>String[String]|null</tt></dt>
-<dd>If this Principal may be added as a participant to an event, this is the Participant#sendTo property to add (see <xref target="RFC8984" section="4.4.5" />) for scheduling messages to reach it.</dd>
+<dd>If this Principal may be added as a participant to an event, this is the calendarAddress to use to receive iTIP scheduling messages.</dd>
 </dl>
 </section>
 
@@ -230,10 +228,7 @@
 <dt><strong>name</strong>: <tt>String</tt> (default: "")</dt>
 <dd>The display name of the participant to use when adding this participant to an event, e.g. "Joe Bloggs".</dd>
 <dt><strong>calendarAddress</strong>: <tt>String</tt></dt>
-<dd>The URI that represents this participant for scheduling. This URI may also be the URI for one of the sendTo methods.</dd>
-<dt><strong>sendTo</strong>: <tt>String[String]</tt></dt>
-<dd><t>Represents methods by which the participant may receive invitations and updates to an event.</t>
-<t>The keys in the property value are the available methods and MUST only contain ASCII alphanumeric characters (A-Za-z0-9). The value is a URI for the method specified in the key.</t></dd>
+<dd>The URI that represents this participant for iTIP scheduling <xref target="RFC5546" />.</dd>
 <dt><strong>isDefault</strong>: <tt>Boolean</tt> (server-set)</dt>
 <dd><t>This SHOULD be true for exactly one participant identity in any account, and
 MUST NOT be true for more than one participant identity within an account.
@@ -374,7 +369,7 @@ calendar.</li>
 <li>scheduleUpdated</li>
 </ul>
 
-<t>If the event has its "mayInviteSelf" property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with calendarAddress/sendTo properties that are the same as the calendarAddress/sendTo properties of one of the user's ParticipantIdentity objects in the account. The "roles" property of the participant MUST only contain "attendee".</t>
+<t>If the event has its "mayInviteSelf" property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with a calendarAddress property that is the same as the calendarAddress property of one of the user's ParticipantIdentity objects in the account. The "roles" property of the participant MUST only contain "attendee".</t>
 
 <t>If the event has its "mayInviteOthers" property set to true (see <xref target="mayinviteothers" />) and there is an existing Participant in the event corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The "roles" property of any new participant MUST only contain "attendee".</t>
 
@@ -657,9 +652,6 @@ value is less than or equal to the current "sequence" value on the server;</li>
       "name": "Tom",
       "email": "tom@foobar.example.com",
       "calendarAddress": "mailto:6489-4f14-a57f-c1@calendar.example.com",
-      "sendTo": {
-        "imip": "mailto:6489-4f14-a57f-c1@calendar.example.com"
-      },
       "participationStatus": "accepted",
       "roles": {
         "attendee": true
@@ -670,10 +662,6 @@ value is less than or equal to the current "sequence" value on the server;</li>
       "name": "Zoe",
       "email": "zoe@foobar.example.com",
       "calendarAddress": "mailto:zoe@foobar.example.com",
-      "sendTo": {
-        "imip": "mailto:zoe@foobar.example.com",
-        "other": "https://foobar.example.com/zoe/itip"
-      },
       "participationStatus": "accepted",
       "roles": {
         "owner": true,
@@ -1130,10 +1118,6 @@ data after the update.</dd>
       "id": "3",
       "name": "Jane Doe",
       "calendarAddress": "mailto:jane@example.com",
-      "sendTo": {
-        "imip": "mailto:jane@example.com",
-        "other": "https://example.com/uri/for/internal/scheduling"
-      },
       "isDefault": true
     }],
     "notFound": [],
@@ -1196,11 +1180,6 @@ data after the update.</dd>
           "@type": "Participant",
           "name": "Jane Doe",
           "calendarAddress": "mailto:jane@example.com",
-          "sendTo": {
-            "imip": "mailto:jane@example.com",
-            "other":
-               "https://example.com/uri/for/internal/scheduling"
-          },
           "kind": "individual",
           "roles": {
             "attendee": true,
@@ -1213,9 +1192,6 @@ data after the update.</dd>
           "@type": "Participant",
           "name": "Joe Bloggs",
           "calendarAddress": "mailto:joe@example.com",
-          "sendTo": {
-            "imip": "mailto:joe@example.com"
-          },
           "kind": "individual",
           "roles": {
             "attendee": true
