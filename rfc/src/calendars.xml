@@ -912,9 +912,9 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 
 <ol spacing="compact">
 <li>Acknowledge the alert as described in <xref target="acknowledging-an-alert" />.</li>
-<li>Add a new alert to the event that has an <tt>AbsoluteTrigger</tt> specifying the date-time when the alert will trigger again. Add a "relatedTo" property to the new alert, setting the "parent" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert that was acknowledged in step 1.</li>
+<li>Add a new alert to the event that has an <tt>AbsoluteTrigger</tt> specifying the date-time when the alert will trigger again. Add a "relatedTo" property to the new alert, setting the "snooze" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert that was acknowledged in step 1.</li>
 </ol>
-<t>When acknowledging a snoozed alert (i.e. one with a parent relatedTo pointing to the original alert), the client should delete the alert rather than setting the "acknowledged" property.</t>
+<t>When acknowledging a snoozed alert (i.e. one with a "snooze" relatedTo pointing to the original alert), the client should delete the alert rather than setting the "acknowledged" property.</t>
 </section>
 
 <section anchor="push-events"><name>Push events</name>
@@ -1347,7 +1347,7 @@ data after the update.</dd>
               "7519a951-1e6f-4a6c-b08b-20dd2e5a89cd": {
                 "@type": "Relation",
                 "relation": {
-                  "parent": true
+                  "snooze": true
                 }
               }
             }
