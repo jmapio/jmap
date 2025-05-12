@@ -943,9 +943,13 @@ triggered, or null if the event is not recurring.</dd>
 </section>
 
 <section anchor="calendar-event-notifications"><name>Calendar Event Notifications</name>
-<t>The CalendarEventNotification data type represents changes made by external entities to events in calendars that the user is subscribed to. CalendarEventNotifications are only created by the server; users cannot create them explicitly. They are stored in the same Account as the CalendarEvent that was changed.</t>
+<t>The CalendarEventNotification data type represents changes to events in calendars that the user is subscribed to where the change was not explicitly made by the user themself. CalendarEventNotifications are only created by the server; users cannot create them explicitly. They are stored in the same Account as the CalendarEvent that was changed.</t>
 <t>Clients may present the list of notifications to the user and allow the user to dismiss them. To dismiss a notification, use a standard "/set" call to destroy it.</t>
-<t>The server should create a CalendarEventNotification whenever an event is added, updated or destroyed by another user or due to receiving an iTIP <xref target="RFC5546"></xref> or other scheduling message in a calendar this user is subscribed to.</t>
+<t>The server should create a CalendarEventNotification whenever an event is added, updated or destroyed by someone else. This includes:</t>
+<ul spacing="compact">
+<li>When an event is edited directly by another user on a shared calendar.</li>
+<li>If the server chooses to auto-process scheduling requests, such as an iTIP message. Note, whether to auto-process such messages is an implementation policy.</li>
+</ul>
 <t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all users with whom the calendar is shared. The server need only keep track of which users have yet to destroy the notification.</t>
 
 <t>The server <bcp14>MAY</bcp14> limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.</t>
