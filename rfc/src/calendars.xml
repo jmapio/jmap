@@ -363,7 +363,6 @@ calendar.</li>
 <ul spacing="compact">
 <li>participationStatus</li>
 <li>expectReply</li>
-<li>scheduleAgent</li>
 <li>scheduleSequence</li>
 <li>scheduleUpdated</li>
 </ul>
@@ -504,22 +503,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 </section>
 
 <section anchor="additional-reserved-jscalendar-properties"><name>Additional reserved JSCalendar properties</name>
-<t>This document also reserves three new JSCalendar properties for the Participant object for use in JMAP Calendars:</t>
-
-<section anchor="scheduleagent"><name>scheduleAgent</name>
-<t>Type: <tt>String</tt> (default: "server")</t>
-<t>Context: Participant</t>
-<t>Determines whether the server will send scheduling messages to this participant, or whether it is being handled entirely by the client (see <xref target="sending-invitations-and-responses" />).</t>
-<t>The value MUST be one of the following values:</t>
-<dl spacing="normal" newline="false">
-  <dt><tt>server</tt>:</dt>
-  <dd>The calendar server will send the scheduling messages.</dd>
-  <dt><tt>client</tt>:</dt>
-  <dd>The calendar client will send the scheduling messages.</dd>
-  <dt><tt>none</tt>:</dt>
-  <dd>No scheduling messages are to be sent to this participant.</dd>
-</dl>
-</section>
+<t>This document also reserves two new JSCalendar properties in the Participant object for use in JMAP Calendars:</t>
 
 <section anchor="schedulesequence"><name>scheduleSequence</name>
 <t>Type: <tt>UnsignedInt</tt> (default: 0)</t>
@@ -805,13 +789,6 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <section anchor="sending-invitations-and-responses"><name>Sending invitations and responses</name>
 <t>If "sendSchedulingMessages" is true, the server MUST send appropriate iTIP <xref target="RFC5546"></xref> scheduling messages after successfuly creating, updating or destroying a calendar event.</t>
 <t>When determining which scheduling messages to send, the server must first establish whether it is the <strong>origin</strong> of the event, as described in the "isOrigin" property.</t>
-<t>Messages are only sent to participants with a "scheduleAgent" property set to "server" or omitted. If the effective "scheduleAgent" property is changed:</t>
-
-<ul spacing="compact">
-<li><t>to "server" from something else: send messages to this participant as though the event had just been created.</t></li>
-<li><t>from "server" to something else: send messages to this participant as though the event had just been destroyed.</t></li>
-<li><t>any other change: do not send any messages to this participant.</t></li>
-</ul>
 <t>The server sends the scheduling message via iTIP <xref target="RFC5546" /> to the "calendarAddress" property of a participant (if the server is the origin) or the "organizerCalendarAddress" property of the event (otherwise). If any of the recipients do not have a calendar address the server can send to, the server MUST reject the change with a <tt>noSupportedScheduleMethods</tt> SetError.</t>
 <t>If the server is the origin of the event it MUST NOT send messages to any participant where it will receive the message back in the same account (i.e. it must not send messages to the owner of the calendar the event is already on).</t>
 <t>If sending via iMIP <xref target="RFC6047"></xref>, the server MAY choose to only send updates it deems "essential" to avoid flooding the recipient's email with changes they do not care about. For example, changes to the participation status of another participant, or changes to events solely in the past may be omitted.</t>
@@ -1834,16 +1811,6 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <dt>Property Context:</dt> <dd>Event, Task</dd>
 <dt>Reference:</dt> <dd>This document, <xref target="hideattendees" />.</dd>
 <dt>Intended Use:</dt> <dd>Common</dd>
-<dt>Is per-user:</dt> <dd>no</dd>
-</dl>
-</section>
-
-<section anchor="scheduleagent-1"><name>scheduleAgent</name>
-<dl newline="false" spacing="compact">
-<dt>Property Name:</dt> <dd>scheduleAgent</dd>
-<dt>Property Type:</dt> <dd>Not applicable</dd>
-<dt>Property Context:</dt> <dd>Participant</dd>
-<dt>Intended Use:</dt> <dd>Reserved</dd>
 <dt>Is per-user:</dt> <dd>no</dd>
 </dl>
 </section>
