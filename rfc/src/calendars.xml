@@ -54,7 +54,7 @@
 </section>
 
 <section anchor="the-localdate-data-type"><name>Data Types</name>
-<t>The Id data type defined in <xref target="RFC8620" section="1.2" /> is used in this document. So too are the UnsignedInt, UTCDateTime, LocalDateTime, Duration, and TimeZoneId data types defined in Sections <xref target="RFC8984" section="1.4.3" sectionFormat="bare" />, <xref target="RFC8984" section="1.4.4" sectionFormat="bare" />, <xref target="RFC8984" section="1.4.5" sectionFormat="bare" />, <xref target="RFC8984" section="1.4.6" sectionFormat="bare" />, and <xref target="RFC8984" section="1.4.8" sectionFormat="bare" /> of <xref target="RFC8984" /> respectively.</t>
+<t>The Id data type defined in <xref target="RFC8620" section="1.2" /> is used in this document. So too are the UnsignedInt, UTCDateTime, LocalDateTime, Duration, and TimeZoneId data types defined in Sections <xref target="I-D.ietf-calext-jscalendarbis" section="1.4.3" sectionFormat="bare" />, <xref target="I-D.ietf-calext-jscalendarbis" section="1.4.4" sectionFormat="bare" />, <xref target="I-D.ietf-calext-jscalendarbis" section="1.4.5" sectionFormat="bare" />, <xref target="I-D.ietf-calext-jscalendarbis" section="1.4.6" sectionFormat="bare" />, and <xref target="I-D.ietf-calext-jscalendarbis" section="1.4.8" sectionFormat="bare" /> of <xref target="I-D.ietf-calext-jscalendarbis" /> respectively.</t>
 </section>
 
 <section anchor="terminology"><name>Terminology</name>
@@ -64,14 +64,14 @@
 
 <section anchor="data-model-overview"><name>Data Model Overview</name>
 <t>An Account (see <xref target="RFC8620" section="1.6.2"></xref>) with support for the calendar data model contains zero or more Calendar objects, which is a named collection of CalendarEvents. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off. Servers may allow an event to belong to multiple Calendars within an account.</t>
-<t>A CalendarEvent is a representation of an event or recurring series of events in JSCalendar Event <xref target="RFC8984"></xref> format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.</t>
+<t>A CalendarEvent is a representation of an event or recurring series of events in JSCalendar Event <xref target="I-D.ietf-calext-jscalendarbis" /> format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.</t>
 <t>CalendarEventNotification objects keep track of the history of changes made to a calendar by other users, allowing calendar clients to notify the user of changes to their schedule.</t>
 <t>The ParticipantIdentity data type represents the identities of the current user within an Account, which determines which events the user is a participant of and possibly their permissions related to that event.</t>
 <t>In servers with support for JMAP Sharing <xref target="RFC9670" />, data may be shared with other users. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Principals (see <xref target="RFC9670" section="2" />) may also represent schedulable entities, such as a meeting room.</t>
 <t>Users can normally subscribe to any calendar to which they have access. This indicates the user wants this calendar to appear in their regular list of calendars. The separate "isVisible" property stores whether the user would currently like to view the events in a subscribed calendar.</t>
 
 <section anchor="uids-and-calendarevent-ids"><name>UIDs and CalendarEvent Ids</name>
-<t>Each CalendarEvent has a "uid" property (<xref target="RFC8984" section="4.1.2" />), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.</t>
+<t>Each CalendarEvent has a "uid" property (<xref target="I-D.ietf-calext-jscalendarbis" section="4.1.1" />), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.</t>
 <t>An Account MUST NOT contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their "recurrenceId" property. (This situation occurs if the Principal is added to one or more specific instances of a recurring event without being invited to the whole series.)</t>
 <t>Each CalendarEvent also has an id, which is scoped to the JMAP Account and used for referencing it in JMAP methods. There is no necessary link between the uid and the CalendarEvent's id. CalendarEvents with the same uid in different Accounts may have different ids.</t>
 </section>
@@ -321,10 +321,10 @@ from the user's primary account.</dd>
 <t>This should default to "all" for the calendars in the user's own account,
 and "none" for calendars shared with the user.</t></dd>
 <dt><strong>defaultAlertsWithTime</strong>: <tt>Id[Alert]|null</tt></dt>
-<dd><t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
+<dd><t>A map of alert ids to Alert objects (see <xref target="I-D.ietf-calext-jscalendarbis" section="4.5.1" />) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to null, or may copy the alerts from the default calendar.</t></dd>
 <dt><strong>defaultAlertsWithoutTime</strong>: <tt>Id[Alert]|null</tt></dt>
-<dd><t>A map of alert ids to Alert objects (see <xref target="RFC8984" section="4.5.2" />) to apply for events where "showWithoutTime" is true (commonly referred to as "all day" events) and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
+<dd><t>A map of alert ids to Alert objects (see <xref target="I-D.ietf-calext-jscalendarbis" section="4.5.1" />) to apply for events where "showWithoutTime" is true (commonly referred to as "all day" events) and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to null, or may copy the alerts from the default calendar.</t></dd>
 <dt><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</dt>
 <dd>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <xref target="IANA-TZDB" />. If null, the timeZone of the account's associated Principal will be used.</dd>
@@ -444,7 +444,7 @@ When modifying the "shareWith" property, the user cannot give a right to a Princ
 </section>
 
 <section anchor="calendar-events"><name>Calendar Events</name>
-<t>A <strong>CalendarEvent</strong> object contains information about an event, or recurring series of events, that takes place at a particular time. It is a JSCalendar Event object, as defined in <xref target="RFC8984"></xref>, with the following additional properties:</t>
+<t>A <strong>CalendarEvent</strong> object contains information about an event, or recurring series of events, that takes place at a particular time. It is a JSCalendar Event object, as defined in <xref target="I-D.ietf-calext-jscalendarbis" />, with the following additional properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</dt>
@@ -524,7 +524,7 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 </section>
 
 <section anchor="attachments"><name>Attachments</name>
-<t>The Link object, as defined in <xref target="RFC8984" section="4.2.7" />, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per <xref target="RFC8620" section="6" />.</t>
+<t>The Link object, as defined in <xref target="I-D.ietf-calext-jscalendarbis" section="1.4.11" />, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per <xref target="RFC8620" section="6" />.</t>
 <t>The server MUST translate this to an embedded <tt>data:</tt> URL <xref target="RFC2397" /> when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments <xref target="RFC8607" />.</t>
 </section>
 
@@ -552,7 +552,7 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <t>When editing a recurring event, you can either update the base event (affecting all instances unless overridden) or update an override for a specific occurrence. To update all occurrences from a specific point onwards, there are therefore two options: split the event, or update the base event and override all occurrences before the split point back to their original values.</t>
 
 <section anchor="splitting-an-event"><name>Splitting an event</name>
-<t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar <xref target="RFC8984" section="4.1.3" />, a "next" and "first" relation MUST be set on the new objects respectively.</t>
+<t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar <xref target="I-D.ietf-calext-jscalendarbis" section="4.1.2" />, a "next" and "first" relation MUST be set on the new objects respectively.</t>
 <t>Splitting an event however is problematic in the case of a scheduled event, because the participants will see it as two separate changes, and may not understand the connection between the two.</t>
 </section>
 
@@ -583,7 +583,7 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <t>The "privacy" property of a JSCalendar Event object allows the Principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If set to "private", then when another user fetches the event the server MUST only return properties that are:</t>
 
 <ul spacing="compact">
-<li>the basic time and metadata properties of the JSCalendar Event object as specified in <xref target="RFC8984" section="4.4.3" />; or</li>
+<li>the basic time and metadata properties of the JSCalendar Event object as specified in <xref target="I-D.ietf-calext-jscalendarbis" section="4.4.3" />; or</li>
 <li>properties that are wholly derived from these permitted properties (i.e., utcStart, utcEnd); or</li>
 <li>Additional CalendarEvent properties not derived from the JSCalendar Event data (i.e., id, baseEventId, calendarIds, isDraft, isOrigin).</li>
 </ul>
@@ -949,7 +949,7 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 </section>
 
 <section anchor="alerts"><name>Alerts</name>
-<t>Alerts may be specified on events as described in <xref target="RFC8984" section="4.5" />.</t>
+<t>Alerts may be specified on events as described in <xref target="I-D.ietf-calext-jscalendarbis" section="4.5" />.</t>
 <t>Alerts MUST only be triggered for events in calendars where the user is subscribed.</t>
 <t>When an alert with an "email" action is triggered, the server MUST send an email to the user to notify them of the event. The content of the email is implementation specific. Clients MUST NOT perform an action for these alerts.</t>
 <t>When an alert with a "display" action is triggered, clients should display an alert in a platform-appropriate manner to the user to remind them of the event. Clients with a full offline cache of events may choose to calculate when alerts should trigger locally. Alternatively, they can subscribe to push events from the server.</t>
@@ -1535,11 +1535,11 @@ makes no other change):</t>
 </section>
 
 <section anchor="security-considerations"><name>Security Considerations</name>
-<t>All security considerations of JMAP <xref target="RFC8620"></xref> and JSCalendar <xref target="RFC8984"></xref> apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.</t>
+<t>All security considerations of JMAP <xref target="RFC8620"></xref> and JSCalendar <xref target="I-D.ietf-calext-jscalendarbis" /> apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.</t>
 
 <section anchor="privacy"><name>Privacy</name>
 <t>Calendars often contain the precise movements, activities, and contacts of people; all intensely private data. Privacy leaks can have real world consequences, and calendar servers and clients MUST be mindful of the need to keep all data secure.</t>
-<t>Servers MUST enforce the ACLs set on calendars to ensure only authorised data is shared. The additional restrictions specified by the "privacy" property of a JSCalendar Event object (see <xref target="RFC8984" section="4.4.3" />) MUST also be enforced.</t>
+<t>Servers MUST enforce the ACLs set on calendars to ensure only authorised data is shared. The additional restrictions specified by the "privacy" property of a JSCalendar Event object (see <xref target="I-D.ietf-calext-jscalendarbis" section="4.4.3" />) MUST also be enforced.</t>
 <t>Users may have multiple Participant Identities that they use for areas of their life kept private from one another. Using one identity with an event MUST NOT leak the existence of any other identity. For example, sending an RSVP from identity worklife@example.com MUST NOT reveal anything about another identity present in the account such as privatelife@example.org.</t>
 <t>Severs SHOULD enforce that invitations sent to external systems are only transmitted via secure encrypted and signed connections to protect against eavesdropping and modification of data.</t>
 </section>
@@ -1558,7 +1558,7 @@ makes no other change):</t>
 <section anchor="firing-alerts"><name>Firing alerts</name>
 <t>An alert firing for an event can cause a notification to be pushed to the user's devices, or to send them an email. Servers MUST rate limit the number of alerts sent for any one user. The combination of recurring events with multiple alerts can in particular define unreasonably frequent alerts, leading to denial of service for either the server processing them or the user's devices receiving them.</t>
 <t>Similarly, clients generating alerts from the data on device must take the same precautions.</t>
-<t>The "email" alert type (see <xref target="RFC8984" section="4.5.2" />) causes an email to be sent when triggered. Clients MUST ignore this alert type; the email is sent only by the calendar server. There is no mechanism in JSCalendar to specify a particular email address: the server MUST only allow alerts to be sent to an address it has verified as belonging to the user to avoid this being used as a spamming vector.</t>
+<t>The "email" alert type (see <xref target="I-D.ietf-calext-jscalendarbis" section="4.5.1" />) causes an email to be sent when triggered. Clients MUST ignore this alert type; the email is sent only by the calendar server. There is no mechanism in JSCalendar to specify a particular email address: the server MUST only allow alerts to be sent to an address it has verified as belonging to the user to avoid this being used as a spamming vector.</t>
 </section>
 
 <section anchor="load-spikes"><name>Load spikes</name>
@@ -1854,6 +1854,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8984.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9562.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9670.xml"/>
+<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-calext-jscalendarbis.xml"/>
 <reference anchor="IANA-TZDB"
  target="https://www.iana.org/time-zones">
  <front>
