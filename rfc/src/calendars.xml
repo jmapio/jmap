@@ -67,7 +67,7 @@
 <t>A CalendarEvent is a representation of an event or recurring series of events in JSCalendar Event <xref target="RFC8984"></xref> format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.</t>
 <t>CalendarEventNotification objects keep track of the history of changes made to a calendar by other users, allowing calendar clients to notify the user of changes to their schedule.</t>
 <t>The ParticipantIdentity data type represents the identities of the current user within an Account, which determines which events the user is a participant of and possibly their permissions related to that event.</t>
-<t>In servers with support for JMAP Sharing <xref target="I-D.ietf-jmap-sharing" />, data may be shared with other users. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Principals (see <xref target="I-D.ietf-jmap-sharing" section="2" />) may also represent schedulable entities, such as a meeting room.</t>
+<t>In servers with support for JMAP Sharing <xref target="RFC9670" />, data may be shared with other users. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Principals (see <xref target="RFC9670" section="2" />) may also represent schedulable entities, such as a meeting room.</t>
 <t>Users can normally subscribe to any calendar to which they have access. This indicates the user wants this calendar to appear in their regular list of calendars. The separate "isVisible" property stores whether the user would currently like to view the events in a subscribed calendar.</t>
 
 <section anchor="uids-and-calendarevent-ids"><name>UIDs and CalendarEvent Ids</name>
@@ -101,7 +101,7 @@
 </section>
 
 <section anchor="urn-ietf-params-jmap-principals-availability"><name>urn:ietf:params:jmap:principals:availability</name>
-<t>Represents support for the "Principal/getAvailability" method. Any account with this capability MUST also have the <tt>urn:ietf:params:jmap:principals</tt> capability (see <xref target="I-D.ietf-jmap-sharing" section="1.5.1" />).</t>
+<t>Represents support for the "Principal/getAvailability" method. Any account with this capability MUST also have the <tt>urn:ietf:params:jmap:principals</tt> capability (see <xref target="RFC9670" section="1.5.1" />).</t>
 <t>The value of this property in the JMAP Session "capabilities" property is an empty object.</t>
 <t>The value of this property in an account's "accountCapabilities" property is an object that MUST contain the following information on server capabilities and permissions for that account:</t>
 
@@ -118,14 +118,14 @@
 </section>
 
 <section anchor="principals-and-sharing"><name>Principals and Sharing</name>
-<t>For systems that also support JMAP Sharing <xref target="I-D.ietf-jmap-sharing" />, the <tt>urn:ietf:params:jmap:calendars</tt> capability is used to indicate that this Principal may be used with calendaring. A new method is defined to allow users to query availability when scheduling events.</t>
+<t>For systems that also support JMAP Sharing <xref target="RFC9670" />, the <tt>urn:ietf:params:jmap:calendars</tt> capability is used to indicate that this Principal may be used with calendaring. A new method is defined to allow users to query availability when scheduling events.</t>
 
 <section anchor="principal-capability-urn-ietf-params-jmap-calendars"><name>Principal Capability urn:ietf:params:jmap:calendars</name>
 <t>A "urn:ietf:params:jmap:calendars" property is added to the Principal "capabilities" object, the value of which is an object with the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>accountId</strong>: <tt>Id|null</tt></dt>
-<dd>Id of Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability that contains the calendar data for this Principal, or null if either (a) there is none (e.g. the Principal is a group just used for permissions management), or (b) the user does not have access to any data in the account (with the exception of free/busy, which is governed by the "mayGetAvailability" property). The corresponding Account object can be found in the Principal's "accounts" property, as per <xref target="I-D.ietf-jmap-sharing" section="2" />.</dd>
+<dd>Id of Account with the <tt>urn:ietf:params:jmap:calendars</tt> capability that contains the calendar data for this Principal, or null if either (a) there is none (e.g. the Principal is a group just used for permissions management), or (b) the user does not have access to any data in the account (with the exception of free/busy, which is governed by the "mayGetAvailability" property). The corresponding Account object can be found in the Principal's "accounts" property, as per <xref target="RFC9670" section="2" />.</dd>
 <dt><strong>mayGetAvailability</strong>: <tt>Boolean</tt></dt>
 <dd>If true, the user may call the "Principal/getAvailability" method with this Principal.</dd>
 <dt><strong>mayShareWith</strong>: <tt>Boolean</tt></dt>
@@ -400,7 +400,7 @@ calendar.</li>
 
 <dl spacing="normal" newline="true">
 <dt><strong>onDestroyRemoveEvents</strong>: <tt>Boolean</tt> (default: false)</dt>
-<dd>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This MUST NOT send scheduling messages to participants. It MAY create CalendarEventNotification objects, if deemed likely to be helpful to the user. In the case of a calendar with a large number of events, the large number of notifications resulting from the single deletion is unlikely to be useful to the user, and the server MAY choose to omit creating them. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="I-D.ietf-jmap-sharing" section="3"/>) MUST be created for each Principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</dd>
+<dd>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This MUST NOT send scheduling messages to participants. It MAY create CalendarEventNotification objects, if deemed likely to be helpful to the user. In the case of a calendar with a large number of events, the large number of notifications resulting from the single deletion is unlikely to be useful to the user, and the server MAY choose to omit creating them. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="RFC9670" section="3"/>) MUST be created for each Principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</dd>
 <dt><strong>onSuccessSetIsDefault</strong>: <tt>Id|null</tt></dt>
 <dd><t>If an id is given, and all creates, updates and destroys (if any) succeed
 without error, the server will try to set this calendar as the default. (For
@@ -1853,7 +1853,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8792.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8984.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9562.xml"/>
-<xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-jmap-sharing.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9670.xml"/>
 <reference anchor="IANA-TZDB"
  target="https://www.iana.org/time-zones">
  <front>
