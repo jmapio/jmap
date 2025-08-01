@@ -413,38 +413,29 @@ which will result in getting a <tt>401</tt> error back.</t>
 <name>Initial Registry Contents</name>
 
 <dl newline="false" spacing="compact">
-<dt>Scope Name:</dt> <dd><tt>carddav</tt></dd>
-<dt>Description:</dt> <dd>Grants the right to use the CardDAV protocol <xref target="RFC6352" />.</dd>
+<dt>Scope Name:</dt> <dd><tt>urn:ietf:params:oauth:scope:mail</tt></dd>
+<dt>Description:</dt>
+<dd>
+  <t>Requests access for a client to manage the user's email. This MUST include full access via all of the following protocols that the server supports:</t>
+  <ul>
+    <li>IMAP <xref target="RFC9051" /></li>
+    <li>POP <xref target="RFC1939" /></li>
+    <li>SMTP submission <xref target="RFC6409" /></li>
+    <li>JMAP <xref target="RFC8620" /> - this scope grants the right to use all JMAP capabilities that the server supports for which <tt>urn:ietf:params:oauth:scope:mail</tt> is included in the Interoperable OAuth Scopes column of the JMAP capabilties registry.</li>
+  </ul>
+</dd>
 <dt>Change Controller</dt> <dd>IETF</dd>
 </dl>
 
 <dl newline="false" spacing="compact">
-<dt>Scope Name:</dt> <dd><tt>caldav</tt></dd>
-<dt>Description:</dt> <dd>Grants the right to use the CalDAV protocol <xref target="RFC4791" />.</dd>
+<dt>Scope Name:</dt> <dd><tt>urn:ietf:params:oauth:scope:contacts</tt></dd>
+<dt>Description:</dt> <dd>Requests access for a client to manage the user's contacts. This MUST include full access via the CardDAV protocol <xref target="RFC6352" /> if the server supports it. If the server supports JMAP <xref target="RFC8620" />, this scope grants the right to use all JMAP capabilities that the server supports for which <tt>urn:ietf:params:oauth:scope:contacts</tt> is included in the Interoperable OAuth Scopes column of the JMAP capabilties registry.</dd>
 <dt>Change Controller</dt> <dd>IETF</dd>
 </dl>
 
 <dl newline="false" spacing="compact">
-<dt>Scope Name:</dt> <dd><tt>imap</tt></dd>
-<dt>Description:</dt> <dd>Grants the right to use the IMAP protocol <xref target="RFC9051" />.</dd>
-<dt>Change Controller</dt> <dd>IETF</dd>
-</dl>
-
-<dl newline="false" spacing="compact">
-<dt>Scope Name:</dt> <dd><tt>pop</tt></dd>
-<dt>Description:</dt> <dd>Grants the right to use the POP protocol <xref target="RFC1939" />.</dd>
-<dt>Change Controller</dt> <dd>IETF</dd>
-</dl>
-
-<dl newline="false" spacing="compact">
-<dt>Scope Name:</dt> <dd><tt>smtp</tt></dd>
-<dt>Description:</dt> <dd>Grants the right to use the SMTP submission protocol <xref target="RFC6409" />.</dd>
-<dt>Change Controller</dt> <dd>IETF</dd>
-</dl>
-
-<dl newline="false" spacing="compact">
-<dt>Scope Name:</dt> <dd><tt>jmap</tt></dd>
-<dt>Description:</dt> <dd>Grants the right to use the JMAP protocol <xref target="RFC8620" /> with all capabilities supported by the server.</dd>
+<dt>Scope Name:</dt> <dd><tt>urn:ietf:params:oauth:scope:calendars</tt></dd>
+<dt>Description:</dt> <dd>Requests access for a client to manage the user's calendars. This MUST include full access via the CalDAV protocol <xref target="RFC4791" /> if the server supports it. If the server supports JMAP <xref target="RFC8620" />, this scope grants the right to use all JMAP capabilities that the server supports for which <tt>urn:ietf:params:oauth:scope:calendars</tt> is included in the Interoperable OAuth Scopes column of the JMAP capabilties registry.</dd>
 <dt>Change Controller</dt> <dd>IETF</dd>
 </dl>
 
@@ -452,6 +443,94 @@ which will result in getting a <tt>401</tt> error back.</t>
 <dt>Scope Name:</dt> <dd><tt>offline_access</tt></dd>
 <dt>Description:</dt> <dd>May be advertised or requested for compatibility with OpenID connect, as described in this document.</dd>
 <dt>Change Controller</dt> <dd>IETF</dd>
+</dl>
+</section>
+</section>
+<section>
+<name>Update to the JMAP Capabilties Registry</name>
+
+<t>IANA shall update the "JMAP Capabilities" registry established in <xref target="RFC8620" /> to add a new column called "Interoperable OAuth Scopes". For each capability, this column shall contain a list of zero or more scopes registered in the Interoperable OAuth Scopes Registry. Authorisation for any scope in the list will grant access to use that JMAP capability, if the capability is supported by the server.</t>
+
+<t>Future registrations in the "JMAP Capabilities" registry SHOULD specify a value for the Interoperable OAuth Scopes column in addition to the fields established in the registration template by <xref target="RFC8620" section="9.4.5"/>. If omitted, registrations will be added with no value for this column (i.e., no interoperable scopes are available to grant access to this capability via OAuth).</t>
+
+<section>
+<name>Initial Interoperable OAuth Scopes Values for the JMAP Capabilities Fegistry</name>
+
+<t>IANA shall update the existing JMAP Capabilities registrations with the following values for the Interoperable OAuth Scopes column.</t>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:core</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail, urn:ietf:params:oauth:scope:contacts, urn:ietf:params:oauth:scope:calendars</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:mail</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:mdn</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:smimeverify</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:submission</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:vacationresponse</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:blob</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail, urn:ietf:params:oauth:scope:contacts, urn:ietf:params:oauth:scope:calendars</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:quota</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail, urn:ietf:params:oauth:scope:contacts, urn:ietf:params:oauth:scope:calendars</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:sieve</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:principals</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail, urn:ietf:params:oauth:scope:contacts, urn:ietf:params:oauth:scope:calendars</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:principals:owner</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail, urn:ietf:params:oauth:scope:contacts, urn:ietf:params:oauth:scope:calendars</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:contacts</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:contacts</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:calendars</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:calendars</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:principals:availability</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:calendars</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>Capability Name:</dt> <dd>urn:ietf:params:jmap:webpush-vapid</dd>
+<dt>Interoperable OAuth Scopes:</dt> <dd>urn:ietf:params:oauth:scope:mail, urn:ietf:params:oauth:scope:contacts, urn:ietf:params:oauth:scope:calendars</dd>
 </dl>
 </section>
 </section>
