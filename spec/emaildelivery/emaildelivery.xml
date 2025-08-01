@@ -43,7 +43,7 @@
 <li>The client needs to make at least one HTTP request, and sometimes more, to resynchronise its datastore before it can show a visible notification to the user. This can sometimes fail when there is poor connectivity. In such circumstances, the client is only able to tell the user a new message has arrived, not any of the details such as who sent it, or the subject.</li>
 </ol>
 
-<t>To address these issues, this document defines a way to receive a new EmailDelivery object via the JMAP push subscription. Clients can request a filter be applied to precisely restrict which messages they are notified about. Clients may request certain properties of the email sent in the EmailDelivery object, so it has sufficient information to show the user a notification having to make any further requests to the server.</t>
+<t>To address these issues, this document defines a way to receive a new EmailPush object via the JMAP push subscription. Clients can request a filter be applied to precisely restrict which messages they are notified about. Clients may request certain properties of the email sent in the EmailPush object, so it has sufficient information to show the user a notification having to make any further requests to the server.</t>
 
 <section anchor="notational-conventions">
 <name>Notational Conventions</name>
@@ -74,19 +74,19 @@
 </section>
 
 <section anchor="emailpush-object">
-<name>The EmailDelivery object</name>
+<name>The EmailPush object</name>
 
-<t>An <strong>EmailDelivery</strong> object represents a new message that has been delivered to the store. It has the following properties:</t>
+<t>An <strong>EmailPush</strong> object represents a new message that has been delivered to the store. It has the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>@type</strong>: <tt>String</tt></dt>
-<dd>This <bcp14>MUST</bcp14> be the string "EmailDelivery".</dd>
+<dd>This <bcp14>MUST</bcp14> be the string "EmailPush".</dd>
 
 <dt><strong>accountId</strong>: <tt>Id</tt></dt>
 <dd>The id of the Account this Email is in.</dd>
 
 <dt><strong>email</strong>: <tt>Email</tt></dt>
-<dd>An object with the properties of the Email object (as defined in <xref target="RFC8621" section="4.1" />) that were requested by the client in the EmailDeliveryConfig. Note, push channels often have strict restrictions on the size of data that can be sent. Properties <bcp14>MUST</bcp14> be added to this object in the order defined in the properties array of the associated EmailDeliveryConfig. If adding a property would exceed the size limit for the push channel, the property <bcp14>MUST</bcp14> be omitted. Clients are <bcp14>RECOMMENDED</bcp14> to only request the properties they need for the visible notification, plus the "id" property if they want to then fetch further information.</dd>
+<dd>An object with the properties of the Email object (as defined in <xref target="RFC8621" section="4.1" />) that were requested by the client in the EmailPushConfig. Note, push channels often have strict restrictions on the size of data that can be sent. Properties <bcp14>MUST</bcp14> be added to this object in the order defined in the properties array of the associated EmailPushConfig. If adding a property would exceed the size limit for the push channel, the property <bcp14>MUST</bcp14> be omitted. Clients are <bcp14>RECOMMENDED</bcp14> to only request the properties they need for the visible notification, plus the "id" property if they want to then fetch further information.</dd>
 </dl>
 </section>
 
@@ -96,20 +96,20 @@
 <t>The PushSubscription object is defined in <xref target="RFC8620" section="7.2" />. This document defines an extra property for this object:</t>
 
 <dl spacing="normal" newline="true">
-<dt><strong>emailDelivery</strong>: <tt>Id[EmailDeliveryConfig]|null</tt></dt>
-<dd>If not null, this is a map. The keys are Account ids for accounts with support for the <tt>urn:ietf:params:jmap:emailpush</tt> capability. The server will push EmailDelivery objects for these accounts when a new message arrives, in accordance with the associated EmailDeliveryConfig options for the account.</dd>
+<dt><strong>emailPush</strong>: <tt>Id[EmailPushConfig]|null</tt></dt>
+<dd>If not null, this is a map. The keys are Account ids for accounts with support for the <tt>urn:ietf:params:jmap:emailpush</tt> capability. The server will push EmailPush objects for these accounts when a new message arrives, in accordance with the associated EmailPushConfig options for the account.</dd>
 </dl>
 
-<t>An <strong>EmailDeliveryConfig</strong> object has the following properties:</t>
+<t>An <strong>EmailPushConfig</strong> object has the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>filter</strong>: <tt>FilterOperator|FilterCondition|null</tt></dt>
-<dd><t>A filter to apply to determine which new messages to push an EmailDelivery object for. The FilterCondition is as defined in <xref target="RFC8621" section="4.4.1" />.</t>
+<dd><t>A filter to apply to determine which new messages to push an EmailPush object for. The FilterCondition is as defined in <xref target="RFC8621" section="4.4.1" />.</t>
 <t>If <tt>urn:ietf:params:jmap:mail</tt> capability is not supported for an account, support for the "inMailbox" and "inMailboxOtherThan" filter conditions is <bcp14>OPTIONAL</bcp14>. However, if the server supports IMAP access to the same account with the ObjectID extension <xref target="RFC8474" />, it <bcp14>MUST</bcp14> support using mailbox ids discovered via IMAP with these filter conditions.</t>
 </dd>
 
 <dt><strong>properties</strong>: <tt>String[]</tt></dt>
-<dd><t>The list of properties to include in the "email" value of the EmailDelivery object. This is the same as the properties argument in "Email/get", as defined in <xref target="RFC8621" section="4.2" />.</t>
+<dd><t>The list of properties to include in the "email" value of the EmailPush object. This is the same as the properties argument in "Email/get", as defined in <xref target="RFC8621" section="4.2" />.</t>
 
 <t>If <tt>urn:ietf:params:jmap:mail</tt> capability is supported the server <bcp14>MUST</bcp14> support all the properties it supports for the "Email/get" method. Otherwise, it <bcp14>MUST</bcp14> support the following properties:</t>
 
@@ -185,7 +185,7 @@
         "auth": "uwPFKACOLBipGPTVz4UCDg"
       },
       "types": [],
-      "emailDelivery": {
+      "emailPush": {
         "A1412": {
           "filter": {
             "operator": "OR",
@@ -203,13 +203,13 @@
 </sourcecode>
 </figure>
 
-<t>The server creates the push subscription and immediately pushes a PushVerification object to the client. The client updates the PushSubscription object with this value to validate it as per <xref target="RFC8620" section="7.2.2" />. With this done, the server will now push an EmailDelivery object whenever a new message arrives that's delivered to the mailbox with id "674cc240-95db-49ce-a8a2-054f4f733095", or has the "$notify" keyword. As the "types" property is the empty array, the server will not push any StateChange objects. For example, a message arrives and the server pushes the following:</t>
+<t>The server creates the push subscription and immediately pushes a PushVerification object to the client. The client updates the PushSubscription object with this value to validate it as per <xref target="RFC8620" section="7.2.2" />. With this done, the server will now push an EmailPush object whenever a new message arrives that's delivered to the mailbox with id "674cc240-95db-49ce-a8a2-054f4f733095", or has the "$notify" keyword. As the "types" property is the empty array, the server will not push any StateChange objects. For example, a message arrives and the server pushes the following:</t>
 
 <figure>
-<name>An EmailDelivery object</name>
+<name>An EmailPush object</name>
 <sourcecode type="json">
 {
-  "@type": "EmailDelivery",
+  "@type": "EmailPush",
   "accountId": "A1412",
   "email": {
     "from": [{ "name": "John Smith", "email": "john@example.com" }],
@@ -225,7 +225,7 @@
 <section anchor="security-considerations">
 <name>Security Considerations</name>
 <t>All security considerations of JMAP <xref target="RFC8620" /> apply to this specification. Additional considerations are detailed below.</t>
-<t>With the push defined in JMAP Core, no user data travels over the push channel, only state strings. The EmailDelivery object on the other hand contains sensitive user data. As specfied in <xref target="RFC8620" section="8.7" />, to ensure confidentiality and integrity of the user's data, the client <bcp14>MUST</bcp14> specify encryption keys when establishing the PushSubscription and ignore any push notification received that is not encrypted with those keys.</t>
+<t>With the push defined in JMAP Core, no user data travels over the push channel, only state strings. The EmailPush object on the other hand contains sensitive user data. As specfied in <xref target="RFC8620" section="8.7" />, to ensure confidentiality and integrity of the user's data, the client <bcp14>MUST</bcp14> specify encryption keys when establishing the PushSubscription and ignore any push notification received that is not encrypted with those keys.</t>
 </section>
 
 <section anchor="iana-considerations">
