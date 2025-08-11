@@ -45,16 +45,11 @@
 <t>This document pulls together several existing standards and uses them to specifiy a specific OAuth profile, allowing interoperable modern authentication for native clients of open protocols, such as IMAP, JMAP, SMTP, POP, CalDAV, and CardDAV. For these protocols, there are many servers and many clients with no pre-existing relationship, that need to be able to connect. At the moment, the only interoperable way to do so is with a basic username and password, which has many deficiences from a security standpoint.</t>
 
 <section anchor="presumptions"><name>Presumptions</name>
-<t>This OAuth flow presumes you have a username that is used to identify the user, along with:</t>
+<t>This OAuth flow presumes you have a set of one or more Application Server endpoints (e.g., for JMAP/IMAP/SMTP/POP/CardDAV/CalDAV), and a common authorization server issuer identifier for all of them. For example, you might have a JMAP session endpoint <tt>https://api.example.com/jmap/session</tt>, an IMAP endpoint <tt>imaps://imap.example.com:993</tt>, and an issuer identifer <tt>https://auth.example.com</tt>.</t>
+</section>
 
-<ol spacing="compact">
-<li>The set of services that may be available for this username
-(e.g., JMAP/IMAP/SMTP/POP/CardDAV/CalDAV);</li>
-<li>The Application Server endpoint to connect to in order to access them;
-(e.g., a JMAP session endpoint <tt>https://api.example.com/jmap/session</tt>, or an IMAP endpoint <tt>imaps://imap.example.com:993</tt>).</li>
-<li>The authorization server issuer identifier, needed to do OAuth, e.g., <tt>https://auth.example.com</tt>.</li>
-</ol>
-<t>Ideally, the client may use an autodiscovery mechanism to find these given the username. Servers supporting this OAuth profile MUST support [TODO:RFC-To-Be-Defined] for autodiscovery.</t>
+<section anchor="getting-the-issuer-identifier"><name>Getting the Authorization Server Issuer Identifier</name>
+<t>The endpoints may be discovered via an autoconfiguration mechanism or manual user input. Autoconfiguration may also include the issuer identifier. To allow OAuth configuration for manual input or when the isser identifier is not included in the autoconfig, HTTP endpoints that support this profile MUST support <xref target="RFC9728">Protected Resource Metadata</xref>, accessible via the <tt>oauth-protected-resource</tt> well-known path, as specified in <xref target="RFC9728" section="3" />. The <tt>authorization_servers</tt> property MUST be present in the resource metadata, with the value containing the authorization server issuer identifier. HTTP requests made without valid authentication to the resource endpoints MUST indicate the protected resource metadata URL in the <tt>WWW-Authenticate</tt> HTTP response header field, as described in <xref target="RFC9728" section="5" />.</t>
 </section>
 
 <section anchor="notational-conventions"><name>Notational Conventions</name>
@@ -572,6 +567,7 @@ which will result in getting a <tt>401</tt> error back.</t>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8707.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9207.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9449.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9728.xml"/>
 <reference anchor="webauthn" target="https://www.w3.org/TR/webauthn/">
  <front>
    <title>Web Authentication: An API for accessing Public Key Credentials, Level 2</title>
