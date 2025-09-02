@@ -74,13 +74,13 @@
 </section>
 
 <section anchor="fetching-the-authorization-server-data"><name>Fetching the Authorization Server Metadata</name>
-<t>The authorization server issuer identifier MUST be an HTTPS URL with no query parameters or fragment part. Otherwise, abort the flow. The authorization server metadata may be fetched by a GET request to the path found by removing any trailing slash (<tt>/</tt>) and then appending <tt>/.well-known/oauth-authorization-server</tt> to this URL.</t>
+<t>The authorization server issuer identifier MUST be an HTTPS URL with no path, query parameters, or fragment part, i.e. it MUST be just "https://" followed by a hostname. Otherwise, abort the flow. The authorization server metadata may be fetched by a GET request to the <tt>/.well-known/oauth-authorization-server</tt> path at this origin.</t>
 <t>When fetched, a successful response is indicated by a 200 OK HTTP status code. The reponse MUST have an "application/json" content type. Anything else MUST be treated as an error, and the flow MUST be aborted.</t>
 <t>The authorization server metadata is a JSON document with properties as specified in <xref target="RFC8414" />. It MUST include the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>issuer</tt></dt>
-<dd><t>The authorization server's issuer identifier. This MUST be identical to the issuer identifier used to fetch this document. For example, if this document was fetched from <tt>https://example.com/foo/.well-known/oauth-authorization-server</tt>, the issuer MUST be <tt>https://example.com/foo</tt>. If not, the flow MUST be aborted.</t>
+<dd><t>The authorization server's issuer identifier. This MUST be identical to the issuer identifier used to fetch this document. For example, if this document was fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server</tt>, the issuer MUST be <tt>https://auth.example.com</tt>. If not, the flow MUST be aborted.</t>
 <t>This MUST be verified again during the authorization flow (see <xref target="authorization" />, or <xref target="RFC9207" /> for more details), to prevent against mix-up attacks.</t>
 </dd>
 <dt><tt>registration_endpoint</tt></dt>
