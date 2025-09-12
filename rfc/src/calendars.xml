@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rfc version="3" ipr="trust200902" docName="draft-ietf-jmap-calendars-23" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
+<rfc version="3" ipr="trust200902" docName="draft-ietf-jmap-calendars-24" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
 
 <front>
-<title abbrev="JMAP Calendars">JSON Meta Application Protocol (JMAP) for Calendars</title><seriesInfo value="draft-ietf-jmap-calendars-23" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
+<title abbrev="JMAP Calendars">JSON Meta Application Protocol (JMAP) for Calendars</title><seriesInfo value="draft-ietf-jmap-calendars-24" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
 <author role="editor" initials="N.M." surname="Jenkins" fullname="Neil Jenkins">
     <organization>Fastmail</organization>
     <address>
@@ -29,7 +29,7 @@
     <uri>http://sphericalcowgroup.com</uri>
   </address>
 </author>
-<date year="2025" month="June" day="20"></date>
+<date year="2025" month="September" day="12"></date>
 <area>Applications</area>
 <workgroup>JMAP</workgroup>
 <keyword>JMAP</keyword>
@@ -557,7 +557,8 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 </section>
 
 <section anchor="updating-the-base-event-and-overriding-previous"><name>Updating the base event and overriding previous</name>
-<t>For scheduled events, a better approach is to avoid splitting and instead update the base event with the new property value for "this and future", then create overrides for all occurrences before the split point to restore the property to its previous value. Indeed, this may be the only option the user has permission to do if not an owner of the event.</t>
+<t>For scheduled events, a better approach is to avoid splitting and instead update the base event with the new property value for "this and future", then create overrides for all occurrences before the split point to restore the property to its previous value. Indeed, this may be the only option the user has permission to do if they are not an owner of the event.</t>
+<t>This approach however is not recommended if modifying the recurrence rule or shifting the start date. In particular, while allowed by the data format specification, support for recurrence overrides that add instances prior to the base event start date is poor and so should be avoided. When making a change to these properties, the client should split the event instead.</t>
 <t>Clients may choose to skip creating the overrides if the old data is not important, for example if the "alerts" property is being updated, it is probably not important to create overrides for events in the past with the alerts that have already fired.</t>
 </section>
 </section>
