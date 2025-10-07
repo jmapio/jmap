@@ -553,13 +553,23 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 
 <section anchor="splitting-an-event"><name>Splitting an event</name>
 <t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rule of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar <xref target="I-D.ietf-calext-jscalendarbis" section="4.1.2" />, a "next" and "first" relation MUST be set on the new objects respectively.</t>
-<t>Splitting an event however is problematic in the case of a scheduled event, because the participants will see it as two separate changes, and may not understand the connection between the two.</t>
 </section>
 
 <section anchor="updating-the-base-event-and-overriding-previous"><name>Updating the base event and overriding previous</name>
-<t>For scheduled events, a better approach is to avoid splitting and instead update the base event with the new property value for "this and future", then create overrides for all occurrences before the split point to restore the property to its previous value. Indeed, this may be the only option the user has permission to do if they are not an owner of the event.</t>
-<t>This approach however is not recommended if modifying the recurrence rule or shifting the start date. In particular, while allowed by the data format specification, support for recurrence overrides that add instances prior to the base event start date is poor and so should be avoided. When making a change to these properties, the client should split the event instead.</t>
-<t>Clients may choose to skip creating the overrides if the old data is not important, for example if the "alerts" property is being updated, it is probably not important to create overrides for events in the past with the alerts that have already fired.</t>
+<t>Splitting an event with participants is problematic, because they will see two separate changes and may not understand they are connected.</t>
+
+<t>An alternative approach is to do the following:</t>
+
+<ol>
+<li>Update the base event with the changes for "this and future".</li>
+<li>Create overrides for all occurrences before the split point to restore the properties to their previous values.</li>
+</ol>
+
+<t>This approach MUST be used if the user does not have the permissions required to split the event (e.g., if they are not an owner of the event).</t>
+
+<t>This approach is RECOMMENDED if making changes to properties other than "start", "timeZone", or recurrenceRule", as the single event update is easier for participants to understand.</t>
+
+<t>Modifying the recurrence rule or start date/time zone with this method is NOT RECOMMENDED. While allowed by the data format specification, there is poor support in servers for recurrence overrides that add instances prior to the base event start date, and so this should be avoided. When making a change to these properties, the client SHOULD split the event instead, unless it knows all participants are using software that can handle this type of change.</t>
 </section>
 </section>
 
