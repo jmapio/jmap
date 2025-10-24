@@ -859,6 +859,7 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <t>If expandRecurrences is true, a separate id will be returned for each instance of a recurring event that matches the query. This synthetic id is opaque to the client, but uniquely identifies the base event id + recurrence id within the account, allowing the server to resolve these for "/get" and "/set" operations. Otherwise, a single id will be returned for matching recurring events that represents the entire event.</t>
 <t>There is no necessary correspondence between the ids of different instances of the same expanded event.</t>
 <t>The following additional error may be returned instead of the "CalendarEvent/query" response:</t>
+<t><tt>expandDurationTooLarge</tt>: The query has expandRecurrences set to true, and the duration between the "before" and "after" properties exceeds the maxExpandedQueryDuration limit (as found in the account capabilities).</t>
 <t><tt>cannotCalculateOccurrences</tt>: The server cannot expand a recurrence required to return the results for this query.</t>
 
 <section anchor="filtering"><name>Filtering</name>
@@ -1674,6 +1675,16 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <dt>Change controller:</dt> <dd>IETF</dd>
 <dt>Reference:</dt> <dd>This document, <xref target="calendarevent-set"/></dd>
 <dt>Description:</dt> <dd>The server was requested to send scheduling messages, but does not support any of the methods available for at least one of the recipients.</dd>
+</dl>
+</section>
+
+<section anchor="expanddurationtoolarge" title="expandDurationTooLarge">
+<dl newline="false" spacing="compact">
+<dt>JMAP Error Code:</dt> <dd>expandDurationTooLarge</dd>
+<dt>Intended use:</dt> <dd>common</dd>
+<dt>Change controller:</dt> <dd>IETF</dd>
+<dt>Reference:</dt> <dd>This document, <xref target="calendarevent-query"/></dd>
+<dt>Description:</dt> <dd>The query has expandRecurrences set to true, and the duration between the "before" and "after" properties exceeds the maxExpandedQueryDuration limit.</dd>
 </dl>
 </section>
 
