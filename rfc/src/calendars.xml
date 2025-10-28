@@ -150,7 +150,7 @@
 <dt><strong>showDetails</strong>: <tt>Boolean</tt></dt>
 <dd>If true, event details will be returned if the user has permission to view them.</dd>
 <dt><strong>eventProperties</strong>: <tt>String[]|null</tt></dt>
-<dd>A list of properties to include in any JSCalendar Event object returned. If null, all properties of the event will be returned. Otherwise, only properties with names in the given list will be returned.</dd>
+<dd>A list of properties to include in any CalendarEvent object returned. If null, all properties of the event will be returned. Otherwise, only properties with names in the given list will be returned.</dd>
 </dl>
 
 <t>The server will first find all relevant events, expanding any recurring events. Relevant events are ones where all of the following is true:</t>
@@ -183,17 +183,19 @@
 <li><tt>"unavailable"</tt> — The Principal is not available for scheduling at this time for any other reason.</li>
 </ul>
 </dd>
-<dt><strong>event</strong>: <tt>JSCalendar Event|null</tt></dt>
-<dd><t>The JSCalendar Event representation of the event, or null if any of the following are true:</t>
+<dt><strong>event</strong>: <tt>CalendarEvent|null</tt></dt>
+<dd><t>The CalendarEvent representation of the event (see <xref target="calendar-events" />), or null if any of the following are true:</t>
 <ul spacing="compact">
 <li>The "showDetails" argument is false.</li>
 <li>The "privacy" property of the event is "private".</li>
 <li>The user does not have the "mayReadItems" permission for any of the calendars the event is in.</li>
 </ul>
 <t>If an "eventProperties" argument was given, any properties in the JSCalendar Event that are not in the eventProperties list are removed from the returned representation.</t></dd>
+<dt><strong>accountId</strong>: <tt>Id|null</tt></dt>
+<dd>The account id in which this event can be found, or null if the "event" property is null. (The id of the event may be requested in the eventProperties.)</dd>
 </dl>
 
-<t>The server MAY also generate BusyPeriod objects based on other information it has about the Principal's availability, such as office hours.</t>
+<t>The server MAY also generate BusyPeriod objects based on other information it has about the Principal's availability, such as office hours; the "event" and "accountId" properties will always be null for these.</t>
 <t>Finally, the server MUST merge and split BusyPeriod objects where the "event" property is null, such that none of them overlap and either there is a gap in time between any two objects (the utcEnd of one does not equal the utcStart of another) or those objects have a different "busyStatus" property. If there are overlapping BusyPeriod time ranges with different "busyStatus" properties the server MUST choose the value in the following order: confirmed &gt; unavailable &gt; tentative.</t>
 <t>The response has the following argument:</t>
 
