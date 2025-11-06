@@ -43,7 +43,7 @@
 <li>The client needs to make at least one HTTP request, and sometimes more, to resynchronise its datastore before it can show a visible notification to the user. This can sometimes fail when there is poor connectivity. In such circumstances, the client is only able to tell the user a new message has arrived, not any of the details such as who sent it, or the subject.</li>
 </ol>
 
-<t>To address these issues, this document defines a way to receive a new EmailPush object via the JMAP push subscription. Clients can request a filter be applied to precisely restrict which messages they are notified about. Clients may request certain properties of the email sent in the EmailPush object, so it has sufficient information to show the user a notification having to make any further requests to the server.</t>
+<t>To address these issues, this document defines a way to receive a new EmailPush object via the JMAP push subscription. Clients can request a filter be applied to precisely restrict which messages they are notified about. Clients may request certain properties of the emails be included in the EmailPush object, so it has sufficient information to show the user notifications without having to make any further requests to the server.</t>
 
 <section anchor="notational-conventions">
 <name>Notational Conventions</name>
@@ -76,7 +76,7 @@
 <section anchor="emailpush-object">
 <name>The EmailPush object</name>
 
-<t>An <strong>EmailPush</strong> object represents a new message that has been delivered to the store. It has the following properties:</t>
+<t>An <strong>EmailPush</strong> object represents one or more new messages that have been delivered to an account. It has the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>@type</strong>: <tt>String</tt></dt>
@@ -85,8 +85,10 @@
 <dt><strong>accountId</strong>: <tt>Id</tt></dt>
 <dd>The id of the Account this Email is in.</dd>
 
-<dt><strong>email</strong>: <tt>Email</tt></dt>
-<dd>An object with the properties of the Email object (as defined in <xref target="RFC8621" section="4.1" />) that were requested by the client in the EmailPushConfig. Note, push channels often have strict restrictions on the size of data that can be sent. Properties <bcp14>MUST</bcp14> be added to this object in the order defined in the properties array of the associated EmailPushConfig. If adding a property would exceed the size limit for the push channel, the property <bcp14>MUST</bcp14> be omitted. Clients are <bcp14>RECOMMENDED</bcp14> to only request the properties they need for the visible notification, plus the "id" property if they want to then fetch further information.</dd>
+<dt><strong>emails</strong>: <tt>Email[]</tt></dt>
+<dd><t>An array of objects representing the new messages. Each object has the properties of the Email object (as defined in <xref target="RFC8621" section="4.1" />) that were requested by the client in the EmailPushConfig. If multiple emails arrive in quick succession, or the server comes back online after a period of downtime, it may include multiple Email objects in this array to reduce the number of push notifications it sends, avoiding rate limiting issues.</t>
+<t>Note, push channels often have strict restrictions on the size of data that can be sent. The server <bcp14>MUST</bcp14> take care not to exceed this when amalgamating multiple Email objects into a single EmailPush.</t>
+<t>In some cases, just a single Email may be too large. Properties <bcp14>MUST</bcp14> be added to this object in the order defined in the properties array of the associated EmailPushConfig. If adding a property would exceed the size limit for the push channel, the property <bcp14>MUST</bcp14> be omitted. Clients are <bcp14>RECOMMENDED</bcp14> to only request the properties they need for the visible notification, plus the "id" property if they want to then fetch further information.</t></dd>
 </dl>
 </section>
 
@@ -109,7 +111,7 @@
 </dd>
 
 <dt><strong>properties</strong>: <tt>String[]</tt></dt>
-<dd><t>The list of properties to include in the "email" value of the EmailPush object. This is the same as the properties argument in "Email/get", as defined in <xref target="RFC8621" section="4.2" />.</t>
+<dd><t>The list of properties to include in the "emails" value of the EmailPush object. This is the same as the properties argument in "Email/get", as defined in <xref target="RFC8621" section="4.2" />.</t>
 
 <t>If <tt>urn:ietf:params:jmap:mail</tt> capability is supported the server <bcp14>MUST</bcp14> support all the properties it supports for the "Email/get" method. Otherwise, it <bcp14>MUST</bcp14> support the following properties:</t>
 
@@ -211,11 +213,11 @@
 {
   "@type": "EmailPush",
   "accountId": "A1412",
-  "email": {
+  "emails": [{
     "from": [{ "name": "John Smith", "email": "john@example.com" }],
     "subject": "Surprise birthday party for Jane tonight",
     "id": "M699bb151ca4cbf1c24364a68"
-  }
+  }]
 }
 </sourcecode>
 </figure>
