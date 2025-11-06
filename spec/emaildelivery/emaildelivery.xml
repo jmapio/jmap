@@ -89,6 +89,9 @@
 <dd><t>An array of objects representing the new messages. Each object has the properties of the Email object (as defined in <xref target="RFC8621" section="4.1" />) that were requested by the client in the EmailPushConfig. If multiple emails arrive in quick succession, or the server comes back online after a period of downtime, it may include multiple Email objects in this array to reduce the number of push notifications it sends, avoiding rate limiting issues.</t>
 <t>Note, push channels often have strict restrictions on the size of data that can be sent. The server <bcp14>MUST</bcp14> take care not to exceed this when amalgamating multiple Email objects into a single EmailPush.</t>
 <t>In some cases, just a single Email may be too large. Properties <bcp14>MUST</bcp14> be added to this object in the order defined in the properties array of the associated EmailPushConfig. If adding a property would exceed the size limit for the push channel, the property <bcp14>MUST</bcp14> be omitted. Clients are <bcp14>RECOMMENDED</bcp14> to only request the properties they need for the visible notification, plus the "id" property if they want to then fetch further information.</t></dd>
+
+<dt><strong>state</strong>: <tt>String</tt></dt>
+<dd>The state string for the Email data type, as would be returned by an "Email/get" call (<xref target="RFC8621" section="4.2" />) for this account. If the server does not support <xref target="RFC8621" />, this property is omitted.</dd>
 </dl>
 </section>
 
@@ -217,7 +220,8 @@
     "from": [{ "name": "John Smith", "email": "john@example.com" }],
     "subject": "Surprise birthday party for Jane tonight",
     "id": "M699bb151ca4cbf1c24364a68"
-  }]
+  }],
+  "state": "XH99813"
 }
 </sourcecode>
 </figure>
