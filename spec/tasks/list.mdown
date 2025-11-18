@@ -9,8 +9,8 @@ A **TaskList** object has the following core properties:
 - **role**: `String|null` (default: null)
   Denotes the task list has a special purpose. This MUST be one of the following:
 
-    - `inbox`: This is the principal's default task list;
-    - `trash`: This task list holds messages the user has discarded;
+  - `inbox`: This is the principal's default task list;
+  - `trash`: This task list holds messages the user has discarded;
 
 - **name**: `String`
   The user-visible name of the task list. This may be any UTF-8 string of at least 1 character in length and maximum 255 octets in size.
@@ -44,14 +44,14 @@ A **TaskList** object has the following core properties:
 - **timeZone**: `String|null` (default: null)
   The time zone to use for tasks without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database [TZDB](https://www.iana.org/time-zones). If `null`, the timeZone of the account's associated Principal will be used. Clients SHOULD use this as the default for new tasks in this task list, if set.
 - **workflowStatuses**: `String[]` (default: [completed, failed, in-process, needs-action, cancelled, pending])
-  Defines the allowed values for `workflowStatus`. The default values are based on the values defined within [@!RFC8984], Section 5.2.5 and `pending`. `pending` indicates the task has been created and accepted, but it currently is on-hold.
+  Defines the allowed values for `workflowStatus`. The default values are based on the values defined within [RFC8984](https://www.rfc-editor.org/rfc/rfc8984), Section 5.2.5 and `pending`. `pending` indicates the task has been created and accepted, but it currently is on-hold.
 
     As naming and workflows differ between systems, mapping the status correctly to the present values of the Task can be challenging. In the most simple case, a task system may support merely two states - done and not-done. On the other hand, statuses and their semantic meaning can differ between systems or task lists (e.g. projects). In case of uncertainty, here are some recommendations for mapping commonly observed values that can help during implementation:
 
-    - `completed`: `done` (most simple case), `closed`, `verified`, …
-    - `in-process`: `in-progress`, `active`, `assigned`, …
-    - `needs-action`: `not-done` (most simple case), `not-started`, `new`, …
-    - `pending`: `waiting`, `deferred`, `on-hold`, `paused`, …
+  - `completed`: `done` (most simple case), `closed`, `verified`, …
+  - `in-process`: `in-progress`, `active`, `assigned`, …
+  - `needs-action`: `not-done` (most simple case), `not-started`, `new`, …
+  - `pending`: `waiting`, `deferred`, `on-hold`, `paused`, …
 
 - **shareWith**: `Id[TaskRights]|null` (default: null)
   A map of Principal id to rights for principals this task list is shared with. The principal to which this task list belongs MUST NOT be in this set. This is null if the task list  is not shared with anyone. May be modified only if the user has the mayAdmin right. The account id for the principals may be found in the `urn:ietf:params:jmap:principals:owner` capability of the Account to which the task list belongs.
@@ -83,9 +83,9 @@ A **TaskRights** object has the following properties:
 - **mayRSVP**: `Boolean`
   The user may modify the following properties of any Participant object that corresponds to one of the user's ParticipantIdentity objects in the account, even if they would not otherwise have permission to modify that task
 
-    - participationStatus
-    - participationComment
-    - expectReply
+  - participationStatus
+  - participationComment
+  - expectReply
 
     If the task has its "mayInviteSelf" property set to true (see Section XXX), then the user may also add a new Participant to the task with a sendTo property that is the same as the sendTo property of one of the user's ParticipantIdentity objects in the account. The roles property of the participant MUST only contain "attendee".
 
@@ -102,7 +102,7 @@ The user is an **owner** for a task if the Task object has a "participant" prope
 
 1. Has the "chair" role.
 1. Corresponds to one of the user's ParticipantIdentity objects in the account (as per Section XXX).
-  
+
 A task has no owner if its participant property is null or omitted.
 
 ## Alerts extension
@@ -110,30 +110,30 @@ A task has no owner if its participant property is null or omitted.
 A TaskList has the following alerts properties:
 
 - **defaultAlertsWithTime**: `Id[Alert]|null`
-  A map of alert ids to Alert objects (see [@!RFC8984], Section 4.5.2) to apply for tasks where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
+  A map of alert ids to Alert objects (see [RFC8984](https://www.rfc-editor.org/rfc/rfc8984), Section 4.5.2) to apply for tasks where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
 
     If omitted on creation, the default is server dependent. For example, servers may choose to always default to `null`, or may copy the alerts from the default task list.
 
 - **defaultAlertsWithoutTime**: `Id[Alert]|null`
-  A map of alert ids to Alert objects (see [@!RFC8984], Section 4.5.2) to apply for tasks where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
+  A map of alert ids to Alert objects (see [RFC8984](https://www.rfc-editor.org/rfc/rfc8984), Section 4.5.2) to apply for tasks where "showWithoutTime" is true and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other task lists; a UUID is recommended.
 
       If omitted on creation, the default is server dependent. For example, servers may choose to always default to `null`, or may copy the alerts from the default task list.
 
 ## TaskList/get
 
-This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
+This is a standard "/get" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.1. The *ids* argument may be `null` to fetch all at once.
 
 ## TaskList/changes
 
-This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+This is a standard "/changes" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.2.
 
 ## TaskList/set
 
-This is the standard "/set" method as described in [@!RFC8620], Section 5.3 but with the following additional request argument:
+This is the standard "/set" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.3 but with the following additional request argument:
 
 - **onDestroyRemoveTasks**: `Boolean` (default: false)
 
-  If false, any attempt to destroy a TaskList that still has Tasks 
+  If false, any attempt to destroy a TaskList that still has Tasks
   in it will be rejected with a `TaskListHasTask` SetError. If
   true, any Tasks that were in the TaskList will be removed from it, and they will be destroyed.
 

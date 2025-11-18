@@ -2,7 +2,7 @@
 
 Binary data is referenced by a *blobId* in JMAP and uploaded/downloaded separately to the core API. The blobId solely represents the raw bytes of data, not any associated metadata such as a file name or content type. Such metadata is stored alongside the blobId in the object referencing it. The data represented by a blobId is immutable.
 
-Any blobId that exists within an account may be used when creating/updating another object in that account. For example, an Email type may have a blobId that represents the object in Internet Message Format [@!RFC5322]. A client could create a new Email object with an attachment and use this blobId, in effect attaching the old message to the new one. Similarly, it could attach any existing attachment of an old message without having to download and upload it again.
+Any blobId that exists within an account may be used when creating/updating another object in that account. For example, an Email type may have a blobId that represents the object in Internet Message Format [RFC5322](https://www.rfc-editor.org/rfc/rfc5322). A client could create a new Email object with an attachment and use this blobId, in effect attaching the old message to the new one. Similarly, it could attach any existing attachment of an old message without having to download and upload it again.
 
 When the client uses a blobId in a create/update, the server MAY assign a new blobId to refer to the same binary data within the new/updated object. If it does so, it MUST return any properties that contain a changed blobId in the created/updated response, so the client gets the new ids.
 
@@ -21,46 +21,46 @@ A blob that is not referenced by a JMAP object (e.g., as a message attachment) M
 
 ## Uploading Binary Data
 
-There is a single endpoint that handles all file uploads for an account, regardless of what they are to be used for. The Session object (see Section 2) has an *uploadUrl* property in URI Template (level 1) format [@!RFC6570], which MUST contain a variable called `accountId`. The client may use this template in combination with an *accountId* to get the URL of the file upload resource.
+There is a single endpoint that handles all file uploads for an account, regardless of what they are to be used for. The Session object (see Section 2) has an *uploadUrl* property in URI Template (level 1) format [RFC6570](https://www.rfc-editor.org/rfc/rfc6570), which MUST contain a variable called `accountId`. The client may use this template in combination with an *accountId* to get the URL of the file upload resource.
 
 To upload a file, the client submits an authenticated POST request to the file upload resource.
 
 A successful request MUST return a single JSON object with the following properties as the response:
 
-- **accountId**: `Id`
+* **accountId**: `Id`
   The id of the account used for the call.
-- **blobId**: `Id`
+* **blobId**: `Id`
   The id representing the binary data uploaded. The data for this id is immutable. The id *only* refers to the binary data, not any metadata.
-- **type**: `String`
-  The media type of the file (as specified in [@!RFC6838], Section 4.2) as set in the Content-Type header of the upload HTTP request.
-- **size**: `UnsignedInt`
+* **type**: `String`
+  The media type of the file (as specified in [RFC6838](https://www.rfc-editor.org/rfc/rfc6838), Section 4.2) as set in the Content-Type header of the upload HTTP request.
+* **size**: `UnsignedInt`
   The size of the file in octets.
 
 If identical binary content to an existing blob in the account is uploaded, the existing blobId MAY be returned.
 
 Clients should use the blobId returned in a timely manner. Under rare circumstances, the server may have deleted the blob before the client uses it; the client should keep a reference to the local file so it can upload it again in such a situation.
 
-When an HTTP error response is returned to the client, the server SHOULD return a JSON "problem details" object as the response body, as per [@!RFC7807].
+When an HTTP error response is returned to the client, the server SHOULD return a JSON "problem details" object as the response body, as per [RFC7807](https://www.rfc-editor.org/rfc/rfc7807).
 
 As access controls are often determined by the object holding the reference to a blob, unreferenced blobs MUST only be accessible to the uploader, even in shared accounts.
 
 ## Downloading Binary Data
 
-The Session object (see Section 2) has a *downloadUrl* property, which is in URI Template (level 1) format [@!RFC6570]. The URL MUST contain variables called `accountId`, `blobId`, `type`, and `name`.
+The Session object (see Section 2) has a *downloadUrl* property, which is in URI Template (level 1) format [RFC6570](https://www.rfc-editor.org/rfc/rfc6570). The URL MUST contain variables called `accountId`, `blobId`, `type`, and `name`.
 
 To download a file, the client makes an authenticated GET request to the download URL with the appropriate variables substituted in:
 
-- `accountId`: The id of the account to which the record with the blobId
+* `accountId`: The id of the account to which the record with the blobId
    belongs.
-- `blobId`: The blobId representing the data of the file to download.
-- `type`: The type for the server to set in the `Content-Type` header of the
+* `blobId`: The blobId representing the data of the file to download.
+* `type`: The type for the server to set in the `Content-Type` header of the
   response; the blobId only represents the binary data and does not have a content-type innately associated with it.
-- `name`: The name for the file; the server MUST return this as the filename if
+* `name`: The name for the file; the server MUST return this as the filename if
   it sets a `Content-Disposition` header.
 
 As the data for a particular blobId is immutable, and thus the response in the generated download URL is too, implementors are recommended to set long cache times and use the "immutable" Cache-Control extension [@?RFC8246] for successful responses, for example, `Cache-Control: private, immutable, max-age=31536000`.
 
-When an HTTP error response is returned to the client, the server SHOULD return a JSON "problem details" object as the response body, as per [@!RFC7807].
+When an HTTP error response is returned to the client, the server SHOULD return a JSON "problem details" object as the response body, as per [RFC7807](https://www.rfc-editor.org/rfc/rfc7807).
 
 ## Blob/copy
 
@@ -68,22 +68,22 @@ Binary data may be copied **between** two different accounts using the *Blob/cop
 
 The *Blob/copy* method takes the following arguments:
 
-- **fromAccountId**: `Id`
+* **fromAccountId**: `Id`
   The id of the account to copy blobs from.
-- **accountId**: `Id`
+* **accountId**: `Id`
   The id of the account to copy blobs to.
-- **blobIds**: `Id[]`
+* **blobIds**: `Id[]`
   A list of ids of blobs to copy to the other account.
 
 The response has the following arguments:
 
-- **fromAccountId**: `Id`
+* **fromAccountId**: `Id`
   The id of the account blobs were copied from.
-- **accountId**: `Id`
+* **accountId**: `Id`
   The id of the account blobs were copied to.
-- **copied**: `Id[Id]|null`
+* **copied**: `Id[Id]|null`
   A map of the blobId in the *fromAccount* to the id for the blob in the account it was copied to, or `null` if none were successfully copied.
-- **notCopied**: `Id[SetError]|null`
+* **notCopied**: `Id[SetError]|null`
   A map of blobId to a SetError object for each blob that failed to be copied, or `null` if none.
 
 The **SetError** may be any of the standard set errors that may be returned for a *create*, as defined in Section 5.3. In addition, the `notFound` SetError error may be returned if the blobId to be copied cannot be found.

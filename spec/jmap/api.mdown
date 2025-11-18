@@ -73,7 +73,7 @@ A **Response** object has the following properties:
 
 Unless otherwise specified, if the method call completed successfully, its response name is the same as the method name in the request.
 
-### Example Response:
+### Example Response
 
     {
       "methodResponses": [
@@ -115,7 +115,7 @@ Finally, methods that make changes to the server state often act upon a number o
 
 When an HTTP error response is returned to the client, the server
 SHOULD return a JSON "problem details" object as the response body,
-as per [@!RFC7807].
+as per [RFC7807](https://www.rfc-editor.org/rfc/rfc7807).
 
 The following problem types are defined:
 
@@ -150,7 +150,6 @@ Another example:
       "status": 400,
       "detail": "The request is larger than the server is willing to process."
     }
-
 
 ### Method-Level Errors
 
@@ -209,7 +208,7 @@ A **ResultReference** object has the following properties:
 - **name**: `String`
   The required name of a response to that method call.
 - **path**: `String`
-  A pointer into the arguments of the response selected via the name and resultOf properties. This is a JSON Pointer [@!RFC6901], except it also allows the use of `*` to map through an array (see the description below).
+  A pointer into the arguments of the response selected via the name and resultOf properties. This is a JSON Pointer [RFC6901](https://www.rfc-editor.org/rfc/rfc6901), except it also allows the use of `*` to map through an array (see the description below).
 
 To resolve:
 
@@ -220,7 +219,7 @@ To resolve:
    *ResultReference*, evaluation fails.
 
 3. Apply the *path* to the arguments object of the response (the second item in
-   the response array) following the JSON Pointer algorithm [@!RFC6901], except with the following addition in "Evaluation" (see Section 4):
+   the response array) following the JSON Pointer algorithm [RFC6901](https://www.rfc-editor.org/rfc/rfc6901), except with the following addition in "Evaluation" (see Section 4):
 
      If the currently referenced value is a JSON array, the reference token may
      be exactly the single character `*`, making the new referenced value the result of applying the rest of the JSON Pointer tokens to every item in the array and returning the results in the same order in a new array.
@@ -376,7 +375,7 @@ them.
 
 ## Localisation of User-Visible Strings
 
-If returning a custom string to be displayed to the user, for example, an error message, the server SHOULD use information from the Accept-Language header of the request (as defined in Section 5.3.5 of [@!RFC7231]) to choose the best available localisation. The Content-Language header of the response (see section 3.1.3.2 of [@!RFC7231]) SHOULD indicate the language being used for user-visible strings.
+If returning a custom string to be displayed to the user, for example, an error message, the server SHOULD use information from the Accept-Language header of the request (as defined in Section 5.3.5 of [RFC7231](https://www.rfc-editor.org/rfc/rfc7231)) to choose the best available localisation. The Content-Language header of the response (see section 3.1.3.2 of [RFC7231](https://www.rfc-editor.org/rfc/rfc7231)) SHOULD indicate the language being used for user-visible strings.
 
 For example, suppose a request was made with the following header:
 
@@ -393,7 +392,6 @@ As always, the server must be strict about data received from the client. Argume
 ## Concurrency
 
 Method calls within a single request MUST be executed in order. However, method calls from different concurrent API requests may be interleaved. This means that the data on the server may change between two method calls within a single API request.
-
 
 # The Core/echo Method
 
@@ -414,7 +412,6 @@ Response:
       "hello": true,
       "high": 5
     }, "b3ff" ]]
-
 
 # Standard Methods and Naming Convention
 
@@ -539,18 +536,18 @@ The *Foo/set* method takes the following arguments:
 - **update**: `Id[PatchObject]|null`
   A map of an id to a Patch object to apply to the current Foo object with that id, or `null` if no objects are to be updated.
 
-    A *PatchObject* is of type `String[*]` and represents an unordered set of patches.  The keys are a path in JSON Pointer Format [@!RFC6901], with an implicit leading "/" (i.e., prefix each key with "/" before applying the JSON Pointer evaluation algorithm).
+    A *PatchObject* is of type `String[*]` and represents an unordered set of patches.  The keys are a path in JSON Pointer Format [RFC6901](https://www.rfc-editor.org/rfc/rfc6901), with an implicit leading "/" (i.e., prefix each key with "/" before applying the JSON Pointer evaluation algorithm).
 
     All paths MUST also conform to the following restrictions; if there is any violation, the update MUST be rejected with an `invalidPatch` error:
 
-    * The pointer MUST NOT reference inside an array (i.e., you MUST NOT insert/delete from an array; the array MUST be replaced in its entirety instead).
-    * All parts prior to the last (i.e., the value after the final slash) MUST already exist on the object being patched.
-    * There MUST NOT be two patches in the PatchObject where the pointer of one is the prefix of the pointer of the other, e.g., "alerts/1/offset" and "alerts".
+  - The pointer MUST NOT reference inside an array (i.e., you MUST NOT insert/delete from an array; the array MUST be replaced in its entirety instead).
+  - All parts prior to the last (i.e., the value after the final slash) MUST already exist on the object being patched.
+  - There MUST NOT be two patches in the PatchObject where the pointer of one is the prefix of the pointer of the other, e.g., "alerts/1/offset" and "alerts".
 
     The value associated with each pointer determines how to apply that patch:
 
-    * If `null`, set to the default value if specified for this property; otherwise, remove the property from the patched object. If the key is not present in the parent, this a no-op.
-    * Anything else: The value to set for this property (this may be a replacement or addition to the object being patched).
+  - If `null`, set to the default value if specified for this property; otherwise, remove the property from the patched object. If the key is not present in the parent, this a no-op.
+  - Anything else: The value to set for this property (this may be a replacement or addition to the object being patched).
 
     Any server-set properties MAY be included in the patch if their value is identical to the current server value (before applying the patches to the object). Otherwise, the update MUST be rejected with an *invalidProperties* SetError.
 
@@ -630,9 +627,9 @@ The following SetError types are defined and may be returned for set operations 
 - `invalidProperties`: (create; update). The record given is invalid in
   some way. For example:
 
-    - It contains properties that are invalid according to the type specification of this record type.
-    - It contains a property that may only be set by the server (e.g., "id") and is different to the current value. Note, to allow clients to pass whole objects back, it is not an error to include a server-set property in an update as long as the value is identical to the current value on the server.
-    - There is a reference to another record (foreign key), and the given id does not correspond to a valid record.
+  - It contains properties that are invalid according to the type specification of this record type.
+  - It contains a property that may only be set by the server (e.g., "id") and is different to the current value. Note, to allow clients to pass whole objects back, it is not an error to include a server-set property in an update as long as the value is identical to the current value on the server.
+  - There is a reference to another record (foreign key), and the given id does not correspond to a valid record.
 
     The SetError object SHOULD also have a property called *properties* of type `String[]` that lists **all** the properties that were invalid.
 
@@ -713,7 +710,6 @@ The following additional errors may be returned instead of the *Foo/copy* respon
 
 `stateMismatch`: An `ifInState` argument was supplied and it does not match the current state, or an `ifFromInState` argument was supplied and it does not match the current state in the from account.
 
-
 ## /query
 
 For data sets where the total amount of data is expected to be very small, clients can just fetch the complete set of data and then do any sorting/filtering locally. However, for large data sets (e.g., multi-gigabyte mailboxes), the client needs to be able to search/sort/window the data type on the server.
@@ -729,12 +725,12 @@ A call to *Foo/query* takes the following arguments:
 
     A **FilterOperator** object has the following properties:
 
-    - **operator**: `String`
+  - **operator**: `String`
       This MUST be one of the following strings: "AND" / "OR" / "NOT":
-      - **AND**: All of the conditions must match for the filter to match.
-      - **OR**: At least one of the conditions must match for the filter to match.
-      - **NOT**: None of the conditions must match for the filter to match.
-    - **conditions**: `(FilterOperator|FilterCondition)[]`
+    - **AND**: All of the conditions must match for the filter to match.
+    - **OR**: At least one of the conditions must match for the filter to match.
+    - **NOT**: None of the conditions must match for the filter to match.
+  - **conditions**: `(FilterOperator|FilterCondition)[]`
       The conditions to evaluate against each record.
 
     A **FilterCondition** is an `object` whose allowed properties and semantics depend on the data type and is defined in the */query* method specification for that type. It MUST NOT have an *operator* property.
@@ -744,28 +740,28 @@ A call to *Foo/query* takes the following arguments:
 
     A **Comparator** has the following properties:
 
-    - **property**: `String`
+  - **property**: `String`
       The name of the property on the Foo objects to compare.
-    - **isAscending**: `Boolean` (optional; default: true)
+  - **isAscending**: `Boolean` (optional; default: true)
       If `true`, sort in ascending order. If `false`, reverse the comparator's results to sort in descending order.
-    - **collation**: `String` (optional; default is server dependent)
-      The identifier, as registered in the collation registry defined in [@!RFC4790], for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the Session object (see Section 2).
+  - **collation**: `String` (optional; default is server dependent)
+      The identifier, as registered in the collation registry defined in [RFC4790](https://www.rfc-editor.org/rfc/rfc4790), for the algorithm to use when comparing the order of strings. The algorithms the server supports are advertised in the capabilities object returned with the Session object (see Section 2).
 
         If omitted, the default algorithm is server-dependent, but:
 
         1. It MUST be unicode-aware.
         2. It MAY be selected based on an Accept-Language header in the
-           request (as defined in [@!RFC7231], Section 5.3.5), or out-of-band information about the user's language/locale.
+           request (as defined in [RFC7231](https://www.rfc-editor.org/rfc/rfc7231), Section 5.3.5), or out-of-band information about the user's language/locale.
         3. It SHOULD be case insensitive where such a concept makes sense for a
-           language/locale. Where the user's language is unknown, it is RECOMMENDED to follow the advice in Section 5.2.3 of [@!RFC8264].
+           language/locale. Where the user's language is unknown, it is RECOMMENDED to follow the advice in Section 5.2.3 of [RFC8264](https://www.rfc-editor.org/rfc/rfc8264).
 
-        The "i;unicode-casemap" collation [@!RFC5051] and the Unicode Collation Algorithm (http://www.unicode.org/reports/tr10/) are two examples that fulfil these criterion and provide reasonable behaviour for a large number of languages.
+        The "i;unicode-casemap" collation [RFC5051](https://www.rfc-editor.org/rfc/rfc5051) and the Unicode Collation Algorithm (<http://www.unicode.org/reports/tr10/>) are two examples that fulfil these criterion and provide reasonable behaviour for a large number of languages.
 
         When the property being compared is not a string, the *collation* property is ignored, and the following comparison rules apply based on the type. In ascending order:
 
-        - `Boolean`: `false` comes before `true`.
-        - `Number`: A lower number comes before a higher number.
-        - `Date`/`UTCDate`: The earlier date comes first.
+    - `Boolean`: `false` comes before `true`.
+    - `Number`: A lower number comes before a higher number.
+    - `Date`/`UTCDate`: The earlier date comes first.
 
     The Comparator object may also have additional properties as required for
     specific sort operations defined in a type's /query method.
@@ -874,8 +870,8 @@ The response has the following arguments:
 
     An **AddedItem** object has the following properties:
 
-    - **id**: `Id`
-    - **index**: `UnsignedInt`
+  - **id**: `Id`
+  - **index**: `UnsignedInt`
 
 The result of this is that if the client has a cached sparse array of Foo ids corresponding to the results in the old state, then:
 

@@ -10,9 +10,9 @@ JMAP is designed to be horizontally scalable to a very large number of users. Th
 
 ## Notational Conventions
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [RFC2119](https://www.rfc-editor.org/rfc/rfc2119) [RFC8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they appear in all capitals, as shown here.
 
-The underlying format used for this specification is JSON. Consequently, the terms "object" and "array" as well as the four primitive types (strings, numbers, booleans, and null) are to be interpreted as described in Section 1 of [@!RFC8259]. Unless otherwise noted, all the property names and values are case sensitive.
+The underlying format used for this specification is JSON. Consequently, the terms "object" and "array" as well as the four primitive types (strings, numbers, booleans, and null) are to be interpreted as described in Section 1 of [RFC8259](https://www.rfc-editor.org/rfc/rfc8259). Unless otherwise noted, all the property names and values are case sensitive.
 
 Some examples in this document contain "partial" JSON documents used for illustrative purposes.  In these examples, three periods "..." are used to indicate a portion of the document that has been removed for compactness.
 
@@ -47,7 +47,7 @@ signature. These have the following meanings:
 
 All record ids are assigned by the server and are immutable.
 
-Where `Id` is given as a data type, it means a `String` of at least 1 and a maximum of 255 octets in size, and it MUST only contain characters from the "URL and Filename Safe" base64 alphabet, as defined in Section 5 of [@!RFC4648], excluding the pad character (`=`). This means the allowed characters are the ASCII alphanumeric characters (`A-Za-z0-9`), hyphen (`-`), and underscore (`_`).
+Where `Id` is given as a data type, it means a `String` of at least 1 and a maximum of 255 octets in size, and it MUST only contain characters from the "URL and Filename Safe" base64 alphabet, as defined in Section 5 of [RFC4648](https://www.rfc-editor.org/rfc/rfc4648), excluding the pad character (`=`). This means the allowed characters are the ASCII alphanumeric characters (`A-Za-z0-9`), hyphen (`-`), and underscore (`_`).
 
 These characters are safe to use in almost any context (e.g., filesystems,
 URIs, and IMAP atoms). For maximum safety, servers SHOULD also follow defensive
@@ -73,15 +73,15 @@ Where `UnsignedInt` is given as a data type, it means an `Int` where the value M
 
 ## The Date and UTCDate Data Types
 
-Where `Date` is given as a type, it means a string in *date-time* format [@!RFC3339]. To ensure a normalised form, the *time-secfrac* MUST always be omitted if zero, and any letters in the string (e.g., "T" and "Z") MUST be uppercase. For example, `"2014-10-30T14:12:00+08:00"`.
+Where `Date` is given as a type, it means a string in *date-time* format [RFC3339](https://www.rfc-editor.org/rfc/rfc3339). To ensure a normalised form, the *time-secfrac* MUST always be omitted if zero, and any letters in the string (e.g., "T" and "Z") MUST be uppercase. For example, `"2014-10-30T14:12:00+08:00"`.
 
 Where `UTCDate` is given as a type, it means a `Date` where the *time-offset* component MUST be `Z` (i.e., it must be in UTC time). For example, `"2014-10-30T06:12:00Z"`.
 
 ## JSON as the Data Encoding Format
 
-JSON is a text-based data interchange format as specified in [@!RFC8259]. The Internet JSON (I-JSON) format defined in [@!RFC7493] is a strict subset of this, adding restrictions to avoid potentially confusing scenarios (for example, it mandates that an object MUST NOT have two members with the same name).
+JSON is a text-based data interchange format as specified in [RFC8259](https://www.rfc-editor.org/rfc/rfc8259). The Internet JSON (I-JSON) format defined in [RFC7493](https://www.rfc-editor.org/rfc/rfc7493) is a strict subset of this, adding restrictions to avoid potentially confusing scenarios (for example, it mandates that an object MUST NOT have two members with the same name).
 
-All data sent from the client to the server or from the server to the client (except binary file upload/download) MUST be valid I-JSON according to the RFC and is therefore case sensitive and encoded in UTF-8 [@!RFC3629].
+All data sent from the client to the server or from the server to the client (except binary file upload/download) MUST be valid I-JSON according to the RFC and is therefore case sensitive and encoded in UTF-8 [RFC3629](https://www.rfc-editor.org/rfc/rfc3629).
 
 ## Terminology
 
@@ -107,7 +107,7 @@ The id of a record is immutable and assigned by the server. The id MUST be uniqu
 
 ## The JMAP API Model
 
-JMAP uses HTTP [@!RFC7230] to expose API, push, upload and download resources. All HTTP requests MUST use the `https://` scheme (HTTP over TLS [@!RFC2818]).
+JMAP uses HTTP [RFC7230](https://www.rfc-editor.org/rfc/rfc7230) to expose API, push, upload and download resources. All HTTP requests MUST use the `https://` scheme (HTTP over TLS [RFC2818](https://www.rfc-editor.org/rfc/rfc2818)).
 All HTTP requests MUST be authenticated.
 
 An authenticated client can fetch the user's Session object with details about the data and capabilities the server can provide as shown in Section 2. The client may then exchange data with the server in the following ways:

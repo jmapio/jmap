@@ -1,6 +1,6 @@
 # Security Considerations
 
-All security considerations of JMAP ([@!RFC8620]) apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.
+All security considerations of JMAP ([RFC8620](https://www.rfc-editor.org/rfc/rfc8620)) apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.
 
 ## EmailBodyPart Value
 
@@ -66,12 +66,11 @@ Messages may consist of multiple parts to be displayed sequentially as a body. C
 
 ## Email Submission
 
-SMTP submission servers [@!RFC6409] use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters (mail filters), and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de facto [XCLIENT](http://www.postfix.org/XCLIENT_README.html) extension to SMTP can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorised proxies.
+SMTP submission servers [RFC6409](https://www.rfc-editor.org/rfc/rfc6409) use a number of mechanisms to mitigate damage caused by compromised user accounts and end-user systems including rate limiting, anti-virus/anti-spam milters (mail filters), and other technologies. The technologies work better when they have more information about the client connection. If JMAP email submission is implemented as a proxy to an SMTP submission server, it is useful to communicate this information from the JMAP proxy to the submission server. The de facto [XCLIENT](http://www.postfix.org/XCLIENT_README.html) extension to SMTP can be used to do this, but use of an authenticated channel is recommended to limit use of that extension to explicitly authorised proxies.
 
-JMAP servers that proxy to an SMTP submission server SHOULD allow use of the *submissions* port [@!RFC8314]. Implementation of a mechanism similar to SMTP XCLIENT is strongly encouraged. While Simple Authentication and Security Layer (SASL) PLAIN over TLS [@!RFC4616] is presently the mandatory-to-implement mechanism for interoperability with SMTP submission servers [@!RFC4954], a JMAP submission proxy SHOULD implement and prefer a stronger mechanism for this use case such as TLS client certificate authentication with SASL EXTERNAL ([@!RFC4422], Appendix A) or Salted Challenge Response Authentication Mechanism (SCRAM) [@!RFC7677].
+JMAP servers that proxy to an SMTP submission server SHOULD allow use of the *submissions* port [RFC8314](https://www.rfc-editor.org/rfc/rfc8314). Implementation of a mechanism similar to SMTP XCLIENT is strongly encouraged. While Simple Authentication and Security Layer (SASL) PLAIN over TLS [RFC4616](https://www.rfc-editor.org/rfc/rfc4616) is presently the mandatory-to-implement mechanism for interoperability with SMTP submission servers [RFC4954](https://www.rfc-editor.org/rfc/rfc4954), a JMAP submission proxy SHOULD implement and prefer a stronger mechanism for this use case such as TLS client certificate authentication with SASL EXTERNAL ([RFC4422](https://www.rfc-editor.org/rfc/rfc4422), Appendix A) or Salted Challenge Response Authentication Mechanism (SCRAM) [RFC7677](https://www.rfc-editor.org/rfc/rfc7677).
 
 In the event the JMAP server directly relays mail to SMTP servers in other administrative domains, implementation of the de facto [milter](http://www.postfix.org/MILTER_README.html) protocol is strongly encouraged to integrate with third-party products that address security issues including anti-virus/anti-spam, reputation protection, compliance archiving, and data loss prevention. Proxying to a local SMTP submission server may be a simpler way to provide such security services.
-
 
 ## Partial Account Access
 
@@ -83,7 +82,7 @@ If the server forbids a single account from having two identical messages, or tw
 
 ## Permission to Send from an Address
 
-In recent years, the email ecosystem has moved towards associating trust with the From address in the message [@!RFC5322], particularly with schemes such as Domain-based Message Authentication, Reporting, and Conformance (DMARC) ([@?RFC7489]).
+In recent years, the email ecosystem has moved towards associating trust with the From address in the message [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), particularly with schemes such as Domain-based Message Authentication, Reporting, and Conformance (DMARC) ([@?RFC7489]).
 
 The set of Identity objects (see Section 6) in an account lets the client know which email addresses the user has permission to send from. Each email submission is associated with an Identity, and servers SHOULD reject submissions where the `From` header field of the message does not correspond to the associated Identity.
 
@@ -91,6 +90,6 @@ The server MAY allow an exception to send an exact copy of an existing message r
 
 If the user attempts to create a new Identity object, the server MUST reject it with the appropriate error if the user does not have permission to use that email address to send from.
 
-The SMTP MAIL FROM address [@!RFC5321] is often confused with the From message header field [@!RFC5322]. The user generally only ever sees the address in the message header field, and this is the primary one to enforce. However, the server MUST also enforce appropriate restrictions on the MAIL FROM address [@!RFC5321] to stop the user from flooding a third-party address with bounces and non-delivery notices.
+The SMTP MAIL FROM address [RFC5321](https://www.rfc-editor.org/rfc/rfc5321) is often confused with the From message header field [RFC5322](https://www.rfc-editor.org/rfc/rfc5322). The user generally only ever sees the address in the message header field, and this is the primary one to enforce. However, the server MUST also enforce appropriate restrictions on the MAIL FROM address [RFC5321](https://www.rfc-editor.org/rfc/rfc5321) to stop the user from flooding a third-party address with bounces and non-delivery notices.
 
 The JMAP submission model provides separate errors for impermissible addresses in either context.

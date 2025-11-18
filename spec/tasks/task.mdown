@@ -1,6 +1,6 @@
 # Tasks
 
-A **Task** object contains information about a task. It is a JSTask object, as defined in [@!RFC8984]. However, as use-cases of task systems vary, this Section defines relevant parts of the JSTask object to implement the core task capability as well as several extensions to it. Only the core capability MUST be implemented by any task system. Implementers can choose the extensions that fit their own use case. For example, the recurrence extension allows having a Task object represent a series of recurring Tasks.
+A **Task** object contains information about a task. It is a JSTask object, as defined in [RFC8984](https://www.rfc-editor.org/rfc/rfc8984). However, as use-cases of task systems vary, this Section defines relevant parts of the JSTask object to implement the core task capability as well as several extensions to it. Only the core capability MUST be implemented by any task system. Implementers can choose the extensions that fit their own use case. For example, the recurrence extension allows having a Task object represent a series of recurring Tasks.
 
 The core JSTask objects are Task, Link, Location, Relation and VirtualLocation. The core properties are JSTask's Metadata Properties (Section 4.1), What and Where Properties (Section 4.2), Task Properties (Section 5.2) as well as priority (Section 4.4.1), privacy (Section 4.4.3), replyTo (Section 4.4.4) and timeZone (Section 4.7.1).
 
@@ -76,33 +76,33 @@ Type: `Id[Checklist]`
 
 A map of Checklist IDs to Checklist objects, containing checklist items. A **Checklist** object has the following properties:
 
-* **@type**: `String`
+- **@type**: `String`
   Specifies the type of this object. This MUST be `Checklist`.
-* **title**: `String` (optional)
-  Title of the list. 
-* **checkItems**: `CheckItem[]` (optional)
+- **title**: `String` (optional)
+  Title of the list.
+- **checkItems**: `CheckItem[]` (optional)
   The items of the check list.
 
 A **CheckItem** object has the following properties:
 
-* **@type**: `String`
+- **@type**: `String`
   Specifies the type of this object. This MUST be `CheckItem`.
-* **title**: `String`
+- **title**: `String`
   Title of the item.
-* **sortOrder**: `UnsignedInt` (default: 0)
+- **sortOrder**: `UnsignedInt` (default: 0)
   Defines the sort order of CheckItem when presented in the client's UI. The number MUST be an integer in the range 0 <= sortOrder < 2^31. An item with a lower order should be displayed before an item with a higher order. Items with equal order SHOULD be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.
-* **updated**: `UTCDateTime` (optional)
+- **updated**: `UTCDateTime` (optional)
   The date and time when this item was updated
-* **isComplete**: `Boolean`
-* **assigneee**: `Person` (optional)
+- **isComplete**: `Boolean`
+- **assigneee**: `Person` (optional)
   The person that this item is assigned to. The Person object has the following properties of which either principalId or uri MUST be defined:
-  * **@type**: `String` (mandatory)
+  - **@type**: `String` (mandatory)
     Specifies the type of this object. This MUST be Person.
-  * **name**: `String` (optional)
+  - **name**: `String` (optional)
     The name of the person.
-  * **uri**: `String` (optional)
+  - **uri**: `String` (optional)
     A URI value that identifies the person. This SHOULD be the scheduleId of the participant that this item was assigned to.
-  * **principalId**: `String` (optional)
+  - **principalId**: `String` (optional)
     The id of the Principal corresponding to the person, if any.
 
 ### comments
@@ -111,11 +111,11 @@ Type: `Id[Comment]` (optional).
 
 Free-text comments associated with this task. A Comment object has the following properties:
 
-* **@type**: `String` (mandatory). Specifies the type of this object. This MUST be `Comment`.
-* **message**: `String` (mandatory). The free text value of this comment.
-* **created**: `UTCDateTime` (optional). The date and time when this note was created.
-* **updated**: `UTCDateTime` (optional). The date and time when this note was updated.
-* **author**: `Person` (optional). The author of this comment. The Person object is defined in Section (#checklists).
+- **@type**: `String` (mandatory). Specifies the type of this object. This MUST be `Comment`.
+- **message**: `String` (mandatory). The free text value of this comment.
+- **created**: `UTCDateTime` (optional). The date and time when this note was created.
+- **updated**: `UTCDateTime` (optional). The date and time when this note was updated.
+- **author**: `Person` (optional). The author of this comment. The Person object is defined in Section (#checklists).
 
 ## Properties similar in JMAP for Calendar
 
@@ -145,11 +145,11 @@ The Task will require the following further property:
   scheduling for this task; the task has not been added as a result of an
   invitation from another task management system)? This is `true` if, and only if:
 
-    * the task's "replyTo" property is `null`; or
-    * the account will receive messages sent to at least one of the methods
+  - the task's "replyTo" property is `null`; or
+  - the account will receive messages sent to at least one of the methods
       specified in the "replyTo" property of the task.
 
-Task objects MUST NOT have a "method" property as this is only used when representing iTIP [@!RFC5546] scheduling messages, not tasks in a data store.
+Task objects MUST NOT have a "method" property as this is only used when representing iTIP [RFC5546](https://www.rfc-editor.org/rfc/rfc5546) scheduling messages, not tasks in a data store.
 
 ### Per-user properties
 
@@ -170,6 +170,7 @@ When writing only per-user properties, the "updated" property MUST also be store
 The assignees extension extends one JSCalendar data type with new values.
 
 #### Participants
+
 The Participant object, as defined in [@!I-D.ietf-calext-jscalendar] Section 4.4.6 is used to represent participants. This spec extends the keys for the roles property with the following value:
 
 - `assignee`: the participant is expected to work on the task
@@ -218,7 +219,7 @@ TODO redefine this here. Similar to "TaskList/get" we only need to replace a few
 
 ## Task/changes
 
-This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+This is a standard "/changes" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.2.
 
 ## Task/set
 
@@ -228,7 +229,7 @@ TODO copy+paste most stuff from "CalendarEvent/set". It should be fine to just r
 
 ## Task/copy
 
-This is a standard "/copy" method as described in [@!RFC8620], Section 5.4.
+This is a standard "/copy" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.4.
 
 ## Task/query
 
@@ -238,5 +239,5 @@ TODO copy+paste most stuff from "CalendarEvent/query". Mainly filtering should b
 
 ## Task/queryChanges
 
-This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+This is a standard "/queryChanges" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.6.
 s
