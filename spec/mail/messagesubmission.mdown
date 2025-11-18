@@ -15,49 +15,49 @@ An **EmailSubmission** object represents the submission of an Email for delivery
 
     An **Envelope** object has the following properties:
 
-    - **mailFrom**: `Address`
+  - **mailFrom**: `Address`
       The email address to use as the return address in the SMTP submission, plus any parameters to pass with the MAIL FROM address. The JMAP server MAY allow the address to be the empty string.
 
         When a JMAP server performs an SMTP message submission, it MAY use the
-        same id string for the ENVID parameter [@!RFC3461] and the
+        same id string for the ENVID parameter [RFC3461](https://www.rfc-editor.org/rfc/rfc3461) and the
         EmailSubmission object id. Servers that do this MAY replace a
         client-provided value for ENVID with a server-provided value.
 
-    - **rcptTo**: `Address[]`
+  - **rcptTo**: `Address[]`
       The email addresses to send the message to, and any RCPT TO parameters to pass with the recipient.
 
     An **Address** object has the following properties:
 
-    - **email**: `String`
-      The email address being represented by the object. This is a "Mailbox" as used in the Reverse-path or Forward-path of the MAIL FROM or RCPT TO command in [@!RFC5321].
-    - **parameters**: `Object|null`
-      Any parameters to send with the email address (either mail-parameter or rcpt-parameter as appropriate, as specified in [@!RFC5321]). If supplied, each key in the object is a parameter name, and the value is either the parameter value (type `String`) or `null` if the parameter does not take a value. For both name and value, any xtext or unitext encodings are removed (see [@!RFC3461] and [@!RFC6533]) and JSON string encoding is applied.
+  - **email**: `String`
+      The email address being represented by the object. This is a "Mailbox" as used in the Reverse-path or Forward-path of the MAIL FROM or RCPT TO command in [RFC5321](https://www.rfc-editor.org/rfc/rfc5321).
+  - **parameters**: `Object|null`
+      Any parameters to send with the email address (either mail-parameter or rcpt-parameter as appropriate, as specified in [RFC5321](https://www.rfc-editor.org/rfc/rfc5321)). If supplied, each key in the object is a parameter name, and the value is either the parameter value (type `String`) or `null` if the parameter does not take a value. For both name and value, any xtext or unitext encodings are removed (see [RFC3461](https://www.rfc-editor.org/rfc/rfc3461) and [RFC6533](https://www.rfc-editor.org/rfc/rfc6533)) and JSON string encoding is applied.
 
     If the *envelope* property is `null` or omitted on creation, the server MUST generate this from the referenced Email as follows:
 
-    - **mailFrom**: The email address in the *Sender* header field, if present;
+  - **mailFrom**: The email address in the *Sender* header field, if present;
       otherwise, it's the email address in the *From* header field, if present. In either case, no parameters are added.
 
         If multiple addresses are present in one of these header fields, or there is more than one *Sender*/*From* header field, the server SHOULD reject the EmailSubmission as invalid; otherwise, it MUST take the first address in the last *Sender*/*From* header field.
 
         If the address found from this is not allowed by the Identity associated with this submission, the *email* property from the Identity MUST be used instead.
 
-    - **rcptTo**: The deduplicated set of email addresses from the *To*, *Cc*,
+  - **rcptTo**: The deduplicated set of email addresses from the *To*, *Cc*,
       and *Bcc* header fields, if present, with no parameters for any of them.
 
 - **sendAt**: `UTCDate` (immutable; server-set)
   The date the submission was/will be released for delivery.
 
-    If the client successfully used FUTURERELEASE [@!RFC4865] with the submission, this MUST be the time when the server will release the message; otherwise, it MUST be the time the EmailSubmission was created.
+    If the client successfully used FUTURERELEASE [RFC4865](https://www.rfc-editor.org/rfc/rfc4865) with the submission, this MUST be the time when the server will release the message; otherwise, it MUST be the time the EmailSubmission was created.
 
 - **undoStatus**: `String`
   This represents whether the submission may be canceled. This is server set on create and MUST be one of the following values:
 
-    - `pending`: It may be possible to cancel this submission.
-    - `final`: The message has been relayed to at least one recipient in a
+  - `pending`: It may be possible to cancel this submission.
+  - `final`: The message has been relayed to at least one recipient in a
       manner that cannot be recalled. It is no longer possible to cancel this
       submission.
-    - `canceled`: The submission was canceled and will not be delivered
+  - `canceled`: The submission was canceled and will not be delivered
       to any recipient.
 
     On systems that do not support unsending, the value of this property will always be `final`. On systems that do support canceling submission, it will start as `pending` and MAY transition to `final` when the server knows it definitely cannot recall the message, but it MAY just remain `pending`. If in pending state, a client can attempt to cancel the submission by setting this property to `canceled`; if the update succeeds, the submission was successfully canceled, and the message has not been delivered to any of the original recipients.
@@ -69,16 +69,16 @@ An **EmailSubmission** object represents the submission of an Email for delivery
 
     A **DeliveryStatus** object has the following properties:
 
-    - **smtpReply**: `String`
-      The SMTP reply string returned for this recipient when the server last tried to relay the message, or in a later Delivery Status Notification (DSN, as defined in [@!RFC3464]) response for the message. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the message as a whole was rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
+  - **smtpReply**: `String`
+      The SMTP reply string returned for this recipient when the server last tried to relay the message, or in a later Delivery Status Notification (DSN, as defined in [RFC3464](https://www.rfc-editor.org/rfc/rfc3464)) response for the message. This SHOULD be the response to the RCPT TO stage, unless this was accepted and the message as a whole was rejected at the end of the DATA stage, in which case the DATA stage reply SHOULD be used instead.
 
         Multi-line SMTP responses should be concatenated to a single string as follows:
 
-        - The hyphen following the SMTP code on all but the last line is
+    - The hyphen following the SMTP code on all but the last line is
           replaced with a space.
-        - Any prefix in common with the first line is stripped from lines after
+    - Any prefix in common with the first line is stripped from lines after
           the first.
-        - CRLF is replaced by a space.
+    - CRLF is replaced by a space.
 
         For example:
 
@@ -91,47 +91,47 @@ An **EmailSubmission** object represents the submission of an Email for delivery
 
         For messages relayed via an alternative to SMTP, the server MAY generate a synthetic string representing the status instead. If it does this, the string MUST be of the following form:
 
-        - A 3-digit SMTP reply code, as defined in [@!RFC5321], Section 4.2.3.
-        - Then a single space character.
-        - Then an SMTP Enhanced Mail System Status Code as defined in
-          [@!RFC3463], with a registry defined in [@!RFC5248].
-        - Then a single space character.
-        - Then an implementation-specific information string with a
+    - A 3-digit SMTP reply code, as defined in [RFC5321](https://www.rfc-editor.org/rfc/rfc5321), Section 4.2.3.
+    - Then a single space character.
+    - Then an SMTP Enhanced Mail System Status Code as defined in
+          [RFC3463](https://www.rfc-editor.org/rfc/rfc3463), with a registry defined in [RFC5248](https://www.rfc-editor.org/rfc/rfc5248).
+    - Then a single space character.
+    - Then an implementation-specific information string with a
           human-readable explanation of the response.
 
-    - **delivered**: `String`
+  - **delivered**: `String`
       Represents whether the message has been successfully delivered to the recipient. This MUST be one of the following values:
 
-        - `queued`: The message is in a local mail queue and status will change
+    - `queued`: The message is in a local mail queue and status will change
           once it exits the local mail queues. The *smtpReply* property may still change.
-        - `yes`: The message was successfully delivered to the mail store of the
+    - `yes`: The message was successfully delivered to the mail store of the
           recipient. The *smtpReply* property is final.
-        - `no`: Delivery to the recipient permanently failed. The *smtpReply*
+    - `no`: Delivery to the recipient permanently failed. The *smtpReply*
           property is final.
-        - `unknown`: The final delivery status is unknown, (e.g., it was relayed
+    - `unknown`: The final delivery status is unknown, (e.g., it was relayed
           to an external machine and no further information is available). The *smtpReply* property may still change if a DSN arrives.
 
         Note that successful relaying to an external SMTP server SHOULD NOT be taken as an indication that the message has successfully reached the final mail store. In this case though, the server may receive a DSN response, if requested.
 
-        If a DSN is received for the recipient with Action equal to "delivered", as per [@!RFC3464], Section 2.3.3, then the *delivered* property SHOULD be set to `yes`; if the Action equals "failed", the property SHOULD be set to `no`. Receipt of any other DSN SHOULD NOT affect this property.
+        If a DSN is received for the recipient with Action equal to "delivered", as per [RFC3464](https://www.rfc-editor.org/rfc/rfc3464), Section 2.3.3, then the *delivered* property SHOULD be set to `yes`; if the Action equals "failed", the property SHOULD be set to `no`. Receipt of any other DSN SHOULD NOT affect this property.
 
         The server MAY also set this property based on other feedback channels.
 
-    - **displayed**: `String`
+  - **displayed**: `String`
       Represents whether the message has been displayed to the recipient. This MUST be one of the following values:
 
-        - `unknown`: The display status is unknown. This is the initial value.
-        - `yes`: The recipient's system claims the message content has been
+    - `unknown`: The display status is unknown. This is the initial value.
+    - `yes`: The recipient's system claims the message content has been
           displayed to the recipient. Note that there is no guarantee that the recipient has noticed, read, or understood the content.
 
-        If a Message Disposition Notification (MDN) is received for this recipient with Disposition-Type (as per [@!RFC8098], Section 3.2.6.2) equal to "displayed", this property SHOULD be set to `yes`.
+        If a Message Disposition Notification (MDN) is received for this recipient with Disposition-Type (as per [RFC8098](https://www.rfc-editor.org/rfc/rfc8098), Section 3.2.6.2) equal to "displayed", this property SHOULD be set to `yes`.
 
         The server MAY also set this property based on other feedback channels.
 
 - **dsnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for DSNs [@!RFC3464] received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of `multipart/report`), as received.
+  A list of blob ids for DSNs [RFC3464](https://www.rfc-editor.org/rfc/rfc3464) received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of `multipart/report`), as received.
 - **mdnBlobIds**: `Id[]` (server-set)
-  A list of blob ids for MDNs [@!RFC8098] received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of `multipart/report`), as received.
+  A list of blob ids for MDNs [RFC8098](https://www.rfc-editor.org/rfc/rfc8098) received for this submission, in order of receipt, oldest first. The blob is the whole MIME message (with a top-level content-type of `multipart/report`), as received.
 
 JMAP servers MAY choose not to expose DSN and MDN responses as Email objects if they correlate to an EmailSubmission object. It SHOULD only do this if it exposes them in the *dsnBlobIds* and *mdnblobIds* fields instead, and it expects the user to be using clients capable of fetching and displaying delivery status via the EmailSubmission object.
 
@@ -141,15 +141,15 @@ The following JMAP methods are supported.
 
 ## EmailSubmission/get
 
-This is a standard "/get" method as described in [@!RFC8620], Section 5.1.
+This is a standard "/get" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.1.
 
 ## EmailSubmission/changes
 
-This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+This is a standard "/changes" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.2.
 
 ## EmailSubmission/query
 
-This is a standard "/query" method as described in [@!RFC8620], Section 5.5.
+This is a standard "/query" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.5.
 
 A **FilterCondition** object has the following properties, any of which may be omitted:
 
@@ -179,11 +179,11 @@ The following EmailSubmission properties MUST be supported for sorting:
 
 ## EmailSubmission/queryChanges
 
-This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+This is a standard "/queryChanges" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.6.
 
 ## EmailSubmission/set
 
-This is a standard "/set" method as described in [@!RFC8620], Section 5.3 with the following two additional request arguments:
+This is a standard "/set" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.3 with the following two additional request arguments:
 
 - **onSuccessUpdateEmail**: `Id[PatchObject]|null`
   A map of *EmailSubmission id* to an object containing properties to update on the Email object referenced by the EmailSubmission if the create/update/destroy succeeds. (For references to EmailSubmissions created in the same "/set" invocation, this is equivalent to a creation-reference, so the id will be the creation id prefixed with a `#`.)
@@ -215,9 +215,9 @@ For **create**:
 - `invalidRecipients` – The *rcptTo* property of the envelope (supplied or
   generated) contains at least one rcptTo value which is not a valid email address for sending to. An *invalidRecipients* `String[]` property MUST also be present on the SetError, which is a list of the invalid addresses.
 - `forbiddenMailFrom` – The server does not permit the user to send a message
-  with this envelope From address [@!RFC5321].
+  with this envelope From address [RFC5321](https://www.rfc-editor.org/rfc/rfc5321).
 - `forbiddenFrom` – The server does not permit the user to send a message
-  with the From header field [@!RFC5322] of the message to be sent.
+  with the From header field [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) of the message to be sent.
 - `forbiddenToSend` – The user does not have permission to send at all right
   now for some reason. A *description* `String` property MAY be present on the SetError object to display to the user why they are not permitted.
 
@@ -225,7 +225,6 @@ For **update**:
 
 - `cannotUnsend` – The client attempted to update the *undoStatus* of a valid
   EmailSubmission object from `pending` to `canceled`, but the message cannot be unsent.
-
 
 ### Example
 
@@ -285,7 +284,7 @@ Suppose instead an admin has removed sending rights for the user, so the submiss
 
     Accept-Language: de;q=0.9,en;q=0.8
 
-The server should attempt to choose the best localisation from those it has available based on the Accept-Language header, as described in [@!RFC8620], Section 3.8. If the server has English, French, and German translations, it would choose German as the preferred language and return a response like this:
+The server should attempt to choose the best localisation from those it has available based on the Accept-Language header, as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 3.8. If the server has English, French, and German translations, it would choose German as the preferred language and return a response like this:
 
     [[ "EmailSubmission/set", {
       "accountId": "ue411d190",

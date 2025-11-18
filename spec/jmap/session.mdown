@@ -16,24 +16,24 @@ A successful authenticated GET request to the JMAP Session resource MUST return 
 
     The capabilities object MUST include a property called `urn:ietf:params:jmap:core`. The value of this property is an object that MUST contain the following information on server capabilities (suggested minimum values for limits are supplied that allow clients to make efficient use of the network):
 
-    - **maxSizeUpload**: `UnsignedInt`
+  - **maxSizeUpload**: `UnsignedInt`
       The maximum file size, in octets, that the server will accept for a single file upload (for any purpose). Suggested minimum: 50,000,000.
-    - **maxConcurrentUpload**: `UnsignedInt`
+  - **maxConcurrentUpload**: `UnsignedInt`
       The maximum number of concurrent requests the server will accept to the upload endpoint.  Suggested minimum: 4.
-    - **maxSizeRequest**: `UnsignedInt`
+  - **maxSizeRequest**: `UnsignedInt`
       The maximum size, in octets, that the server will accept for a single
       request to the API endpoint. Suggested minimum: 10,000,000.
-    - **maxConcurrentRequests**: `UnsignedInt`
+  - **maxConcurrentRequests**: `UnsignedInt`
       The maximum number of concurrent requests the server will accept to
       the API endpoint. Suggested minimum: 4.
-    - **maxCallsInRequest**: `UnsignedInt`
+  - **maxCallsInRequest**: `UnsignedInt`
       The maximum number of method calls the server will accept in a single request to the API endpoint.  Suggested minimum: 16.
-    - **maxObjectsInGet**: `UnsignedInt`
+  - **maxObjectsInGet**: `UnsignedInt`
       The maximum number of objects that the client may request in a single `/get` type method call. Suggested minimum: 500.
-    - **maxObjectsInSet**: `UnsignedInt`
+  - **maxObjectsInSet**: `UnsignedInt`
       The maximum number of objects the client may send to create, update, or destroy in a single `/set` type method call. This is the combined total, e.g., if the maximum is 10, you could not create 7 objects and destroy 6, as this would be 13 actions, which exceeds the limit. Suggested minimum: 500.
-    - **collationAlgorithms**: `String[]`
-      A list of identifiers for algorithms registered in the collation registry, as defined in [@!RFC4790], that the server supports for sorting when querying records.
+  - **collationAlgorithms**: `String[]`
+      A list of identifiers for algorithms registered in the collation registry, as defined in [RFC4790](https://www.rfc-editor.org/rfc/rfc4790), that the server supports for sorting when querying records.
 
     Specifications for future capabilities will define their own properties on the capabilities object.
 
@@ -42,13 +42,13 @@ A successful authenticated GET request to the JMAP Session resource MUST return 
 - **accounts**: `Id[Account]`
   A map of an **account id** to an Account object for each account (see Section 1.6.2) the user has access to. An **Account** object has the following properties:
 
-    - **name**: `String`
+  - **name**: `String`
       A user-friendly string to show when presenting content from this account, e.g., the email address representing the owner of the account.
-    - **isPersonal**: `Boolean`
+  - **isPersonal**: `Boolean`
       This is `true` if the account belongs to the authenticated user rather than a group account or a personal account of another user that has been shared with them.
-    - **isReadOnly**: `Boolean`
+  - **isReadOnly**: `Boolean`
       This is `true` if the entire account is read-only.
-    - **accountCapabilities**: `String[Object]`
+  - **accountCapabilities**: `String[Object]`
       The set of capability URIs for the methods supported in this account. Each key is a URI for a capability that has methods you can use with this account. The value for each of these keys is an object with further information about the account's permissions and restrictions with respect to this capability, as defined in the capability's specification.
 
         The client MUST ignore any properties it does not understand.
@@ -80,11 +80,11 @@ A successful authenticated GET request to the JMAP Session resource MUST return 
 - **apiUrl**: `String`
   The URL to use for JMAP API requests.
 - **downloadUrl**: `String`
-  The URL endpoint to use when downloading files, in URI Template (level 1) format [@!RFC6570]. The URL MUST contain variables called `accountId`, `blobId`, `type`, and `name`. The use of these variables is described in Section 6.2. Due to potential encoding issues with slashes in content types, it is RECOMMENDED to put the `type` variable in the query section of the URL.
+  The URL endpoint to use when downloading files, in URI Template (level 1) format [RFC6570](https://www.rfc-editor.org/rfc/rfc6570). The URL MUST contain variables called `accountId`, `blobId`, `type`, and `name`. The use of these variables is described in Section 6.2. Due to potential encoding issues with slashes in content types, it is RECOMMENDED to put the `type` variable in the query section of the URL.
 - **uploadUrl**: `String`
-  The URL endpoint to use when uploading files, in URI Template (level 1) format [@!RFC6570]. The URL MUST contain a variable called `accountId`. The use of this variable is described in Section 6.1.
+  The URL endpoint to use when uploading files, in URI Template (level 1) format [RFC6570](https://www.rfc-editor.org/rfc/rfc6570). The URL MUST contain a variable called `accountId`. The use of this variable is described in Section 6.1.
 - **eventSourceUrl**: `String`
-  The URL to connect to for push events, as described in Section 7.3, in URI Template (level 1) format [@!RFC6570]. The URL MUST contain variables called `types`, `closeafter`, and `ping`. The use of these variables is described in Section 7.3.
+  The URL to connect to for push events, as described in Section 7.3, in URI Template (level 1) format [RFC6570](https://www.rfc-editor.org/rfc/rfc6570). The URL MUST contain variables called `types`, `closeafter`, and `ping`. The use of these variables is described in Section 7.3.
 - **state**: `String`
   A (preferably short) string representing the state of this object on the server. If the value of any other property on the Session object changes, this string will change. The current value is also returned on the API Response object (see Section 3.4), allowing clients to quickly determine if the session information has changed (e.g., an account has been added or removed), so they need to refetch the object.
 
@@ -165,8 +165,8 @@ In the following example Session object, the user has access to their own mail a
 
 There are two standardised autodiscovery methods in use for Internet protocols:
 
-- **DNS SRV** (see [@!RFC2782], [@!RFC6186], and [@!RFC6764])
-- **.well-known/servicename** (see [@!RFC8615])
+- **DNS SRV** (see [RFC2782](https://www.rfc-editor.org/rfc/rfc2782), [RFC6186](https://www.rfc-editor.org/rfc/rfc6186), and [RFC6764](https://www.rfc-editor.org/rfc/rfc6764))
+- **.well-known/servicename** (see [RFC8615](https://www.rfc-editor.org/rfc/rfc8615))
 
 A JMAP-supporting host for the domain `example.com` SHOULD publish a SRV record `_jmap._tcp.example.com` that gives a *hostname* and *port* (usually port `443`). The JMAP Session resource is then `https://${hostname}[:${port}]/.well-known/jmap` (following any redirects).
 

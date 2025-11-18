@@ -9,15 +9,15 @@ A **Mailbox** object has the following properties:
 - **id**: `Id` (immutable; server-set)
   The id of the Mailbox.
 - **name**: `String`
-  User-visible name for the Mailbox, e.g., "Inbox". This MUST be a Net-Unicode string [@!RFC5198] of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling Mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing a slash (/) or control characters).
+  User-visible name for the Mailbox, e.g., "Inbox". This MUST be a Net-Unicode string [RFC5198](https://www.rfc-editor.org/rfc/rfc5198) of at least 1 character in length, subject to the maximum size given in the capability object. There MUST NOT be two sibling Mailboxes with both the same parent and the same name. Servers MAY reject names that violate server policy (e.g., names containing a slash (/) or control characters).
 - **parentId**: `Id|null` (default: null)
   The Mailbox id for the parent of this Mailbox, or `null` if this Mailbox is at the top level. Mailboxes form acyclic graphs (forests) directed by the child-to-parent relationship. There MUST NOT be a loop.
 - **role**: `String|null` (default: null)
   Identifies Mailboxes that have a particular common purpose (e.g., the "inbox"), regardless of the *name* property (which may be localised).
 
-    This value is shared with IMAP (exposed in IMAP via the SPECIAL-USE extension [@!RFC6154]). However, unlike in IMAP, a Mailbox MUST only have a single role, and there MUST NOT be two Mailboxes in the same account with the same role. Servers providing IMAP access to the same data are encouraged to enforce these extra restrictions in IMAP as well. Otherwise, modifying the IMAP attributes to ensure compliance when exposing the data over JMAP is implementation dependent.
+    This value is shared with IMAP (exposed in IMAP via the SPECIAL-USE extension [RFC6154](https://www.rfc-editor.org/rfc/rfc6154)). However, unlike in IMAP, a Mailbox MUST only have a single role, and there MUST NOT be two Mailboxes in the same account with the same role. Servers providing IMAP access to the same data are encouraged to enforce these extra restrictions in IMAP as well. Otherwise, modifying the IMAP attributes to ensure compliance when exposing the data over JMAP is implementation dependent.
 
-    The value MUST be one of the Mailbox attribute names listed in the [IANA IMAP Mailbox Name Attributes](https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml) registry, as established in [@!RFC8457], converted to lowercase. New roles may be established here in the future.
+    The value MUST be one of the Mailbox attribute names listed in the [IANA IMAP Mailbox Name Attributes](https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml) registry, as established in [RFC8457](https://www.rfc-editor.org/rfc/rfc8457), converted to lowercase. New roles may be established here in the future.
 
     An account is not required to have Mailboxes with any particular roles.
 
@@ -50,25 +50,25 @@ A **Mailbox** object has the following properties:
     For example, suppose you have an account where the entire contents is a single Thread with 2 Emails: an unread Email in the trash and a read Email in the inbox. The `unreadThreads` count would be `1` for the trash and `0` for the inbox.
 
 - **myRights**: `MailboxRights` (server-set)
-  The set of rights (Access Control Lists (ACLs)) the user has in relation to this Mailbox. These are backwards compatible with IMAP ACLs, as defined in [@!RFC4314]. A **MailboxRights** object has the following properties:
+  The set of rights (Access Control Lists (ACLs)) the user has in relation to this Mailbox. These are backwards compatible with IMAP ACLs, as defined in [RFC4314](https://www.rfc-editor.org/rfc/rfc4314). A **MailboxRights** object has the following properties:
 
-    - **mayReadItems**: `Boolean`
+  - **mayReadItems**: `Boolean`
       If true, the user may use this Mailbox as part of a filter in an *Email/query* call, and the Mailbox may be included in the *mailboxIds* property of Email objects. Email objects may be fetched if they are in **at least one** Mailbox with this permission. If a sub-Mailbox is shared but not the parent Mailbox, this may be `false`. Corresponds to IMAP ACLs `lr` (if mapping from IMAP, both are required for this to be `true`).
-    - **mayAddItems**: `Boolean`
+  - **mayAddItems**: `Boolean`
       The user may add mail to this Mailbox (by either creating a new Email or moving an existing one). Corresponds to IMAP ACL `i`.
-    - **mayRemoveItems**: `Boolean`
+  - **mayRemoveItems**: `Boolean`
       The user may remove mail from this Mailbox (by either changing the Mailboxes of an Email or destroying the Email). Corresponds to IMAP ACLs `te` (if mapping from IMAP, both are required for this to be `true`).
-    - **maySetSeen**: `Boolean`
+  - **maySetSeen**: `Boolean`
       The user may add or remove the `$seen` keyword to/from an Email. If an Email belongs to multiple Mailboxes, the user may only modify `$seen` if they have this permission for **all** of the Mailboxes. Corresponds to IMAP ACL `s`.
-    - **maySetKeywords**: `Boolean`
+  - **maySetKeywords**: `Boolean`
       The user may add or remove any keyword *other than* `$seen` to/from an Email. If an Email belongs to multiple Mailboxes, the user may only modify keywords if they have this permission for **all** of the Mailboxes. Corresponds to IMAP ACL `w`.
-    - **mayCreateChild**: `Boolean`
+  - **mayCreateChild**: `Boolean`
       The user may create a Mailbox with this Mailbox as its parent. Corresponds to IMAP ACL `k`.
-    - **mayRename**: `Boolean`
+  - **mayRename**: `Boolean`
       The user may rename the Mailbox or make it a child of another Mailbox. Corresponds to IMAP ACL `x` (although this covers both rename and delete permissions).
-    - **mayDelete**: `Boolean`
+  - **mayDelete**: `Boolean`
       The user may delete the Mailbox itself. Corresponds to IMAP ACL `x` (although this covers both rename and delete permissions).
-    - **maySubmit**: `Boolean`
+  - **maySubmit**: `Boolean`
       Messages may be submitted directly to this Mailbox. Corresponds to IMAP ACL `p`.
 
 - **isSubscribed**: `Boolean`
@@ -84,11 +84,11 @@ The following JMAP methods are supported.
 
 ## Mailbox/get
 
-This is a standard "/get" method as described in [@!RFC8620], Section 5.1. The *ids* argument may be `null` to fetch all at once.
+This is a standard "/get" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.1. The *ids* argument may be `null` to fetch all at once.
 
 ## Mailbox/changes
 
-This is a standard "/changes" method as described in [@!RFC8620], Section 5.2 but with one extra argument to the response:
+This is a standard "/changes" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.2 but with one extra argument to the response:
 
 - **updatedProperties**: `String[]|null`
   If only the "totalEmails", "unreadEmails", "totalThreads", and/or "unreadThreads" Mailbox properties have changed since the old state, this will be the list of properties that may have changed. If the server is unable to tell if only counts have changed, it MUST just be `null`.
@@ -97,15 +97,15 @@ Since counts frequently change but other properties are generally only changed r
 
 ## Mailbox/query
 
-This is a standard "/query" method as described in [@!RFC8620], Section 5.5, but with the following additional request argument:
+This is a standard "/query" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.5, but with the following additional request argument:
 
 - **sortAsTree**: `Boolean` (default: false)
   If `true`, when sorting the query results and comparing Mailboxes A and B:
 
-    - If A is an ancestor of B, it always comes first regardless of the *sort*
+  - If A is an ancestor of B, it always comes first regardless of the *sort*
       comparators. Similarly, if A is descendant of B, then B always comes
       first.
-    - Otherwise, if A and B do not share a *parentId*, find the nearest
+  - Otherwise, if A and B do not share a *parentId*, find the nearest
       ancestors of each that do have the same *parentId* and compare the sort
       properties on those Mailboxes instead.
 
@@ -136,11 +136,11 @@ The following Mailbox properties MUST be supported for sorting:
 
 ## Mailbox/queryChanges
 
-This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+This is a standard "/queryChanges" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.6.
 
 ## Mailbox/set
 
-This is a standard "/set" method as described in [@!RFC8620], Section 5.3, but with the following additional request argument:
+This is a standard "/set" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.3, but with the following additional request argument:
 
 - **onDestroyRemoveEmails**: `Boolean` (default: false)
   If `false`, any attempt to destroy a Mailbox that still has Emails in it will be rejected with a `mailboxHasEmail` SetError. If `true`, any Emails that were in the Mailbox will be removed from it, and if in no other Mailboxes, they will be destroyed when the Mailbox is destroyed.

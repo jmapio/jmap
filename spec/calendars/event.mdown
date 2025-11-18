@@ -1,6 +1,6 @@
 # Calendar Events
 
-A **CalendarEvent** object contains information about an event, or recurring series of events, that takes place at a particular time. It is a JSCalendar Event object, as defined in [@!RFC8984], with the following additional properties:
+A **CalendarEvent** object contains information about an event, or recurring series of events, that takes place at a particular time. It is a JSCalendar Event object, as defined in [RFC8984](https://www.rfc-editor.org/rfc/rfc8984), with the following additional properties:
 
 - **id**: `Id` (immutable; server-set)
   The id of the CalendarEvent. The id uniquely identifies a JSCalendar Event with a particular "uid" and "recurrenceId" within a particular account.
@@ -19,8 +19,8 @@ A **CalendarEvent** object contains information about an event, or recurring ser
   scheduling for this event; the event has not been added as a result of an
   invitation from another calendar system)? This is true if, and only if:
 
-    * the event's "replyTo" property is `null`; or
-    * the account will receive messages sent to at least one of the methods
+  - the event's "replyTo" property is `null`; or
+  - the account will receive messages sent to at least one of the methods
       specified in the "replyTo" property of the event.
 
 - **utcStart**: `UTCDate`
@@ -39,7 +39,7 @@ A **CalendarEvent** object contains information about an event, or recurring ser
 - **utcEnd**: `UTCDate`
   The server calculates the end time in UTC from the start/timeZone/duration properties of the event. This property is not included by default and must be requested explicitly. Like utcStart, it is calculated at fetch time if requested and may change due to time zone data changes. Floating events will be interpreted as per the time zone given as a CalendarEvent/get argument.
 
-CalendarEvent objects MUST NOT have a "method" property as this is only used when representing iTIP [@!RFC5546] scheduling messages, not events in a data store.
+CalendarEvent objects MUST NOT have a "method" property as this is only used when representing iTIP [RFC5546](https://www.rfc-editor.org/rfc/rfc5546) scheduling messages, not events in a data store.
 
 ## Additional JSCalendar properties
 
@@ -51,7 +51,7 @@ Type: `String`
 
 Context: Participant
 
-This is a URI as defined by [@!RFC3986] or any other IANA-registered form for a URI. It is the same as the CAL-ADDRESS value of an ATTENDEE or ORGANIZER in iCalendar ([@!RFC5545]) — it globally identifies a particular participant, even across different events.
+This is a URI as defined by [RFC3986](https://www.rfc-editor.org/rfc/rfc3986) or any other IANA-registered form for a URI. It is the same as the CAL-ADDRESS value of an ATTENDEE or ORGANIZER in iCalendar ([RFC5545](https://www.rfc-editor.org/rfc/rfc5545)) — it globally identifies a particular participant, even across different events.
 
 ### mayInviteSelf
 
@@ -83,9 +83,9 @@ If true, only the owners of the event may see the full set of participants. Othe
 
 ## Attachments
 
-The Link object, as defined in [@!RFC8984] Section 4.2.7, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per [@!RFC8620] Section 6.
+The Link object, as defined in [RFC8984](https://www.rfc-editor.org/rfc/rfc8984) Section 4.2.7, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per [RFC8620](https://www.rfc-editor.org/rfc/rfc8620) Section 6.
 
-The server MUST translate this to an embedded `data:` URL [@!RFC2397] when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments [?@RFC8607].
+The server MUST translate this to an embedded `data:` URL [RFC2397](https://www.rfc-editor.org/rfc/rfc2397) when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments [?@RFC8607].
 
 ## Per-user properties
 
@@ -115,7 +115,7 @@ When editing a recurring event, you can either update the base event (affecting 
 
 ### Splitting an event
 
-If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar [@!RFC8984] Section 4.1.3, a "next" and "first" relation MUST be set on the new objects respectively.
+If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rules of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar [RFC8984](https://www.rfc-editor.org/rfc/rfc8984) Section 4.1.3, a "next" and "first" relation MUST be set on the new objects respectively.
 
 Splitting an event however is problematic in the case of a scheduled event, because the iTIP messages generated make it appear like two unrelated changes, which can be confusing.
 
@@ -127,7 +127,7 @@ Clients may choose to skip creating the overrides if the old data is not importa
 
 ## CalendarEvent/get
 
-This is a standard "/get" method as described in [@!RFC8620], Section 5.1, with three extra arguments:
+This is a standard "/get" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.1, with three extra arguments:
 
 - **recurrenceOverridesBefore**: `UTCDate|null`
   If given, only recurrence overrides with a recurrence id before this date (when translated into UTC) will be returned.
@@ -150,24 +150,24 @@ The "hideAttendees" property of a JSCalendar Event object allows the event owner
 
 The "privacy" property of a JSCalendar Event object allows the principal that owns the calendar to override how sharees of the calendar see the event. If set to "private", then when a sharee fetches the event the server MUST only return properties that are:
 
-* the basic time and metadata properties of the JSCalendar Event object as specified in
-  [@!RFC8984], Section 4.4.3; or
-* properties that are wholly derived from these permitted properties
+- the basic time and metadata properties of the JSCalendar Event object as specified in
+  [RFC8984](https://www.rfc-editor.org/rfc/rfc8984), Section 4.4.3; or
+- properties that are wholly derived from these permitted properties
   (i.e., utcStart, utcEnd); or
-* Additional CalendarEvent properties not derived from the JSCalendar Event data
+- Additional CalendarEvent properties not derived from the JSCalendar Event data
   (i.e., id, baseEventId, calendarIds, isDraft, isOrigin).
 
 If "privacy" is set to "secret", the server MUST behave as though the event does not exist for all users other than the principal that owns the calendar.
 
 ## CalendarEvent/changes
 
-This is a standard "/changes" method as described in [@!RFC8620], Section 5.2.
+This is a standard "/changes" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.2.
 
 Synthetic ids generated by the server expanding recurrences in "CalendarEvent/query" do not appear in "CalendarEvent/changes" responses; only the ids of events as actually stored on the server.
 
 ## CalendarEvent/set
 
-This is a standard "/set" method as described in [@!RFC8620], Section 5.3, with the following extra argument:
+This is a standard "/set" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.3, with the following extra argument:
 
 - **sendSchedulingMessages**: `Boolean` (default: false)
   If true then any changes to scheduled events will be sent to all the participants (if the server is the origin of the event) or back to the origin (otherwise). If false, the changes only affect this account and no scheduling messages will be sent.
@@ -198,10 +198,10 @@ properties when the "isOrigin" property is false, even if the calendar "myRights
 
 When updating an event, if all of:
 
-* a property has been changed other than "calendarIds", "isDraft", "updated" or
+- a property has been changed other than "calendarIds", "isDraft", "updated" or
   a per-user property (see Section XXX); and
-* the server is the origin of the event (the "isOrigin" property is true); and
-* the "sequence" property is not explicitly set in the update, or the given
+- the server is the origin of the event (the "isOrigin" property is true); and
+- the "sequence" property is not explicitly set in the update, or the given
   value is less than or equal to the current "sequence" value on the server;
 
 then the server MUST increment the "sequence" value by one.
@@ -341,10 +341,9 @@ This would mean remove the "participants/dG9tQGZvb2Jhci5xlLmNvbQ" property at pa
       }
     }, "0" ]]
 
-
 ### Sending invitations and responses
 
-If "sendSchedulingMessages" is true, the server MUST send appropriate iTIP [@!RFC5546] scheduling messages after successfuly creating, updating or destroying a calendar event.
+If "sendSchedulingMessages" is true, the server MUST send appropriate iTIP [RFC5546](https://www.rfc-editor.org/rfc/rfc5546) scheduling messages after successfuly creating, updating or destroying a calendar event.
 
 When determining which scheduling messages to send, the server must first establish whether it is the *origin* of the event, as described in the "isOrigin" property.
 
@@ -364,13 +363,13 @@ If sending via iMIP [@?RFC6047], the server MAY choose to only send updates it d
 
 #### REQUEST
 
-When the server is the origin for the event, a REQUEST message ([@!RFC5546], Section 3.2.2) is sent to all current participants (except those corresponding to the owner of the calendar) if either:
+When the server is the origin for the event, a REQUEST message ([RFC5546](https://www.rfc-editor.org/rfc/rfc5546), Section 3.2.2) is sent to all current participants (except those corresponding to the owner of the calendar) if either:
 
 - The event is being created; or
 - Any non per-user property (see Section XXX) is updated on the event
   (including adding/removing participants), except if just modifying the recurrenceOverrides such that CANCEL messages are generated (see the next section).
 
-Note, if the only change is adding an additional instance (not generated by the event's recurrence rule) to the recurrenceOverrides, this MAY be handled via sending an ADD message ([@!RFC5546], Section 3.2.4) for the single instance rather than a REQUEST message for the base event. However, for interoperability reasons this is not recommended due to poor support in the wild for this type of message.
+Note, if the only change is adding an additional instance (not generated by the event's recurrence rule) to the recurrenceOverrides, this MAY be handled via sending an ADD message ([RFC5546](https://www.rfc-editor.org/rfc/rfc5546), Section 3.2.4) for the single instance rather than a REQUEST message for the base event. However, for interoperability reasons this is not recommended due to poor support in the wild for this type of message.
 
 The server MUST ensure participants are only sent information about recurrence instances they are added to when sending scheduling messages for recurring events. If the participant is not invited to the full recurring event but only individual instances, scheduling messages MUST be sent for just those expanded occurrences individually. If a participant is invited to a recurring event, but removed via a recurrence override from a particular instance, any scheduling messages to this participant MUST return the instance as "excluded" (if it matches a recurrence rule for the event) or omit the instance entirely (otherwise).
 
@@ -378,7 +377,7 @@ If the event's "hideAttendees" property is set to true, the recipient MUST be th
 
 #### CANCEL
 
-When the server is the origin for the event, a CANCEL message ([@!RFC5546], Section 3.2.5) is sent if any of:
+When the server is the origin for the event, a CANCEL message ([RFC5546](https://www.rfc-editor.org/rfc/rfc5546), Section 3.2.5) is sent if any of:
 
 - A participant is removed from either the base event or a single instance
   (the message is only sent to this participant; remaining participants will get a REQUEST, as described above).
@@ -392,7 +391,7 @@ In each of the latter 3 cases, the message is sent to all participants (except t
 
 #### REPLY
 
-When the server is *not* the origin for the event, a REPLY message ([@!RFC5546], Section 3.2.3) is sent for every participant corresponding to one of the user's ParticipantIdentitities in the account if any of the following changes are made:
+When the server is *not* the origin for the event, a REPLY message ([RFC5546](https://www.rfc-editor.org/rfc/rfc5546), Section 3.2.3) is sent for every participant corresponding to one of the user's ParticipantIdentitities in the account if any of the following changes are made:
 
 - The "participationStatus" property of the participant is changed, either for
   the base event or a specific instance, to any value other than "needs-action".
@@ -403,11 +402,11 @@ If the participationStatus property is changed for just a single instance of the
 
 ## CalendarEvent/copy
 
-This is a standard "/copy" method as described in [@!RFC8620], Section 5.4.
+This is a standard "/copy" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.4.
 
 ## CalendarEvent/query
 
-This is a standard "/query" method as described in [@!RFC8620], Section 5.5, with two extra arguments:
+This is a standard "/query" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.5, with two extra arguments:
 
 - **expandRecurrences**: `Boolean` (default: false)
   If true, the server will expand any recurring event. If true, the filter MUST be just a FilterCondition (not a FilterOperator) and MUST include both a "before" and "after" property. This ensures the server is not asked to return an infinite number of results.
@@ -475,11 +474,11 @@ The following properties SHOULD be supported for sorting:
 
 ## CalendarEvent/queryChanges
 
-This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6.
+This is a standard "/queryChanges" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.6.
 
 ## CalendarEvent/parse
 
-This method allows the client to parse blobs as `iCalendar` files [@!RFC5545] to get `CalendarEvent` objects. This can be used to parse, display, and import information from iCalendar files without having to implement iCalendar parsing in the client. Server support for this is optional, and indicated via the "urn:ietf:params:jmap:calendars:parse" capability, as per Section XXX.
+This method allows the client to parse blobs as `iCalendar` files [RFC5545](https://www.rfc-editor.org/rfc/rfc5545) to get `CalendarEvent` objects. This can be used to parse, display, and import information from iCalendar files without having to implement iCalendar parsing in the client. Server support for this is optional, and indicated via the "urn:ietf:params:jmap:calendars:parse" capability, as per Section XXX.
 
 The following metadata properties on the CalendarEvent objects will be `null` if requested:
 

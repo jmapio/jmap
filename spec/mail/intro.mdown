@@ -1,6 +1,6 @@
 # Introduction
 
-The JSON Meta Application Protocol (JMAP) [@!RFC8620] is a generic protocol for synchronising data, such as mail, calendars, or contacts between a client and a server. It is optimised for mobile and web environments and aims to provide a consistent interface to different data types.
+The JSON Meta Application Protocol (JMAP) [RFC8620](https://www.rfc-editor.org/rfc/rfc8620) is a generic protocol for synchronising data, such as mail, calendars, or contacts between a client and a server. It is optimised for mobile and web environments and aims to provide a consistent interface to different data types.
 
 This specification defines a data model for accessing a mail store over JMAP,
 allowing you to query, read, organise, and submit mail for sending.
@@ -28,9 +28,9 @@ user's inbox has been shared as read-only with them.
 
 ## Notational Conventions
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [RFC2119](https://www.rfc-editor.org/rfc/rfc2119) [RFC8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they appear in all capitals, as shown here.
 
-Type signatures, examples, and property descriptions in this document follow the conventions established in Section 1.1 of [@!RFC8620]. Data types defined in the core specification are also used in this document.
+Type signatures, examples, and property descriptions in this document follow the conventions established in Section 1.1 of [RFC8620](https://www.rfc-editor.org/rfc/rfc8620). Data types defined in the core specification are also used in this document.
 
 Servers MUST support all properties specified for the new data types defined in this document.
 
@@ -40,11 +40,11 @@ This document uses the same terminology as in the core JMAP specification.
 
 The terms Mailbox, Thread, Email, SearchSnippet, EmailSubmission and VacationResponse (with that specific capitalisation) are used to refer to the data types defined in this document and instances of those data types.
 
-The term message refers to a document in Internet Message Format, as described in [@!RFC5322]. The Email data type represents messages in the mail store and associated metadata.
+The term message refers to a document in Internet Message Format, as described in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322). The Email data type represents messages in the mail store and associated metadata.
 
 ## Additions to the Capabilities Object
 
-The capabilities object is returned as part of the JMAP Session object; see [@!RFC8620], Section 2.
+The capabilities object is returned as part of the JMAP Session object; see [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 2.
 
 This document defines three additional capability URIs.
 
@@ -65,7 +65,7 @@ The value of this property in an account's *accountCapabilities* property is an 
 
     Note that this limit is for the sum of unencoded attachment sizes. Users are generally not knowledgeable about encoding overhead, etc., nor should they need to be, so marketing and help materials normally tell them the "max size attachments". This is the unencoded size they see on their hard drive, so this capability matches that and allows the client to consistently enforce what the user understands as the limit.
 
-    The server may separately have a limit for the total size of the message [@!RFC5322], created by combining the attachments (often base64 encoded) with the message headers and bodies. For example, suppose the server advertises `maxSizeAttachmentsPerEmail: 50000000` (50 MB). The enforced server limit may be for a message size of 70000000 octets. Even with base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.
+    The server may separately have a limit for the total size of the message [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), created by combining the attachments (often base64 encoded) with the message headers and bodies. For example, suppose the server advertises `maxSizeAttachmentsPerEmail: 50000000` (50 MB). The enforced server limit may be for a message size of 70000000 octets. Even with base64 encoding and a 2 MB HTML body, 50 MB attachments would fit under this limit.
 
 - **emailQuerySortOptions**: `String[]`
   A list of all the values the server supports for the "property" field of the Comparator object in an Email/query sort (see Section 4.4.2). This MAY include properties the client does not recognise (for example, custom properties specified in a vendor extension). Clients MUST ignore any unknown properties in the list.
@@ -86,15 +86,15 @@ The value of this property in an account's *accountCapabilities* property is an 
 - **submissionExtensions**: `String[String[]]`
   The set of SMTP submission extensions supported by the server, which the client may use when creating an EmailSubmission object (see Section 7). Each key in the object is the *ehlo-name*, and the value is a list of *ehlo-args*.
 
-    A JMAP implementation that talks to a submission server [@!RFC6409] SHOULD have a configuration setting that allows an administrator to modify the set of submission EHLO capabilities it may expose on this property. This allows a JMAP server to easily add access to a new submission extension without code changes. By default, the JMAP server should hide EHLO capabilities that have to do with the transport mechanism and thus are only relevant to the JMAP server (for example, PIPELINING, CHUNKING, or STARTTLS).
+    A JMAP implementation that talks to a submission server [RFC6409](https://www.rfc-editor.org/rfc/rfc6409) SHOULD have a configuration setting that allows an administrator to modify the set of submission EHLO capabilities it may expose on this property. This allows a JMAP server to easily add access to a new submission extension without code changes. By default, the JMAP server should hide EHLO capabilities that have to do with the transport mechanism and thus are only relevant to the JMAP server (for example, PIPELINING, CHUNKING, or STARTTLS).
 
     Examples of Submission extensions to include:
 
-    - FUTURERELEASE [@!RFC4865]
-    - SIZE [@!RFC1870]
-    - DSN [@!RFC3461]
-    - DELIVERYBY [@!RFC2852]
-    - MT-PRIORITY [@!RFC6710]
+  - FUTURERELEASE [RFC4865](https://www.rfc-editor.org/rfc/rfc4865)
+  - SIZE [RFC1870](https://www.rfc-editor.org/rfc/rfc1870)
+  - DSN [RFC3461](https://www.rfc-editor.org/rfc/rfc3461)
+  - DELIVERYBY [RFC2852](https://www.rfc-editor.org/rfc/rfc2852)
+  - MT-PRIORITY [RFC6710](https://www.rfc-editor.org/rfc/rfc6710)
 
     A JMAP server MAY advertise an extension and implement the semantics of that extension locally on the JMAP server even if a submission server used by JMAP doesn't implement it.
 
@@ -111,7 +111,7 @@ The server MUST include the appropriate capability strings as keys in the *accou
 
 ## Push
 
-Servers MUST support the JMAP push mechanisms, as specified in [@!RFC8620] Section 7, to receive notifications when the state changes for any of the types defined in this specification.
+Servers MUST support the JMAP push mechanisms, as specified in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620) Section 7, to receive notifications when the state changes for any of the types defined in this specification.
 
 In addition, servers that implement the "urn:ietf:params:jmap:mail" capability MUST support pushing state changes for a type called "EmailDelivery". There are no methods to act on this type; it only exists as part of the push mechanism. The state string for this MUST change whenever a new Email is added to the store, but it SHOULD NOT change upon any other change to the Email objects, for example, if one is marked as read or deleted.
 
@@ -119,8 +119,8 @@ Clients in battery-constrained environments may wish to delay fetching changes i
 
 ### Example
 
-The client has registered for push notifications (see [@!RFC8620]) just for the `EmailDelivery` type. The user marks an Email as read on another device, causing the state string for the `Email` type to change; however, as nothing new was added to the store, the `EmailDelivery` state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the `Email` state to change. This time, the `EmailDelivery` state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new Email immediately.
+The client has registered for push notifications (see [RFC8620](https://www.rfc-editor.org/rfc/rfc8620)) just for the `EmailDelivery` type. The user marks an Email as read on another device, causing the state string for the `Email` type to change; however, as nothing new was added to the store, the `EmailDelivery` state does not change and nothing is pushed to the client. A new message arrives in the user's inbox, again causing the `Email` state to change. This time, the `EmailDelivery` state also changes, and a StateChange object is pushed to the client with the new state string. The client may then resync to fetch the new Email immediately.
 
 ## Ids
 
-If a JMAP Mail server also provides an IMAP interface to the data and supports IMAP Extension for Object Identifiers [@!RFC8474], the ids SHOULD be the same for Mailbox, Thread, and Email objects in JMAP.
+If a JMAP Mail server also provides an IMAP interface to the data and supports IMAP Extension for Object Identifiers [RFC8474](https://www.rfc-editor.org/rfc/rfc8474), the ids SHOULD be the same for Mailbox, Thread, and Email objects in JMAP.

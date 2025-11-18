@@ -1,6 +1,6 @@
 # Emails
 
-An **Email** object is a representation of a message [@!RFC5322], which allows clients to avoid the complexities of MIME parsing, transfer encoding, and character encoding.
+An **Email** object is a representation of a message [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), which allows clients to avoid the complexities of MIME parsing, transfer encoding, and character encoding.
 
 ## Properties of the Email Object
 
@@ -29,9 +29,9 @@ Due to the number of properties involved, the set of *Email* properties is speci
 These properties represent metadata about the message in the mail store and are not derived from parsing the message itself.
 
 - **id**: `Id` (immutable; server-set)
-  The id of the Email object. Note that this is the JMAP object id, NOT the Message-ID header field value of the message [@!RFC5322].
+  The id of the Email object. Note that this is the JMAP object id, NOT the Message-ID header field value of the message [RFC5322](https://www.rfc-editor.org/rfc/rfc5322).
 - **blobId**: `Id` (immutable; server-set)
-  The id representing the raw octets of the message [@!RFC5322] for this Email. This may be used to download the raw original message or to attach it directly to another Email, etc.
+  The id representing the raw octets of the message [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) for this Email. This may be used to download the raw original message or to attach it directly to another Email, etc.
 - **threadId**: `Id` (immutable; server-set)
   The id of the Thread to which this Email belongs.
 - **mailboxIds**: `Id[Boolean]`
@@ -41,10 +41,10 @@ These properties represent metadata about the message in the mail store and are 
 
     Keywords are shared with IMAP. The six system keywords from IMAP get special treatment. The following four keywords have their first character changed from `\` in IMAP to `$` in JMAP and have particular semantic meaning:
 
-    - `$draft`: The Email is a draft the user is composing.
-    - `$seen`: The Email has been read.
-    - `$flagged`: The Email has been flagged for urgent/special attention.
-    - `$answered`: The Email has been replied to.
+  - `$draft`: The Email is a draft the user is composing.
+  - `$seen`: The Email has been read.
+  - `$flagged`: The Email has been flagged for urgent/special attention.
+  - `$answered`: The Email has been replied to.
 
     The IMAP `\Recent` keyword is not exposed via JMAP. The IMAP `\Deleted` keyword is also not present: IMAP uses a delete+expunge model, which JMAP does not. Any message with the `\Deleted` keyword MUST NOT be visible via JMAP (and so are not counted in the "totalEmails", "unreadEmails", "totalThreads", and "unreadThreads" Mailbox properties).
 
@@ -54,21 +54,21 @@ These properties represent metadata about the message in the mail store and are 
 
     Because JSON is case sensitive, servers MUST return keywords in lowercase.
 
-    The [IMAP and JMAP Keywords](https://www.iana.org/assignments/imap-jmap-keywords/) registry as established in [@!RFC5788] assigns semantic meaning to some other keywords in common use. New keywords may be established here in the future. In particular, note:
+    The [IMAP and JMAP Keywords](https://www.iana.org/assignments/imap-jmap-keywords/) registry as established in [RFC5788](https://www.rfc-editor.org/rfc/rfc5788) assigns semantic meaning to some other keywords in common use. New keywords may be established here in the future. In particular, note:
 
-    - `$forwarded`: The Email has been forwarded.
-    - `$phishing`: The Email is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this Email and disable links and attachments.
-    - `$junk`: The Email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
-    - `$notjunk`: The Email is definitely not spam. Clients SHOULD set this flag when users indicate an Email is legitimate, to help train automated spam-detection systems.
+  - `$forwarded`: The Email has been forwarded.
+  - `$phishing`: The Email is highly likely to be phishing. Clients SHOULD warn users to take care when viewing this Email and disable links and attachments.
+  - `$junk`: The Email is definitely spam. Clients SHOULD set this flag when users report spam to help train automated spam-detection systems.
+  - `$notjunk`: The Email is definitely not spam. Clients SHOULD set this flag when users indicate an Email is legitimate, to help train automated spam-detection systems.
 
 - **size**: `UnsignedInt` (immutable; server-set)
-  The size, in octets, of the raw data for the message [@!RFC5322]  (as referenced by the *blobId*, i.e., the number of octets in the file the user would download).
+  The size, in octets, of the raw data for the message [RFC5322](https://www.rfc-editor.org/rfc/rfc5322)  (as referenced by the *blobId*, i.e., the number of octets in the file the user would download).
 - **receivedAt**: `UTCDate` (immutable; default: time of creation on server)
   The date the Email was received by the message store. This is the *internal date* in IMAP [@?RFC3501].
 
 ### Header Fields Parsed Forms
 
-Header field properties are derived from the message header fields [@!RFC5322]  [@!RFC6532]. All header fields may be fetched in a raw form. Some header fields may also be fetched in a parsed form. The structured form that may be fetched depends on the header. The forms are defined in the subsections that follow.
+Header field properties are derived from the message header fields [RFC5322](https://www.rfc-editor.org/rfc/rfc5322)  [RFC6532](https://www.rfc-editor.org/rfc/rfc6532). All header fields may be fetched in a raw form. Some header fields may also be fetched in a parsed form. The structured form that may be fetched depends on the header. The forms are defined in the subsections that follow.
 
 #### Raw
 
@@ -85,11 +85,11 @@ Type: `String`
 
 The header field value with:
 
-1. White space unfolded (as defined in [@!RFC5322], Section 2.2.3).
+1. White space unfolded (as defined in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), Section 2.2.3).
 2. The terminating CRLF at the end of the value removed.
 3. Any SP characters at the beginning of the value removed.
-4. Any syntactically correct encoded sections [@!RFC2047] with a known
-   character set decoded. Any NUL octets or control characters encoded per [@!RFC2047] are dropped from the decoded value. Any text that looks like syntax per [@!RFC2047] but violates placement or white space rules per [@!RFC2047] MUST NOT be decoded.
+4. Any syntactically correct encoded sections [RFC2047](https://www.rfc-editor.org/rfc/rfc2047) with a known
+   character set decoded. Any NUL octets or control characters encoded per [RFC2047](https://www.rfc-editor.org/rfc/rfc2047) are dropped from the decoded value. Any text that looks like syntax per [RFC2047](https://www.rfc-editor.org/rfc/rfc2047) but violates placement or white space rules per [RFC2047](https://www.rfc-editor.org/rfc/rfc2047) MUST NOT be decoded.
 5. The resulting unicode converted to Normalization Form C (NFC) form.
 
 If any decodings fail, the parser SHOULD insert a unicode replacement
@@ -97,22 +97,22 @@ character (U+FFFD) and attempt to continue as much as possible.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
-* Subject
-* Comments
-* Keywords
-* List-Id
-* Any header field not defined in [@!RFC5322] or [@!RFC2369]
+- Subject
+- Comments
+- Keywords
+- List-Id
+- Any header field not defined in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) or [RFC2369](https://www.rfc-editor.org/rfc/rfc2369)
 
 #### Addresses
 
 Type: `EmailAddress[]`
 
-The header field is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each *mailbox* parsed from the *address-list*. Group and comment information is discarded.
+The header field is parsed as an *address-list* value, as specified in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), Section 3.4, into the `EmailAddress[]` type. There is an EmailAddress item for each *mailbox* parsed from the *address-list*. Group and comment information is discarded.
 
 An **EmailAddress** object has the following properties:
 
 - **name**: `String|null`
-  The *display-name* of the *mailbox* [@!RFC5322]. If this is a *quoted-string*:
+  The *display-name* of the *mailbox* [RFC5322](https://www.rfc-editor.org/rfc/rfc5322). If this is a *quoted-string*:
 
     1. The surrounding DQUOTE characters are removed.
     2. Any *quoted-pair* is decoded.
@@ -122,9 +122,9 @@ An **EmailAddress** object has the following properties:
     If there is no *display-name* but there is a *comment* immediately following the *addr-spec*, the value of this SHOULD be used instead. Otherwise, this property is `null`.
 
 - **email**: `String`
-  The *addr-spec* of the *mailbox* [@!RFC5322].
+  The *addr-spec* of the *mailbox* [RFC5322](https://www.rfc-editor.org/rfc/rfc5322).
 
-Any syntactically correct encoded sections [@!RFC2047] with a known encoding MUST be decoded, following the same rules as for the *Text* form.
+Any syntactically correct encoded sections [RFC2047](https://www.rfc-editor.org/rfc/rfc2047) with a known encoding MUST be decoded, following the same rules as for the *Text* form.
 
 Parsing SHOULD be best effort in the face of invalid structure to
 accommodate invalid messages and semi-complete drafts. EmailAddress objects
@@ -146,35 +146,35 @@ would be parsed as:
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
-* From
-* Sender
-* Reply-To
-* To
-* Cc
-* Bcc
-* Resent-From
-* Resent-Sender
-* Resent-Reply-To
-* Resent-To
-* Resent-Cc
-* Resent-Bcc
-* Any header field not defined in [@!RFC5322] or [@!RFC2369]
+- From
+- Sender
+- Reply-To
+- To
+- Cc
+- Bcc
+- Resent-From
+- Resent-Sender
+- Resent-Reply-To
+- Resent-To
+- Resent-Cc
+- Resent-Bcc
+- Any header field not defined in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) or [RFC2369](https://www.rfc-editor.org/rfc/rfc2369)
 
 #### GroupedAddresses
 
 Type: `EmailAddressGroup[]`
 
-This is similar to the Addresses form but preserves group information. The header field is parsed as an *address-list* value, as specified in [@!RFC5322], Section 3.4, into the `GroupedAddresses[]` type. Consecutive *mailbox* values that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
+This is similar to the Addresses form but preserves group information. The header field is parsed as an *address-list* value, as specified in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), Section 3.4, into the `GroupedAddresses[]` type. Consecutive *mailbox* values that are not part of a group are still collected under an EmailAddressGroup object to provide a uniform type.
 
 An **EmailAddressGroup** object has the following properties:
 
 - **name**: `String|null`
-  The *display-name* of the  *group* [@!RFC5322], or `null` if the addresses are not part of a group. If this is a *quoted-string*, it is processed the same as the *name* in the *EmailAddress* type.
+  The *display-name* of the  *group* [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), or `null` if the addresses are not part of a group. If this is a *quoted-string*, it is processed the same as the *name* in the *EmailAddress* type.
 - **addresses**: `EmailAddress[]`
   The *mailbox* values that belong to this group, represented as EmailAddress
   objects.
 
-Any syntactically correct encoded sections [@!RFC2047] with a known encoding MUST be decoded, following the same rules as for the *Text* form.
+Any syntactically correct encoded sections [RFC2047](https://www.rfc-editor.org/rfc/rfc2047) with a known encoding MUST be decoded, following the same rules as for the *Text* form.
 
 Parsing SHOULD be best effort in the face of invalid structure to
 accommodate invalid messages and semi-complete drafts.
@@ -203,55 +203,55 @@ To prevent obviously nonsense behaviour, which can lead to interoperability issu
 
 Type: `String[]|null`
 
-The header field is parsed as a list of *msg-id* values, as specified in [@!RFC5322], Section 3.6.4, into the `String[]` type. Comments and/or folding white space (CFWS) and surrounding angle brackets (`<>`) are removed. If parsing fails, the value is `null`.
+The header field is parsed as a list of *msg-id* values, as specified in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), Section 3.6.4, into the `String[]` type. Comments and/or folding white space (CFWS) and surrounding angle brackets (`<>`) are removed. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
-* Message-ID
-* In-Reply-To
-* References
-* Resent-Message-ID
-* Any header field not defined in [@!RFC5322] or [@!RFC2369]
+- Message-ID
+- In-Reply-To
+- References
+- Resent-Message-ID
+- Any header field not defined in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) or [RFC2369](https://www.rfc-editor.org/rfc/rfc2369)
 
 #### Date
 
 Type: `Date|null`
 
-The header field is parsed as a *date-time* value, as specified in [@!RFC5322], Section 3.3, into the `Date` type. If parsing fails, the value is `null`.
+The header field is parsed as a *date-time* value, as specified in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), Section 3.3, into the `Date` type. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
-* Date
-* Resent-Date
-* Any header field not defined in [@!RFC5322] or [@!RFC2369]
+- Date
+- Resent-Date
+- Any header field not defined in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) or [RFC2369](https://www.rfc-editor.org/rfc/rfc2369)
 
 #### URLs
 
 Type: `String[]|null`
 
-The header field is parsed as a list of URLs, as described in [@!RFC2369], into the `String[]` type. Values do not include the surrounding angle brackets or any comments in the header with the URLs. If parsing fails, the value is `null`.
+The header field is parsed as a list of URLs, as described in [RFC2369](https://www.rfc-editor.org/rfc/rfc2369), into the `String[]` type. Values do not include the surrounding angle brackets or any comments in the header with the URLs. If parsing fails, the value is `null`.
 
 To prevent obviously nonsense behaviour, which can lead to interoperability issues, this form may only be fetched or set for the following header fields:
 
-* List-Help
-* List-Unsubscribe
-* List-Subscribe
-* List-Post
-* List-Owner
-* List-Archive
-* Any header field not defined in [@!RFC5322] or [@!RFC2369]
+- List-Help
+- List-Unsubscribe
+- List-Subscribe
+- List-Post
+- List-Owner
+- List-Archive
+- Any header field not defined in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) or [RFC2369](https://www.rfc-editor.org/rfc/rfc2369)
 
 ### Header Fields Properties
 
 The following low-level **Email** property is specified for complete access to the header data of the message:
 
 - **headers**: `EmailHeader[]` (immutable)
-  This is a list of all header fields [@!RFC5322], in the same order they appear in the message. An **EmailHeader** object has the following properties:
+  This is a list of all header fields [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), in the same order they appear in the message. An **EmailHeader** object has the following properties:
 
-    - **name**: `String`
-      The header *field name* as defined in [@!RFC5322], with the same capitalization that it has in the message.
-    - **value**: `String`
-      The header *field value* as defined in [@!RFC5322], in *Raw* form.
+  - **name**: `String`
+      The header *field name* as defined in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), with the same capitalization that it has in the message.
+  - **value**: `String`
+      The header *field value* as defined in [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), in *Raw* form.
 
 In addition, the client may request/send properties representing individual header fields of the form:
 
@@ -259,10 +259,10 @@ In addition, the client may request/send properties representing individual head
 
 Where `{header-field-name}` means any series of one or more printable ASCII characters (i.e., characters that have values between 33 and 126, inclusive), except for colon (:). The property may also have the following suffixes:
 
-  - **:as{header-form}**
+- **:as{header-form}**
     This means the value is in a parsed form, where `{header-form}` is one of the parsed-form names specified above. If not given, the value is in *Raw* form.
 
-  - **:all**
+- **:all**
     This means the value is an array, with the items corresponding to each instance of the header field, in the order they appear in the message. If this suffix is not used, the result is the value of the **last** instance of the header field (i.e., identical to the **last** item in the array if :all is used), or `null` if none.
 
 If both suffixes are used, they MUST be specified in the order above. Header field names are matched case insensitively. The value is typed according to the requested form or to an array of that type if :all is used. If no header fields exist in the message with the requested name, the value is `null` if fetching a single instance or an empty array if requesting :all.
@@ -304,20 +304,20 @@ The following convenience properties are also specified for the **Email** object
 
 ### Body Parts
 
-These properties are derived from the message body [@!RFC5322] and its MIME entities [@RFC2045].
+These properties are derived from the message body [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) and its MIME entities [@RFC2045].
 
 An **EmailBodyPart** object has the following properties:
 
 - **partId**: `String|null`
   Identifies this part uniquely within the Email. This is scoped to the *emailId* and has no meaning outside of the JMAP Email object representation. This is `null` if, and only if, the part is of type `multipart/*`.
 - **blobId**: `Id|null`
-  The id representing the raw octets of the contents of the part, after decoding any known *Content-Transfer-Encoding* (as defined in [@!RFC2045]), or `null` if, and only if, the part is of type `multipart/*`. Note that two parts may be transfer-encoded differently but have the same blob id if their decoded octets are identical and the server is using a secure hash of the data for the blob id. If the transfer encoding is unknown, it is treated as though it had no transfer encoding.
+  The id representing the raw octets of the contents of the part, after decoding any known *Content-Transfer-Encoding* (as defined in [RFC2045](https://www.rfc-editor.org/rfc/rfc2045)), or `null` if, and only if, the part is of type `multipart/*`. Note that two parts may be transfer-encoded differently but have the same blob id if their decoded octets are identical and the server is using a secure hash of the data for the blob id. If the transfer encoding is unknown, it is treated as though it had no transfer encoding.
 - **size**: `UnsignedInt`
   The size, in octets, of the raw data after content transfer decoding (as referenced by the *blobId*, i.e., the number of octets in the file the user would download).
 - **headers**: `EmailHeader[]`
   This is a list of all header fields in the part, in the order they appear in the message. The values are in *Raw* form.
 - **name**: `String|null`
-  This is the decoded *filename* parameter of the *Content-Disposition* header field per [@!RFC2231], or (for compatibility with existing systems) if not present, then it's the decoded *name* parameter of the *Content-Type* header field per [@!RFC2047].
+  This is the decoded *filename* parameter of the *Content-Disposition* header field per [RFC2231](https://www.rfc-editor.org/rfc/rfc2231), or (for compatibility with existing systems) if not present, then it's the decoded *name* parameter of the *Content-Type* header field per [RFC2047](https://www.rfc-editor.org/rfc/rfc2047).
 - **type**: `String`
   The value of the *Content-Type* header field of the part, if present; otherwise, the implicit type as per the MIME standard (`text/plain` or `message/rfc822` if inside a `multipart/digest`). CFWS is removed and any parameters are stripped.
 - **charset**: `String|null`
@@ -325,11 +325,11 @@ An **EmailBodyPart** object has the following properties:
 - **disposition**: `String|null`
   The value of the *Content-Disposition* header field of the part, if present; otherwise, it's `null`. CFWS is removed and any parameters are stripped.
 - **cid**: `String|null`
-  The value of the *Content-Id* header field of the part, if present; otherwise it's `null`. CFWS and surrounding angle brackets (`<>`) are removed. This may be used to reference the content from within a `text/html` body part [HTML](https://www.w3.org/TR/html52/) using the `cid:` protocol, as defined in [@!RFC2392].
+  The value of the *Content-Id* header field of the part, if present; otherwise it's `null`. CFWS and surrounding angle brackets (`<>`) are removed. This may be used to reference the content from within a `text/html` body part [HTML](https://www.w3.org/TR/html52/) using the `cid:` protocol, as defined in [RFC2392](https://www.rfc-editor.org/rfc/rfc2392).
 - **language**: `String[]|null`
-  The list of language tags, as defined in [@!RFC3282], in the *Content-Language* header field of the part, if present.
+  The list of language tags, as defined in [RFC3282](https://www.rfc-editor.org/rfc/rfc3282), in the *Content-Language* header field of the part, if present.
 - **location**: `String|null`
-  The URI, as defined in [@!RFC2557], in the *Content-Location* header field of the part, if present.
+  The URI, as defined in [RFC2557](https://www.rfc-editor.org/rfc/rfc2557), in the *Content-Location* header field of the part, if present.
 - **subParts**: `EmailBodyPart[]|null`
   If the type is `multipart/*`, this contains the body parts of each child.
 
@@ -344,15 +344,15 @@ The following **Email** properties are specified for access to the body data of 
 
     An **EmailBodyValue** object has the following properties:
 
-    * **value**: `String`
+  - **value**: `String`
       The value of the body part after decoding *Content-Transfer-Encoding* and
       the *Content-Type* charset, if both known to the server, and with any CRLF replaced with a single LF. The server MAY use heuristics to determine the charset to use for decoding if the charset is unknown, no charset is given, or it believes the charset given is incorrect. Decoding is best effort; the server SHOULD insert the unicode replacement character (U+FFFD) and continue when a malformed section is encountered.
 
         Note that due to the charset decoding and line ending normalisation, the length of this string will probably not be exactly the same as the *size* property on the corresponding EmailBodyPart.
 
-    * **isEncodingProblem**: `Boolean` (default: false)
+  - **isEncodingProblem**: `Boolean` (default: false)
       This is `true` if malformed sections were found while decoding the charset, or the charset was unknown, or the content-transfer-encoding was unknown.
-    * **isTruncated**: `Boolean` (default: false)
+  - **isTruncated**: `Boolean` (default: false)
       This is `true` if the *value* has been truncated.
 
     See the Security Considerations section for issues related to truncation
@@ -365,13 +365,13 @@ The following **Email** properties are specified for access to the body data of 
 - **attachments**: `EmailBodyPart[]` (immutable)
   A list, traversing depth-first, of all parts in *bodyStructure* that satisfy either of the following conditions:
 
-    - not of type `multipart/*` and not included in *textBody* or *htmlBody*
-    - of type `image/*`, `audio/*`, or `video/*` and not in both *textBody* and
+  - not of type `multipart/*` and not included in *textBody* or *htmlBody*
+  - of type `image/*`, `audio/*`, or `video/*` and not in both *textBody* and
      *htmlBody*
 
     None of these parts include subParts, including `message/*` types. Attached messages may be fetched using the Email/parse method and the blobId.
 
-    Note that a `text/html` body part [HTML](https://www.w3.org/TR/html52/) may reference image parts in attachments by using `cid:` links to reference the *Content-Id*, as defined in [@!RFC2392], or by referencing the *Content-Location*.
+    Note that a `text/html` body part [HTML](https://www.w3.org/TR/html52/) may reference image parts in attachments by using `cid:` links to reference the *Content-Id*, as defined in [RFC2392](https://www.rfc-editor.org/rfc/rfc2392), or by referencing the *Content-Location*.
 - **hasAttachment**: `Boolean` (immutable; server-set)
   This is `true` if there are one or more parts in the message that a client UI should offer as downloadable. A server SHOULD set hasAttachment to `true` if the *attachments* list contains at least one item that does not have `Content-Disposition: inline`. The server MAY ignore parts in this list that are processed automatically in some way or are referenced as embedded images in one of the `text/html` parts of the message.
 
@@ -508,10 +508,9 @@ In this case, the above algorithm would decompose this to:
     htmlBody => [ A, E, K ]
     attachments => [ C, F, G, H, J ]
 
-
 ## Email/get
 
-This is a standard "/get" method as described in [@!RFC8620], Section 5.1, with the following additional request arguments:
+This is a standard "/get" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.1, with the following additional request arguments:
 
 - **bodyProperties**: `String[]`
   A list of properties to fetch for each EmailBodyPart returned. If omitted, this defaults to:
@@ -623,14 +622,13 @@ and response:
       "notFound": [ "f123u456" ]
     }, "#1" ]]
 
-
 ## Email/changes
 
-This is a standard "/changes" method as described in [@!RFC8620], Section 5.2. If generating intermediate states for a large set of changes, it is recommended that newer changes be returned first, as these are generally of more interest to users.
+This is a standard "/changes" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.2. If generating intermediate states for a large set of changes, it is recommended that newer changes be returned first, as these are generally of more interest to users.
 
 ## Email/query
 
-This is a standard "/query" method as described in [@!RFC8620], Section 5.5, but with the following additional request arguments:
+This is a standard "/query" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.5, but with the following additional request arguments:
 
 - **collapseThreads**: `Boolean` (default: false)
   If `true`, Emails in the same Thread as a previous Email in the list (given the filter and sort order) will be removed from the list. This means only one Email at most will be included in the list for any given Thread.
@@ -686,7 +684,7 @@ If zero properties are specified on the FilterCondition, the condition MUST alwa
 
 The exact semantics for matching `String` fields is **deliberately not defined** to allow for flexibility in indexing implementation, subject to the following:
 
-- Any syntactically correct encoded sections [@!RFC2047] of header fields with a known encoding SHOULD be decoded before attempting to match text.
+- Any syntactically correct encoded sections [RFC2047](https://www.rfc-editor.org/rfc/rfc2047) of header fields with a known encoding SHOULD be decoded before attempting to match text.
 - When searching inside a `text/html` body part, any text considered markup rather than content SHOULD be ignored, including HTML tags and most attributes, anything inside the `<head>` tag, Cascading Style Sheets (CSS) and JavaScript. Attribute content intended for presentation to the user such as "alt" and "title" SHOULD be considered in the search.
 - Text SHOULD be matched in a case-insensitive manner.
 - Text contained in either (but matched) single (') or double (") quotes SHOULD be treated as a **phrase search**; that is, a match is required for that exact word or sequence of words, excluding the surrounding quotation marks.
@@ -709,7 +707,7 @@ The following values for the *property* field on the Comparator object SHOULD be
 - **size** - The *size* as returned in the Email object.
 - **from** – This is taken to be either the *name* property or if `null`/empty, the *email* property of the **first** EmailAddress object in the Email's *from* property. If still none, consider the value to be the empty string.
 - **to** - This is taken to be either the *name* property or if `null`/empty, the *email* property of the **first** EmailAddress object in the Email's *to* property. If still none, consider the value to be the empty string.
-- **subject** - This is taken to be the base subject of the message, as defined in Section 2.1 of [@!RFC5256].
+- **subject** - This is taken to be the base subject of the message, as defined in Section 2.1 of [RFC5256](https://www.rfc-editor.org/rfc/rfc5256).
 - **sentAt** - The *sentAt* property on the Email object.
 - **hasKeyword** - This value MUST be considered `true` if the Email has the keyword given as an additional *keyword* property on the *Comparator* object, or `false` otherwise.
 - **allInThreadHaveKeyword** - This value MUST be considered `true` for the Email if **all** of the Emails in the same Thread have the keyword given as an additional *keyword* property on the *Comparator* object.
@@ -739,23 +737,23 @@ When *collapseThreads* is `true`, then after filtering and sorting the Email lis
 
 ## Email/queryChanges
 
-This is a standard "/queryChanges" method as described in [@!RFC8620], Section 5.6, with the following additional request argument:
+This is a standard "/queryChanges" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.6, with the following additional request argument:
 
 - **collapseThreads**: `Boolean` (default: false)
   The *collapseThreads* argument that was used with *Email/query*.
 
 ## Email/set
 
-This is a standard "/set" method as described in [@!RFC8620], Section 5.3. The *Email/set* method encompasses:
+This is a standard "/set" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.3. The *Email/set* method encompasses:
 
 - Creating a draft
 - Changing the keywords of an Email (e.g., unread/flagged status)
 - Adding/removing an Email to/from Mailboxes (moving a message)
 - Deleting Emails
 
-The format of the keywords/mailboxIds properties means that when updating an Email, you can either replace the entire set of keywords/Mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see [@!RFC8620], Section 5.3 for the specification and Section 5.7 for an example).
+The format of the keywords/mailboxIds properties means that when updating an Email, you can either replace the entire set of keywords/Mailboxes (by setting the full value of the property) or add/remove individual ones using the JMAP patch syntax (see [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.3 for the specification and Section 5.7 for an example).
 
-Due to the format of the Email object, when creating an Email there are a number of ways to specify the same information. To ensure that the message [@!RFC5322] to create is unambiguous, the following constraints apply to Email objects submitted for creation:
+Due to the format of the Email object, when creating an Email there are a number of ways to specify the same information. To ensure that the message [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) to create is unambiguous, the following constraints apply to Email objects submitted for creation:
 
 - The *headers* property MUST NOT be given on either the top-level Email or an
   EmailBodyPart — the client must set each header field as an individual
@@ -790,7 +788,7 @@ Due to the format of the Email object, when creating an Email there are a number
 
 Creation attempts that violate any of this SHOULD be rejected with an `invalidProperties` error; however, a server MAY choose to modify the Email (e.g., choose between conflicting headers, use a different content-encoding, etc.) to comply with its requirements instead.
 
-The server MAY also choose to set additional headers. If not included, the server MUST generate and set a `Message-ID` header field in conformance with [@!RFC5322], Section 3.6.4, and a `Date` header field in conformance with Section 3.6.1.
+The server MAY also choose to set additional headers. If not included, the server MUST generate and set a `Message-ID` header field in conformance with [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), Section 3.6.4, and a `Date` header field in conformance with Section 3.6.1.
 
 The final message generated may be invalid per RFC 5322. For example, if it is a half-finished draft, the To header field may have a value that does not conform to the required syntax for this header. The message will be checked for strict conformance when submitted for sending (see the EmailSubmission object description).
 
@@ -815,16 +813,15 @@ For **create** and **update**:
 
 ## Email/copy
 
-This is a standard "/copy" method as described in [@!RFC8620], Section 5.4, except only the *mailboxIds*, *keywords*, and *receivedAt* properties may be set during the copy. This method cannot modify the message represented by the Email.
+This is a standard "/copy" method as described in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), Section 5.4, except only the *mailboxIds*, *keywords*, and *receivedAt* properties may be set during the copy. This method cannot modify the message represented by the Email.
 
-The server MAY forbid two Email objects with identical message content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account; if the target account already has the Email, the copy will be rejected with a standard `alreadyExists` error.
+The server MAY forbid two Email objects with identical message content [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), or even just with the same Message-ID [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), to coexist within an account; if the target account already has the Email, the copy will be rejected with a standard `alreadyExists` error.
 
 For successfully copied Email objects, the *created* response contains the *id*, *blobId*, *threadId*, and *size* properties of the new object.
 
-
 ## Email/import
 
-The *Email/import* method adds messages [@!RFC5322] to the set of Emails in an account. The server MUST support messages with Email Address Internationalization (EAI) headers [@!RFC6532]. The messages must first be uploaded as blobs using the standard upload mechanism. The method takes the following arguments:
+The *Email/import* method adds messages [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) to the set of Emails in an account. The server MUST support messages with Email Address Internationalization (EAI) headers [RFC6532](https://www.rfc-editor.org/rfc/rfc6532). The messages must first be uploaded as blobs using the standard upload mechanism. The method takes the following arguments:
 
 - **accountId**: `Id`
   The id of the account to use.
@@ -836,7 +833,7 @@ The *Email/import* method adds messages [@!RFC5322] to the set of Emails in an a
 An **EmailImport** object has the following properties:
 
 - **blobId**: `Id`
-  The id of the blob containing the raw message [@!RFC5322].
+  The id of the blob containing the raw message [RFC5322](https://www.rfc-editor.org/rfc/rfc5322).
 - **mailboxIds**: `Id[Boolean]`
   The ids of the Mailboxes to assign this Email to. At least one Mailbox MUST be given.
 - **keywords**: `String[Boolean]` (default: \{\})
@@ -846,13 +843,13 @@ An **EmailImport** object has the following properties:
 
 Each Email to import is considered an atomic unit that may succeed or fail individually. Importing successfully creates a new Email object from the data referenced by the blobId and applies the given Mailboxes, keywords, and receivedAt date.
 
-The server MAY forbid two Email objects with the same exact content [@!RFC5322], or even just with the same Message-ID [@!RFC5322], to coexist within an account. In this case, it MUST reject attempts to import an Email considered to be a duplicate with an `alreadyExists` SetError. An *existingId* property of type `Id` MUST be included on the SetError object with the id of the existing Email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
+The server MAY forbid two Email objects with the same exact content [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), or even just with the same Message-ID [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), to coexist within an account. In this case, it MUST reject attempts to import an Email considered to be a duplicate with an `alreadyExists` SetError. An *existingId* property of type `Id` MUST be included on the SetError object with the id of the existing Email. If duplicates are allowed, the newly created Email object MUST have a separate id and independent mutable properties to the existing object.
 
 If the *blobId*, *mailboxIds*, or *keywords* properties are invalid (e.g., missing, wrong type, id not found), the server MUST reject the import with an `invalidProperties` SetError.
 
 If the Email cannot be imported because it would take the account over quota, the import should be rejected with an `overQuota` SetError.
 
-If the blob referenced is not a valid message [@!RFC5322], the server MAY modify the message to fix errors (such as removing NUL octets or fixing invalid headers). If it does this, the *blobId* on the response MUST represent the new representation and therefore be different to the *blobId* on the EmailImport object. Alternatively, the server MAY reject the import with an `invalidEmail` SetError.
+If the blob referenced is not a valid message [RFC5322](https://www.rfc-editor.org/rfc/rfc5322), the server MAY modify the message to fix errors (such as removing NUL octets or fixing invalid headers). If it does this, the *blobId* on the response MUST represent the new representation and therefore be different to the *blobId* on the EmailImport object. Alternatively, the server MAY reject the import with an `invalidEmail` SetError.
 
 The response has the following arguments:
 
@@ -873,7 +870,7 @@ The following additional errors may be returned instead of the *Email/import* re
 
 ## Email/parse
 
-This method allows you to parse blobs as messages [@!RFC5322] to get Email objects. The server MUST support messages with EAI headers [@!RFC6532]. This can be used to parse and display attached messages without having to import them as top-level Email objects in the mail store in their own right.
+This method allows you to parse blobs as messages [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) to get Email objects. The server MUST support messages with EAI headers [RFC6532](https://www.rfc-editor.org/rfc/rfc6532). This can be used to parse and display attached messages without having to import them as top-level Email objects in the mail store in their own right.
 
 The following metadata properties on the Email objects will be `null` if requested:
 
@@ -922,7 +919,6 @@ The response has the following arguments:
 As specified above, parsed forms of headers may only be used on appropriate header fields. Attempting to fetch a form that is forbidden (e.g., `header:From:asDate`) MUST result in the method call being rejected with an `invalidArguments` error.
 
 Where a specific header field is requested as a property, the capitalization of the property name in the response MUST be identical to that used in the request.
-
 
 ## Examples
 

@@ -1,22 +1,22 @@
 # Introduction
 
-JMAP ([@!RFC8620] – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and provides a consistent interface to different data types.
+JMAP ([RFC8620](https://www.rfc-editor.org/rfc/rfc8620) – JSON Meta Application Protocol) is a generic protocol for synchronising data, such as mail, calendars or contacts, between a client and a server. It is optimised for mobile and web environments, and provides a consistent interface to different data types.
 
-JMAP for Mail ([@!RFC8621] - The JSON Meta Application Protocol (JMAP) for Mail) specifies a data model for synchronising email data with a server using JMAP. Clients can use this to efficiently search, access, organise, and send messages.
+JMAP for Mail ([RFC8621](https://www.rfc-editor.org/rfc/rfc8621) - The JSON Meta Application Protocol (JMAP) for Mail) specifies a data model for synchronising email data with a server using JMAP. Clients can use this to efficiently search, access, organise, and send messages.
 
-Message Disposition Notifications (MDNs) are defined in [@!RFC8098] and are used as "read receipts", "acknowledgements", or "receipt notifications".
+Message Disposition Notifications (MDNs) are defined in [RFC8098](https://www.rfc-editor.org/rfc/rfc8098) and are used as "read receipts", "acknowledgements", or "receipt notifications".
 
 A client can come across MDNs in different ways:
 
 1. When receiving an email message, an MDN can be sent to the sender. This specification defines an MDN/send method to cover this case.
-2. When sending an email message, an MDN can be requested. This must be done with the help of a header field, and is already specified by [@!RFC8098] and can already be handled by [@!RFC8621] this way.
-3. When receiving an MDN, the MDN could be related to an existing sent message. This is already covered by [@!RFC8621] in the EmailSubmission object. A client might want to display detailed information about a received MDN. This specification defines an MDN/parse method to cover this case.
+2. When sending an email message, an MDN can be requested. This must be done with the help of a header field, and is already specified by [RFC8098](https://www.rfc-editor.org/rfc/rfc8098) and can already be handled by [RFC8621](https://www.rfc-editor.org/rfc/rfc8621) this way.
+3. When receiving an MDN, the MDN could be related to an existing sent message. This is already covered by [RFC8621](https://www.rfc-editor.org/rfc/rfc8621) in the EmailSubmission object. A client might want to display detailed information about a received MDN. This specification defines an MDN/parse method to cover this case.
 
 ## Notational conventions
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174] when, and only when, they appear in all capitals, as shown here.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [RFC2119](https://www.rfc-editor.org/rfc/rfc2119) [RFC8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they appear in all capitals, as shown here.
 
-Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1 of [@!RFC8620]. Data types defined in the core specification are also used in this document.
+Type signatures, examples and property descriptions in this document follow the conventions established in section 1.1 of [RFC8620](https://www.rfc-editor.org/rfc/rfc8620). Data types defined in the core specification are also used in this document.
 
 Servers MUST support all properties specified for the new data types defined in this document.
 
@@ -28,7 +28,7 @@ Because keywords are case-insensitive in IMAP but case-sensitive in JMAP, the "$
 
 ## Addition to the capabilities object
 
-Capabilities are announced as part of the standard JMAP Session resource; see [@!RFC8620], section 2. This defines a new capability, "urn:ietf:params:jmap:mdn".
+Capabilities are announced as part of the standard JMAP Session resource; see [RFC8620](https://www.rfc-editor.org/rfc/rfc8620), section 2. This defines a new capability, "urn:ietf:params:jmap:mdn".
 
 The capability "urn:ietf:params:jmap:mdn" being present in the "accountCapabilities" property of an account represents support for the "MDN" data type, parsing MDNs via the "MDN/parse" method, and creating and sending MDN messages via the "MDN/send" method.
 Servers that include the capability in one or more "accountCapabilities" properties MUST also include the property in the "capabilities" property.
@@ -45,7 +45,7 @@ An **MDN** object has the following properties:
   Subject used as `Subject` header field for this MDN.
 - textBody: `String|null`
   Human readable part of the MDN, as plain text.
-- includeOriginalMessage: `Boolean` (default: false). If `true`, the content of the original message will appear in the third component of the multipart/report generated for the MDN. See [@!RFC8098] for details and security considerations.
+- includeOriginalMessage: `Boolean` (default: false). If `true`, the content of the original message will appear in the third component of the multipart/report generated for the MDN. See [RFC8098](https://www.rfc-editor.org/rfc/rfc8098) for details and security considerations.
 - reportingUA: `String|null`
   Name of the MUA creating this MDN. It is used to build the MDN Report part of the MDN. Note that a `null` value may have better privacy properties.
 - disposition: `Disposition`
@@ -57,11 +57,11 @@ An **MDN** object has the following properties:
 - finalRecipient: `String|null`
   Recipient for which the MDN is being issued.  If set, it overrides the value that would be calculated by the server from the Identity defined in the "MDN/Send" method, unless explicitly set by the client.
 - originalMessageId: `String|null` (server-set)
-  Message-ID (the [@!RFC5322] header field, not the JMAP id) of the message for which the MDN is being issued.
+  Message-ID (the [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) header field, not the JMAP id) of the message for which the MDN is being issued.
 - error: `String[]|null` (server-set)
   Additional information in the form of text messages when the "error" disposition modifier appears.
 - extensionFields: `String[String]|null`
-  Object where keys are extension-field names and values are extension-field values (see [@!RFC8098] Section 3.3).
+  Object where keys are extension-field names and values are extension-field values (see [RFC8098](https://www.rfc-editor.org/rfc/rfc8098) Section 3.3).
 
   A **Disposition** object has the following properties:
 
@@ -72,11 +72,11 @@ An **MDN** object has the following properties:
   - type: `String`
     This MUST be one of the following strings: "deleted" / "dispatched" / "displayed" / "processed"
 
-  See [@!RFC8098] for the exact meaning of these different fields. These fields are defined case insensitive in [@!RFC8098] but are case sensitive in this RFC and MUST be converted to lowercase by "MDN/parse".
+  See [RFC8098](https://www.rfc-editor.org/rfc/rfc8098) for the exact meaning of these different fields. These fields are defined case insensitive in [RFC8098](https://www.rfc-editor.org/rfc/rfc8098) but are case sensitive in this RFC and MUST be converted to lowercase by "MDN/parse".
 
 ## MDN/send
 
-The MDN/send method sends an [@!RFC5322] message from an MDN object. When calling this method the "using" property of the Request object MUST contain the capabilities "urn:ietf:params:jmap:mdn" and "urn:ietf:params:jmap:mail"; the latter because of the implicit call to Email/set and the use of Identities, described below.
+The MDN/send method sends an [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) message from an MDN object. When calling this method the "using" property of the Request object MUST contain the capabilities "urn:ietf:params:jmap:mdn" and "urn:ietf:params:jmap:mail"; the latter because of the implicit call to Email/set and the use of Identities, described below.
 The method takes the following arguments:
 
 - accountId: `Id`
@@ -97,7 +97,7 @@ The response has the following arguments:
 - notSent: `Id[SetError]|null`
   A map of the creation id to a SetError object for each record that failed to be sent, or null if all successful.
 
-In this context, the existing SetError types defined in [@!RFC8620] and [@!RFC8621] are interpreted as follows:
+In this context, the existing SetError types defined in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620) and [RFC8621](https://www.rfc-editor.org/rfc/rfc8621) are interpreted as follows:
 
 - notFound: The reference Email id cannot be found, or has no valid "Disposition-Notification-To" header field.
 - forbidden: MDN/send would violate an ACL or other permissions policy.
@@ -121,7 +121,7 @@ The client is expected to explicitly update each "Email" for which an "MDN/send"
 
 ## MDN/parse
 
-This method allows a client to parse blobs as [@!RFC5322] messages to get MDN objects. This can be used to parse and get detailed information about blobs referenced in the "mdnBlobIds" of the EmailSubmission object, or any email message the client could expect to be an MDN.
+This method allows a client to parse blobs as [RFC5322](https://www.rfc-editor.org/rfc/rfc5322) messages to get MDN objects. This can be used to parse and get detailed information about blobs referenced in the "mdnBlobIds" of the EmailSubmission object, or any email message the client could expect to be an MDN.
 
 The "forEmailId" property can be null or missing if the "originalMessageId" property is missing or does not refer to an existing message, or if the server cannot efficiently calculate the related message (for example, if several messages get the same "Message-Id" header field).
 
@@ -148,7 +148,6 @@ The following additional errors may be returned instead of the MDN/parse respons
 - requestTooLarge: The number of ids requested by the client exceeds the maximum number the server is willing to process in a single method call.
 - invalidArguments: If the accountId given cannot be found, the MDN parsing is rejected with an `invalidArguments` error.
 
-
 # Samples
 
 ## Sending an MDN for a received email message
@@ -162,8 +161,8 @@ A client can use the following request to send an MDN back to the sender:
         "k1546": {
           "forEmailId": "Md45b47b4877521042cec0938",
           "subject": "Read receipt for: World domination",
-          "textBody": "This receipt shows that the email has been 
-              displayed on your recipient's computer. There is no 
+          "textBody": "This receipt shows that the email has been
+              displayed on your recipient's computer. There is no
               guaranty it has been read or understood.",
           "reportingUA": "joes-pc.cs.example.com; Foomail 97.1",
           "disposition": {
@@ -217,7 +216,7 @@ If the `$mdnsent` keyword has already been set, the server can answer an error:
 
 ## Asking for MDN when sending an email message
 
-This is done with the [@!RFC8621] "Email/set" "create" method.
+This is done with the [RFC8621](https://www.rfc-editor.org/rfc/rfc8621) "Email/set" "create" method.
 
     [[ "Email/set", {
       "accountId": "ue150411c",
@@ -264,8 +263,8 @@ The server responds:
         "0f9f65ab-dc7b-4146-850f-6e4881093965": {
           "forEmailId": "Md45b47b4877521042cec0938",
           "subject": "Read receipt for: World domination",
-          "textBody": "This receipt shows that the email has been 
-              displayed on your recipient's computer. There is no 
+          "textBody": "This receipt shows that the email has been
+              displayed on your recipient's computer. There is no
               guaranty it has been read or understood.",
           "reportingUA": "joes-pc.cs.example.com; Foomail 97.1",
           "disposition": {
@@ -311,7 +310,7 @@ Security and privacy considerations: this document, section 5.
 
 ## JMAP Error Codes Registry
 
-This section registers one new error code in the "JMAP Error Codes" registry, as defined in [@!RFC8620].
+This section registers one new error code in the "JMAP Error Codes" registry, as defined in [RFC8620](https://www.rfc-editor.org/rfc/rfc8620).
 
 JMAP Error Code: mdnAlreadySent
 
@@ -325,6 +324,6 @@ Description: The message has the `$mdnsent` keyword already set. The client MUST
 
 # Security considerations
 
-The same considerations regarding MDN (see [@!RFC8098] and [@!RFC3503]) apply to this document.
+The same considerations regarding MDN (see [RFC8098](https://www.rfc-editor.org/rfc/rfc8098) and [RFC3503](https://www.rfc-editor.org/rfc/rfc3503)) apply to this document.
 
 In order to reinforce trust regarding the relation between the user sending an email message and the identity of this user, the server SHOULD validate in conformance to the provided Identity that the user is permitted to use the finalRecipient value and return a forbiddenFrom error if not.

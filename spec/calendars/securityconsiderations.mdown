@@ -1,20 +1,20 @@
 # Security Considerations
 
-All security considerations of JMAP [@!RFC8620] and JSCalendar [@!RFC8984] apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.
+All security considerations of JMAP [RFC8620](https://www.rfc-editor.org/rfc/rfc8620) and JSCalendar [RFC8984](https://www.rfc-editor.org/rfc/rfc8984) apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.
 
 ## Privacy
 
 Calendars often contain the precise movements, activities, and contacts of people; all intensely private data. Privacy leaks can have real world consequences, and calendar servers and clients MUST be mindful of the need to keep all data secure.
 
-Servers MUST enforce the ACLs set on calendars to ensure only authorised data is shared. The additional restrictions specified by the "privacy" property of a JSCalendar Event object (see [@!RFC8984] Section 4.4.3) MUST also be enforced.
+Servers MUST enforce the ACLs set on calendars to ensure only authorised data is shared. The additional restrictions specified by the "privacy" property of a JSCalendar Event object (see [RFC8984](https://www.rfc-editor.org/rfc/rfc8984) Section 4.4.3) MUST also be enforced.
 
-Users may have multiple Participant Identities that they use for areas of their life kept private from one another. Using one identity with an event MUST NOT leak the existence of any other identity. For example, sending an RSVP from identity worklife@example.com MUST NOT reveal anything about another identity present in the account such as privatelife@example.org.
+Users may have multiple Participant Identities that they use for areas of their life kept private from one another. Using one identity with an event MUST NOT leak the existence of any other identity. For example, sending an RSVP from identity <worklife@example.com> MUST NOT reveal anything about another identity present in the account such as <privatelife@example.org>.
 
 Severs SHOULD enforce that invitations sent to external systems are only transmitted via secure encrypted and signed connections to protect against eavesdropping and modification of data.
 
 ## Spoofing
 
-When receiving events and updates from external systems, it can be hard to verify that the identity of the author is who they claim to be. When receiving events via email, DKIM [@!RFC6376] and S/MIME [@!RFC8551] are two mechanisms that may be used to verify certain properties about the email data, which can be correlated with the event information.
+When receiving events and updates from external systems, it can be hard to verify that the identity of the author is who they claim to be. When receiving events via email, DKIM [RFC6376](https://www.rfc-editor.org/rfc/rfc6376) and S/MIME [RFC8551](https://www.rfc-editor.org/rfc/rfc8551) are two mechanisms that may be used to verify certain properties about the email data, which can be correlated with the event information.
 
 ## Denial-of-service
 
