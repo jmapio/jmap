@@ -45,7 +45,7 @@
 <t>This document pulls together several existing standards and uses them to specify a specific OAuth profile, allowing interoperable modern authentication for native clients of open protocols, such as JMAP, IMAP, SMTP, POP, CalDAV, and CardDAV. For these protocols, there are many servers and many clients with no pre-existing relationship, that need to be able to connect. At the moment, the only interoperable way to do so is with a basic username and password, which has many deficiencies from a security standpoint.</t>
 
 <section anchor="presumptions"><name>Presumptions</name>
-<t>This OAuth flow presumes you have a set of one or more resource server endpoints (e.g., for JMAP/IMAP/SMTP/POP/CardDAV/CalDAV), and a common authorization server issuer identifier for all of them. For example, you might have a JMAP session endpoint <tt>https://api.example.com/jmap/session</tt>, an IMAP endpoint <tt>imaps://imap.example.com:993</tt>, and an issuer identifier <tt>https://auth.example.com</tt>.</t>
+<t>This OAuth flow presumes you have a set of one or more resource server endpoints (e.g., for JMAP/IMAP/SMTP/POP/CardDAV/CalDAV), and a common authorization server issuer identifier for all of them. For example, you might have a JMAP session endpoint <tt>https://api.example.com/jmap/session</tt>, an IMAP endpoint <tt>imaps://imap.example.com:993</tt>, and an issuer identifier <tt>https://auth.example.com/acmeinc</tt>.</t>
 </section>
 
 <section anchor="getting-the-issuer-identifier"><name>Getting the Authorization Server Issuer Identifier</name>
@@ -75,13 +75,13 @@
 </section>
 
 <section anchor="fetching-the-authorization-server-data"><name>Fetching the Authorization Server Metadata</name>
-<t>The authorization server issuer identifier MUST be an HTTPS URL with no path, query parameters, or fragment part, i.e. it MUST be just "https://" followed by a hostname. Otherwise, abort the flow. The authorization server metadata may be fetched by a GET request to the <tt>/.well-known/oauth-authorization-server</tt> path at this origin.</t>
+<t>The authorization server issuer identifier MUST be an HTTPS URL with no query parameters or fragment part. Otherwise, abort the flow. The authorization server metadata may be fetched as specified in <xref target="RFC8414" section="3" />: if the issuer identifier has no path (or just a trailing slash), the metadata is at <tt>/.well-known/oauth-authorization-server</tt>; if the issuer identifier contains a path, the <tt>/.well-known/oauth-authorization-server</tt> component is inserted after the host and before the path. For example, for an issuer identifier of <tt>https://auth.example.com/acmeinc</tt>, the authorization server metadata would be fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server/acmeinc</tt>.</t>
 <t>When fetched, a successful response is indicated by a 200 OK HTTP status code. The response MUST have an "application/json" content type. Anything else MUST be treated as an error, and the flow MUST be aborted.</t>
 <t>The authorization server metadata is a JSON document with properties as specified in <xref target="RFC8414" />. It MUST include the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>issuer</tt></dt>
-<dd><t>The authorization server's issuer identifier. This MUST be identical to the issuer identifier used to fetch this document. For example, if this document was fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server</tt>, the issuer MUST be <tt>https://auth.example.com</tt>. If not, the flow MUST be aborted.</t>
+<dd><t>The authorization server's issuer identifier. This MUST be identical to the issuer identifier used to fetch this document. For example, if this document was fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server/acmeinc</tt>, the issuer MUST be <tt>https://auth.example.com/acmeinc</tt>. If not, the flow MUST be aborted.</t>
 <t>This MUST be verified again during the authorization flow (see <xref target="authorization" />, or <xref target="RFC9207" /> for more details), to prevent against mix-up attacks.</t>
 </dd>
 <dt><tt>registration_endpoint</tt></dt>
