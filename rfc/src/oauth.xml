@@ -76,7 +76,8 @@
 
 <section anchor="fetching-the-authorization-server-data"><name>Fetching the Authorization Server Metadata</name>
 <t>The authorization server issuer identifier MUST be an HTTPS URL with no query parameters or fragment part. Otherwise, abort the flow. The authorization server metadata may be fetched as specified in <xref target="RFC8414" section="3" />: if the issuer identifier has no path (or just a trailing slash), the metadata is at <tt>/.well-known/oauth-authorization-server</tt>; if the issuer identifier contains a path, the <tt>/.well-known/oauth-authorization-server</tt> component is inserted after the host and before the path. For example, for an issuer identifier of <tt>https://auth.example.com/acmeinc</tt>, the authorization server metadata would be fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server/acmeinc</tt>.</t>
-<t>When fetched, a successful response is indicated by a 200 OK HTTP status code. The response MUST have an "application/json" content type. Anything else MUST be treated as an error, and the flow MUST be aborted.</t>
+<t>If this request does not result in a successful response (a 200 OK HTTP status code with an "application/json" content type), the client MUST also try the OpenID Connect Discovery <xref target="openid-connect-discovery" /> metadata path. This is constructed by appending <tt>/.well-known/openid-configuration</tt> to the issuer identifier. For example, for an issuer identifier of <tt>https://auth.example.com/acmeinc</tt>, this would be <tt>https://auth.example.com/acmeinc/.well-known/openid-configuration</tt>. This fallback is necessary for compatibility with existing deployments that only serve metadata at the OpenID Connect path.</t>
+<t>A successful response is indicated by a 200 OK HTTP status code. The response MUST have an "application/json" content type. If neither metadata path results in a successful response, the flow MUST be aborted.</t>
 <t>The authorization server metadata is a JSON document with properties as specified in <xref target="RFC8414" />. It MUST include the following properties:</t>
 
 <dl spacing="normal" newline="true">
@@ -572,6 +573,12 @@ which will result in getting a <tt>401</tt> error back.</t>
 <reference anchor="openid-connect" target="https://openid.net/developers/specs/">
  <front>
    <title>OpenID Connect</title>
+   <author><organization>OpenID Foundation</organization></author>
+ </front>
+</reference>
+<reference anchor="openid-connect-discovery" target="https://openid.net/specs/openid-connect-discovery-1_0.html">
+ <front>
+   <title>OpenID Connect Discovery 1.0</title>
    <author><organization>OpenID Foundation</organization></author>
  </front>
 </reference>
