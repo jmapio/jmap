@@ -82,7 +82,7 @@
 
 <dl spacing="normal" newline="true">
 <dt><tt>issuer</tt></dt>
-<dd><t>The authorization server's issuer identifier. This MUST be identical to the issuer identifier used to fetch this document. For example, if this document was fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server/acmeinc</tt>, the issuer MUST be <tt>https://auth.example.com/acmeinc</tt>. If not, the flow MUST be aborted.</t>
+<dd><t>The authorization server's issuer identifier. This MUST be identical to the issuer identifier from which this metadata URL was derived — not the URL from which it was fetched. For example, if the issuer identifier is <tt>https://auth.example.com/acmeinc</tt>, the issuer property MUST be <tt>https://auth.example.com/acmeinc</tt>, regardless of whether the metadata was fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server/acmeinc</tt> or <tt>https://auth.example.com/acmeinc/.well-known/openid-configuration</tt>. If not, the flow MUST be aborted.</t>
 <t>This MUST be verified again during the authorization flow (see <xref target="authorization" />, or <xref target="RFC9207" /> for more details), to prevent against mix-up attacks.</t>
 </dd>
 <dt><tt>registration_endpoint</tt></dt>
