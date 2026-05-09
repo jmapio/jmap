@@ -1,0 +1,105 @@
+# JMAP Extension for Scheduled EmailSubmission
+
+# Capabilities
+
+Servers supporting this specification MUST add a property named
+"urn:ietf:params:jmap:scheduledsubmission" to the capabilities object.  The
+value of this property is an empty object.
+
+# EmailSubmission
+
+EmailSubmission objects have the following additional properties:
+
+- **sendDelay**: `UnsignedInt`
+  An additional time (in seconds) that the server will hold the email before
+  actually sending it. A client may use a standard EmailSubmission/set call to
+  cancel the email submission before this time passes.
+
+  This property may be specified during creation, and it is never returned by
+  the server.  This property exists to allow the client to specify a minimum
+  delay to be computed by the server, eliminating complications of clock skew
+  or transit time.
+- **sendAt**: `UTCDate`
+  When this extension is in effect, this property, defined in RFC 8621, may be
+  set by the client on creation.  It remains immutable.  The Date header on the
+  scheduled email should match the sendAt time, so rescheduling should be
+  performed by canceling the old EmailSubmission, and scheduling a replacement
+  email.
+- **onSend**: `SendAction`
+  An action to take when the submission has been successfully sent.
+
+  A *SendAction* object has the following properties:
+
+  - **addToMailboxId**: `Id`
+  A mailboxId to add to the Email associated with the EmailSubmission when it
+  has been successfully submitted.
+- **created**: `UTCDate` (immutable; server-set)
+  The date-time the submission was created.
+
+If the creation properties for an EmailSubmission contain both `sendAt` and
+`sendDelay` may be provided, the server MUST return an `invalidArguments`
+error.
+
+JMAP clients SHOULD NOT use the envelope `mailFrom` parameters to invoke ESMTP
+FUTURERELEASE for delayed sending, and instead SHOULD use the `sendDelay` or
+`sendAt` properties of EmailSubmission.
+
+### EmailSubmission/query extensions
+
+The following extra conditions may be used for filtering:
+
+- **createdBefore**: `UTCDate`
+  The *created* property of the EmailSubmission object must be before this
+  date-time to match the condition.
+- **createdAfter**: `UTCDate`
+  The *created* property of the EmailSubmission object must be the same as or
+  after this date-time to match the condition.
+
+The `created` property is also supported for sorting.
+
+# Mailbox
+
+A new role, "scheduled", is defined.  This role is exposed in IMAP as
+"\Scheduled".
+
+## The Scheduled Mailbox
+
+The user may create a mailbox with a role of "scheduled", subject to the
+standard restrictions on role.
+
+The user may delete the Scheduled mailbox.
+
+Messages may be added to the Scheduled mailbox only as a consequence of the
+`onSuccessUpdateEmail` argument to EmailSubmission/set creating an
+EmailSubmission for that message.
+
+When an EmailSubmission's `undoStatus` is set to `canceled`, the associated
+email is removed from the Scheduled mailbox if and only if the email has no
+other associated EmailSubmission objects with a state of `pending`.
+
+When an EmailSubmission's `undoStatus` becomes `final`, the associated email is
+added to the mailbox identified by the EmailSubmission's `onSend` property's
+`addToMailboxId` property, if any.  If that property is not null, but does not
+refer to an existing mailbox, the email should be added to the mailbox with the
+"sent" role.  If no mailbox has the "sent" role, then the email should be added
+to the mailbox with the "inbox" role.  Finally, if and only if the email has no
+other associated EmailSubmission objects with a state of `pending`, the
+associated email is removed from the mailbox with the "scheduled" and the
+mailbox with the "drafts" role.  If the email is not present in any mailbox
+other than those, it is destroyed.
+
+Attempts to add messages to or remove messages from this mailbox via any other
+means MUST be rejected.
+
+IMAP servers that support the ACL extension MUST reflect these permissions in
+the rights for the scheduled mailbox.
+
+JMAP servers MUST provide false as the mayAddItems, mayRemoveItems, and
+maySubmit permissions.
+
+# Examples
+
+TODO:
+
+* scheduling an email
+* canceling an email
