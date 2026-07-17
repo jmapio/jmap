@@ -29,7 +29,7 @@
     <uri>http://sphericalcowgroup.com</uri>
   </address>
 </author>
-<date year="2026" month="June" day="6"></date>
+<date year="2026" month="July" day="20"></date>
 <area>Applications</area>
 <workgroup>JMAP</workgroup>
 <keyword>JMAP</keyword>
@@ -638,7 +638,12 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <li><tt>uid</tt> MUST be set to a new globally unique identifier, such as a UUID.</li>
 <li><tt>created</tt> MUST be set to the current date-time.</li>
 </ul>
-<t>If (and only if) the server is the origin of the event (i.e., the event's "isOrigin" property is true), the "updated" property MUST be set to the current time by the server whenever an event is created or updated. If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's time. If the server is not the origin of the event it MUST NOT automatically set an "updated" time, as this can break correct processing of scheduling messages.</t>
+<t>If (and only if) the server is the origin of the event (i.e., the event's "isOrigin" property is true):</t>
+<ul spacing="compact">
+<li>Whenever an event is created or updated, the "updated" property MUST be set to the current time by the server.</li>
+<li>If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's current time.</li>
+</ul>
+<t>Otherwise (i.e., if the event's "isOrigin" property is false), the server MUST NOT override or automatically set an "updated" time, as this can break correct processing of scheduling messages.</t>
 <t>Clients MUST NOT allow users to edit anything other than per-user
 properties when the "isOrigin" property is false, even if the calendar "myRights" allows them to do so. All other properties may be overwritten when a future update arrives to this event from the origin (e.g., via an iTIP REQUEST message). Such updates may be directly applied by the server, or applied at the user's request by a client if it has access to the data through some other means (e.g., the client also has access to the user's email and can parse an iMIP message).</t>
 <t>When updating an event, if all of:</t>
