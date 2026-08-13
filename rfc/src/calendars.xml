@@ -858,6 +858,8 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 
 <section anchor="calendarevent-copy"><name>CalendarEvent/copy</name>
 <t>This is a standard "/copy" method as described in <xref target="RFC8620" section="5.4" />.</t>
+<t>As specified in <xref target="calendarevent-set" />, the "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user. If the account being copied into does not belong to the user and the "privacy" property of the event to be created would be anything other than "public" (whether inherited from the event being copied or set explicitly in the "create" patch), the server MUST reject the copy with an <tt>invalidProperties</tt> SetError.</t>
+<t>A user with whom a calendar is shared does not have access to the full data of an event with its "privacy" property set to "private" (see <xref target="calendarevent-get" />), so cannot copy such an event. If the account being copied from does not belong to the user and the "privacy" property of the event being copied is "private", the server MUST reject the copy with a <tt>forbidden</tt> SetError. (An event with "privacy" set to "secret" does not exist as far as any user other than the owner of the calendar is concerned, so an attempt to copy it will be rejected with a <tt>notFound</tt> SetError.)</t>
 </section>
 
 <section anchor="calendarevent-query"><name>CalendarEvent/query</name>
