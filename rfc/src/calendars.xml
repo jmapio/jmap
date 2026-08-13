@@ -1040,7 +1040,8 @@ triggered, or null if the event is not recurring.</dd>
 <li>When an event is edited directly by another user on a shared calendar.</li>
 <li>If the server chooses to auto-process scheduling requests, such as an iTIP message. Note, whether to auto-process such messages is an implementation policy.</li>
 </ul>
-<t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all users with whom the calendar is shared. The server need only keep track of which users have yet to destroy the notification.</t>
+<t>A CalendarEventNotification exposes the full details of the event that changed, so MUST only be created for users that are allowed to see those details. If the "privacy" property of the event is "private" or "secret", either before or after the change, the server MUST NOT create a notification for any user other than the Principal that owns the calendar, as other users do not have access to the full details of such an event (see <xref target="calendarevent-get" />). The Principal that owns the calendar still receives notifications for these events as normal.</t>
+<t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all users with whom the calendar is shared and that are permitted to receive it. The server need only keep track of which users have yet to destroy the notification.</t>
 
 <t>The server <bcp14>MAY</bcp14> limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.</t>
 <t>The server <bcp14>MAY</bcp14> coalesce notifications if appropriate or remove notifications after a certain period of time or that it deems are no longer relevant.</t>
