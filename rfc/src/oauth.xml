@@ -34,7 +34,7 @@
 <keyword>CalDAV</keyword>
 
 <abstract>
-<t>This document specifies a profile of the OAuth authorization protocol to allow for interoperability between native clients and servers using open protocols, such as JMAP, IMAP, SMTP, POP, CalDAV, and CardDAV.</t>
+<t>This document specifies a profile of the OAuth authorization protocol to allow for interoperability between native clients and servers using open protocols, such as JMAP, IMAP, SMTP, POP, CalDAV, and CardDAV. The profile is restricted to native clients, that is, applications installed and run on the end user's device. It deliberately does not support web-based clients, which cannot complete the flow as specified.</t>
 </abstract>
 
 </front>
@@ -43,6 +43,13 @@
 
 <section anchor="introduction"><name>Introduction</name>
 <t>This document pulls together several existing standards and uses them to specify a specific OAuth profile, allowing interoperable modern authentication for native clients of open protocols, such as JMAP, IMAP, SMTP, POP, CalDAV, and CardDAV. For these protocols, there are many servers and many clients with no pre-existing relationship, that need to be able to connect. At the moment, the only interoperable way to do so is with a basic username and password, which has many deficiencies from a security standpoint.</t>
+
+<section anchor="native-clients-only"><name>Applicability to Native Clients Only</name>
+<t>This profile applies only to native clients: applications that are installed and executed on the end user's device, as described in <xref target="RFC8252" />. Web-based clients, that is, clients that run in a web browser or on a web server, are out of scope for this document.</t>
+<t>This restriction is deliberate. The profile allows any client to register with any server without a pre-existing relationship (see <xref target="dynamic-client-registration" />), and there is no way for the server to verify any of the information supplied during that registration. For a native client, this does not introduce a new risk: a malicious application that the user has already installed and run could spoof the user's browser to phish their credentials, or install malware in unsandboxed environments, so allowing it to complete an OAuth flow makes the user no worse off. Indeed, it is more secure, as the alternative is a legitimate client storing the user's password.</t>
+<t>Just navigating to a web page, however, is a different security scenario. Allowing arbitrary web-based clients to seamlessly register and obtain authorization would make it substantially easier for phishing sites to gain access to a user's account, by sending the user through a legitimate OAuth flow at the real authorization server and then receiving the resulting tokens.</t>
+<t>The profile therefore enforces this restriction by limiting the redirect URIs that may be registered to loopback addresses and private-use URI schemes, which can only be received by software running on the user's device. See <xref target="dynamic-client-registration" /> for the specific requirements and <xref target="security-considerations" /> for further discussion.</t>
+</section>
 
 <section anchor="presumptions"><name>Presumptions</name>
 <t>This OAuth flow presumes you have a set of one or more resource server endpoints (e.g., for JMAP/IMAP/SMTP/POP/CardDAV/CalDAV), and a common authorization server issuer identifier for all of them. For example, you might have a JMAP session endpoint <tt>https://api.example.com/jmap/session</tt>, an IMAP endpoint <tt>imaps://imap.example.com:993</tt>, and an issuer identifier <tt>https://auth.example.com/acmeinc</tt>.</t>
@@ -201,7 +208,7 @@ This MUST include "S256".</t>
 <t>The server will check that all required properties are present and have valid values. Any unknown properties supplied by the client instance MUST just be ignored. The authorization server MAY replace any of the client's requested metadata values submitted during the registration and substitute them with suitable values.</t>
 <t>If there is an exact match for all properties except for software_version, an existing registration may be returned. Otherwise, servers SHOULD create a new registration and client id.</t>
 <t>There is no way to verify the authenticity of the information supplied by the client, however the general case of accurate information is still useful to the server, for example to be able to contact client authors to help debug issues if aberrant behaviour is observed. Servers MAY choose to ignore all of the information instead and just return a static client id to all requests.</t>
-<t>The redirect URI restrictions MUST be enforced. These ensure the OAuth flow can only be completed by native clients — not web clients. Since a malicious native client could present the user with a custom browser to phish credentials anyway, the lack of verification of client registration details does not provide additional danger beyond existing threats. Allowing seamless dynamic registration for web-based clients, however, unfortunately makes it much easier for a phishing site to gain access to an account, by sending the user through the OAuth flow.</t>
+<t>The redirect URI restrictions MUST be enforced. These ensure the OAuth flow can only be completed by native clients — not web clients — as discussed in <xref target="native-clients-only" />. Since a malicious native client could present the user with a custom browser to phish credentials anyway, the lack of verification of client registration details does not provide additional danger beyond existing threats. Allowing seamless dynamic registration for web-based clients, however, unfortunately makes it much easier for a phishing site to gain access to an account, by sending the user through the OAuth flow.</t>
 <t>If successful, the server responds with an HTTP 201 Created status code and a body of type "application/json", with the content being a JSON object containing all the properties submitted during registration (with their values as set by the server, if overwritten), plus the following property:</t>
 
 <dl spacing="normal" newline="true">
