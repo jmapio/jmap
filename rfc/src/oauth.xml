@@ -322,7 +322,9 @@ object with the following properties:</t>
 </section>
 
 <section anchor="scopes"><name>Scopes</name>
-<t>To work interoperably, clients and server must use a standard set of scopes for access. This document creates a new IANA registry for such scopes (see <xref target="iana-considerations" />), and registers scopes to cover IMAP, SMTP, POP, CardDAV, CalDAV, and JMAP.</t>
+<t>To work interoperably, clients and servers must use a common set of scopes for access. This document creates a new IANA registry for such scopes (see <xref target="scopes-registry" />), and registers scopes to cover IMAP, SMTP, POP, CardDAV, CalDAV, and JMAP.</t>
+<t>Registration of a scope in that registry does not by itself impose any requirement on OAuth implementations in general (see <xref target="scopes-registry" />). This profile, however, does require support: a server implementing this profile MUST support each of the scopes registered by this document (<xref target="initial-registry-contents" />) whose definition covers a protocol or type of data that the server offers. For example, a server that offers IMAP and SMTP MUST support <tt>urn:ietf:params:oauth:scope:mail</tt>, and a server that offers CalDAV MUST support <tt>urn:ietf:params:oauth:scope:calendars</tt>. Supporting a scope means advertising it in the <tt>scopes_supported</tt> metadata property, accepting it in registration and authorization requests, and granting the access described in its registration when it is authorized.</t>
+<t>Servers MAY additionally support other scopes, for example finer-grained or vendor-specific scopes, but clients following this profile can only rely on the registered scopes being available.</t>
 </section>
 
 <section anchor="getting-a-new-access-token"><name>Getting a New Access Token</name>
