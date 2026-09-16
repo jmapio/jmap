@@ -127,7 +127,7 @@ This MUST include "S256".</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>dpop_signing_alg_values_supported</tt></dt>
-<dd>A JSON array containing a list of the JWS alg values (from the [IANA.JOSE.ALGS] registry) supported by the authorization server for DPoP proof JWTs, as defined in <xref target="RFC9449" />, Section 5.1.</dd>
+<dd>A JSON array containing a list of the JWS alg values (from the <xref target="IANA.JOSE.ALGS" /> registry) supported by the authorization server for DPoP proof JWTs, as defined in <xref target="RFC9449" />, Section 5.1.</dd>
 </dl>
 <t>Also of possible interest to client/server implementors following this document:</t>
 
@@ -168,7 +168,7 @@ This MUST include "S256".</t>
 <dd>This is an array of strings that MUST include "code".</dd>
 <dt><tt>scope</tt></dt>
 <dd><t>A string containing a space-separated list of scope values the client may request access for. (Note! This is not a JSON array.)</t>
-<t>For compatibility with servers implementing OpenID Connect [openid-connect], if the server advertised the offline_access scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also register for this scope.</t></dd>
+<t>For compatibility with servers implementing OpenID Connect <xref target="OpenID.Core" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also register for this scope.</t></dd>
 <dt><tt>client_name</tt></dt>
 <dd>The name of the client software to be presented to the end-user during authorization.</dd>
 <dt><tt>client_uri</tt></dt>
@@ -231,7 +231,7 @@ This MUST include "S256".</t>
 <dd>This MUST be "code".</dd>
 <dt><tt>scope</tt></dt>
 <dd><t>A space delimited set of scopes the client instance would like access to. This MUST be a subset of the scopes registered for this client id.</t>
-<t>For compatibility with servers implementing OpenID Connect <xref target="openid-connect" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also request this scope.</t></dd>
+<t>For compatibility with servers implementing OpenID Connect <xref target="OpenID.Core" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also request this scope.</t></dd>
 <dt><tt>code_challenge</tt></dt>
 <dd><t>A PKCE code challenge as per <xref target="RFC7636" />, using SHA 256. To generate a challenge, first generate a code_verifier: a high-entropy cryptographic random string using the unreserved characters <tt>[A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"</tt> from Section 2.3 of <xref target="RFC3986" />, with a minimum length of 43 characters and a maximum length of 128 characters.</t>
 <t>The code_challenge is then <tt>BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))</tt>.</t></dd>
@@ -563,11 +563,43 @@ which will result in getting a <tt>401</tt> error back.</t>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9207.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9449.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9728.xml"/>
-<reference anchor="webauthn" target="https://www.w3.org/TR/webauthn/">
- <front>
-   <title>Web Authentication: An API for accessing Public Key Credentials, Level 2</title>
-   <author><organization>W3C</organization></author>
- </front>
+<reference anchor="WebAuthn" target="https://www.w3.org/TR/2021/REC-webauthn-2-20210408/">
+  <front>
+    <title>Web Authentication: An API for accessing Public Key Credentials - Level 2</title>
+    <author initials="J." surname="Hodges" fullname="Jeff Hodges" role="editor">
+      <organization>PayPal</organization>
+      <address>
+        <email>jdhodges@google.com</email>
+      </address>
+    </author>
+    <author initials="J.C." surname="Jones" fullname="J.C. Jones" role="editor">
+      <organization>Mozilla</organization>
+      <address>
+        <email>jc@mozilla.com</email>
+      </address>
+    </author>
+    <author initials="M.B." surname="Jones" fullname="Michael B. Jones" role="editor">
+      <organization>Microsoft</organization>
+      <address>
+        <email>mbj@microsoft.com</email>
+        <uri>http://self-issued.info/</uri>
+      </address>
+    </author>
+    <author initials="A." surname="Kumar" fullname="Akshay Kumar" role="editor">
+      <organization>Microsoft</organization>
+      <address>
+        <email>akshayku@microsoft.com</email>
+      </address>
+    </author>
+    <author initials="E." surname="Lundberg" fullname="Emil Lundberg" role="editor">
+      <organization>Yubico</organization>
+      <address>
+        <email>emil@yubico.com</email>
+      </address>
+    </author>
+    <date day="8" month="April" year="2021"/>
+  </front>
+  <refcontent>W3C Recommendation</refcontent>
 </reference>
 </references>
 
@@ -578,17 +610,56 @@ which will result in getting a <tt>401</tt> error back.</t>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6409.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9051.xml"/>
-<reference anchor="openid-connect" target="https://openid.net/developers/specs/">
- <front>
-   <title>OpenID Connect</title>
-   <author><organization>OpenID Foundation</organization></author>
- </front>
+<reference anchor="OpenID.Core" target="https://openid.net/specs/openid-connect-core-1_0.html">
+  <front>
+    <title>OpenID Connect Core 1.0</title>
+    <author fullname="Nat Sakimura" initials="N." surname="Sakimura">
+      <organization abbrev="NAT.Consulting (was at NRI)">NAT.Consulting</organization>
+    </author>
+    <author fullname="John Bradley" initials="J." surname="Bradley">
+      <organization abbrev="Yubico (was at Ping Identity)">Yubico</organization>
+    </author>
+    <author fullname="Michael B. Jones" initials="M.B." surname="Jones">
+      <organization abbrev="Self-Issued Consulting (was at Microsoft)">Self-Issued Consulting</organization>
+    </author>
+    <author fullname="Breno de Medeiros" initials="B." surname="de Medeiros">
+      <organization abbrev="Google">Google</organization>
+    </author>
+    <author fullname="Chuck Mortimore" initials="C." surname="Mortimore">
+      <organization abbrev="Disney (was at Salesforce)">Disney</organization>
+    </author>
+    <date day="15" month="December" year="2023"/>
+  </front>
 </reference>
-<reference anchor="openid-connect-discovery" target="https://openid.net/specs/openid-connect-discovery-1_0.html">
- <front>
-   <title>OpenID Connect Discovery 1.0</title>
-   <author><organization>OpenID Foundation</organization></author>
- </front>
+<reference anchor="OpenID.Discovery" target="https://openid.net/specs/openid-connect-discovery-1_0.html">
+  <front>
+    <title>OpenID Connect Discovery 1.0</title>
+    <author fullname="Nat Sakimura" initials="N." surname="Sakimura">
+      <organization abbrev="NAT.Consulting (was at NRI)">NAT.Consulting</organization>
+    </author>
+    <author fullname="John Bradley" initials="J." surname="Bradley">
+      <organization abbrev="Yubico (was at Ping Identity)">Yubico</organization>
+    </author>
+    <author fullname="Michael B. Jones" initials="M.B." surname="Jones">
+      <organization abbrev="Self-Issued Consulting (was at Microsoft)">Self-Issued Consulting</organization>
+    </author>
+    <author fullname="Edmund Jay" initials="E." surname="Jay">
+      <organization abbrev="Illumila">Illumila</organization>
+    </author>
+    <date day="15" month="December" year="2023"/>
+  </front>
+</reference>
+<reference anchor="IANA.OAuth.Parameters" target="https://www.iana.org/assignments/oauth-parameters">
+  <front>
+    <title>OAuth Parameters</title>
+    <author><organization>IANA</organization></author>
+  </front>
+</reference>
+<reference anchor="IANA.JOSE.ALGS" target="https://www.iana.org/assignments/jose">
+  <front>
+    <title>JSON Web Signature and Encryption Algorithms</title>
+    <author><organization>IANA</organization></author>
+  </front>
 </reference>
 </references>
 
