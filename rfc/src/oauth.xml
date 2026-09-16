@@ -215,6 +215,7 @@ This MUST include "S256".</t>
 <dt><tt>client_id</tt></dt>
 <dd>The OAuth 2.0 client identifier string, used in the authorization flow (see <xref target="authorization" />).</dd>
 </dl>
+<t>Clients following this profile are public clients (see <xref target="RFC6749" section="2.1" />): they register with a <tt>token_endpoint_auth_method</tt> of "none" and authenticate to the token endpoint using only PKCE. The server MUST NOT issue a client secret in the registration response, so the <tt>client_secret</tt> and <tt>client_secret_expires_at</tt> properties defined in <xref target="RFC7591" section="3.2.1" /> MUST NOT be present. A native client cannot keep a secret confidential, so a secret would offer no security benefit, and a client that expected to use one would not be interoperable with servers that correctly omit it. If a server nonetheless returns a <tt>client_secret</tt>, the client instance MUST ignore it and continue as a public client.</t>
 <t>If the registration fails, the server will respond with an HTTP 400 status code and a JSON body as described in <xref target="RFC7591" />, section 3.2.2.</t>
 </section>
 
