@@ -253,6 +253,8 @@ This MUST include "S256".</t>
 
 <t>The authorization server MUST verify that all of the parameters defined above are present and conform to the restrictions in this document. A request in which any parameter is included more than once MUST be rejected, with the exception of the <tt>resource</tt> parameter, which may be repeated as described above.</t>
 
+<t>The client instance MAY include additional request parameters defined by other OAuth extensions, for example the <tt>prompt</tt> or <tt>ui_locales</tt> parameters defined by OpenID Connect Core <xref target="OpenID.Core" />. This does not permit alternative or additional values for the parameters defined above; in particular, it does not relax the <tt>redirect_uri</tt> matching rules, and a request whose defined parameters do not conform MUST be rejected regardless of any other parameters present. The authorization server MUST ignore any request parameter it does not recognise, as required by <xref target="RFC6749" section="3.1" />, and clients MUST NOT depend on such parameters being understood for interoperability. Ignoring unrecognised parameters is safe because they cannot affect the processing of the parameters defined by this document, and it allows this profile to coexist with other OAuth extensions that both the client and server happen to support.</t>
+
 <t>If verified, the authorization server will authenticate the user and ask them if they wish to grant authorization to the client.</t>
 
 <t> If the request fails due to a missing, invalid, or mismatching redirection URI, or if the client identifier is missing or invalid, the authorization server SHOULD inform the user of the error and MUST NOT automatically redirect the user-agent to the invalid redirection URI. If the authorization request fails for any other reason, the client instance will receive an error response via the redirect_uri. This MUST include an error query parameter with an appropriate error code, as defined in <xref target="RFC6749" section="4.1.2.1"/>.</t>
@@ -293,7 +295,7 @@ access tokens by making a POST request to the token_endpoint URL. The following 
 <dt><tt>code_verifier</tt></dt>
 <dd>The code_verifier generated for the authorization (the random string generated in the authorization step, as per <xref target="RFC7636" />).</dd>
 </dl>
-<t>Other parameters MAY be supplied but will be ignored. If using DPoP, the client instance MUST also set a DPoP header in accordance with <xref target="RFC9449" section="5" />.</t>
+<t>The client instance MAY include additional parameters defined by other OAuth extensions. The server MUST ignore any parameter it does not recognise, as required by <xref target="RFC6749" section="3.2" />, and clients MUST NOT depend on such parameters being understood for interoperability. If using DPoP, the client instance MUST also set a DPoP header in accordance with <xref target="RFC9449" section="5" />.</t>
 <t>The server will verify the parameters and if successful, return a <tt>200 OK</tt> response with a content type of application/json. The body will be a JSON
 object with the following properties:</t>
 
