@@ -374,6 +374,7 @@ which will result in getting a <tt>401</tt> error back.</t>
 <t>Implementers are encouraged to read all of the above documents for a more thorough consideration of the specific threats and mitigations with OAuth.</t>
 <t>The choices made for this profile are intended to mitigate as far as possible the inherent risks that come from allowing arbitrary clients to talk to arbitrary servers.</t>
 <t>The key restriction of this profile is that the redirect_uri MUST be something only a native client can access. If the user has downloaded and run a malicious native app, it could already undetectably spoof the user's browser to phish them, or in unsandboxed environments install malware, so supporting the OAuth flow from an unknown client is not increasing risks. Indeed, it is more secure than the current alternative, which is legitimate clients storing the user's password.</t>
+<t>Access tokens, refresh tokens, and authorization codes are bearer credentials: anyone who obtains one can use it. Clients MUST only send them over connections secured with TLS, and MUST verify the server's certificate as described in <xref target="RFC6125" />. This applies to the token endpoint, to HTTP-based resource servers as required by <xref target="RFC6750" section="5.2" />, and to protocols using SASL: for IMAP, POP, and SMTP, the client MUST negotiate TLS (either Implicit TLS or STARTTLS, see <xref target="RFC8314" />) before sending the OAUTHBEARER authentication exchange. Servers MUST NOT accept access tokens over connections that are not protected by TLS. The one exception is the redirect back to a loopback redirect URI (<xref target="dynamic-client-registration" />), which uses the "http" scheme. This carries only the authorization code, and the connection never leaves the user's device. The code is additionally protected by PKCE, so it is useless to anyone other than the client instance that holds the corresponding code verifier.</t>
 <t>The dynamic registration part of this document is not a security component, as there is no way to verify any of the data. The data in the registration may be shown to the user as part of the authorization flow, which may help with phishing, but as noted above the redirect_uri can only be used by a native app, which could already phish the user. However, the registration gives the server more information to detect suspicious behaviour, which can help it to detect compromised users and devices more easily.</t>
 <t>The issuer is expected to be autodetected from the user's email address. A threat scenario that must be considered is the user making a small typo in the domain (especially for a common email service), and an attacker controlling this domain. In this scenario the client instance will fetch the OAuth metadata from the attacker's server, and has no way to know it is not the real server the user wishes to connect to. This leads to a number of threats:</t>
 
@@ -624,6 +625,7 @@ which will result in getting a <tt>401</tt> error back.</t>
 <references><name>Normative References</name>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6125.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6749.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6750.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6755.xml"/>
@@ -686,6 +688,7 @@ which will result in getting a <tt>401</tt> error back.</t>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4791.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6352.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6409.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8314.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9051.xml"/>
 <reference anchor="OpenID.Core" target="https://openid.net/specs/openid-connect-core-1_0.html">
