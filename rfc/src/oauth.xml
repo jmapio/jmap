@@ -392,18 +392,56 @@ which will result in getting a <tt>401</tt> error back.</t>
 <section anchor="scopes-registry">
 <name>Interoperable OAuth Scopes Registry</name>
 
-<t>IANA shall add a new registry called "Interoperable OAuth Scopes" to the "OAuth Parameters" registry group. The registry records interoperable OAuth scope values. Each scope provides specific access rights to protected resources.</t>
+<t>IANA shall add a new registry called "Interoperable OAuth Scopes" to the "OAuth Parameters" registry group <xref target="IANA.OAuth.Parameters" />. The registry records OAuth scope values that have a standardised, interoperable meaning, such that a client and a server with no pre-existing relationship can agree on the access a scope grants. Each scope provides specific access rights to protected resources, and the registry records a reference to the specification that defines those rights.</t>
+
+<section anchor="registry-applicability">
+<name>Applicability of Registered Scopes</name>
+
+<t>Registration of a scope in this registry does not, by itself, impose any requirement on OAuth authorization servers, resource servers, or clients in general. An OAuth implementation is not required to recognise, support, or grant any scope in this registry merely because it is registered. In this respect the registry is a coordination mechanism, ensuring a given scope value has a single well-defined meaning wherever it is used, rather than a statement of what OAuth implementations must support.</t>
+
+<t>Support for a registered scope is required only where a profile or other specification that references this registry mandates it. Such a specification MUST clearly identify which implementations are required to support which scopes. This document is one such profile: the scopes that servers implementing it MUST support are specified in <xref target="scopes" />. Other profiles MAY reference scopes in this registry and define their own support requirements, and the same scope MAY be required by more than one profile.</t>
+</section>
+
+<section anchor="scope-naming">
+<name>Scope Naming Conventions</name>
+
+<t>Scope names in this registry are case sensitive. Names MUST NOT match other registered names in a case-insensitive manner unless the designated experts state that there is a compelling reason to allow an exception.</t>
+
+<t>A newly defined scope registered in this registry MUST be a URN in the <tt>urn:ietf:params:oauth:scope:</tt> sub-namespace of the OAuth URN namespace <xref target="RFC6755" />, of the form <tt>urn:ietf:params:oauth:scope:&lt;name&gt;</tt>, for example <tt>urn:ietf:params:oauth:scope:mail</tt>. The <tt>&lt;name&gt;</tt> component SHOULD be a short, lowercase, descriptive identifier for the class of data or resources to which the scope grants access. Using this namespace guarantees the value cannot collide with scope strings defined elsewhere, and makes clear to implementers that the value has a standardised meaning. Any such URN MUST also be registered in the IANA "OAuth URI" registry <xref target="IANA.OAuth.Parameters" /> established by <xref target="RFC6755" />, referencing the same specification document(s).</t>
+
+<t>An unstructured scope string, that is, one that is not a URN in the above sub-namespace (for example, <tt>offline_access</tt>), MAY be registered only where all of the following apply:</t>
+<ul>
+<li>The scope value is already defined by an existing, publicly available and stable specification outside of the IETF's control, or is already in widespread deployment with a single well-understood meaning.</li>
+<li>The purpose of the registration is to allow profiles referencing this registry to interoperate with that existing usage. Assigning a new URN for the same purpose would therefore harm interoperability rather than help it.</li>
+<li>The value does not conflict with any existing registration in this registry.</li>
+</ul>
+<t>Unstructured strings MUST NOT be registered for newly defined scopes. Where a specification wishes to register a scope with an unstructured name, the designated experts MUST verify that the referenced specification defines the value with the meaning given in the registration request.</t>
+</section>
 
 <section anchor="registration-procedure">
 <name>Registration Procedure</name>
 
-<t>The "Specification Required" policy, as defined in <xref target="RFC8126" section="4.6" />, shall govern registrations in this registry. The Designated Expert shall verify that:</t>
+<t>Values are registered via Specification Required <xref target="RFC8126" />. Registration requests should be sent to the <eref target="mailto:oauth-ext-review@ietf.org">oauth-ext-review@ietf.org</eref> mailing list to initiate a two-week review period. However, to allow for the allocation of values prior to publication of the final version of a specification, the designated experts may approve registration once they are satisfied that the specification will be completed and published. However, if the specification is not completed and published in a timely manner, as determined by the designated experts, the designated experts may request that IANA withdraw the registration.</t>
 
-<ol>
-<li>The proposed scope name follows established naming conventions.</li>
+<t>Registration requests sent to the mailing list for review should use an appropriate subject (e.g., "Request to register Interoperable OAuth Scope: example").</t>
+
+<t>Within the review period, the designated experts will either approve or deny the registration request, communicating this decision to the review list and IANA. Denials should include an explanation and, if applicable, suggestions as to how to make the request successful. If the designated experts are not responsive, the registration requesters should contact IANA to escalate the process.</t>
+
+<t>Designated experts should apply the following criteria when reviewing proposed registrations:</t>
+<ul>
+<li>The proposed scope must be unique, that is, it must not duplicate the functionality of an existing registration.</li>
+<li>The proposed scope is likely to be generally applicable, that is, useful to multiple independent clients and servers, as opposed to being used for a single application or deployment.</li>
+<li>The proposed scope name follows the naming conventions in <xref target="scope-naming" />. In particular, an unstructured (non-URN) scope name is only permitted under the conditions given there.</li>
 <li>The description clearly defines the access rights granted by the scope, with reference to publicly available and stable documentation sufficient for interoperability.</li>
+<li>The specification document(s) identify which implementations are required to support the scope (for example, by defining or referencing a profile that mandates it), since registration alone imposes no such requirement (see <xref target="registry-applicability" />).</li>
 <li>The change controller is clearly identified.</li>
-</ol>
+</ul>
+
+<t>IANA must only accept registry updates from the designated experts and should direct all requests for registration to the review mailing list.</t>
+
+<t>In order to enable broadly informed review of registration decisions, there should be multiple designated experts to represent the perspectives of different applications using this specification. In cases where registration may be perceived as a conflict of interest for a particular expert, that expert should defer to the judgment of the other experts.</t>
+
+<t>The mailing list is used to enable public review of registration requests, which enables both designated experts and other interested parties to provide feedback on proposed registrations. Designated experts may allocate values prior to publication of the final specification. This allows authors to receive guidance from the designated experts early, so any identified issues can be fixed before the final specification is published.</t>
 
 </section>
 
@@ -412,13 +450,16 @@ which will result in getting a <tt>401</tt> error back.</t>
 
 <dl newline="false" spacing="compact">
 <dt>Scope Name:</dt>
-    <dd>The name of the OAuth scope value.</dd>
+    <dd>The OAuth scope value requested (e.g., <tt>urn:ietf:params:oauth:scope:mail</tt>). This name is case sensitive and MUST conform to <xref target="scope-naming" />.</dd>
 
 <dt>Description:</dt>
     <dd>A clear description of what access rights this scope grants to the client, with reference to publicly available and stable documentation sufficient for interoperability.</dd>
 
 <dt>Change Controller:</dt>
-    <dd>The name of the person, organization, or entity controlling changes to the scope definition.</dd>
+    <dd>For IETF Stream RFCs, list "IETF". For others, give the name of the responsible party. Other details (e.g., postal address, email address, home page URI) may also be included.</dd>
+
+<dt>Specification Document(s):</dt>
+    <dd>Reference to the document or documents that specify the scope, preferably including URIs that can be used to retrieve copies of the documents. An indication of the relevant sections may also be included but is not required. The referenced document(s) MUST identify which implementations are required to support the scope (see <xref target="registry-applicability" />).</dd>
 </dl>
 
 </section>
@@ -439,26 +480,57 @@ which will result in getting a <tt>401</tt> error back.</t>
   </ul>
 </dd>
 <dt>Change Controller:</dt> <dd>IETF</dd>
+<dt>Specification Document(s):</dt> <dd><xref target="initial-registry-contents" /> and <xref target="scopes" /> of this document</dd>
 </dl>
 
 <dl newline="false" spacing="compact">
 <dt>Scope Name:</dt> <dd><tt>urn:ietf:params:oauth:scope:contacts</tt></dd>
 <dt>Description:</dt> <dd>Requests access for a client to manage the user's contacts. This MUST include full access via the CardDAV protocol <xref target="RFC6352" /> if the server supports it. If the server supports JMAP <xref target="RFC8620" />, this scope grants the right to use all JMAP capabilities that the server supports for which <tt>urn:ietf:params:oauth:scope:contacts</tt> is included in the Interoperable OAuth Scopes column of the JMAP capabilities registry.</dd>
 <dt>Change Controller:</dt> <dd>IETF</dd>
+<dt>Specification Document(s):</dt> <dd><xref target="initial-registry-contents" /> and <xref target="scopes" /> of this document</dd>
 </dl>
 
 <dl newline="false" spacing="compact">
 <dt>Scope Name:</dt> <dd><tt>urn:ietf:params:oauth:scope:calendars</tt></dd>
 <dt>Description:</dt> <dd>Requests access for a client to manage the user's calendars. This MUST include full access via the CalDAV protocol <xref target="RFC4791" /> if the server supports it. If the server supports JMAP <xref target="RFC8620" />, this scope grants the right to use all JMAP capabilities that the server supports for which <tt>urn:ietf:params:oauth:scope:calendars</tt> is included in the Interoperable OAuth Scopes column of the JMAP capabilities registry.</dd>
 <dt>Change Controller:</dt> <dd>IETF</dd>
+<dt>Specification Document(s):</dt> <dd><xref target="initial-registry-contents" /> and <xref target="scopes" /> of this document</dd>
 </dl>
 
 <dl newline="false" spacing="compact">
 <dt>Scope Name:</dt> <dd><tt>offline_access</tt></dd>
-<dt>Description:</dt> <dd>May be advertised or requested for compatibility with OpenID connect, as described in this document.</dd>
+<dt>Description:</dt> <dd>Requests that a refresh token be issued, allowing the client to access the user's resources when the user is not present. Registered as an unstructured name because it is defined by and in widespread use with OpenID Connect <xref target="OpenID.Core" />. Servers and clients implementing this document advertise or request it for compatibility with OpenID Connect, as described in <xref target="dynamic-client-registration" /> and <xref target="authorization" />.</dd>
 <dt>Change Controller:</dt> <dd>IETF</dd>
+<dt>Specification Document(s):</dt> <dd>Section 11 of <xref target="OpenID.Core" />; <xref target="dynamic-client-registration" /> and <xref target="authorization" /> of this document</dd>
 </dl>
 </section>
+</section>
+
+<section anchor="oauth-uri-registrations">
+<name>OAuth URI Registrations</name>
+
+<t>This section registers the following values in the IANA "OAuth URI" registry <xref target="IANA.OAuth.Parameters" /> established by <xref target="RFC6755" />. They are the scope values defined by this document within the <tt>urn:ietf:params:oauth:scope:</tt> sub-namespace, as required by <xref target="scope-naming" />.</t>
+
+<dl newline="false" spacing="compact">
+<dt>URN:</dt> <dd><tt>urn:ietf:params:oauth:scope:mail</tt></dd>
+<dt>Common Name:</dt> <dd>Interoperable OAuth scope granting access to the user's email</dd>
+<dt>Change Controller:</dt> <dd>IETF</dd>
+<dt>Specification Document(s):</dt> <dd><xref target="initial-registry-contents" /> of this document</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>URN:</dt> <dd><tt>urn:ietf:params:oauth:scope:contacts</tt></dd>
+<dt>Common Name:</dt> <dd>Interoperable OAuth scope granting access to the user's contacts</dd>
+<dt>Change Controller:</dt> <dd>IETF</dd>
+<dt>Specification Document(s):</dt> <dd><xref target="initial-registry-contents" /> of this document</dd>
+</dl>
+
+<dl newline="false" spacing="compact">
+<dt>URN:</dt> <dd><tt>urn:ietf:params:oauth:scope:calendars</tt></dd>
+<dt>Common Name:</dt> <dd>Interoperable OAuth scope granting access to the user's calendars</dd>
+<dt>Change Controller:</dt> <dd>IETF</dd>
+<dt>Specification Document(s):</dt> <dd><xref target="initial-registry-contents" /> of this document</dd>
+</dl>
 </section>
 <section>
 <name>Update to the JMAP Capabilties Registry</name>
@@ -559,6 +631,7 @@ which will result in getting a <tt>401</tt> error back.</t>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6749.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6750.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6755.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6819.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7009.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7591.xml"/>
@@ -571,6 +644,7 @@ which will result in getting a <tt>401</tt> error back.</t>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8707.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9207.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9449.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9700.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9728.xml"/>
 <reference anchor="WebAuthn" target="https://www.w3.org/TR/2021/REC-webauthn-2-20210408/">
   <front>
