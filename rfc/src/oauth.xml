@@ -211,7 +211,7 @@ This MUST include "S256".</t>
 <dt><tt>dpop_bound_access_tokens</tt></dt>
 <dd>true</dd>
 </dl>
-<t>(If set, the server MUST then require all token requests associated with the issued client id use DPoP. Note, DPoP is only currently defined for HTTP protocols, so this precludes usage for non-HTTP protocols as of time of writing.)</t>
+<t>If set, the server MUST require every token request for the issued client id to include a DPoP proof, and MUST issue only DPoP-bound access tokens, as specified in <xref target="RFC9449" section="5.2" />. DPoP is only defined for HTTP, so a client instance that uses non-HTTP protocols such as IMAP, POP, or SMTP MUST NOT set this property. See <xref target="dpop-non-http" /> for how such a client instance can still make use of DPoP.</t>
 <t>The server will check that all required properties are present and have valid values. Any unknown properties supplied by the client instance MUST just be ignored. The authorization server MAY replace any of the client's requested metadata values submitted during the registration and substitute them with suitable values.</t>
 <t>If there is an exact match for all properties except for software_version, an existing registration may be returned. Otherwise, servers SHOULD create a new registration and client id.</t>
 <t>There is no way to verify the authenticity of the information supplied by the client, however the general case of accurate information is still useful to the server, for example to be able to contact client authors to help debug issues if aberrant behaviour is observed. Servers MAY choose to ignore all of the information instead and just return a static client id to all requests.</t>
@@ -311,6 +311,8 @@ access tokens by making a POST request to the token_endpoint URL. The following 
 <dd>The code returned via the redirect back from authorization.</dd>
 <dt><tt>code_verifier</tt></dt>
 <dd>The code_verifier generated for the authorization (the random string generated in the authorization step, as per <xref target="RFC7636" />).</dd>
+<dt><tt>resource (optional)</tt></dt>
+<dd>One or more Resource Indicators, as described in <xref target="RFC8707" section="2.2" />, restricting the access token to a subset of the resources that were authorized. Each value MUST be one of the <tt>resource</tt> values sent in the authorization request. If omitted, the access token is issued for all of the authorized resources. See <xref target="dpop-non-http" /> for when a client instance needs to use this.</dd>
 </dl>
 <t>The client instance MAY include additional parameters defined by other OAuth extensions. The server MUST ignore any parameter it does not recognise, as required by <xref target="RFC6749" section="3.2" />, and clients MUST NOT depend on such parameters being understood for interoperability. If using DPoP, the client instance MUST also set a DPoP header in accordance with <xref target="RFC9449" section="5" />.</t>
 <t>The server will verify the parameters and if successful, return a <tt>200 OK</tt> response with a content type of application/json. The body will be a JSON
@@ -338,6 +340,20 @@ object with the following properties:</t>
 <t>For protocols that use SASL authentication, such as IMAP, POP, and SMTP, the access token is used in accordance with the OAUTHBEARER mechanism defined in <xref target="RFC7628" />. Servers MUST NOT require the username associated with the resource (the "authzid") be included in the GS2 header.</t>
 </section>
 
+<section anchor="dpop-non-http"><name>DPoP and Non-HTTP Protocols</name>
+<t>DPoP <xref target="RFC9449" /> is only defined for HTTP. The proof JWT (<xref target="RFC9449" section="4.2" />) is bound to the HTTP method and URI of the request it protects and is carried in an HTTP header field, and the OAUTHBEARER SASL mechanism <xref target="RFC7628" /> has no means of carrying such a proof. A DPoP-bound access token therefore cannot be used to authenticate to an IMAP, POP, or SMTP server. Sender-constraining access tokens for SASL-based protocols would require a new SASL mechanism, or an extension to OAUTHBEARER, together with a means for the resource server to verify the proof. That is out of scope for this document.</t>
+<t>A client instance that uses only HTTP-based protocols and wishes to use DPoP SHOULD register with <tt>dpop_bound_access_tokens</tt> set to true (see <xref target="dynamic-client-registration" />), include a DPoP proof in every token request, and use the resulting DPoP-bound access tokens as described in <xref target="RFC9449" section="7" />.</t>
+<t>A client instance that uses non-HTTP protocols, whether exclusively or alongside HTTP-based protocols, has two choices. The simplest is not to use DPoP at all, in which case all tokens are bearer tokens. Alternatively, it MAY use DPoP for the token endpoint and for HTTP-based resources while still obtaining bearer tokens for non-HTTP resources, as follows:</t>
+<ul>
+<li>The client instance MUST NOT set <tt>dpop_bound_access_tokens</tt> to true when registering, as the server would then be required to issue only DPoP-bound access tokens.</li>
+<li>The client instance includes a DPoP proof in every token request. As required by <xref target="RFC9449" section="5" />, the server binds the refresh token to the client instance's key, so the refresh token is sender-constrained even though some of the access tokens obtained with it are not.</li>
+<li>The client instance obtains separate access tokens for HTTP and non-HTTP resources by including <tt>resource</tt> parameters in the token request (see <xref target="obtaining-a-refresh-token" /> and <xref target="getting-a-new-access-token" />): one request listing only its HTTP-based resources, and a second listing only its non-HTTP resources (that is, hostnames, see <xref target="authorization" />). The initial token request exchanging the authorization code can be made for either set, and the other set is then obtained by a refresh request.</li>
+<li>When a token request includes a valid DPoP proof and every <tt>resource</tt> parameter is a hostname for a non-HTTP resource, a server that supports both DPoP and Resource Indicators MUST issue an access token that is not bound to the DPoP key, with a <tt>token_type</tt> of "Bearer". For any other token request that includes a DPoP proof, the server issues a DPoP-bound access token with a <tt>token_type</tt> of "DPoP", as normal. Servers that support DPoP SHOULD therefore also support Resource Indicators, so that client instances using non-HTTP protocols are not prevented from using DPoP.</li>
+<li>The client instance MUST check the <tt>token_type</tt> of each response and use the token accordingly: a "DPoP" token with the DPoP authentication scheme for HTTP requests, and a "Bearer" token with the Bearer scheme or OAUTHBEARER. If the client instance receives a "DPoP" token in response to a request that listed only non-HTTP resources, the server does not support this arrangement (for example, because it does not support Resource Indicators and ignored the parameters). The client instance MUST NOT attempt to use that token with a non-HTTP server, and MUST obtain a new authorization without using DPoP if it is to continue.</li>
+</ul>
+<t>A client instance can avoid the last failure case in most deployments by only attempting this arrangement when the authorization server metadata includes <tt>protected_resources</tt>, which indicates the server acts on Resource Indicators.</t>
+</section>
+
 <section anchor="scopes"><name>Scopes</name>
 <t>To work interoperably, clients and servers must use a common set of scopes for access. This document creates a new IANA registry for such scopes (see <xref target="scopes-registry" />), and registers scopes to cover IMAP, SMTP, POP, CardDAV, CalDAV, and JMAP.</t>
 <t>Registration of a scope in that registry does not by itself impose any requirement on OAuth implementations in general (see <xref target="scopes-registry" />). This profile, however, does require support: a server implementing this profile MUST support each of the scopes registered by this document (<xref target="initial-registry-contents" />) whose definition covers a protocol or type of data that the server offers. For example, a server that offers IMAP and SMTP MUST support <tt>urn:ietf:params:oauth:scope:mail</tt>, and a server that offers CalDAV MUST support <tt>urn:ietf:params:oauth:scope:calendars</tt>. Supporting a scope means advertising it in the <tt>scopes_supported</tt> metadata property, accepting it in registration and authorization requests, and granting the access described in its registration when it is authorized.</t>
@@ -355,6 +371,8 @@ object with the following properties:</t>
 <dd>This MUST be "refresh_token".</dd>
 <dt><tt>refresh_token</tt></dt>
 <dd>The refresh token returned last time the client instance obtained a new access token.</dd>
+<dt><tt>resource (optional)</tt></dt>
+<dd>One or more Resource Indicators restricting the access token to a subset of the authorized resources, with the same semantics as in <xref target="obtaining-a-refresh-token" />.</dd>
 </dl>
 <t>The success and failures responses are identical to those documented in
 "Obtaining a refresh token" (<xref target="obtaining-a-refresh-token" />).</t>
