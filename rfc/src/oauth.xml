@@ -349,7 +349,8 @@ which will result in getting a <tt>401</tt> error back.</t>
 <section anchor="token-expiry-times"><name>Token Expiry Times</name>
 <t>To ensure a good user experience, access tokens MUST have a lifetime of at least 1 hour. Refresh tokens SHOULD NOT expire, unless the user explicitly revokes the token or it has been unused for a considerable period of time (at least 30 days).</t>
 <t>For stateful connection-based protocols such as SMTP and IMAP the access token is only presented on first connection. Expiry of the access token SHOULD NOT affect current IMAP/SMTP etc. sessions that have already authenticated. However, should the server choose to force reauthorization it MUST do so by unilaterally closing the connection, as there is no way to reauthenticate an existing session in these protocols and all clients have to be able to handle reconnection in the case of dropped connections.</t>
-<t>If the refresh token is revoked, all existing stateful connections MUST immediately be closed.</t>
+<t>When the server revokes a refresh token (for example, because the user has revoked the client's authorization, or because the token has been detected as leaked), it MUST close any existing stateful connections that were authenticated using access tokens issued under that refresh token.</t>
+<t>A client instance cannot detect that its refresh token has been revoked until it next attempts to use it. Once a client instance does detect revocation (by receiving an <tt>invalid_grant</tt> error from the token endpoint), it MUST discard the refresh token and any associated access tokens, MUST close any stateful connections it still has open that were authenticated with them, and MUST obtain new authorization before reconnecting (see <xref target="dynamic-client-registration-considerations" />).</t>
 </section>
 
 <section anchor="dynamic-client-registration-considerations">
