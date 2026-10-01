@@ -49,7 +49,7 @@
 <t>This specification defines a data model for synchronizing calendar data between a client and a server using JMAP. The data model is designed to allow a server to provide consistent access to the same data via CalDAV <xref target="RFC4791"></xref> as well as JMAP, however the functionality offered over the two protocols may differ. Unlike CalDAV, this specification does not define access to tasks or journal entries (VTODO or VJOURNAL iCalendar components in CalDAV).</t>
 
 <section anchor="notational-conventions"><name>Notational Conventions</name>
-<t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
+<t>The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>", "<bcp14>REQUIRED</bcp14>", "<bcp14>SHALL</bcp14>", "<bcp14>SHALL NOT</bcp14>", "<bcp14>SHOULD</bcp14>", "<bcp14>SHOULD NOT</bcp14>", "<bcp14>RECOMMENDED</bcp14>", "<bcp14>NOT RECOMMENDED</bcp14>", "<bcp14>MAY</bcp14>", and "<bcp14>OPTIONAL</bcp14>" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119"></xref> <xref target="RFC8174"></xref> when, and only when, they appear in all capitals, as shown here.</t>
 <t>Type signatures, examples, and property descriptions in this document follow the conventions established in <xref target="RFC8620" section="1.1" sectionFormat="of" />.</t>
 </section>
 
@@ -72,8 +72,8 @@
 
 <section anchor="uids-and-calendarevent-ids"><name>UIDs and CalendarEvent Ids</name>
 <t>Each CalendarEvent has a "uid" property (<xref target="I-D.ietf-calext-jscalendarbis" section="3.1.1" />), which is a globally unique identifier that identifies the same event in different Accounts, or different instances of the same recurring event within an Account.</t>
-<t>An Account MUST NOT contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their "recurrenceId" property. (This situation occurs if the Principal is added to one or more specific instances of a recurring event without being invited to the whole series.)</t>
-<t>Where an Account does contain multiple CalendarEvent objects with the same uid, they MUST NOT have different values for their "privacy" property (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.4.3" />). See <xref target="calendarevent-set" /> for how the server enforces this.</t>
+<t>An Account <bcp14>MUST NOT</bcp14> contain more than one CalendarEvent with the same uid unless all of the CalendarEvent objects have distinct, non-null values for their "recurrenceId" property. (This situation occurs if the Principal is added to one or more specific instances of a recurring event without being invited to the whole series.)</t>
+<t>Where an Account does contain multiple CalendarEvent objects with the same uid, they <bcp14>MUST NOT</bcp14> have different values for their "privacy" property (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.4.3" />). See <xref target="calendarevent-set" /> for how the server enforces this.</t>
 <t>Each CalendarEvent also has an id, which is scoped to the JMAP Account and used for referencing it in JMAP methods. There is no necessary link between the uid and the CalendarEvent's id. CalendarEvents with the same uid in different Accounts may have different ids.</t>
 </section>
 </section>
@@ -83,11 +83,11 @@
 
 <section anchor="urn-ietf-params-jmap-calendars"><name>urn:ietf:params:jmap:calendars</name>
 <t>This represents support for the Calendar, CalendarEvent, CalendarEventNotification, and ParticipantIdentity data types and associated API methods, except for "CalendarEvent/parse". The value of this property in the JMAP Session "capabilities" property is an empty object.</t>
-<t>The value of this property in an account's "accountCapabilities" property is an object that MUST contain the following information on server capabilities and permissions for that account:</t>
+<t>The value of this property in an account's "accountCapabilities" property is an object that <bcp14>MUST</bcp14> contain the following information on server capabilities and permissions for that account:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>maxCalendarsPerEvent</strong>: <tt>UnsignedInt|null</tt></dt>
-<dd>The maximum number of Calendars (see <xref target="calendars" />) that can be assigned to a single CalendarEvent object (see <xref target="calendar-events" />). This MUST be an integer &gt;= 1, or null for no limit (or rather, the limit is always the number of Calendars in the account).</dd>
+<dd>The maximum number of Calendars (see <xref target="calendars" />) that can be assigned to a single CalendarEvent object (see <xref target="calendar-events" />). This <bcp14>MUST</bcp14> be an integer &gt;= 1, or null for no limit (or rather, the limit is always the number of Calendars in the account).</dd>
 <dt><strong>minDateTime</strong>: <tt>UTCDateTime</tt></dt>
 <dd>The earliest date-time value the server is willing to accept for any date stored in a CalendarEvent.</dd>
 <dt><strong>maxDateTime</strong>: <tt>UTCDateTime</tt></dt>
@@ -102,9 +102,9 @@
 </section>
 
 <section anchor="urn-ietf-params-jmap-principals-availability"><name>urn:ietf:params:jmap:principals:availability</name>
-<t>Represents support for the "Principal/getAvailability" method. Any account with this capability MUST also have the <tt>urn:ietf:params:jmap:principals</tt> capability (see <xref target="RFC9670" section="1.5.1" />).</t>
+<t>Represents support for the "Principal/getAvailability" method. Any account with this capability <bcp14>MUST</bcp14> also have the <tt>urn:ietf:params:jmap:principals</tt> capability (see <xref target="RFC9670" section="1.5.1" />).</t>
 <t>The value of this property in the JMAP Session "capabilities" property is an empty object.</t>
-<t>The value of this property in an account's "accountCapabilities" property is an object that MUST contain the following information on server capabilities and permissions for that account:</t>
+<t>The value of this property in an account's "accountCapabilities" property is an object that <bcp14>MUST</bcp14> contain the following information on server capabilities and permissions for that account:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>maxAvailabilityDuration</strong>: <tt>Duration</tt></dt>
@@ -131,8 +131,8 @@
 <dd>If true, the user may call the "Principal/getAvailability" method with this Principal.</dd>
 <dt><strong>mayShareWith</strong>: <tt>Boolean</tt></dt>
 <dd>If true, the user may add this Principal as a calendar share target (by adding them to the "shareWith" property of a calendar, see <xref target="calendars" />).</dd>
-<dt><strong>calendarAddress</strong>: <tt>String</tt></dt>
-<dd>If this Principal may be added as a participant to an event, this is the calendarAddress to use to receive iTIP scheduling messages.</dd>
+<dt><strong>calendarAddress</strong>: <tt>String|null</tt></dt>
+<dd>If this Principal may be added as a participant to an event, this is the calendarAddress to use to receive iTIP scheduling messages; otherwise, this is null.</dd>
 </dl>
 </section>
 
@@ -177,7 +177,7 @@
 <dt><strong>utcEnd</strong>: <tt>UTCDateTime</tt></dt>
 <dd>The end time (exclusive) of the period this represents.</dd>
 <dt><strong>busyStatus</strong>: <tt>String</tt> (optional, default "unavailable")</dt>
-<dd><t>This MUST be one of:</t>
+<dd><t>This <bcp14>MUST</bcp14> be one of:</t>
 <ul spacing="compact">
 <li><tt>"confirmed"</tt> — The event status is "confirmed" and the Principal's "participationStatus" is "accepted".</li>
 <li><tt>"tentative"</tt> — The event status is "tentative" or the Principal's "participationStatus" is "tentative".</li>
@@ -196,8 +196,8 @@
 <dd>The account id in which this event can be found, or null if the "event" property is null. (The id of the event may be requested in the eventProperties.)</dd>
 </dl>
 
-<t>The server MAY also generate BusyPeriod objects based on other information it has about the Principal's availability, such as office hours; the "event" and "accountId" properties will always be null for these.</t>
-<t>Finally, the server MUST merge and split BusyPeriod objects where the "event" property is null, such that none of them overlap and either there is a gap in time between any two objects (the utcEnd of one does not equal the utcStart of another) or those objects have a different "busyStatus" property. If there are overlapping BusyPeriod time ranges with different "busyStatus" properties the server MUST choose the value in the following order: confirmed &gt; unavailable &gt; tentative.</t>
+<t>The server <bcp14>MAY</bcp14> also generate BusyPeriod objects based on other information it has about the Principal's availability, such as office hours; the "event" and "accountId" properties will always be null for these.</t>
+<t>Finally, the server <bcp14>MUST</bcp14> merge and split BusyPeriod objects where the "event" property is null, such that none of them overlap and either there is a gap in time between any two objects (the utcEnd of one does not equal the utcStart of another) or those objects have a different "busyStatus" property. If there are overlapping BusyPeriod time ranges with different "busyStatus" properties the server <bcp14>MUST</bcp14> choose the value in the following order: confirmed &gt; unavailable &gt; tentative.</t>
 <t>The response has the following argument:</t>
 
 <dl spacing="normal" newline="true">
@@ -242,8 +242,8 @@
 <dt><strong>calendarAddress</strong>: <tt>String</tt></dt>
 <dd>The URI that represents this participant for iTIP scheduling <xref target="RFC5546" />.</dd>
 <dt><strong>isDefault</strong>: <tt>Boolean</tt> (server-set)</dt>
-<dd><t>This SHOULD be true for exactly one participant identity in any account, and
-MUST NOT be true for more than one participant identity within an account.
+<dd><t>This <bcp14>SHOULD</bcp14> be true for exactly one participant identity in any account, and
+<bcp14>MUST NOT</bcp14> be true for more than one participant identity within an account.
 The default identity should be used by clients whenever they need to choose
 an identity for the user within this account, and they do not have any other
 information on which to make a choice. For example, if creating a scheduled
@@ -278,13 +278,13 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</dd>
 </dl>
 
 <t>If the id is not found, or the change is not permitted by the server for
-  policy reasons, it MUST be ignored and the currently default
+  policy reasons, it <bcp14>MUST</bcp14> be ignored and the currently default
   ParticipantIdentity (if any) will remain as such. No error is returned to
   the client in this case.</t>
 <t>As per <xref target="RFC8620" section="5.3" />, if the default is successfully changed, any
-  changed objects MUST be reported in either the "created" or "updated"
+  changed objects <bcp14>MUST</bcp14> be reported in either the "created" or "updated"
   argument in the response as  appropriate, with the server-set value included.</t>
-<t>The server MAY restrict the URI values the user may claim, for example only allowing <tt>mailto:</tt> URIs with email addresses that belong to the user. A standard <tt>forbidden</tt> error is returned to reject non-permissible changes.</t>
+<t>The server <bcp14>MAY</bcp14> restrict the URI values the user may claim, for example only allowing <tt>mailto:</tt> URIs with email addresses that belong to the user. A standard <tt>forbidden</tt> error is returned to reject non-permissible changes.</t>
 </section>
 </section>
 
@@ -296,27 +296,27 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</dd>
 <dt><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</dt>
 <dd>The id of the calendar.</dd>
 <dt><strong>name</strong>: <tt>String</tt></dt>
-<dd>The user-visible name of the calendar. This MUST NOT be the empty string and MUST NOT be greater than 255 octets in size when encoded as UTF-8.</dd>
+<dd>The user-visible name of the calendar. This <bcp14>MUST NOT</bcp14> be the empty string and <bcp14>MUST NOT</bcp14> be greater than 255 octets in size when encoded as UTF-8.</dd>
 <dt><strong>description</strong>: <tt>String|null</tt> (default: null)</dt>
 <dd>An optional longer-form description of the calendar, to provide context in shared environments where users need more than just the name.</dd>
 <dt><strong>color</strong>: <tt>String|null</tt> (default: null)</dt>
 <dd><t>A color to be used when displaying events associated with the calendar.</t>
-<t>If not null, the value MUST be a case-insensitive color name taken from the set of names defined in Section 4.3 of CSS Color Module Level 3 <xref target="COLORS" />, or an RGB value in hexadecimal notation, as defined in Section 4.2.1 of CSS Color Module Level 3.</t>
-<t>The color SHOULD have sufficient contrast when used as text on a white background, unless the user explicitly chooses otherwise. The Web Content Accessibility Guidelines <xref target="WCAG" /> recommend at least a 4.5:1 contrast ratio for readability.</t></dd>
+<t>If not null, the value <bcp14>MUST</bcp14> be a case-insensitive color name taken from the set of names defined in Section 4.3 of CSS Color Module Level 3 <xref target="COLORS" />, or an RGB value in hexadecimal notation, as defined in Section 4.2.1 of CSS Color Module Level 3.</t>
+<t>The color <bcp14>SHOULD</bcp14> have sufficient contrast when used as text on a white background, unless the user explicitly chooses otherwise. The Web Content Accessibility Guidelines <xref target="WCAG" /> recommend at least a 4.5:1 contrast ratio for readability.</t></dd>
 <dt><strong>sortOrder</strong>: <tt>UnsignedInt</tt> (default: 0)</dt>
 <dd><t>Defines the sort order of calendars when presented in the client's UI, so it
-is consistent between devices. The number MUST be an integer in the range
+is consistent between devices. The number <bcp14>MUST</bcp14> be an integer in the range
 0 &lt;= sortOrder &lt; 2<sup>31</sup>.</t>
 <t>A calendar with a lower order is to be displayed before a calendar with
 a higher order in any list of calendars in the client's UI. Calendars with equal order should be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.</t></dd>
 <dt><strong>isSubscribed</strong>: <tt>Boolean</tt></dt>
-<dd><t>True if the user has indicated they wish to see this Calendar in their client. This SHOULD default to false for Calendars in shared accounts the user has access to and true for any new Calendars created by the user themself.</t>
-<t>If false, the calendar SHOULD only be displayed when the user explicitly
+<dd><t>True if the user has indicated they wish to see this Calendar in their client. This <bcp14>SHOULD</bcp14> default to false for Calendars in shared accounts the user has access to and true for any new Calendars created by the user themself.</t>
+<t>If false, the calendar <bcp14>SHOULD</bcp14> only be displayed when the user explicitly
 requests it or to offer it for the user to subscribe to. For example, a company may have a large number of shared calendars which all employees have permission to access, but the user would only subscribe to the ones they care about and want to be able to have normally accessible.</t></dd>
 <dt><strong>isVisible</strong>: <tt>Boolean</tt> (default: true)</dt>
-<dd>If true, the calendar's events should be displayed to the user. If false, the user has indicated they wish to temporarily hide this calendar's events. Clients MUST ignore this property if isSubscribed is false. If an event is in multiple calendars, it should be displayed if isVisible is true for any of those calendars.</dd>
+<dd>If true, the calendar's events should be displayed to the user. If false, the user has indicated they wish to temporarily hide this calendar's events. Clients <bcp14>MUST</bcp14> ignore this property if isSubscribed is false. If an event is in multiple calendars, it should be displayed if isVisible is true for any of those calendars.</dd>
 <dt><strong>isDefault</strong>: <tt>Boolean</tt> (server-set)</dt>
-<dd>This SHOULD be true for exactly one calendar in any account, and MUST NOT be
+<dd>This <bcp14>SHOULD</bcp14> be true for exactly one calendar in any account, and <bcp14>MUST NOT</bcp14> be
 true for more than one calendar within an account. The default calendar
 should be used by clients whenever they need to choose a calendar for the
 user within this account, and they do not have any other information on
@@ -324,7 +324,7 @@ which to make a choice. For example, if the user creates a new event, the
 client may automatically set the event as belonging to the default calendar
 from the user's primary account.</dd>
 <dt><strong>includeInAvailability</strong>: <tt>String</tt></dt>
-<dd><t>This determines which events in this calendar will be used as part of availability calculation. The value MUST be one of:</t>
+<dd><t>This determines which events in this calendar will be used as part of availability calculation. The value <bcp14>MUST</bcp14> be one of:</t>
 <ul spacing="compact">
 <li><tt>"all"</tt> — all events are considered.</li>
 <li><tt>"attending"</tt> — events the user is a confirmed or tentative participant of are considered.</li>
@@ -333,16 +333,16 @@ from the user's primary account.</dd>
 <t>This should default to "all" for the calendars in the user's own account,
 and "none" for calendars shared with the user.</t></dd>
 <dt><strong>defaultAlertsWithTime</strong>: <tt>Id[Alert]|null</tt></dt>
-<dd><t>A map of alert ids to Alert objects (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.5.1" />) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.  The "trigger" MUST NOT be an AbsoluteTrigger, as this would fire for every event at the same time and so does not make sense for a default alert.</t>
+<dd><t>A map of alert ids to Alert objects (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.5.1" />) to apply for events where "showWithoutTime" is false and "useDefaultAlerts" is true. Ids <bcp14>MUST</bcp14> be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended.  The "trigger" <bcp14>MUST NOT</bcp14> be an AbsoluteTrigger, as this would fire for every event at the same time and so does not make sense for a default alert.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to null, or may copy the alerts from the default calendar.</t></dd>
 <dt><strong>defaultAlertsWithoutTime</strong>: <tt>Id[Alert]|null</tt></dt>
-<dd><t>A map of alert ids to Alert objects (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.5.1" />) to apply for events where "showWithoutTime" is true (commonly referred to as "all day" events) and "useDefaultAlerts" is true. Ids MUST be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended. The "trigger" MUST NOT be an AbsoluteTrigger, as this would fire for every event at the same time and so does not make sense for a default alert.</t>
+<dd><t>A map of alert ids to Alert objects (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.5.1" />) to apply for events where "showWithoutTime" is true (commonly referred to as "all day" events) and "useDefaultAlerts" is true. Ids <bcp14>MUST</bcp14> be unique across all default alerts in the account, including those in other calendars; a UUID <xref target="RFC9562" /> is recommended. The "trigger" <bcp14>MUST NOT</bcp14> be an AbsoluteTrigger, as this would fire for every event at the same time and so does not make sense for a default alert.</t>
 <t>If omitted on creation, the default is server dependent. For example, servers may choose to always default to null, or may copy the alerts from the default calendar.</t></dd>
 <dt><strong>timeZone</strong>: <tt>TimeZoneId|null</tt> (default: null)</dt>
-<dd>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value MUST be a time zone id from the IANA Time Zone Database <xref target="IANA-TZDB" />. If null, the timeZone of the account's associated Principal will be used.</dd>
+<dd>The time zone to use for events without a time zone when the server needs to resolve them into absolute time, e.g., for alerts or availability calculation. The value <bcp14>MUST</bcp14> be a time zone id from the IANA Time Zone Database <xref target="IANA-TZDB" />. If null, the timeZone of the account's associated Principal will be used.</dd>
 <dt><strong>shareWith</strong>: <tt>Id[CalendarRights]|null</tt> (default: null)</dt>
 <dd><t>This is a map configuring who the calendar is shared with, or null if it is not shared with anyone. Each key in the map is the id of a Principal with whom the calendar is shared. The value for each key is the set of access rights that Principal has for the calendar. The account id for the Principals may be found in the <tt>urn:ietf:params:jmap:principals:owner</tt> capability of the Account to which the calendar belongs.</t>
-<t>The Principal to which this calendar belongs MUST NOT be in the map.</t>
+<t>The Principal to which this calendar belongs <bcp14>MUST NOT</bcp14> be in the map.</t>
 <t>The property may only be modified if the user has the mayShare right.</t></dd>
 <dt><strong>myRights</strong>: <tt>CalendarRights</tt> (server-set)</dt>
 <dd><t>The set of access rights the user has in relation to this Calendar. If any event is in multiple calendars, the user has the following rights:</t>
@@ -363,11 +363,11 @@ calendar.</li>
 <dt><strong>mayReadItems</strong>: <tt>Boolean</tt></dt>
 <dd>The user may fetch the events in this calendar.</dd>
 <dt><strong>mayWriteAll</strong>: <tt>Boolean</tt></dt>
-<dd>The user may create, modify or destroy all events in this calendar, or move events to or from this calendar. If this is true, the mayWriteOwn, mayUpdatePrivate and mayRSVP properties MUST all also be true.</dd>
+<dd>The user may create, modify or destroy all events in this calendar, or move events to or from this calendar. If this is true, the mayWriteOwn, mayUpdatePrivate and mayRSVP properties <bcp14>MUST</bcp14> all also be true.</dd>
 <dt><strong>mayWriteOwn</strong>: <tt>Boolean</tt></dt>
 <dd>The user may create, modify or destroy an event on this calendar if either they are the owner of the event (see below) or the event has no owner. This means the user may also transfer ownership by updating an event so they are no longer an owner.</dd>
 <dt><strong>mayUpdatePrivate</strong>: <tt>Boolean</tt></dt>
-<dd><t>The user may modify per-user properties (see <xref target="per-user-properties" />) on all events in the calendar, even if they would not otherwise have permission to modify that event. These properties MUST all be stored per-user, and changes do not affect any other user of the calendar.</t>
+<dd><t>The user may modify per-user properties (see <xref target="per-user-properties" />) on all events in the calendar, even if they would not otherwise have permission to modify that event. These properties <bcp14>MUST</bcp14> all be stored per-user, and changes do not affect any other user of the calendar.</t>
 <t>The user may also modify these properties on a per-occurrence basis for recurring events (updating the "recurrenceOverrides" property of the event to do so).</t></dd>
 <dt><strong>mayRSVP</strong>: <tt>Boolean</tt></dt>
 <dd><t>The user may modify the following properties of any Participant object that corresponds to one of the user's ParticipantIdentity objects in the account, even if they would not otherwise have permission to modify that event:</t>
@@ -379,9 +379,9 @@ calendar.</li>
 <li>scheduleUpdated</li>
 </ul>
 
-<t>If the event has its "mayInviteSelf" property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with a calendarAddress property that is the same as the calendarAddress property of one of the user's ParticipantIdentity objects in the account. The "roles" property of the participant MUST be the empty object or omitted.</t>
+<t>If the event has its "mayInviteSelf" property set to true (see <xref target="mayinviteself" />), then the user may also add a new Participant to the event with a calendarAddress property that is the same as the calendarAddress property of one of the user's ParticipantIdentity objects in the account. The "roles" property of the participant <bcp14>MUST</bcp14> be the empty object or omitted.</t>
 
-<t>If the event has its "mayInviteOthers" property set to true (see <xref target="mayinviteothers" />) and there is an existing Participant in the event corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The "roles" property of any new participant MUST be the empty object or omitted.</t>
+<t>If the event has its "mayInviteOthers" property set to true (see <xref target="mayinviteothers" />) and there is an existing Participant in the event corresponding to one of the user's ParticipantIdentity objects in the account, then the user may also add new participants. The "roles" property of any new participant <bcp14>MUST</bcp14> be the empty object or omitted.</t>
 
 <t>The user may also do all of the above on a per-occurrence basis for recurring events (updating the "recurrenceOverrides" property of the event to do so).</t></dd>
 <dt><strong>mayShare</strong>: <tt>Boolean</tt></dt>
@@ -400,7 +400,7 @@ calendar.</li>
 
 <section anchor="calendar-get"><name>Calendar/get</name>
 <t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />. The "ids" argument may be null to fetch all at once.</t>
-<t>If mayReadFreeBusy is the only permission the user has, the calendar MUST NOT be returned in "Calendar/get" or "Calendar/changes" responses; it must behave as though it did not exist. The data is just used as part of "Principal/getAvailability".</t>
+<t>If mayReadFreeBusy is the only permission the user has, the calendar <bcp14>MUST NOT</bcp14> be returned in "Calendar/get" or "Calendar/changes" responses; it must behave as though it did not exist. The data is just used as part of "Principal/getAvailability".</t>
 </section>
 
 <section anchor="calendar-changes"><name>Calendar/changes</name>
@@ -412,23 +412,23 @@ calendar.</li>
 
 <dl spacing="normal" newline="true">
 <dt><strong>onDestroyRemoveEvents</strong>: <tt>Boolean</tt> (default: false)</dt>
-<dd>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This MUST NOT send scheduling messages to participants. It MAY create CalendarEventNotification objects, if deemed likely to be helpful to the user. In the case of a calendar with a large number of events, the large number of notifications resulting from the single deletion is unlikely to be useful to the user, and the server MAY choose to omit creating them. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="RFC9670" section="3"/>) MUST be created for each Principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</dd>
+<dd>If false, any attempt to destroy a Calendar that still has CalendarEvents in it will be rejected with a <tt>calendarHasEvent</tt> SetError. If true, any CalendarEvents that were in the Calendar will be removed from it, and if in no other Calendars they will be destroyed. This <bcp14>MUST NOT</bcp14> send scheduling messages to participants. It <bcp14>MAY</bcp14> create CalendarEventNotification objects, if deemed likely to be helpful to the user. In the case of a calendar with a large number of events, the large number of notifications resulting from the single deletion is unlikely to be useful to the user, and the server <bcp14>MAY</bcp14> choose to omit creating them. In systems supporting JMAP Sharing, a single ShareNotification (as defined in <xref target="RFC9670" section="3"/>) <bcp14>MUST</bcp14> be created for each Principal the calendar was previously shared with, to inform them they no longer have access to the calendar.</dd>
 <dt><strong>onSuccessSetIsDefault</strong>: <tt>Id|null</tt></dt>
 <dd><t>If an id is given, and all creates, updates and destroys (if any) succeed
 without error, the server will try to set this calendar as the default. (For
 references to Calendar creations, this is equivalent to a
 creation-reference, so the id will be the creation id prefixed with a "#".)</t>
 <t>If the id is not found, or the change is not permitted by the server for
-  policy reasons, it MUST be ignored and the currently default calendar (if
+  policy reasons, it <bcp14>MUST</bcp14> be ignored and the currently default calendar (if
   any) will remain as such. No error is returned to the client in this case.</t>
 <t>As per <xref target="RFC8620" section="5.3" />, if the default is successfully changed, any
-  changed objects MUST be reported in either the "created" or "updated"
+  changed objects <bcp14>MUST</bcp14> be reported in either the "created" or "updated"
   argument in the response as  appropriate, with the server-set value included.</t></dd>
 </dl>
 
 <t>The "shareWith" property may only be set by users that have the mayShare right.
 When modifying the "shareWith" property, the user cannot give a right to a Principal if the Principal did not already have that right and the user making the change also does not have that right. Any attempt to do so must be rejected with a <tt>forbidden</tt> SetError.</t>
-<t>Users can subscribe or unsubscribe to a calendar by setting the "isSubscribed" property. The server MAY forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
+<t>Users can subscribe or unsubscribe to a calendar by setting the "isSubscribed" property. The server <bcp14>MAY</bcp14> forbid users from subscribing to certain calendars even though they have permission to see them, rejecting the update with a <tt>forbidden</tt> SetError.</t>
 <t>The following properties may be set by anyone who is subscribed to the calendar and are always stored per-user:</t>
 
 <ul spacing="compact">
@@ -464,9 +464,7 @@ When modifying the "shareWith" property, the user cannot give a right to a Princ
 <dt><strong>baseEventId</strong>: <tt>Id|null</tt> (immutable; server-set)</dt>
 <dd>This is only defined if the "id" property is a synthetic id, generated by the server to represent a particular instance of a recurring event (see <xref target="calendarevent-query" />). This property gives the id of the "real" CalendarEvent this was generated from.</dd>
 <dt><strong>calendarIds</strong>: <tt>Id[Boolean]</tt></dt>
-<dd>The set of Calendar ids this event belongs to. An event MUST belong to one or more Calendars at all times (until it is destroyed). The set is represented as an object, with each key being a Calendar id. The value for each key in the object MUST be true.</dd>
-<dt><strong>isDraft</strong>: <tt>Boolean</tt> (default: false)</dt>
-<dd>If true, this event is to be considered a draft. The server will not send any scheduling messages to participants or send push notifications for alerts. This may only be set to true upon creation. Once set to false, the value cannot be updated to true. This property MUST NOT appear in "recurrenceOverrides".</dd>
+<dd>The set of Calendar ids this event belongs to. An event <bcp14>MUST</bcp14> belong to one or more Calendars at all times (until it is destroyed). The set is represented as an object, with each key being a Calendar id. The value for each key in the object <bcp14>MUST</bcp14> be true.</dd>
 <dt><strong>isOrigin</strong>: <tt>Boolean</tt> (server-set)</dt>
 <dd>
   <t>Is this the authoritative source for this event (i.e., does it control
@@ -477,20 +475,22 @@ invitation from another calendar system)? This is true if, and only if:</t>
     <li>the account will receive messages sent to the "organizerCalendarAddress" URI.</li>
   </ul>
 </dd>
+<dt><strong>isDraft</strong>: <tt>Boolean</tt> (default: false)</dt>
+<dd>If true, this event is to be considered a draft. The server will not send any scheduling messages to participants or send push notifications for alerts. This may only be set to true upon creation. Once set to false, the value cannot be updated to true. This property <bcp14>MUST NOT</bcp14> appear in "recurrenceOverrides".</dd>
+<dt><strong>useDefaultAlerts</strong>: <tt>Boolean</tt> (default: false)</dt>
+<dd>If true, use the user's default alerts and ignore the value of the <tt>alerts</tt> property (see <xref target="default-alerts" />).</dd>
 <dt><strong>utcStart</strong>: <tt>UTCDateTime</tt></dt>
 <dd><t>For simple clients that do not implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.</t>
 <t>This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different result if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the event.</t>
-<t>If set, the server will convert the UTC date to the event's current time zone and store the local time. If the event does not have a non-null "timeZone" property, the server MUST also set this property (and return it in the created/updated response, as per <xref target="RFC8620" section="5.3" />). The value MUST be the "timeZone" property of the Calendar(s) the event is in if all of them have the same non-null value. Otherwise, the time zone is to be set to "Etc/UTC".</t>
+<t>If set, the server will convert the UTC date to the event's current time zone and store the local time. If the event does not have a non-null "timeZone" property, the server <bcp14>MUST</bcp14> also set this property (and return it in the created/updated response, as per <xref target="RFC8620" section="5.3" />). The value <bcp14>MUST</bcp14> be the "timeZone" property of the Calendar(s) the event is in if all of them have the same non-null value. Otherwise, the time zone is to be set to "Etc/UTC".</t>
 <t>This property is not included in "CalendarEvent/get" responses by default and must be requested explicitly.</t>
 <t>Floating events (events without a time zone) will be interpreted as per the time zone given as a "CalendarEvent/get" argument.</t>
-<t>Note that it is not possible to accurately calculate the expansion of a recurrence rule or recurrence overrides with the "utcStart" property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are RECOMMENDED to request the server expand recurrences (see <xref target="calendarevent-query" />).</t></dd>
+<t>Note that it is not possible to accurately calculate the expansion of a recurrence rule or recurrence overrides with the "utcStart" property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are <bcp14>RECOMMENDED</bcp14> to request the server expand recurrences (see <xref target="calendarevent-query" />).</t></dd>
 <dt><strong>utcEnd</strong>: <tt>UTCDateTime</tt></dt>
 <dd>The server calculates the end time in UTC from the start/timeZone/duration properties of the event. This property is not included by default and must be requested explicitly. Like utcStart, it is calculated at fetch time if requested and may change due to time zone data changes. Floating events will be interpreted as per the time zone given as a "CalendarEvent/get" argument.</dd>
-<dt><strong>useDefaultAlerts</strong>: <tt>Boolean</tt> (optional, default: false)</dt>
-<dd>If true, use the user's default alerts and ignore the value of the <tt>alerts</tt> property (see <xref target="default-alerts" />).</dd>
 </dl>
 
-<t>CalendarEvent objects stored on the server MUST NOT have a "method" property, as this is only used when representing iTIP <xref target="RFC5546"></xref> scheduling messages, not events in a data store. This restriction does not apply to CalendarEvent objects returned by "CalendarEvent/parse" (see <xref target="calendarevent-parse" />), which represent the contents of an iCalendar file rather than stored events.</t>
+<t>CalendarEvent objects stored on the server <bcp14>MUST NOT</bcp14> have a "method" property, as this is only used when representing iTIP <xref target="RFC5546"></xref> scheduling messages, not events in a data store. This restriction does not apply to CalendarEvent objects returned by "CalendarEvent/parse" (see <xref target="calendarevent-parse" />), which represent the contents of an iCalendar file rather than stored events.</t>
 
 <section anchor="additional-jscalendar-properties"><name>Additional common-use JSCalendar properties</name>
 <t>This document defines three new JSCalendar properties for common use.</t>
@@ -498,19 +498,19 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <section anchor="mayinviteself"><name>mayInviteSelf</name>
 <t>Type: <tt>Boolean</tt> (optional; default: false)</t>
 <t>Context: Event, Task</t>
-<t>If true, anyone may add themselves to the event as a participant. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
+<t>If true, anyone may add themselves to the event as a participant. This property <bcp14>MUST NOT</bcp14> be altered in the recurrenceOverrides; it may only be set on the base object.</t>
 </section>
 
 <section anchor="mayinviteothers"><name>mayInviteOthers</name>
 <t>Type: <tt>Boolean</tt> (optional; default: false)</t>
 <t>Context: Event, Task</t>
-<t>If true, any current participant may add new participants to the event. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
+<t>If true, any current participant may add new participants to the event. This property <bcp14>MUST NOT</bcp14> be altered in the recurrenceOverrides; it may only be set on the base object.</t>
 </section>
 
 <section anchor="hideattendees"><name>hideAttendees</name>
 <t>Type: <tt>Boolean</tt> (optional; default: false)</t>
 <t>Context: Event, Task</t>
-<t>If true, only the owners of the event may see the full set of participants. Other users with access to the event may only see the owners and themselves. This property MUST NOT be altered in the recurrenceOverrides; it may only be set on the base object.</t>
+<t>If true, only the owners of the event may see the full set of participants. Other users with access to the event may only see the owners and themselves. This property <bcp14>MUST NOT</bcp14> be altered in the recurrenceOverrides; it may only be set on the base object.</t>
 </section>
 </section>
 
@@ -522,7 +522,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <t>Context: Participant</t>
 <t>This is the <tt>sequence</tt> property of the most recent iTIP response that has been applied for this participant. It can be compared to the <tt>sequence</tt> property in future responses to detect and discard older responses
 delivered out of order.</t>
-<t>Whenever an event is updated due to an iTIP response, whether by the server or the client, this property MUST be set appropriately.</t>
+<t>Whenever an event is updated due to an iTIP response, whether by the server or the client, this property <bcp14>MUST</bcp14> be set appropriately.</t>
 </section>
 
 <section anchor="scheduleupdated"><name>scheduleUpdated</name>
@@ -530,18 +530,18 @@ delivered out of order.</t>
 <t>Context: Participant</t>
 <t>This is the <tt>updated</tt> property of the most recent iTIP response that has been applied for this participant. It can be compared to the <tt>updated</tt> property in future responses to detect and discard older responses
 delivered out of order (if the "scheduleSequence" is the same).</t>
-<t>Whenever an event is updated due to an iTIP response, whether by the server or the client, this property MUST be set appropriately.</t>
+<t>Whenever an event is updated due to an iTIP response, whether by the server or the client, this property <bcp14>MUST</bcp14> be set appropriately.</t>
 </section>
 
 </section>
 
 <section anchor="attachments"><name>Attachments</name>
 <t>The Link object, as defined in <xref target="I-D.ietf-calext-jscalendarbis" section="1.5.11" />, with a "rel" property equal to "enclosure" is used to represent attachments. Instead of mandating an "href" property, clients may set a "blobId" property instead to reference a blob of binary data in the account, as per <xref target="RFC8620" section="6" />.</t>
-<t>The server MUST translate this to an embedded <tt>data:</tt> URL <xref target="RFC2397" /> when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments <xref target="RFC8607" />.</t>
+<t>The server <bcp14>MUST</bcp14> translate this to an embedded <tt>data:</tt> URL <xref target="RFC2397" /> when sending the event to a system that cannot access the blob. Servers that support CalDAV access to the same data are recommended to expose these files as managed attachments <xref target="RFC8607" />.</t>
 </section>
 
 <section anchor="per-user-properties"><name>Per-user properties</name>
-<t>In shared calendars, any top-level property with "Is Per-User" set to "Yes" in the IANA "JSCalendar Properties" registry (see <xref target="I-D.ietf-calext-jscalendarbis" section="7.4" />) MUST be stored per-user. This includes:</t>
+<t>In shared calendars, any top-level property with "Is Per-User" set to "Yes" in the IANA "JSCalendar Properties" registry (see <xref target="I-D.ietf-calext-jscalendarbis" section="7.4" />) <bcp14>MUST</bcp14> be stored per-user. This includes:</t>
 
 <ul spacing="compact">
 <li>keywords</li>
@@ -550,8 +550,8 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <li>useDefaultAlerts</li>
 <li>alerts</li>
 </ul>
-<t>If the user modifies any such properties on a per-occurrence basis for recurring events then again, these MUST also be stored per-user. Sharees initially receive the default value for each of these properties, not whatever value another user may have set.</t>
-<t>When writing only per-user properties, the "updated" property MUST also be stored just for that user if set. When fetching the "updated" property, the value to return is whichever is later of the per-user updated time or the updated time of the base event.</t>
+<t>If the user modifies any such properties on a per-occurrence basis for recurring events then again, these <bcp14>MUST</bcp14> also be stored per-user. Sharees initially receive the default value for each of these properties, not whatever value another user may have set.</t>
+<t>When writing only per-user properties, the "updated" property <bcp14>MUST</bcp14> also be stored just for that user if set. When fetching the "updated" property, the value to return is whichever is later of the per-user updated time or the updated time of the base event.</t>
 </section>
 
 <section anchor="recurring-events"><name>Recurring events</name>
@@ -564,7 +564,7 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <t>When editing a recurring event, you can either update the base event (affecting all instances unless overridden) or update an override for a specific occurrence. To update all occurrences from a specific point onwards, there are therefore two options: split the event, or update the base event and override all occurrences before the split point back to their original values.</t>
 
 <section anchor="splitting-an-event"><name>Splitting an event</name>
-<t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rule of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar <xref target="I-D.ietf-calext-jscalendarbis" section="3.1.3" />, a "next" relation MUST be set on the original object, and a "first" relation MUST be set on the duplicate.</t>
+<t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rule of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar <xref target="I-D.ietf-calext-jscalendarbis" section="3.1.3" />, a "next" relation <bcp14>MUST</bcp14> be set on the original object, and a "first" relation <bcp14>MUST</bcp14> be set on the duplicate.</t>
 </section>
 
 <section anchor="updating-the-base-event-and-overriding-previous"><name>Updating the base event and overriding previous</name>
@@ -577,11 +577,11 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <li>Create overrides for all occurrences before the split point to restore the properties to their previous values.</li>
 </ol>
 
-<t>This approach MUST be used if the user does not have the permissions required to split the event (e.g., if they are not an owner of the event).</t>
+<t>This approach <bcp14>MUST</bcp14> be used if the user does not have the permissions required to split the event (e.g., if they are not an owner of the event).</t>
 
-<t>This approach is RECOMMENDED if making changes to properties other than "start", "timeZone", or "recurrenceRule", as the single event update is easier for participants to understand.</t>
+<t>This approach is <bcp14>RECOMMENDED</bcp14> if making changes to properties other than "start", "timeZone", or "recurrenceRule", as the single event update is easier for participants to understand.</t>
 
-<t>Modifying the recurrence rule or start date/time zone with this method is NOT RECOMMENDED. While allowed by the data format specification, there is poor support in servers for recurrence overrides that add instances prior to the base event start date, and so this should be avoided. When making a change to these properties, the client SHOULD split the event instead, unless it knows all participants are using software that can handle this type of change.</t>
+<t>Modifying the recurrence rule or start date/time zone with this method is <bcp14>NOT RECOMMENDED</bcp14>. While allowed by the data format specification, there is poor support in servers for recurrence overrides that add instances prior to the base event start date, and so this should be avoided. When making a change to these properties, the client <bcp14>SHOULD</bcp14> split the event instead, unless it knows all participants are using software that can handle this type of change.</t>
 </section>
 </section>
 
@@ -598,18 +598,18 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <dt><strong>timeZone</strong>: <tt>TimeZoneId</tt> (default "Etc/UTC")</dt>
 <dd>The time zone to use when calculating the "utcStart"/"utcEnd" property of floating events. This argument has no effect if those properties are not requested.</dd>
 </dl>
-<t>A CalendarEvent object is a JSCalendar Event object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties that are defined on the JSCalendar Event object in the store are returned except for "iCalendar" (see <xref target="I-D.ietf-calext-jscalendar-icalendar" />). In addition, the "id", "calendarIds", "isDraft", and "isOrigin" properties MUST be included on each object. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested. If either is requested, the "recurrenceOverrides" property MUST NOT be requested (recurrence overrides cannot be interpreted accurately with just the UTC times). The "iCalendar" property is also only returned if explicitly requested.</t>
-<t>A requested id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRule" and "recurrenceOverrides" properties MUST be returned as null if requested for such an event.</t>
+<t>A CalendarEvent object is a JSCalendar Event object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties that are defined on the JSCalendar Event object in the store are returned except for "iCalendar" (see <xref target="I-D.ietf-calext-jscalendar-icalendar" />). In addition, the "id", "calendarIds", "isOrigin", "isDraft", and "useDefaultAlerts" properties <bcp14>MUST</bcp14> be included on each object. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested. If either is requested, the "recurrenceOverrides" property <bcp14>MUST NOT</bcp14> be requested (recurrence overrides cannot be interpreted accurately with just the UTC times). The "iCalendar" property is also only returned if explicitly requested.</t>
+<t>A requested id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". In such a case, the server will resolve any overrides and set the appropriate "start" and "recurrenceId" properties on the CalendarEvent object returned to the client. The "recurrenceRule" and "recurrenceOverrides" properties <bcp14>MUST</bcp14> be returned as null if requested for such an event.</t>
 <t>An event with the same uid/recurrenceId may appear in different accounts. Clients may coalesce the view of such events, but must be aware that the data may be different in the different accounts due to per-user properties, difference in permissions, etc.</t>
-<t>The "hideAttendees" property of a JSCalendar Event object allows the event owner(s) to hide the full set of participants when sharing the event. If this is true, when a non-owner fetches the event the server MUST only return participants with the "owner" role or corresponding to the user's participant identities.</t>
-<t>The "privacy" property of a JSCalendar Event object allows the Principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If set to "private", then when another user fetches the event the server MUST only return properties that are:</t>
+<t>The "hideAttendees" property of a JSCalendar Event object allows the event owner(s) to hide the full set of participants when sharing the event. If this is true, when a non-owner fetches the event the server <bcp14>MUST</bcp14> only return participants with the "owner" role or corresponding to the user's participant identities.</t>
+<t>The "privacy" property of a JSCalendar Event object allows the Principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If set to "private", then when another user fetches the event the server <bcp14>MUST</bcp14> only return properties that are:</t>
 
 <ul spacing="compact">
 <li>the basic time and metadata properties of the JSCalendar Event object as specified in <xref target="I-D.ietf-calext-jscalendarbis" section="3.4.3" />; or</li>
 <li>properties that are wholly derived from these permitted properties (i.e., utcStart, utcEnd); or</li>
 <li>additional CalendarEvent properties not derived from the JSCalendar Event data (i.e., id, baseEventId, calendarIds, isDraft, isOrigin).</li>
 </ul>
-<t>If "privacy" is set to "secret", the server MUST behave as though the event does not exist for all users other than the Principal that owns the calendar.</t>
+<t>If "privacy" is set to "secret", the server <bcp14>MUST</bcp14> behave as though the event does not exist for all users other than the Principal that owns the calendar.</t>
 </section>
 
 <section anchor="calendarevent-changes"><name>CalendarEvent/changes</name>
@@ -627,27 +627,27 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 </dd>
 </dl>
 
-<t>An id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". When the synthetic id for such an instance is given, the server MUST process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.</t>
-<t>Clients MUST NOT send an update/destroy to both the base event and a synthetic instance in a single "/set" request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different "recurrenceId" property) with the base event (same uid, no recurrenceId) in a single "/set" call. (So the "/set" will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.</t>
-<t>The client may send a null value for any optional JSCalendar Event property on create. This MUST be treated the same as omitting the property from the JSCalendar Event object. Note, this only applies to top-level properties of the CalendarEvent object.</t>
-<t>Servers MUST enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a <tt>forbidden</tt> SetError if not allowed.</t>
-<t>The "privacy" property of a JSCalendar Event object allows the Principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If this is set to "private", the event may only be destroyed or updated by the owner of the calendar it is in. Any attempt by another user to modify such an event MUST be rejected with a <tt>forbidden</tt> SetError (even if only modifying per-user properties). If set to "secret", the server MUST behave as though the event does not exist for all users other than the Principal that owns the calendar.</t>
-<t>The "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar, or a calendar shared by another user). The server MUST reject this with an <tt>invalidProperties</tt> SetError.</t>
-<t>As specified in <xref target="uids-and-calendarevent-ids" />, all CalendarEvent objects with the same uid in an Account MUST have the same value for their "privacy" property. After applying all the creates, updates, and destroys in the "/set" request, if the Account would contain two or more CalendarEvent objects with the same uid but different values for their "privacy" property, the server MUST reject each create or update in the request that affects a CalendarEvent with that uid with an <tt>invalidProperties</tt> SetError. Changes in the request to CalendarEvent objects with other uids are unaffected. Note that a client wishing to change the privacy of an event that exists as multiple instances in the Account must therefore update every instance in the same "/set" request.</t>
-<t>When a CalendarEvent is created or updated as a result of a scheduling message (e.g., an iTIP REQUEST message), whether by the server or at the user's request by a client, and the Account already contains a CalendarEvent with the same uid, the "privacy" property of the created or updated event MUST be set to the value of the "privacy" property of the existing event. The privacy the user has assigned to an event in their Account is never changed by the organizer sending an update.</t>
-<t>If omitted on create, the server MUST set the following properties:</t>
+<t>An id may represent a server-expanded single instance of a recurring event if the client asked the server to expand recurrences in "CalendarEvent/query". When the synthetic id for such an instance is given, the server <bcp14>MUST</bcp14> process an update as an update to the recurrence override for that instance on the base event, and a destroy as removing just that instance.</t>
+<t>Clients <bcp14>MUST NOT</bcp14> send an update/destroy to both the base event and a synthetic instance in a single "/set" request; the result of this is undefined. Note however, a client may replace a series of explicit instances (each with the same uid but a different "recurrenceId" property) with the base event (same uid, no recurrenceId) in a single "/set" call. (So the "/set" will destroy the existing instances and create the new base event.) This will happen when someone is initially invited to a specific instance or instances of a recurring event, then later invited to the whole series.</t>
+<t>The client may send a null value for any optional JSCalendar Event property on create. This <bcp14>MUST</bcp14> be treated the same as omitting the property from the JSCalendar Event object. Note, this only applies to top-level properties of the CalendarEvent object.</t>
+<t>Servers <bcp14>MUST</bcp14> enforce the user's permissions as returned in the "myRights" property of the Calendar objects and reject changes with a <tt>forbidden</tt> SetError if not allowed.</t>
+<t>The "privacy" property of a JSCalendar Event object allows the Principal that owns the calendar to override how the event is exposed to those with whom the calendar is shared. If this is set to "private", the event may only be destroyed or updated by the owner of the calendar it is in. Any attempt by another user to modify such an event <bcp14>MUST</bcp14> be rejected with a <tt>forbidden</tt> SetError (even if only modifying per-user properties). If set to "secret", the server <bcp14>MUST</bcp14> behave as though the event does not exist for all users other than the Principal that owns the calendar.</t>
+<t>The "privacy" property <bcp14>MUST NOT</bcp14> be set to anything other than "public" (the default) for events in a calendar that does not belong to the user (e.g. a shared team calendar, or a calendar shared by another user). The server <bcp14>MUST</bcp14> reject this with an <tt>invalidProperties</tt> SetError.</t>
+<t>As specified in <xref target="uids-and-calendarevent-ids" />, all CalendarEvent objects with the same uid in an Account <bcp14>MUST</bcp14> have the same value for their "privacy" property. After applying all the creates, updates, and destroys in the "/set" request, if the Account would contain two or more CalendarEvent objects with the same uid but different values for their "privacy" property, the server <bcp14>MUST</bcp14> reject each create or update in the request that affects a CalendarEvent with that uid with an <tt>invalidProperties</tt> SetError. Changes in the request to CalendarEvent objects with other uids are unaffected. Note that a client wishing to change the privacy of an event that exists as multiple instances in the Account must therefore update every instance in the same "/set" request.</t>
+<t>When a CalendarEvent is created or updated as a result of a scheduling message (e.g., an iTIP REQUEST message), whether by the server or at the user's request by a client, and the Account already contains a CalendarEvent with the same uid, the "privacy" property of the created or updated event <bcp14>MUST</bcp14> be set to the value of the "privacy" property of the existing event. The privacy the user has assigned to an event in their Account is never changed by the organizer sending an update.</t>
+<t>If omitted on create, the server <bcp14>MUST</bcp14> set the following properties:</t>
 <ul spacing="compact">
-<li><tt>@type</tt> MUST be set to "Event"</li>
-<li><tt>uid</tt> MUST be set to a new globally unique identifier, such as a UUID.</li>
-<li><tt>created</tt> MUST be set to the current date-time.</li>
+<li><tt>@type</tt> <bcp14>MUST</bcp14> be set to "Event"</li>
+<li><tt>uid</tt> <bcp14>MUST</bcp14> be set to a new globally unique identifier, such as a UUID.</li>
+<li><tt>created</tt> <bcp14>MUST</bcp14> be set to the current date-time.</li>
 </ul>
 <t>If (and only if) the server is the origin of the event (i.e., the event's "isOrigin" property is true):</t>
 <ul spacing="compact">
-<li>Whenever an event is created or updated, the "updated" property MUST be set to the current time by the server.</li>
-<li>If the client tries to set a value for this property it is not an error, but it MUST be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time MUST also be overridden to the server's current time.</li>
+<li>Whenever an event is created or updated, the "updated" property <bcp14>MUST</bcp14> be set to the current time by the server.</li>
+<li>If the client tries to set a value for this property it is not an error, but it <bcp14>MUST</bcp14> be overridden and replaced with the server's time. If the event is being created and the overridden "updated" time is now earlier than a client-supplied "created" time, the "created" time <bcp14>MUST</bcp14> also be overridden to the server's current time.</li>
 </ul>
-<t>Otherwise (i.e., if the event's "isOrigin" property is false), the server MUST NOT override or automatically set an "updated" time, as this can break correct processing of scheduling messages.</t>
-<t>Clients MUST NOT allow users to edit anything other than per-user
+<t>Otherwise (i.e., if the event's "isOrigin" property is false), the server <bcp14>MUST NOT</bcp14> override or automatically set an "updated" time, as this can break correct processing of scheduling messages.</t>
+<t>Clients <bcp14>MUST NOT</bcp14> allow users to edit anything other than per-user
 properties when the "isOrigin" property is false, even if the calendar "myRights" allows them to do so. All other properties may be overwritten when a future update arrives to this event from the origin (e.g., via an iTIP REQUEST message). Such updates may be directly applied by the server, or applied at the user's request by a client if it has access to the data through some other means (e.g., the client also has access to the user's email and can parse an iMIP message).</t>
 <t>When updating an event, if all of:</t>
 
@@ -657,13 +657,13 @@ properties when the "isOrigin" property is false, even if the calendar "myRights
 <li>the "sequence" property is not explicitly set in the update, or the given
 value is less than or equal to the current "sequence" value on the server;</li>
 </ul>
-<t>then the server MUST increment the "sequence" value by one.</t>
-<t>The "method" property MUST NOT be set. Any attempt to do so is rejected with a standard <tt>invalidProperties</tt> SetError.</t>
-<t>If "utcStart" is set, this is translated into a "start" property using the server's current time zone information. It MUST NOT be set in addition to a "start" property and it cannot be set inside "recurrenceOverrides"; this MUST be rejected with an <tt>invalidProperties</tt> SetError.</t>
-<t>Similarly, the "utcEnd" property is translated into a "duration" property if set. It MUST NOT be set in addition to a "duration" property and it cannot be set inside "recurrenceOverrides"; this MUST be rejected with an <tt>invalidProperties</tt> SetError.</t>
+<t>then the server <bcp14>MUST</bcp14> increment the "sequence" value by one.</t>
+<t>The "method" property <bcp14>MUST NOT</bcp14> be set. Any attempt to do so is rejected with a standard <tt>invalidProperties</tt> SetError.</t>
+<t>If "utcStart" is set, this is translated into a "start" property using the server's current time zone information. It <bcp14>MUST NOT</bcp14> be set in addition to a "start" property and it cannot be set inside "recurrenceOverrides"; this <bcp14>MUST</bcp14> be rejected with an <tt>invalidProperties</tt> SetError.</t>
+<t>Similarly, the "utcEnd" property is translated into a "duration" property if set. It <bcp14>MUST NOT</bcp14> be set in addition to a "duration" property and it cannot be set inside "recurrenceOverrides"; this <bcp14>MUST</bcp14> be rejected with an <tt>invalidProperties</tt> SetError.</t>
 <t>The server does not automatically reset the "participationStatus" or "expectReply" properties of a Participant when changing other event details. Clients should either be intelligent about whether the change invalidates previous RSVPs, or ask the user whether to reset them.</t>
-<t>The server MAY enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server MUST automatically add a participant with the "owner" role corresponding to one of the user's ParticipantIdentities (see <xref target="participant-identities" />).</t>
-<t>When creating an event with participants, or adding participants to an event that previously did not have participants, the server MUST set the "organizerCalendarAddress" property of the event if not present. Clients SHOULD NOT set the "organizerCalendarAddress" property for events when the user adds participants, as the server is better placed to choose the best address (for example, it might choose to use a different address per event).</t>
+<t>The server <bcp14>MAY</bcp14> enforce that all events have an owner, for example in team calendars. If the user tries to create an event without participants in such a calendar, the server <bcp14>MUST</bcp14> automatically add a participant with the "owner" role corresponding to one of the user's ParticipantIdentities (see <xref target="participant-identities" />).</t>
+<t>When creating an event with participants, or adding participants to an event that previously did not have participants, the server <bcp14>MUST</bcp14> set the "organizerCalendarAddress" property of the event if not present. Clients <bcp14>SHOULD NOT</bcp14> set the "organizerCalendarAddress" property for events when the user adds participants, as the server is better placed to choose the best address (for example, it might choose to use a different address per event).</t>
 
 <t>The following extra SetError type is defined:</t>
 
@@ -812,11 +812,11 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 </section>
 
 <section anchor="sending-invitations-and-responses"><name>Sending invitations and responses</name>
-<t>If "sendSchedulingMessages" is true, the server MUST send appropriate iTIP <xref target="RFC5546"></xref> scheduling messages after successfully creating, updating or destroying a calendar event.</t>
+<t>If "sendSchedulingMessages" is true, the server <bcp14>MUST</bcp14> send appropriate iTIP <xref target="RFC5546"></xref> scheduling messages after successfully creating, updating or destroying a calendar event.</t>
 <t>When determining which scheduling messages to send, the server must first establish whether it is the <strong>origin</strong> of the event, as described in the "isOrigin" property.</t>
-<t>The server sends the scheduling message via iTIP <xref target="RFC5546" /> to the "calendarAddress" property of a participant (if the server is the origin) or the "organizerCalendarAddress" property of the event (otherwise). If any of the recipients do not have a calendar address the server can send to, the server MUST reject the change with a <tt>noSupportedScheduleMethods</tt> SetError.</t>
-<t>If the server is the origin of the event it MUST NOT send messages to any participant where it will receive the message back in the same account (i.e. it must not send messages to the owner of the calendar the event is already on).</t>
-<t>If sending via iMIP <xref target="RFC6047"></xref>, the server MAY choose to only send updates it deems "essential" to avoid flooding the recipient's email with changes they do not care about. For example, changes to the participation status of another participant, or changes to events solely in the past may be omitted.</t>
+<t>The server sends the scheduling message via iTIP <xref target="RFC5546" /> to the "calendarAddress" property of a participant (if the server is the origin) or the "organizerCalendarAddress" property of the event (otherwise). If any of the recipients do not have a calendar address the server can send to, the server <bcp14>MUST</bcp14> reject the change with a <tt>noSupportedScheduleMethods</tt> SetError.</t>
+<t>If the server is the origin of the event it <bcp14>MUST NOT</bcp14> send messages to any participant where it will receive the message back in the same account (i.e. it must not send messages to the owner of the calendar the event is already on).</t>
+<t>If sending via iMIP <xref target="RFC6047"></xref>, the server <bcp14>MAY</bcp14> choose to only send updates it deems "essential" to avoid flooding the recipient's email with changes they do not care about. For example, changes to the participation status of another participant, or changes to events solely in the past may be omitted.</t>
 
 <section anchor="request"><name>REQUEST</name>
 <t>When the server is the origin for the event, a REQUEST message (<xref target="RFC5546" sectionFormat="comma" section="3.2.2" />) is sent to all current participants (except those corresponding to the owner of the calendar) if either:</t>
@@ -825,9 +825,9 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <li><t>The event is being created; or</t></li>
 <li><t>Any non per-user property (see <xref target="per-user-properties" />) is updated on the event (including adding/removing participants), except if just modifying the recurrenceOverrides such that CANCEL messages are generated (see the next section).</t></li>
 </ul>
-<t>Note, if the only change is adding an additional instance (not generated by the event's recurrence rule) to the recurrenceOverrides, this MAY be handled via sending an ADD message (<xref target="RFC5546" section="3.2.4" />) for the single instance rather than a REQUEST message for the base event. However, for interoperability reasons this is not recommended due to poor support in the wild for this type of message.</t>
-<t>The server MUST ensure participants are only sent information about recurrence instances they are added to when sending scheduling messages for recurring events. If the participant is not invited to the full recurring event but only individual instances, scheduling messages MUST be sent for just those expanded occurrences individually. If a participant is invited to a recurring event, but removed via a recurrence override from a particular instance, any scheduling messages to this participant MUST return the instance as "excluded" (if it matches a recurrence rule for the event) or omit the instance entirely (otherwise).</t>
-<t>If the event's "hideAttendees" property is set to true, the recipient MUST be the only non-owner participant in the message; all others are omitted.</t>
+<t>Note, if the only change is adding an additional instance (not generated by the event's recurrence rule) to the recurrenceOverrides, this <bcp14>MAY</bcp14> be handled via sending an ADD message (<xref target="RFC5546" sectionFormat="comma" section="3.2.4" />) for the single instance rather than a REQUEST message for the base event. However, for interoperability reasons this is not recommended due to poor support in the wild for this type of message.</t>
+<t>The server <bcp14>MUST</bcp14> ensure participants are only sent information about recurrence instances they are added to when sending scheduling messages for recurring events. If the participant is not invited to the full recurring event but only individual instances, scheduling messages <bcp14>MUST</bcp14> be sent for just those expanded occurrences individually. If a participant is invited to a recurring event, but removed via a recurrence override from a particular instance, any scheduling messages to this participant <bcp14>MUST</bcp14> return the instance as "excluded" (if it matches a recurrence rule for the event) or omit the instance entirely (otherwise).</t>
+<t>If the event's "hideAttendees" property is set to true, the recipient <bcp14>MUST</bcp14> be the only non-owner participant in the message; all others are omitted.</t>
 </section>
 
 <section anchor="cancel"><name>CANCEL</name>
@@ -850,7 +850,7 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <li><t>The event is created and the participationStatus is not "needs-action".</t></li>
 <li><t>The event is destroyed and the participationStatus was not "needs-action".</t></li>
 </ul>
-<t>If the participationStatus property is changed for just a single instance of the event (i.e., set in recurrenceOverrides), the REPLY message SHOULD be sent for just that recurrence id.</t>
+<t>If the participationStatus property is changed for just a single instance of the event (i.e., set in recurrenceOverrides), the REPLY message <bcp14>SHOULD</bcp14> be sent for just that recurrence id.</t>
 </section>
 </section>
 
@@ -858,8 +858,8 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 
 <section anchor="calendarevent-copy"><name>CalendarEvent/copy</name>
 <t>This is a standard "/copy" method as described in <xref target="RFC8620" section="5.4" />.</t>
-<t>As specified in <xref target="calendarevent-set" />, the "privacy" property MUST NOT be set to anything other than "public" (the default) for events in a calendar that does not belong to the user. If the account being copied into does not belong to the user and the "privacy" property of the event to be created would be anything other than "public" (whether inherited from the event being copied or set explicitly in the "create" patch), the server MUST reject the copy with an <tt>invalidProperties</tt> SetError.</t>
-<t>A user with whom a calendar is shared does not have access to the full data of an event with its "privacy" property set to "private" (see <xref target="calendarevent-get" />), so cannot copy such an event. If the account being copied from does not belong to the user and the "privacy" property of the event being copied is "private", the server MUST reject the copy with a <tt>forbidden</tt> SetError. (An event with "privacy" set to "secret" does not exist as far as any user other than the owner of the calendar is concerned, so an attempt to copy it will be rejected with a <tt>notFound</tt> SetError.)</t>
+<t>As specified in <xref target="calendarevent-set" />, the "privacy" property <bcp14>MUST NOT</bcp14> be set to anything other than "public" (the default) for events in a calendar that does not belong to the user. If the account being copied into does not belong to the user and the "privacy" property of the event to be created would be anything other than "public" (whether inherited from the event being copied or set explicitly in the "create" patch), the server <bcp14>MUST</bcp14> reject the copy with an <tt>invalidProperties</tt> SetError.</t>
+<t>A user with whom a calendar is shared does not have access to the full data of an event with its "privacy" property set to "private" (see <xref target="calendarevent-get" />), so cannot copy such an event. If the account being copied from does not belong to the user and the "privacy" property of the event being copied is "private", the server <bcp14>MUST</bcp14> reject the copy with a <tt>forbidden</tt> SetError. (An event with "privacy" set to "secret" does not exist as far as any user other than the owner of the calendar is concerned, so an attempt to copy it will be rejected with a <tt>notFound</tt> SetError.)</t>
 </section>
 
 <section anchor="calendarevent-query"><name>CalendarEvent/query</name>
@@ -867,7 +867,7 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 
 <dl spacing="normal" newline="true">
 <dt><strong>expandRecurrences</strong>: <tt>Boolean</tt> (default: false)</dt>
-<dd>If true, the server will expand any recurring event. If true, the filter MUST be just a FilterCondition (not a FilterOperator) and MUST include both a "before" and "after" property. This ensures the server is not asked to return an infinite number of results.</dd>
+<dd>If true, the server will expand any recurring event. If true, the filter <bcp14>MUST</bcp14> be just a FilterCondition (not a FilterOperator) and <bcp14>MUST</bcp14> include both a "before" and "after" property. This ensures the server is not asked to return an infinite number of results.</dd>
 <dt><strong>timeZone</strong>: <tt>TimeZoneId</tt></dt>
 <dd>The time zone for before/after filter conditions (default: "Etc/UTC").</dd>
 </dl>
@@ -905,7 +905,7 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 </dl>
 
 <t>If expandRecurrences is true, all conditions must match against the same instance of a recurring event for the instance to match. If expandRecurrences is false, all conditions must match, but they may each match any instance of the event.</t>
-<t>If zero properties are specified on the FilterCondition, the condition MUST always evaluate to true. If multiple properties are specified, ALL must apply for the condition to be true (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).</t>
+<t>If zero properties are specified on the FilterCondition, the condition <bcp14>MUST</bcp14> always evaluate to true. If multiple properties are specified, ALL must apply for the condition to be true (it is equivalent to splitting the object into one-property conditions and making them all the child of an AND filter operator).</t>
 <t>The exact semantics for matching <tt>String</tt> fields is <strong>deliberately not defined</strong> to allow for flexibility in indexing implementation, subject to the following:</t>
 
 <ul spacing="compact">
@@ -917,14 +917,14 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 </section>
 
 <section anchor="sorting"><name>Sorting</name>
-<t>The following properties MUST be supported for sorting:</t>
+<t>The following properties <bcp14>MUST</bcp14> be supported for sorting:</t>
 
 <ul spacing="compact">
 <li>start</li>
 <li>uid</li>
 <li>recurrenceId</li>
 </ul>
-<t>The following properties SHOULD be supported for sorting:</t>
+<t>The following properties <bcp14>SHOULD</bcp14> be supported for sorting:</t>
 
 <ul spacing="compact">
 <li>created</li>
@@ -955,8 +955,8 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <dd>The id of the account to use.</dd>
 <dt><strong>blobIds</strong>: <tt>Id[]</tt></dt>
 <dd>The ids of the blobs to parse.</dd>
-<dt><strong>properties</strong>: <tt>String[]</tt></dt>
-<dd>If supplied, only the properties listed in the array are returned for each <tt>CalendarEvent</tt> object. If omitted, defaults to all the properties.</dd>
+<dt><strong>properties</strong>: <tt>String[]|null</tt></dt>
+<dd>If supplied, only the properties listed in the array are returned for each <tt>CalendarEvent</tt> object. If null or omitted, defaults to all the properties.</dd>
 </dl>
 
 <t>The response object contains the following arguments:</t>
@@ -972,14 +972,14 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <dd>A list of blob ids given that corresponded to blobs that could not be parsed as CalendarEvents, or null if none.</dd>
 </dl>
 
-<t>Parsed <tt>iCalendars</tt> are to be converted into <tt>CalendarEvent</tt> objects following the process defined in <xref target="I-D.ietf-calext-jscalendar-icalendar" />. In particular, if the iCalendar file has a METHOD property, the "method" property MUST be set on each parsed CalendarEvent object.</t>
+<t>Parsed <tt>iCalendars</tt> are to be converted into <tt>CalendarEvent</tt> objects following the process defined in <xref target="I-D.ietf-calext-jscalendar-icalendar" />. In particular, if the iCalendar file has a METHOD property, the "method" property <bcp14>MUST</bcp14> be set on each parsed CalendarEvent object.</t>
 </section>
 </section>
 
 <section anchor="alerts"><name>Alerts</name>
 <t>Alerts may be specified on events as described in <xref target="I-D.ietf-calext-jscalendarbis" section="3.5" />.</t>
-<t>Alerts MUST only be triggered for events in calendars where the user is subscribed.</t>
-<t>When an alert with an "email" action is triggered, the server MUST send an email to the user to notify them of the event. The content of the email is implementation specific. Clients MUST NOT perform an action for these alerts.</t>
+<t>Alerts <bcp14>MUST</bcp14> only be triggered for events in calendars where the user is subscribed.</t>
+<t>When an alert with an "email" action is triggered, the server <bcp14>MUST</bcp14> send an email to the user to notify them of the event. The content of the email is implementation specific. Clients <bcp14>MUST NOT</bcp14> perform an action for these alerts.</t>
 <t>When an alert with a "display" action is triggered, clients should display an alert in a platform-appropriate manner to the user to remind them of the event. Clients with a full offline cache of events may choose to calculate when alerts should trigger locally. Alternatively, they can subscribe to push events from the server.</t>
 
 <section anchor="default-alerts"><name>Default alerts</name>
@@ -987,34 +987,34 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <t>When using default alerts, the "alerts" property of the event is ignored except for the following:</t>
 
 <ul spacing="compact">
-<li>The "acknowledged" time for an alert is stored here when a default alert for the event is dismissed. The id of the alert MUST be the same as the id of the default alert in the calendar. See <xref target="acknowledging-an-alert" /> on acknowledging alerts.</li>
+<li>The "acknowledged" time for an alert is stored here when a default alert for the event is dismissed. The id of the alert <bcp14>MUST</bcp14> be the same as the id of the default alert in the calendar. See <xref target="acknowledging-an-alert" /> on acknowledging alerts.</li>
 <li>If an alert has a "relatedTo" property with a "snooze" relation to the id of one of the calendar default alerts, it is processed as normal and not ignored. This is to support snoozing default alerts; see <xref target="snoozing-an-alert" />.</li>
 </ul>
 </section>
 
 <section anchor="acknowledging-an-alert"><name>Acknowledging an alert</name>
-<t>To dismiss an alert, clients set the "acknowledged" property of the Alert object to the current date-time. If the alert was a calendar default, it may need to be added to the event at this point in order to acknowledge it. When other clients fetch the updated CalendarEvent they SHOULD automatically dismiss or suppress duplicate alerts (alerts with the same alert id that triggered on or before the "acknowledged" date-time) and alerts that have been removed from the event.</t>
-<t>Setting the "acknowledged" property MUST NOT create a new recurrence override. For a recurring calendar object, the "acknowledged" property of the parent object MUST be updated, unless the alert is already overridden in the "recurrenceOverrides" property.</t>
+<t>To dismiss an alert, clients set the "acknowledged" property of the Alert object to the current date-time. If the alert was a calendar default, it may need to be added to the event at this point in order to acknowledge it. When other clients fetch the updated CalendarEvent they <bcp14>SHOULD</bcp14> automatically dismiss or suppress duplicate alerts (alerts with the same alert id that triggered on or before the "acknowledged" date-time) and alerts that have been removed from the event.</t>
+<t>Setting the "acknowledged" property <bcp14>MUST NOT</bcp14> create a new recurrence override. For a recurring calendar object, the "acknowledged" property of the parent object <bcp14>MUST</bcp14> be updated, unless the alert is already overridden in the "recurrenceOverrides" property.</t>
 </section>
 
 <section anchor="snoozing-an-alert"><name>Snoozing an alert</name>
-<t>Users may wish to dismiss an alert temporarily and have it come back after a specific period of time. To do this, clients MUST:</t>
+<t>Users may wish to dismiss an alert temporarily and have it come back after a specific period of time. To do this, clients <bcp14>MUST</bcp14>:</t>
 
 <ol spacing="compact">
 <li>Acknowledge the alert as described in <xref target="acknowledging-an-alert" />.</li>
-<li>Add a new alert to the event that has an <tt>AbsoluteTrigger</tt> specifying the date-time when the alert will trigger again. Add a "relatedTo" property to the new alert, setting the "snooze" relation to point to the original alert. This MUST NOT create a new recurrence override; it is added to the same "alerts" property that contains the alert that was acknowledged in step 1.</li>
+<li>Add a new alert to the event that has an <tt>AbsoluteTrigger</tt> specifying the date-time when the alert will trigger again. Add a "relatedTo" property to the new alert, setting the "snooze" relation to point to the original alert. This <bcp14>MUST NOT</bcp14> create a new recurrence override; it is added to the same "alerts" property that contains the alert that was acknowledged in step 1.</li>
 </ol>
 <t>When acknowledging a snoozed alert (i.e. one with a "snooze" relatedTo pointing to the original alert), the client should delete the alert rather than setting the "acknowledged" property.</t>
 </section>
 
 <section anchor="push-events"><name>Push events</name>
-<t>Servers that support the <tt>urn:ietf:params:jmap:calendars</tt> capability MUST support registering for the pseudo-type "CalendarAlert" in push subscriptions and event source connections, as described in <xref target="RFC8620"></xref>, Sections <xref target="RFC8620" section="7.2" sectionFormat="bare" /> and <xref target="RFC8620" section="7.3" sectionFormat="bare" />.</t>
+<t>Servers that support the <tt>urn:ietf:params:jmap:calendars</tt> capability <bcp14>MUST</bcp14> support registering for the pseudo-type "CalendarAlert" in push subscriptions and event source connections, as described in <xref target="RFC8620"></xref>, Sections <xref target="RFC8620" section="7.2" sectionFormat="bare" /> and <xref target="RFC8620" section="7.3" sectionFormat="bare" />.</t>
 <t>If requested, a CalendarAlert notification will be pushed whenever an alert is triggered for the user. For Event Source connections, this notification is pushed as an event called "calendarAlert".</t>
 <t>A <strong>CalendarAlert</strong> object has the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>@type</strong>: <tt>String</tt></dt>
-<dd>This MUST be the string "CalendarAlert".</dd>
+<dd>This <bcp14>MUST</bcp14> be the string "CalendarAlert".</dd>
 <dt><strong>accountId</strong>: <tt>Id</tt></dt>
 <dd>The account id for the calendar in which the alert triggered.</dd>
 <dt><strong>calendarEventId</strong>: <tt>Id</tt></dt>
@@ -1040,7 +1040,7 @@ triggered, or null if the event is not recurring.</dd>
 <li>When an event is edited directly by another user on a shared calendar.</li>
 <li>If the server chooses to auto-process scheduling requests, such as an iTIP message. Note, whether to auto-process such messages is an implementation policy.</li>
 </ul>
-<t>A CalendarEventNotification exposes the full details of the event that changed, so MUST only be created for users that are allowed to see those details. If the "privacy" property of the event is "private" or "secret", either before or after the change, the server MUST NOT create a notification for any user other than the Principal that owns the calendar, as other users do not have access to the full details of such an event (see <xref target="calendarevent-get" />). The Principal that owns the calendar still receives notifications for these events as normal.</t>
+<t>A CalendarEventNotification exposes the full details of the event that changed, so <bcp14>MUST</bcp14> only be created for users that are allowed to see those details. If the "privacy" property of the event is "private" or "secret", either before or after the change, the server <bcp14>MUST NOT</bcp14> create a notification for any user other than the Principal that owns the calendar, as other users do not have access to the full details of such an event (see <xref target="calendarevent-get" />). The Principal that owns the calendar still receives notifications for these events as normal.</t>
 <t>The CalendarEventNotification does not have any per-user data. A single instance may therefore be maintained on the server for all users with whom the calendar is shared and that are permitted to receive it. The server need only keep track of which users have yet to destroy the notification.</t>
 
 <t>The server <bcp14>MAY</bcp14> limit the maximum number of notifications it will store for a user. When the limit is reached, any new notification will cause the previously oldest notification to be automatically deleted.</t>
@@ -1049,7 +1049,7 @@ triggered, or null if the event is not recurring.</dd>
 <t>A <strong>CalendarEventNotification</strong> object has the following properties:</t>
 
 <dl spacing="normal" newline="true">
-<dt><strong>id</strong>: <tt>Id</tt></dt>
+<dt><strong>id</strong>: <tt>Id</tt> (immutable; server-set)</dt>
 <dd>The id of the CalendarEventNotification.</dd>
 <dt><strong>created</strong>: <tt>UTCDateTime</tt></dt>
 <dd>The time this notification was created.</dd>
@@ -1070,7 +1070,7 @@ triggered, or null if the event is not recurring.</dd>
 <dd>Comment sent along with the change by the user that made it (e.g., the COMMENT
 property in an iTIP message), if any.</dd>
 <dt><strong>type</strong>: <tt>String</tt></dt>
-<dd><t>This MUST be one of:</t>
+<dd><t>This <bcp14>MUST</bcp14> be one of:</t>
   <ul spacing="compact">
     <li><tt>"created"</tt></li>
     <li><tt>"updated"</tt></li>
@@ -1088,7 +1088,7 @@ after creation (if created).</dd>
 <dd>A patch encoding the change between the data in the event property, and the
 data after the update.</dd>
 </dl>
-<t>If the change only affects a single instance of a recurring event, the server MAY set the event and eventPatch properties for just that instance; the calendarEventId MUST still be for the base event.</t>
+<t>If the change only affects a single instance of a recurring event, the server <bcp14>MAY</bcp14> set the event and eventPatch properties for just that instance; the calendarEventId <bcp14>MUST</bcp14> still be for the base event.</t>
 
 <section anchor="calendareventnotification-get"><name>CalendarEventNotification/get</name>
 <t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />.</t>
@@ -1100,7 +1100,7 @@ data after the update.</dd>
 
 <section anchor="calendareventnotification-set"><name>CalendarEventNotification/set</name>
 <t>This is a standard "/set" method as described in <xref target="RFC8620" section="5.3" />.</t>
-<t>Only destroy is supported; any attempt to create/update MUST be rejected with a
+<t>Only destroy is supported; any attempt to create/update <bcp14>MUST</bcp14> be rejected with a
 <tt>forbidden</tt> SetError.</t>
 </section>
 
@@ -1123,7 +1123,7 @@ data after the update.</dd>
 </section>
 
 <section anchor="sorting-1"><name>Sorting</name>
-<t>The "created" property MUST be supported for sorting.</t>
+<t>The "created" property <bcp14>MUST</bcp14> be supported for sorting.</t>
 </section>
 </section>
 
@@ -1261,9 +1261,9 @@ data after the update.</dd>
       "calendarIds": {
         "3ddf2ad7-0e0c-4fb5-852d-f0ff56f3c662": true
       },
-      "title": "Party at Pete’s",
+      "title": "Party at Pete's",
       "start": "2023-02-03T19:00:00",
-      "duration": "PT3H0M0S",
+      "duration": "PT3H",
       "timeZone": "Australia/Melbourne",
       "showWithoutTime": false,
       "participants": {
@@ -1526,9 +1526,7 @@ makes no other change):</t>
       },
       "status": "confirmed"
     }]
-  },
-  "notFound": null,
-  "notParsable": null
+  }
 }, "c1"]]
 </sourcecode>
 </figure>
@@ -1561,10 +1559,10 @@ makes no other change):</t>
 <t>All security considerations of JMAP <xref target="RFC8620"></xref> and JSCalendar <xref target="I-D.ietf-calext-jscalendarbis" /> apply to this specification. Additional considerations specific to the data types and functionality introduced by this document are described in the following subsections.</t>
 
 <section anchor="privacy"><name>Privacy</name>
-<t>Calendars often contain the precise movements, activities, and contacts of people; all intensely private data. Privacy leaks can have real world consequences, and calendar servers and clients MUST be mindful of the need to keep all data secure.</t>
-<t>Servers MUST enforce the ACLs set on calendars to ensure only authorized data is shared. The additional restrictions specified by the "privacy" property of a JSCalendar Event object (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.4.3" />) MUST also be enforced.</t>
-<t>Users may have multiple Participant Identities that they use for areas of their life kept private from one another. Using one identity with an event MUST NOT leak the existence of any other identity. For example, sending an RSVP from identity worklife@example.com MUST NOT reveal anything about another identity present in the account such as privatelife@example.org.</t>
-<t>Servers SHOULD enforce that invitations sent to external systems are only transmitted via secure encrypted and signed connections to protect against eavesdropping and modification of data.</t>
+<t>Calendars often contain the precise movements, activities, and contacts of people; all intensely private data. Privacy leaks can have real world consequences, and calendar servers and clients <bcp14>MUST</bcp14> be mindful of the need to keep all data secure.</t>
+<t>Servers <bcp14>MUST</bcp14> enforce the ACLs set on calendars to ensure only authorized data is shared. The additional restrictions specified by the "privacy" property of a JSCalendar Event object (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.4.3" />) <bcp14>MUST</bcp14> also be enforced.</t>
+<t>Users may have multiple Participant Identities that they use for areas of their life kept private from one another. Using one identity with an event <bcp14>MUST NOT</bcp14> leak the existence of any other identity. For example, sending an RSVP from identity worklife@example.com <bcp14>MUST NOT</bcp14> reveal anything about another identity present in the account such as privatelife@example.org.</t>
+<t>Servers <bcp14>SHOULD</bcp14> enforce that invitations sent to external systems are only transmitted via secure encrypted and signed connections to protect against eavesdropping and modification of data.</t>
 </section>
 
 <section anchor="spoofing"><name>Spoofing</name>
@@ -1575,17 +1573,17 @@ makes no other change):</t>
 <t>There are many ways in which a calendar user can make a request liable to cause a calendar server to spend an inordinate amount of processing time. Care must be taken to limit resources allocated to any one user to ensure the system does not become unresponsive. The following subsections list particularly hazardous areas.</t>
 
 <section anchor="expanding-recurrences"><name>Expanding Recurrences</name>
-<t>Recurrence rules can be crafted to occur as frequently as every second. Servers MUST be careful to not allow resources to be exhausted when expanding, and limit the number of expansions they will create. Equally, rules can be generated that never create any occurrences at all. Servers MUST be careful to limit the work spent iterating in search of the next occurrence.</t>
+<t>Recurrence rules can be crafted to occur as frequently as every second. Servers <bcp14>MUST</bcp14> be careful to not allow resources to be exhausted when expanding, and limit the number of expansions they will create. Equally, rules can be generated that never create any occurrences at all. Servers <bcp14>MUST</bcp14> be careful to limit the work spent iterating in search of the next occurrence.</t>
 </section>
 
 <section anchor="firing-alerts"><name>Firing alerts</name>
-<t>An alert firing for an event can cause a notification to be pushed to the user's devices, or to send them an email. Servers MUST rate limit the number of alerts sent for any one user. The combination of recurring events with multiple alerts can in particular define unreasonably frequent alerts, leading to denial of service for either the server processing them or the user's devices receiving them.</t>
+<t>An alert firing for an event can cause a notification to be pushed to the user's devices, or to send them an email. Servers <bcp14>MUST</bcp14> rate limit the number of alerts sent for any one user. The combination of recurring events with multiple alerts can in particular define unreasonably frequent alerts, leading to denial of service for either the server processing them or the user's devices receiving them.</t>
 <t>Similarly, clients generating alerts from the data on device must take the same precautions.</t>
-<t>The "email" alert type (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.5.1" />) causes an email to be sent when triggered. Clients MUST ignore this alert type; the email is sent only by the calendar server. There is no mechanism in JSCalendar to specify a particular email address: the server MUST only allow alerts to be sent to an address it has verified as belonging to the user to avoid this being used as a spamming vector.</t>
+<t>The "email" alert type (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.5.1" />) causes an email to be sent when triggered. Clients <bcp14>MUST</bcp14> ignore this alert type; the email is sent only by the calendar server. There is no mechanism in JSCalendar to specify a particular email address: the server <bcp14>MUST</bcp14> only allow alerts to be sent to an address it has verified as belonging to the user to avoid this being used as a spamming vector.</t>
 </section>
 
 <section anchor="load-spikes"><name>Load spikes</name>
-<t>Since most events are likely to start on the hour mark, a large spike of activity is often seen at these times, with particularly large spikes at certain common times in the time zone of the server's user base. In particular, a large number of alerts (across different users and events) will be triggered at the same time. Servers may mitigate this somewhat by adding jitter to the triggering of the alerts; it is RECOMMENDED to fire them slightly early rather than slightly late if needed to spread load.</t>
+<t>Since most events are likely to start on the hour mark, a large spike of activity is often seen at these times, with particularly large spikes at certain common times in the time zone of the server's user base. In particular, a large number of alerts (across different users and events) will be triggered at the same time. Servers may mitigate this somewhat by adding jitter to the triggering of the alerts; it is <bcp14>RECOMMENDED</bcp14> to fire them slightly early rather than slightly late if needed to spread load.</t>
 </section>
 </section>
 
@@ -1912,7 +1910,6 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5546.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
-<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9562.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9670.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-calext-jscalendarbis.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-calext-jscalendar-icalendar.xml"/>
@@ -1944,6 +1941,7 @@ Error Codes" registry, as defined in <xref target="RFC8620"/>.
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8551.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8607.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8792.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9562.xml"/>
 <reference anchor="WCAG"
  target="https://www.w3.org/TR/WCAG21/">
  <front>
