@@ -66,7 +66,7 @@
 <t>An Account (see <xref target="RFC8620" section="1.6.2"></xref>) with support for the calendar data model contains zero or more Calendar objects, which is a named collection of CalendarEvents. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off. Servers may allow an event to belong to multiple Calendars within an account.</t>
 <t>A CalendarEvent is a representation of an event or recurring series of events in JSCalendar Event <xref target="I-D.ietf-calext-jscalendarbis" /> format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.</t>
 <t>CalendarEventNotification objects keep track of the history of changes made to a calendar by other users, allowing calendar clients to notify the user of changes to their schedule.</t>
-<t>The ParticipantIdentity data type represents the identities of the current user within an Account, which determines which events the user is a participant of and possibly their permissions related to that event.</t>
+<t>The ParticipantIdentity data type represents the identities of the current user within an Account, which determines which events the user is a participant of and possibly their permissions related to that event. ParticipantIdentity objects are specific to the authenticated user as well as the account, so different users with access to the same account may see different ParticipantIdentity objects (see <xref target="participant-identities" />).</t>
 <t>In servers with support for JMAP Sharing <xref target="RFC9670" />, data may be shared with other users. Sharing permissions are managed per calendar. For example, an individual may have separate calendars for personal and work activities, with both contributing to their free-busy availability, but only the work calendar shared in its entirety with colleagues. Principals (see <xref target="RFC9670" section="2" />) may also represent schedulable entities, such as a meeting room.</t>
 <t>Users can normally subscribe to any calendar to which they have access. This indicates the user wants this calendar to appear in their regular list of calendars. The separate "isVisible" property stores whether the user would currently like to view the events in a subscribed calendar.</t>
 
@@ -232,6 +232,15 @@
 <section anchor="participant-identities"><name>Participant Identities</name>
 <t>A ParticipantIdentity stores information about a URI that represents the user within that account in an event's participants.</t>
 
+<t>The set of ParticipantIdentity objects in an account depends on the authenticated user, as it represents who that user acts as when accessing the account. For example:</t>
+<ul spacing="compact">
+<li>When user A accesses their own account, they see their own identities.</li>
+<li>If user A has delegated management of their calendars to user B, user B acts on behalf of user A, and so sees user A's identities when accessing user A's account.</li>
+<li>In a shared team calendar account, where each user acts as themselves, each user sees only their own identities.</li>
+</ul>
+
+<t>Throughout this document, "the user's ParticipantIdentity objects in the account" means the ParticipantIdentity objects in that account that are visible to the currently authenticated user.</t>
+
 <t>A <strong>ParticipantIdentity</strong> object has the following properties:</t>
 
 <dl spacing="normal" newline="true">
@@ -242,9 +251,9 @@
 <dt><strong>calendarAddress</strong>: <tt>String</tt></dt>
 <dd>The URI that represents this participant for iTIP scheduling <xref target="RFC5546" />.</dd>
 <dt><strong>isDefault</strong>: <tt>Boolean</tt> (server-set)</dt>
-<dd><t>This <bcp14>SHOULD</bcp14> be true for exactly one participant identity in any account, and
-<bcp14>MUST NOT</bcp14> be true for more than one participant identity within an account.
-The default identity should be used by clients whenever they need to choose
+<dd><t>This <bcp14>SHOULD</bcp14> be true for exactly one of the participant identities the user can see in any account, and
+<bcp14>MUST NOT</bcp14> be true for more than one of them. As with the set of identities itself, which identity is the default may depend on the authenticated user, so different users with access to the same account may have different defaults.</t>
+<t>The default identity should be used by clients whenever they need to choose
 an identity for the user within this account, and they do not have any other
 information on which to make a choice. For example, if creating a scheduled
 event in this account, the default identity may be automatically added as
@@ -264,6 +273,7 @@ invitees.)</t>
 
 <section anchor="participantidentity-changes"><name>ParticipantIdentity/changes</name>
 <t>This is a standard "/changes" method as described in <xref target="RFC8620" section="5.2" />.</t>
+<t>As the set of ParticipantIdentity objects depends on the authenticated user (see <xref target="participant-identities" />), the state string and changes returned <bcp14>MUST</bcp14> reflect that user's view of the account. The changes reported are the differences between the objects that user would have received from a "ParticipantIdentity/get" call at the old state and the objects that user would receive now.</t>
 </section>
 
 <section anchor="participantidentity-set"><name>ParticipantIdentity/set</name>
@@ -284,7 +294,8 @@ creation-reference, so the id will be the creation id prefixed with a "#".)</dd>
 <t>As per <xref target="RFC8620" section="5.3" />, if the default is successfully changed, any
   changed objects <bcp14>MUST</bcp14> be reported in either the "created" or "updated"
   argument in the response as  appropriate, with the server-set value included.</t>
-<t>The server <bcp14>MAY</bcp14> restrict the URI values the user may claim, for example only allowing <tt>mailto:</tt> URIs with email addresses that belong to the user. A standard <tt>forbidden</tt> error is returned to reject non-permissible changes.</t>
+<t>The server <bcp14>MAY</bcp14> restrict the URI values the user may claim, for example only allowing <tt>mailto:</tt> URIs with email addresses that belong to the user. A standard <tt>forbidden</tt> SetError is returned to reject non-permissible changes.</t>
+<t>Whether a change made by one user is also visible to other users with access to the same account depends on the server and how the account is configured. In many cases, ParticipantIdentity objects will be configured out of band, for example derived from the user's email aliases or managed by an administrator. In this case, the server rejects all creates, updates and destroys with a <tt>forbidden</tt> SetError.</t>
 </section>
 </section>
 
