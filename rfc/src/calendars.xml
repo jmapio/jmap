@@ -899,7 +899,7 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <dt><strong>expandRecurrences</strong>: <tt>Boolean</tt> (default: false)</dt>
 <dd>If true, the server will expand any recurring event. If true, the filter <bcp14>MUST</bcp14> be just a FilterCondition (not a FilterOperator) and <bcp14>MUST</bcp14> include both a "before" and "after" property. This ensures the server is not asked to return an infinite number of results.</dd>
 <dt><strong>timeZone</strong>: <tt>TimeZoneId</tt></dt>
-<dd>The time zone for before/after filter conditions (default: "Etc/UTC").</dd>
+<dd>The time zone in which to interpret the before/after filter conditions, and in which to interpret the start time of any floating event (an event with a null "timeZone" property) when filtering or sorting (default: "Etc/UTC").</dd>
 </dl>
 
 <t>If expandRecurrences is true, a separate id will be returned for each instance of a recurring event that matches the query. This synthetic id is opaque to the client, but uniquely identifies the base event id + recurrence id within the account, allowing the server to resolve these for "/get" and "/set" operations. Otherwise, a single id will be returned for matching recurring events that represents the entire event.</t>
@@ -915,9 +915,9 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <dt><strong>inCalendar</strong>: <tt>Id</tt></dt>
 <dd>A Calendar id. An event must be in this calendar to match the condition.</dd>
 <dt><strong>after</strong>: <tt>LocalDateTime</tt></dt>
-<dd>The end of the event, or any recurrence of the event, in the time zone given as the "timeZone" argument, must be after this date to match the condition.</dd>
+<dd>The end of the event, or any recurrence of the event, in the time zone given as the "timeZone" argument, must be after this date to match the condition. For a floating event, the end is calculated by interpreting the event's local start time in the time zone given as the "timeZone" argument.</dd>
 <dt><strong>before</strong>: <tt>LocalDateTime</tt></dt>
-<dd>The start of the event, or any recurrence of the event, in the time zone given as the "timeZone" argument, must be before this date to match the condition.</dd>
+<dd>The start of the event, or any recurrence of the event, in the time zone given as the "timeZone" argument, must be before this date to match the condition. For a floating event, the start is interpreted as a local time in the time zone given as the "timeZone" argument.</dd>
 <dt><strong>text</strong>: <tt>String</tt></dt>
 <dd>Looks for the text in the "title", "description", "locations" (matching name/description), "participants" (matching name/email) and any other textual properties of the event or any recurrence of the event.</dd>
 <dt><strong>title</strong>: <tt>String</tt></dt>
@@ -960,6 +960,7 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <li>created</li>
 <li>updated</li>
 </ul>
+<t>When sorting by "start", events are ordered by the absolute point in time at which they start, not by the lexical value of the "start" property. For example, an event starting at 09:00 in the "America/New_York" time zone sorts before an event starting at 09:00 in the "America/Los_Angeles" time zone on the same date. The start time of a floating event (an event with a null "timeZone" property) is interpreted as a local time in the time zone given as the "timeZone" argument to the "CalendarEvent/query" call (or "Etc/UTC" if not given).</t>
 </section>
 </section>
 
