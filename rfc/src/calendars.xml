@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rfc version="3" ipr="trust200902" docName="draft-ietf-jmap-calendars-31" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
+<rfc version="3" ipr="trust200902" docName="draft-ietf-jmap-calendars-32" submissionType="IETF" category="std" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
 
 <front>
-<title abbrev="JMAP Calendars">JSON Meta Application Protocol (JMAP) for Calendars</title><seriesInfo value="draft-ietf-jmap-calendars-31" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
+<title abbrev="JMAP Calendars">JSON Meta Application Protocol (JMAP) for Calendars</title><seriesInfo value="draft-ietf-jmap-calendars-32" stream="IETF" status="standard" name="Internet-Draft"></seriesInfo>
 <author role="editor" initials="N.M." surname="Jenkins" fullname="Neil Jenkins">
     <organization>Fastmail</organization>
     <address>
@@ -29,7 +29,7 @@
     <uri>http://sphericalcowgroup.com</uri>
   </address>
 </author>
-<date year="2026" month="October" day="1"></date>
+<date year="2026" month="October" day="5"></date>
 <area>Applications</area>
 <workgroup>JMAP</workgroup>
 <keyword>JMAP</keyword>
@@ -63,7 +63,7 @@
 </section>
 
 <section anchor="data-model-overview"><name>Data Model Overview</name>
-<t>An Account (see <xref target="RFC8620" section="1.6.2"></xref>) with support for the calendar data model contains zero or more Calendar objects, which is a named collection of CalendarEvents. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off. Servers may allow an event to belong to multiple Calendars within an account.</t>
+<t>An Account (see <xref target="RFC8620" section="1.6.2"></xref>) with support for the calendar data model contains zero or more Calendar objects, each of which is a named collection of CalendarEvents. Calendars can also provide defaults, such as alerts and a color to apply to events in the calendar. Clients commonly let users toggle visibility of events belonging to a particular calendar on/off. Servers may allow an event to belong to multiple Calendars within an account.</t>
 <t>A CalendarEvent is a representation of an event or recurring series of events in JSCalendar Event <xref target="I-D.ietf-calext-jscalendarbis" /> format. Simple clients may ask the server to expand recurrences for them within a specific time period, and optionally convert times into UTC so they do not have to handle time zone conversion. More full-featured clients will want to access the full event information and handle recurrence expansion and time zone conversion locally.</t>
 <t>CalendarEventNotification objects keep track of the history of changes made to a calendar by other users, allowing calendar clients to notify the user of changes to their schedule.</t>
 <t>The ParticipantIdentity data type represents the identities of the current user within an Account, which determines which events the user is a participant of and possibly their permissions related to that event. ParticipantIdentity objects are specific to the authenticated user as well as the account, so different users with access to the same account may see different ParticipantIdentity objects (see <xref target="participant-identities" />).</t>
@@ -119,7 +119,7 @@
 </section>
 
 <section anchor="principals-and-sharing"><name>Principals and Sharing</name>
-<t>For systems that also support JMAP Sharing <xref target="RFC9670" />, the <tt>urn:ietf:params:jmap:calendars</tt> capability is used to indicate that this Principal may be used with calendaring. A new method is defined to allow users to query availability when scheduling events.</t>
+<t>For systems that also support JMAP Sharing <xref target="RFC9670" />, the presence of the <tt>urn:ietf:params:jmap:calendars</tt> capability in the "capabilities" property of a Principal indicates that the Principal may be used with calendaring. A new method is defined to allow users to query availability when scheduling events.</t>
 
 <section anchor="principal-capability-urn-ietf-params-jmap-calendars"><name>Principal Capability urn:ietf:params:jmap:calendars</name>
 <t>A "urn:ietf:params:jmap:calendars" property is added to the Principal "capabilities" object, the value of which is an object with the following properties:</t>
@@ -176,7 +176,7 @@
 <dd>The start time (inclusive) of the period this represents.</dd>
 <dt><strong>utcEnd</strong>: <tt>UTCDateTime</tt></dt>
 <dd>The end time (exclusive) of the period this represents.</dd>
-<dt><strong>busyStatus</strong>: <tt>String</tt> (optional, default "unavailable")</dt>
+<dt><strong>busyStatus</strong>: <tt>String</tt> (default: "unavailable")</dt>
 <dd><t>This <bcp14>MUST</bcp14> be one of:</t>
 <ul spacing="compact">
 <li><tt>"confirmed"</tt> — The event status is "confirmed" and the Principal's "participationStatus" is "accepted".</li>
@@ -493,7 +493,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 <dt><strong>utcStart</strong>: <tt>UTCDateTime</tt></dt>
 <dd><t>For simple clients that do not implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.</t>
 <t>This property is calculated at fetch time by the server. Time zones are political and they can and do change at any time. Fetching exactly the same property again may return a different result if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the event.</t>
-<t>If set, the server will convert the UTC date to the event's current time zone and store the local time. If the event does not have a non-null "timeZone" property, the server <bcp14>MUST</bcp14> also set this property (and return it in the created/updated response, as per <xref target="RFC8620" section="5.3" />). The value <bcp14>MUST</bcp14> be the "timeZone" property of the Calendar(s) the event is in if all of them have the same non-null value. Otherwise, the time zone is to be set to "Etc/UTC".</t>
+<t>If set, the server will convert the UTC date to the event's current time zone and store the local time. If the event does not have a non-null "timeZone" property, the server <bcp14>MUST</bcp14> also set the "timeZone" property (and return it in the created/updated response, as per <xref target="RFC8620" section="5.3" />). The value <bcp14>MUST</bcp14> be the "timeZone" property of the Calendar(s) the event is in if all of them have the same non-null value. Otherwise, the time zone is to be set to "Etc/UTC".</t>
 <t>This property is not included in "CalendarEvent/get" responses by default and must be requested explicitly.</t>
 <t>Floating events (events without a time zone) will be interpreted as per the time zone given as a "CalendarEvent/get" argument.</t>
 <t>Note that it is not possible to accurately calculate the expansion of a recurrence rule or recurrence overrides with the "utcStart" property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are <bcp14>RECOMMENDED</bcp14> to request the server expand recurrences (see <xref target="calendarevent-query" />).</t></dd>
@@ -526,7 +526,7 @@ invitation from another calendar system)? This is true if, and only if:</t>
 </section>
 
 <section anchor="additional-reserved-jscalendar-properties"><name>Additional reserved JSCalendar properties</name>
-<t>This document also reserves two new JSCalendar properties in the Participant object for use in JMAP Calendars:</t>
+<t><xref target="I-D.ietf-calext-jscalendarbis" /> reserves the following two Participant properties for use in JMAP Calendars. This document defines them as follows:</t>
 
 <section anchor="schedulesequence"><name>scheduleSequence</name>
 <t>Type: <tt>UnsignedInt</tt> (optional; default: 0)</t>
@@ -575,7 +575,7 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <t>When editing a recurring event, you can either update the base event (affecting all instances unless overridden) or update an override for a specific occurrence. To update all occurrences from a specific point onwards, there are therefore two options: split the event, or update the base event and override all occurrences before the split point back to their original values.</t>
 
 <section anchor="splitting-an-event"><name>Splitting an event</name>
-<t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rule of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per JSCalendar <xref target="I-D.ietf-calext-jscalendarbis" section="3.1.3" />, a "next" relation <bcp14>MUST</bcp14> be set on the original object, and a "first" relation <bcp14>MUST</bcp14> be set on the duplicate.</t>
+<t>If the event is not scheduled (has no participants), the simplest thing to do is to duplicate the event, modifying the recurrence rule of the original so it finishes before the split point, and the duplicate so it starts at the split point. As per <xref target="I-D.ietf-calext-jscalendarbis" section="3.1.3" />, a "next" relation <bcp14>MUST</bcp14> be set on the original object, and a "first" relation <bcp14>MUST</bcp14> be set on the duplicate.</t>
 </section>
 
 <section anchor="updating-the-base-event-and-overriding-previous"><name>Updating the base event and overriding previous</name>
@@ -606,7 +606,7 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <dd>If given, only recurrence overrides with a recurrence id on or after this date (when translated into UTC) will be returned.</dd>
 <dt><strong>reduceParticipants</strong>: <tt>Boolean</tt> (default: false)</dt>
 <dd>If true, only participants with the "owner" role or corresponding to the user's participant identities will be returned in the "participants" property of the base event and any recurrence overrides. If false, all participants will be returned.</dd>
-<dt><strong>timeZone</strong>: <tt>TimeZoneId</tt> (default "Etc/UTC")</dt>
+<dt><strong>timeZone</strong>: <tt>TimeZoneId</tt> (default: "Etc/UTC")</dt>
 <dd>The time zone to use when calculating the "utcStart"/"utcEnd" property of floating events. This argument has no effect if those properties are not requested.</dd>
 </dl>
 <t>A CalendarEvent object is a JSCalendar Event object so may have arbitrary properties. If the client makes a "CalendarEvent/get" call with a null or omitted "properties" argument, all properties that are defined on the JSCalendar Event object in the store are returned except for "iCalendar" (see <xref target="I-D.ietf-calext-jscalendar-icalendar" />). In addition, the "id", "calendarIds", "isOrigin", "isDraft", and "useDefaultAlerts" properties <bcp14>MUST</bcp14> be included on each object. The "utcStart" and "utcEnd" computed properties are only returned if explicitly requested. If either is requested, the "recurrenceOverrides" property <bcp14>MUST NOT</bcp14> be requested (recurrence overrides cannot be interpreted accurately with just the UTC times). The "iCalendar" property is also only returned if explicitly requested.</t>
@@ -631,7 +631,8 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <ul spacing="compact">
 <li>the basic time and metadata properties of the JSCalendar Event object as specified in <xref target="I-D.ietf-calext-jscalendarbis" section="3.4.3" />; or</li>
 <li>properties that are wholly derived from these permitted properties (i.e., utcStart, utcEnd); or</li>
-<li>additional CalendarEvent properties not derived from the JSCalendar Event data (i.e., id, baseEventId, calendarIds, isDraft, isOrigin).</li>
+<li>additional CalendarEvent properties not derived from the JSCalendar Event data (i.e., id, baseEventId, calendarIds, isDraft, isOrigin); or</li>
+<li>per-user properties (see <xref target="per-user-properties" />), as these values do not come from the owner's data.</li>
 </ul>
 <t>If "privacy" is set to "secret", the server <bcp14>MUST</bcp14> behave as though the event does not exist for all users other than the Principal that owns the calendar.</t>
 </section>
@@ -662,6 +663,7 @@ delivered out of order (if the "scheduleSequence" is the same).</t>
 <t>If omitted on create, the server <bcp14>MUST</bcp14> set the following properties:</t>
 <ul spacing="compact">
 <li><tt>@type</tt> <bcp14>MUST</bcp14> be set to "Event"</li>
+<li><tt>version</tt> <bcp14>MUST</bcp14> be set to the JSCalendar version the event conforms to, e.g., "2.0" (see <xref target="I-D.ietf-calext-jscalendarbis" section="3.1.2" />).</li>
 <li><tt>uid</tt> <bcp14>MUST</bcp14> be set to a new globally unique identifier, such as a UUID.</li>
 <li><tt>created</tt> <bcp14>MUST</bcp14> be set to the current date-time.</li>
 </ul>
@@ -703,7 +705,7 @@ value is less than or equal to the current "sequence" value on the server;</li>
 </dl>
 
 <section anchor="patching"><name>Patching</name>
-<t>The JMAP "/set" method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, e.g. inside "localizations" or "recurrenceOverrides". In particular, you cannot add a property with value null to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property.</t>
+<t>The JMAP "/set" method allows you to update an object by sending a patch, rather than having to supply the whole object. When doing so, care must be taken if updating a property of a CalendarEvent where the value is itself a PatchObject, such as the values of the "recurrenceOverrides" property. In particular, you cannot add a property with value null to the CalendarEvent using a direct patch on that property, as this is interpreted instead as a patch to remove the property.</t>
 <t>This is more easily understood with an example. Suppose you have a CalendarEvent object like so:</t>
 
 <figure>
@@ -717,7 +719,7 @@ value is less than or equal to the current "sequence" value on the server;</li>
     "@type": "RecurrenceRule",
     "frequency": "weekly"
   },
-  "organizerCalendarAddress": "mailto:6489-4f14@schedule.example.com",
+  "organizerCalendarAddress": "mailto:6489-4f14@itip.example.com",
   "participants": {
     "dG9tQGZvb2Jhci5xlLmNvbQ": {
       "@type": "Participant",
@@ -856,7 +858,7 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <li><t>Any non per-user property (see <xref target="per-user-properties" />) is updated on the event (including adding/removing participants), except if just modifying the recurrenceOverrides such that CANCEL messages are generated (see the next section).</t></li>
 </ul>
 <t>Note, if the only change is adding an additional instance (not generated by the event's recurrence rule) to the recurrenceOverrides, this <bcp14>MAY</bcp14> be handled via sending an ADD message (<xref target="RFC5546" sectionFormat="comma" section="3.2.4" />) for the single instance rather than a REQUEST message for the base event. However, for interoperability reasons this is not recommended due to poor support in the wild for this type of message.</t>
-<t>The server <bcp14>MUST</bcp14> ensure participants are only sent information about recurrence instances they are added to when sending scheduling messages for recurring events. If the participant is not invited to the full recurring event but only individual instances, scheduling messages <bcp14>MUST</bcp14> be sent for just those expanded occurrences individually. If a participant is invited to a recurring event, but removed via a recurrence override from a particular instance, any scheduling messages to this participant <bcp14>MUST</bcp14> return the instance as "excluded" (if it matches a recurrence rule for the event) or omit the instance entirely (otherwise).</t>
+<t>The server <bcp14>MUST</bcp14> ensure participants are only sent information about recurrence instances they are added to when sending scheduling messages for recurring events. If the participant is not invited to the full recurring event but only individual instances, scheduling messages <bcp14>MUST</bcp14> be sent for just those expanded occurrences individually. If a participant is invited to a recurring event, but removed via a recurrence override from a particular instance, any scheduling messages sent to this participant <bcp14>MUST</bcp14> mark the instance as excluded (if it is generated by the recurrence rule of the event) or omit the instance entirely (otherwise).</t>
 <t>If the event's "hideAttendees" property is set to true, the recipient <bcp14>MUST</bcp14> be the only non-owner participant in the message; all others are omitted.</t>
 </section>
 
@@ -919,13 +921,13 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <dt><strong>before</strong>: <tt>LocalDateTime</tt></dt>
 <dd>The start of the event, or any recurrence of the event, in the time zone given as the "timeZone" argument, must be before this date to match the condition. For a floating event, the start is interpreted as a local time in the time zone given as the "timeZone" argument.</dd>
 <dt><strong>text</strong>: <tt>String</tt></dt>
-<dd>Looks for the text in the "title", "description", "locations" (matching name/description), "participants" (matching name/email) and any other textual properties of the event or any recurrence of the event.</dd>
+<dd>Looks for the text in the "title", "description", "locations" (matching name), "participants" (matching name/email) and any other textual properties of the event or any recurrence of the event.</dd>
 <dt><strong>title</strong>: <tt>String</tt></dt>
 <dd>Looks for the text in the "title" property of the event, or the overridden "title" property of a recurrence.</dd>
 <dt><strong>description</strong>: <tt>String</tt></dt>
 <dd>Looks for the text in the "description" property of the event, or the overridden "description" property of a recurrence.</dd>
 <dt><strong>location</strong>: <tt>String</tt></dt>
-<dd>Looks for the text in the "locations" property of the event (matching name/description of a location), or the overridden "locations" property of a recurrence.</dd>
+<dd>Looks for the text in the "locations" property of the event (matching the name of a location), or the overridden "locations" property of a recurrence.</dd>
 <dt><strong>owner</strong>: <tt>String</tt></dt>
 <dd>Looks for the text in the name or email fields of a participant in the "participants" property of the event, or the overridden "participants" property of a recurrence, where the participant has a role of "owner".</dd>
 <dt><strong>participant</strong>: <tt>String</tt></dt>
@@ -950,9 +952,9 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <t>The following properties <bcp14>MUST</bcp14> be supported for sorting:</t>
 
 <ul spacing="compact">
-<li>start</li>
+<li>id</li>
 <li>uid</li>
-<li>recurrenceId</li>
+<li>start</li>
 </ul>
 <t>The following properties <bcp14>SHOULD</bcp14> be supported for sorting:</t>
 
@@ -1025,7 +1027,7 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 
 <section anchor="acknowledging-an-alert"><name>Acknowledging an alert</name>
 <t>To dismiss an alert, clients set the "acknowledged" property of the Alert object to the current date-time. If the alert was a calendar default, it may need to be added to the event at this point in order to acknowledge it. When other clients fetch the updated CalendarEvent they <bcp14>SHOULD</bcp14> automatically dismiss or suppress duplicate alerts (alerts with the same alert id that triggered on or before the "acknowledged" date-time) and alerts that have been removed from the event.</t>
-<t>Setting the "acknowledged" property <bcp14>MUST NOT</bcp14> create a new recurrence override. For a recurring calendar object, the "acknowledged" property of the parent object <bcp14>MUST</bcp14> be updated, unless the alert is already overridden in the "recurrenceOverrides" property.</t>
+<t>Setting the "acknowledged" property <bcp14>MUST NOT</bcp14> create a new recurrence override. For a recurring calendar object, the "acknowledged" property of the base object <bcp14>MUST</bcp14> be updated, unless the alert is already overridden in the "recurrenceOverrides" property.</t>
 </section>
 
 <section anchor="snoozing-an-alert"><name>Snoozing an alert</name>
@@ -1340,6 +1342,7 @@ data after the update.</dd>
       "id": "E-5d5776f6-ff8e-4bfd-ab3e-fe2fe5d4fa91",
       "isOrigin": true,
       "@type": "Event",
+      "version": "2.0",
       "created": "2022-10-05T20:42:13Z",
       "updated": "2022-10-05T20:42:13Z",
       "organizerCalendarAddress": "mailto:3e87-1b18@itip.example.com"
@@ -1549,7 +1552,7 @@ makes no other change):</t>
       "title": "jmap - JSON Mail Access Protocol",
       "freeBusyStatus": "busy",
       "descriptionContentType": "text/plain",
-      "description": "Session II\n\nRemember to sign the blue sheets!",
+      "description": "Session II\n\nPlease sign the blue sheets!",
       "locations": {
         "eec47e7589ce131d6331b10383f89f91f8d4a4ef": {
           "@type": "Location",
@@ -1635,7 +1638,7 @@ makes no other change):</t>
 <dt>Specification document:</dt> <dd>this document</dd>
 <dt>Intended use:</dt> <dd>common</dd>
 <dt>Change Controller:</dt> <dd>IETF</dd>
-<dt>Security and privacy considerations:</dt> <dd>this document, <xref target="urn-ietf-params-jmap-calendars" /></dd>
+<dt>Security and privacy considerations:</dt> <dd>this document, <xref target="security-considerations" /></dd>
 </dl>
 </section>
 
@@ -1646,7 +1649,7 @@ makes no other change):</t>
 <dt>Specification document:</dt> <dd>this document</dd>
 <dt>Intended use:</dt> <dd>common</dd>
 <dt>Change Controller:</dt> <dd>IETF</dd>
-<dt>Security and privacy considerations:</dt> <dd>this document, <xref target="urn-ietf-params-jmap-principals-availability" /></dd>
+<dt>Security and privacy considerations:</dt> <dd>this document, <xref target="security-considerations" /></dd>
 </dl>
 </section>
 
@@ -1657,7 +1660,7 @@ makes no other change):</t>
 <dt>Specification document:</dt> <dd>this document</dd>
 <dt>Intended use:</dt> <dd>common</dd>
 <dt>Change Controller:</dt> <dd>IETF</dd>
-<dt>Security and privacy considerations:</dt> <dd>this document, <xref target="urn-ietf-params-jmap-calendars-parse" /></dd>
+<dt>Security and privacy considerations:</dt> <dd>this document, <xref target="security-considerations" /></dd>
 </dl>
 </section>
 
