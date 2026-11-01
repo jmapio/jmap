@@ -113,7 +113,7 @@
 
 <t>EmailPush objects are sent regardless of the value of the "types" property of the PushSubscription; a client that only wants EmailPush objects can set "types" to an empty array. As with StateChange objects, the server <bcp14>MUST NOT</bcp14> send any EmailPush objects until the PushSubscription has been verified (see <xref target="RFC8620" section="7.2" />).</t>
 
-<t>If the user loses access to an account in the "emailPush" map, or the account no longer supports the <tt>urn:ietf:params:jmap:emailpush</tt> capability, the server <bcp14>MUST</bcp14> stop sending EmailPush objects for that account.</t>
+<t>If the user loses access to an account in the "emailPush" map, or the account no longer supports the <tt>urn:ietf:params:jmap:emailpush</tt> capability, the server <bcp14>MUST</bcp14> stop sending EmailPush objects for that account and <bcp14>MUST</bcp14> remove that account from the "emailPush" map.</t>
 
 <t>EmailPush objects are only sent to the URL of a PushSubscription. They are not sent over an event-source connection (<xref target="RFC8620" section="7.3" />) or a WebSocket push channel (<xref target="RFC8887" />).</t>
 
@@ -159,7 +159,7 @@
 <t>When creating or updating a PushSubscription, the server <bcp14>MUST</bcp14> reject the change with an "invalidProperties" SetError, including "emailPush" in the "properties" list, if any of the following are true:</t>
 
 <ul spacing="normal">
-<li>A key in the "emailPush" map is not the id of an account with support for the <tt>urn:ietf:params:jmap:emailpush</tt> capability.</li>
+<li>The change includes "emailPush" and a key in the "emailPush" map is not the id of an account with support for the <tt>urn:ietf:params:jmap:emailpush</tt> capability.</li>
 <li>The "filter" of an EmailPushConfig contains a filter condition the server does not support.</li>
 <li>The "properties" of an EmailPushConfig contains a property the server does not support, including "bodyValues".</li>
 <li>The "urgency" of an EmailPushConfig is not a valid <tt>urgency-option</tt>.</li>
