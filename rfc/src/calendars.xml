@@ -1053,14 +1053,17 @@ the occurrence on 2025-03-05, which starts an hour later than normal. Now, if Zo
 <dt><strong>accountId</strong>: <tt>Id</tt></dt>
 <dd>The account id for the calendar in which the alert triggered.</dd>
 <dt><strong>calendarEventId</strong>: <tt>Id</tt></dt>
-<dd>The CalendarEvent id for the alert that triggered. Note, for a recurring
-event this is the id of the base event, never a synthetic id for a particular
-instance.</dd>
+<dd>The id of the stored CalendarEvent for the alert that triggered. Note, for a
+recurring event this is the id of the base event, never a synthetic id for a
+particular instance. If only specific instances of the event are stored (see
+<xref target="recurring-events" />), this is the id of the stored instance.</dd>
 <dt><strong>uid</strong>: <tt>String</tt></dt>
 <dd>The "uid" property of the CalendarEvent for the alert that triggered.</dd>
 <dt><strong>recurrenceId</strong>: <tt>LocalDateTime|null</tt></dt>
-<dd>The recurrenceId for the instance of the event for which this alert is being
-triggered, or null if the event is not recurring.</dd>
+<dd>The recurrence id of the instance of the event for which this alert is being
+triggered. This is null if the stored CalendarEvent has a null "recurrenceId" and
+no "recurrenceRule" or "recurrenceOverrides" (i.e., it is not recurring and is
+not a single instance of a recurring event).</dd>
 <dt><strong>alertId</strong>: <tt>String</tt></dt>
 <dd>The id for the alert that triggered.</dd>
 </dl>
@@ -1124,7 +1127,7 @@ after creation (if created).</dd>
 <dd>A patch encoding the change between the data in the event property, and the
 data after the update.</dd>
 </dl>
-<t>If the change only affects a single instance of a recurring event, the server <bcp14>MAY</bcp14> set the event and eventPatch properties for just that instance; the calendarEventId <bcp14>MUST</bcp14> still be for the base event.</t>
+<t>If the change only affects a single instance of a recurring event, the server <bcp14>MAY</bcp14> set the event and eventPatch properties for just that instance; the calendarEventId <bcp14>MUST</bcp14> still be the id of the stored CalendarEvent (the base event, unless only specific instances are stored), never a synthetic id.</t>
 
 <section anchor="calendareventnotification-get"><name>CalendarEventNotification/get</name>
 <t>This is a standard "/get" method as described in <xref target="RFC8620" section="5.1" />.</t>
