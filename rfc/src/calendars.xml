@@ -168,6 +168,7 @@
 <li>If the "includeInAvailability" property of the calendar is "attending", then the Principal is a participant of the event, and has a "participationStatus" of "accepted" or "tentative".</li>
 </ul>
 
+<t>The "isSubscribed" and "includeInAvailability" properties used above are the per-user values for the Principal itself, not the user making the request. If the Principal has never set a value, as is typically the case for a Principal that does not represent a user (such as a meeting room), the default value applies.</t>
 <t>If an event is in more than one calendar, it is relevant if all of the above are true for any one calendar that it is in.</t>
 
 <t>The server then generates a BusyPeriod object for each of these events. A <strong>BusyPeriod</strong> object has the following properties:</t>
@@ -322,7 +323,7 @@ is consistent between devices. The number <bcp14>MUST</bcp14> be an integer in t
 <t>A calendar with a lower order is to be displayed before a calendar with
 a higher order in any list of calendars in the client's UI. Calendars with equal order should be sorted in alphabetical order by name. The sorting should take into account locale-specific character order convention.</t></dd>
 <dt><strong>isSubscribed</strong>: <tt>Boolean</tt></dt>
-<dd><t>True if the user has indicated they wish to see this Calendar in their client. This <bcp14>SHOULD</bcp14> default to false for Calendars in shared accounts the user has access to and true for any new Calendars created by the user themself.</t>
+<dd><t>True if the user has indicated they wish to see this Calendar in their client. This <bcp14>SHOULD</bcp14> default to true for Calendars in the user's own account (however they were created) and for any new Calendars created by the user themself, and false for other Calendars in shared accounts the user has access to.</t>
 <t>If false, the calendar <bcp14>SHOULD</bcp14> only be displayed when the user explicitly
 requests it or to offer it for the user to subscribe to. For example, a company may have a large number of shared calendars which all employees have permission to access, but the user would only subscribe to the ones they care about and want to be able to have normally accessible.</t></dd>
 <dt><strong>isVisible</strong>: <tt>Boolean</tt> (default: true)</dt>
