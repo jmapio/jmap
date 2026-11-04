@@ -125,6 +125,21 @@
 <dt><strong>filter</strong>: <tt>FilterOperator|FilterCondition|null</tt></dt>
 <dd><t>A filter to apply to determine which new messages to push an EmailPush object for. The FilterCondition is as defined in <xref target="RFC8621" section="4.4.1" />. If null, all new messages delivered to the account are pushed.</t>
 <t>The filter is evaluated against the message as it is immediately after delivery, including any mailboxes and keywords assigned by delivery-time processing such as Sieve <xref target="RFC5228" />. Subsequent changes to the message, such as moving it to a different mailbox, do not cause an EmailPush object to be sent.</t>
+<t>The server <bcp14>MUST</bcp14> support FilterOperator objects with any of the "AND", "OR", and "NOT" operators. If the <tt>urn:ietf:params:jmap:mail</tt> capability is supported for an account, the server <bcp14>MUST</bcp14> support all the FilterCondition properties it supports for the "Email/query" method. Otherwise, it <bcp14>MUST</bcp14> support at least the following FilterCondition properties:</t>
+
+<ul spacing="compact">
+<li>hasKeyword</li>
+<li>notKeyword</li>
+<li>from</li>
+<li>to</li>
+<li>cc</li>
+<li>bcc</li>
+<li>subject</li>
+<li>header</li>
+<li>minSize</li>
+<li>maxSize</li>
+</ul>
+
 <t>If the <tt>urn:ietf:params:jmap:mail</tt> capability is not supported for an account, support for the "inMailbox" and "inMailboxOtherThan" filter conditions is <bcp14>OPTIONAL</bcp14>. However, if the server supports IMAP access to the same account with the ObjectID extension <xref target="RFC8474" />, it <bcp14>MUST</bcp14> support using mailbox ids discovered via IMAP with these filter conditions.</t>
 </dd>
 
