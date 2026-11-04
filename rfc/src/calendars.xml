@@ -164,6 +164,7 @@
 <li>The event's "privacy" property is not "secret".</li>
 <li>The "freeBusyStatus" property of the event is "busy" (or omitted, as this is the default).</li>
 <li>The "status" property of the event is not "cancelled".</li>
+<li>The Principal is not a participant of the event with a "participationStatus" of "declined" or "delegated".</li>
 <li>If the "includeInAvailability" property of the calendar is "attending", then the Principal is a participant of the event, and has a "participationStatus" of "accepted" or "tentative".</li>
 </ul>
 
@@ -179,7 +180,7 @@
 <dt><strong>busyStatus</strong>: <tt>String</tt> (default: "unavailable")</dt>
 <dd><t>This <bcp14>MUST</bcp14> be one of:</t>
 <ul spacing="compact">
-<li><tt>"confirmed"</tt> — The event status is "confirmed" and the Principal's "participationStatus" is "accepted".</li>
+<li><tt>"confirmed"</tt> — The event status is "confirmed", and either the Principal is not a participant of the event, or the Principal's "participationStatus" is "accepted", or the Principal is an owner of the event and their "participationStatus" is "needs-action".</li>
 <li><tt>"tentative"</tt> — The event status is "tentative" or the Principal's "participationStatus" is "tentative".</li>
 <li><tt>"unavailable"</tt> — The Principal is not available for scheduling at this time for any other reason.</li>
 </ul>
