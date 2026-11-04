@@ -89,9 +89,9 @@
 <dt><strong>maxCalendarsPerEvent</strong>: <tt>UnsignedInt|null</tt></dt>
 <dd>The maximum number of Calendars (see <xref target="calendars" />) that can be assigned to a single CalendarEvent object (see <xref target="calendar-events" />). This <bcp14>MUST</bcp14> be an integer &gt;= 1, or null for no limit (or rather, the limit is always the number of Calendars in the account).</dd>
 <dt><strong>minDateTime</strong>: <tt>UTCDateTime</tt></dt>
-<dd>The earliest date-time value the server is willing to accept for any date stored in a CalendarEvent.</dd>
+<dd>The earliest date-time value the server is willing to accept for any date stored in a CalendarEvent. When comparing against this limit, a LocalDateTime value with no associated time zone (i.e., in a floating event) is interpreted as though it were in UTC.</dd>
 <dt><strong>maxDateTime</strong>: <tt>UTCDateTime</tt></dt>
-<dd>The latest date-time value the server is willing to accept for any date stored in a CalendarEvent.</dd>
+<dd>The latest date-time value the server is willing to accept for any date stored in a CalendarEvent. As with minDateTime, a LocalDateTime value with no associated time zone is interpreted as though it were in UTC when comparing against this limit.</dd>
 <dt><strong>maxExpandedQueryDuration</strong>: <tt>Duration</tt></dt>
 <dd>The maximum duration the user may query over when asking the server to expand recurrences.</dd>
 <dt><strong>maxParticipantsPerEvent</strong>: <tt>UnsignedInt|null</tt></dt>
@@ -698,6 +698,8 @@ value is less than or equal to the current "sequence" value on the server;</li>
 <li>Otherwise, if the id of the new participant is already in use by a participant not included in the user's representation, the server <bcp14>MUST</bcp14> assign a different id to the new participant.</li>
 </ul>
 <t>The change <bcp14>MUST NOT</bcp14> be rejected because of either conflict. In all cases where a user with a filtered view of the participants tries to add a new participant, the server <bcp14>MUST</bcp14> return the "participants" property, filtered for that user, in the "created" or "updated" argument of the response, as per <xref target="RFC8620" section="5.3" />. The client's copy of the event after applying the response is then the same as it would receive from a subsequent "CalendarEvent/get". By definition, this will not include the new participant unless it corresponds to one of the user's own ParticipantIdentity objects. The client can infer that the participant is now in the event from the change not being rejected with a SetError.</t>
+
+<t>If the event would be assigned to more Calendars than the "maxCalendarsPerEvent" limit, would have more participants than the "maxParticipantsPerEvent" limit, or has any date earlier than the "minDateTime" or later than the "maxDateTime" value in the account capabilities (see <xref target="urn-ietf-params-jmap-calendars" />), the server <bcp14>MUST</bcp14> reject the create or update with an <tt>invalidProperties</tt> SetError.</t>
 
 <t>The following extra SetError type is defined:</t>
 
