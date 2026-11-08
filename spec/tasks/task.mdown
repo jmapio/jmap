@@ -15,8 +15,8 @@ On top of the JSTask properties, a Task object has the following additional core
 - **isDraft**: `Boolean`
   If true, this task is to be considered a draft. The server will not send any push notifications for alerts. This may only be set to true upon creation. Once set to false, the value cannot be updated to true. This property MUST NOT appear in "recurrenceOverrides".
 
-- **utcStart**: `UTCDate`
-  For simple clients that do not or cannot implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.
+- **utcStart**: `UTCDate|null`
+  The task's "start" converted to UTC using its time zone, or null if "start" is not set. For simple clients that do not or cannot implement time zone support. Clients should only use this if also asking the server to expand recurrences, as you cannot accurately expand a recurrence without the original time zone.
 
     This property is calculated at fetch time by the server. Time zones are political, and they can and do change at any time. Fetching exactly the same property again may return different results if the time zone data has been updated on the server. Time zone data changes are not considered "updates" to the task.
 
@@ -28,8 +28,8 @@ On top of the JSTask properties, a Task object has the following additional core
 
     Note that it is not possible to accurately calculate the expansion of recurrence rules or recurrence overrides with the utcStart property rather than the local start time. Even simple recurrences such as "repeat weekly" may cross a daylight-savings boundary and end up at a different UTC time. Clients that wish to use "utcStart" are RECOMMENDED to request the server to expand recurrences (see Section XXX).
 
-- **utcDue**: `UTCDate`
-  The server calculates the end time in UTC from the start/timeZone/duration properties of the task. This is not included by default and must be requested explicitly. Like utcStart, this is calculated at fetch time if requested and may change due to time zone data changes. Floating tasks will be interpreted as per the time zone given as a Task/get argument.
+- **utcDue**: `UTCDate|null`
+  The task's "due" converted to UTC using its time zone, or null if "due" is not set. This is not included by default and must be requested explicitly. Like utcStart, this is calculated at fetch time if requested and may change due to time zone data changes. Floating tasks will be interpreted as per the time zone given as a Task/get argument.
 
 - **sortOrder**: `UnsignedInt` (default: 0)
   Defines the sort order of a task when presented in the client's UI, so it
