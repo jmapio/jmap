@@ -24,7 +24,7 @@
 <keyword>email</keyword>
 
 <abstract>
-<t>This document specifies an extension to the JSON Meta Application Protocol (JMAP) that allows clients to receive an object via a JMAP push subscription whenever a new email is delivered that matches a client-defined filter. The object can also include properties from the email, to allow a user notification to be displayed without having to make a further network request.</t>
+<t>This document specifies an extension to the JSON Meta Application Protocol (JMAP) that allows clients to receive an object via a JMAP push subscription whenever a new email is delivered that matches a client-defined filter. The object can also include properties from the email, to allow a user notification to be displayed without having to make a further network request. Clients can also receive an object whenever a count of the emails in a chosen mailbox changes, for example to set a badge on an app icon.</t>
 </abstract>
 
 </front>
@@ -44,6 +44,8 @@
 </ol>
 
 <t>To address these issues, this document defines a way to receive a new EmailPush object via the JMAP push subscription. Clients can request a filter be applied to precisely restrict which messages they are notified about. Clients may request certain properties of the emails be included in the EmailPush object, so it has sufficient information to show the user notifications without having to make any further requests to the server.</t>
+
+<t>Many clients also display a badge on their app icon, showing for example the number of unread emails in the inbox. This count changes not only when new email is delivered, but also when the user reads, moves, or deletes email, perhaps on another device. Keeping the badge accurate would require the client to resynchronise every time the mailbox changes, which has the same problems as described above. This document therefore also defines a way to receive a new EmailCount object via the JMAP push subscription whenever one of the counts of a single mailbox changes. Only the counts defined for the Mailbox object in <xref target="RFC8621" section="2" /> are supported: these are generally kept up to date by the server anyway, whereas evaluating an arbitrary query every time the mailbox changes would be too expensive.</t>
 
 <section anchor="notational-conventions">
 <name>Notational Conventions</name>
@@ -76,6 +78,8 @@
 <dd>The list of FilterCondition property names the server supports in the "filter" of an EmailPushConfig for this account (see <xref target="pushsubscription-object" />). If null, the server supports all FilterCondition properties defined in <xref target="RFC8621" section="4.4.1" />, plus any defined in other JMAP extensions that the server supports for the "Email/query" method in this account.</dd>
 <dt><strong>maxFilterDepth</strong>: <tt>UnsignedInt|null</tt></dt>
 <dd>The maximum depth of nested FilterOperator objects the server supports in the "filter" of an EmailPushConfig for this account. A filter that is a single FilterCondition has a depth of 0; a FilterOperator whose "conditions" are all FilterCondition objects has a depth of 1; each further level of nested FilterOperator adds 1 to the depth. This <bcp14>MUST</bcp14> be at least 1. If null, there is no limit on the depth.</dd>
+<dt><strong>countProperties</strong>: <tt>String[]|null</tt></dt>
+<dd>The list of Mailbox count property names the server supports in the "property" of an EmailCountConfig for this account (see <xref target="emailcountconfig" />). This is a subset of "totalEmails", "unreadEmails", "totalThreads", and "unreadThreads". If null, all four are supported. If the empty array, the server does not support EmailCount pushes for this account. If the <tt>urn:ietf:params:jmap:mail</tt> capability is supported for the account, this <bcp14>MUST</bcp14> be null.</dd>
 </dl>
 <t>Note, this capability may be supported in servers or accounts that do not support the <tt>urn:ietf:params:jmap:mail</tt> capability — in such cases, notification of new emails is supported but any further interaction will require use of a different protocol, such as IMAP <xref target="RFC9051" />.</t>
 </section>
@@ -103,27 +107,62 @@
 
 <dt><strong>state</strong>: <tt>String|null</tt></dt>
 <dd>The state string for the Email data type in this account, as would be returned by an "Email/get" call (<xref target="RFC8621" section="4.2" />) made after all of the Emails in the "emails" array were created. If the account does not support the <tt>urn:ietf:params:jmap:mail</tt> capability, this is null.</dd>
+
+<dt><strong>emailCount</strong>: <tt>EmailCount|null</tt></dt>
+<dd>If the PushSubscription has an EmailCountConfig for this account (see <xref target="emailcountconfig" />), this is an EmailCount object (see <xref target="emailcount-object" />) giving the value of the count after all of the Emails in the "emails" array were delivered. Otherwise, this is null. This allows the client to update a badge at the same time as showing a notification for the new messages. The server <bcp14>MUST</bcp14> include this before adding any properties to the Email objects when calculating the size of the EmailPush object.</dd>
 </dl>
+</section>
+
+<section anchor="emailcount-object">
+<name>The EmailCount Object</name>
+
+<t>An <strong>EmailCount</strong> object gives the current value of a count of the emails in a mailbox, as requested by the client in an EmailCountConfig (see <xref target="emailcountconfig" />). It has the following properties:</t>
+
+<dl spacing="normal" newline="true">
+<dt><strong>@type</strong>: <tt>String</tt></dt>
+<dd>This <bcp14>MUST</bcp14> be the string "EmailCount".</dd>
+
+<dt><strong>accountId</strong>: <tt>Id</tt></dt>
+<dd>The id of the Account the mailbox is in.</dd>
+
+<dt><strong>count</strong>: <tt>UnsignedInt</tt></dt>
+<dd>The value of the requested count property of the mailbox.</dd>
+
+<dt><strong>updated</strong>: <tt>UTCDate</tt></dt>
+<dd>The time at which the count had this value. For a given PushSubscription and account, the server <bcp14>MUST</bcp14> ensure the "updated" value of each EmailCount it sends, whether on its own or in an EmailPush object, is later than that of any EmailCount it previously sent; if necessary, it may include fractional seconds to ensure this.</dd>
+</dl>
+
+<t>The server sends an EmailCount object on its own when the value of the count differs from the value it last sent to that PushSubscription for that account, unless it is about to send the new value in the "emailCount" property of an EmailPush object. It <bcp14>MUST</bcp14> also send one with the current value after the PushSubscription is verified, and after the client changes the EmailCountConfig for the account, so the client has an initial value.</t>
+
+<t>A single user action, such as marking many emails as read, may cause many changes to the count in quick succession. To avoid sending a large number of push messages, and so being rate limited by the push service, the server <bcp14>SHOULD</bcp14> wait for a short period after a change, such as a few seconds, before sending an EmailCount object, so that further changes can be combined into a single push. The server <bcp14>MAY</bcp14> further limit the rate at which it sends EmailCount objects, but if the count has changed it <bcp14>MUST</bcp14> eventually send an EmailCount object with the latest value.</t>
+
+<t>Push services may delay, reorder, or drop push messages. Clients <bcp14>MUST</bcp14> ignore an EmailCount object (on its own or in an EmailPush object) if its "updated" value is not later than that of the last EmailCount object they processed for the same account. Clients <bcp14>SHOULD</bcp14> fetch the count directly from the server, for example with "Mailbox/get" or the IMAP STATUS command <xref target="RFC9051" />, when they are next able to, such as when the user opens the app.</t>
+
+<t>Note, some push services and platforms require the client to display a visible notification for every push message it receives. On such platforms, the client may not be able to update its badge silently when it receives an EmailCount object on its own, and will have to rely on fetching the count directly as described above.</t>
 </section>
 
 <section anchor="pushsubscription-object">
 <name>Extension to the PushSubscription Object</name>
 
-<t>The PushSubscription object is defined in <xref target="RFC8620" section="7.2" />. This document defines an extra property for this object:</t>
+<t>The PushSubscription object is defined in <xref target="RFC8620" section="7.2" />. This document defines two extra properties for this object:</t>
 
 <dl spacing="normal" newline="true">
 <dt><strong>emailPush</strong>: <tt>Id[EmailPushConfig]|null</tt> (default: null)</dt>
 <dd><t>If not null, this is a map. The keys are Account ids for accounts with support for the <tt>urn:ietf:params:jmap:emailpush</tt> capability. The server will push EmailPush objects for these accounts when a new message arrives, in accordance with the associated EmailPushConfig options for the account.</t>
 <t>Unlike the "url" and "keys" properties, this property is mutable: the client may update it with "PushSubscription/set" to change which messages are pushed, or set it to null to stop EmailPush objects from being sent.</t></dd>
+
+<dt><strong>emailCount</strong>: <tt>Id[EmailCountConfig]|null</tt> (default: null)</dt>
+<dd><t>If not null, this is a map. The keys are Account ids for accounts with support for the <tt>urn:ietf:params:jmap:emailpush</tt> capability, where the "countProperties" property of the capability is not the empty array. The server will push EmailCount objects for these accounts when the requested count changes, in accordance with the associated EmailCountConfig options for the account.</t>
+<t>This property is mutable: the client may update it with "PushSubscription/set" to change which count is pushed, or set it to null to stop EmailCount objects from being sent.</t></dd>
 </dl>
 
-<t>To get or set the "emailPush" property, the client <bcp14>MUST</bcp14> include the <tt>urn:ietf:params:jmap:emailpush</tt> capability in the "using" property of the request (see <xref target="RFC8620" section="3.3" />).</t>
+<t>To get or set the "emailPush" or "emailCount" properties, the client <bcp14>MUST</bcp14> include the <tt>urn:ietf:params:jmap:emailpush</tt> capability in the "using" property of the request (see <xref target="RFC8620" section="3.3" />).</t>
 
-<t>EmailPush objects are sent regardless of the value of the "types" property of the PushSubscription; a client that only wants EmailPush objects can set "types" to an empty array. As with StateChange objects, the server <bcp14>MUST NOT</bcp14> send any EmailPush objects until the PushSubscription has been verified (see <xref target="RFC8620" section="7.2" />).</t>
+<t>EmailPush and EmailCount objects are sent regardless of the value of the "types" property of the PushSubscription; a client that only wants these objects can set "types" to an empty array. As with StateChange objects, the server <bcp14>MUST NOT</bcp14> send any EmailPush or EmailCount objects until the PushSubscription has been verified (see <xref target="RFC8620" section="7.2" />).</t>
 
-<t>If the user loses access to an account in the "emailPush" map, or the account no longer supports the <tt>urn:ietf:params:jmap:emailpush</tt> capability, the server <bcp14>MUST</bcp14> stop sending EmailPush objects for that account and <bcp14>MUST</bcp14> remove that account from the "emailPush" map.</t>
+<t>If the user loses access to an account in the "emailPush" or "emailCount" map, or the account no longer supports the <tt>urn:ietf:params:jmap:emailpush</tt> capability, the server <bcp14>MUST</bcp14> stop sending EmailPush and EmailCount objects for that account and <bcp14>MUST</bcp14> remove that account from both maps. If the mailbox of an EmailCountConfig is destroyed, or the user loses access to it, or the server no longer supports the requested count property, the server <bcp14>MUST</bcp14> stop sending EmailCount objects for that account and <bcp14>MUST</bcp14> remove the account from the "emailCount" map.</t>
 
-<t>EmailPush objects are only sent to the URL of a PushSubscription. They are not sent over an event-source connection (<xref target="RFC8620" section="7.3" />) or a WebSocket push channel (<xref target="RFC8887" />).</t>
+<t>EmailPush and EmailCount objects are only sent to the URL of a PushSubscription. They are not sent over an event-source connection (<xref target="RFC8620" section="7.3" />) or a WebSocket push channel (<xref target="RFC8887" />).</t>
 
 <t>An <strong>EmailPushConfig</strong> object has the following properties:</t>
 
@@ -180,6 +219,36 @@
 </ul>
 
 <t>In addition to "emailPush", the "properties" list <bcp14>MUST</bcp14> include the path to each invalid value, using the same syntax as a key in a PatchObject (see <xref target="RFC8620" section="5.3" />): "emailPush/{accountId}" if the account id is not valid, or "emailPush/{accountId}/filter", "emailPush/{accountId}/properties", or "emailPush/{accountId}/urgency" if that property of the EmailPushConfig for that account is not valid.</t>
+
+<section anchor="emailcountconfig">
+<name>EmailCountConfig</name>
+
+<t>An <strong>EmailCountConfig</strong> object has the following properties:</t>
+
+<dl spacing="normal" newline="true">
+<dt><strong>mailboxId</strong>: <tt>Id</tt></dt>
+<dd>The id of the mailbox to count emails in. If the <tt>urn:ietf:params:jmap:mail</tt> capability is supported for the account, this is the id of a Mailbox object. Otherwise, this is the MAILBOXID of the mailbox, as discovered via IMAP with the ObjectID extension <xref target="RFC8474" />; if the server does not support IMAP access to the account with ObjectID, the "countProperties" property of the <tt>urn:ietf:params:jmap:emailpush</tt> capability <bcp14>MUST</bcp14> be the empty array for that account.</dd>
+
+<dt><strong>property</strong>: <tt>String</tt></dt>
+<dd><t>The count to push: one of "totalEmails", "unreadEmails", "totalThreads", or "unreadThreads", with the same meaning as the Mailbox property of that name defined in <xref target="RFC8621" section="2" />. This <bcp14>MUST</bcp14> be one of the values supported by the server, as given by the "countProperties" property of the <tt>urn:ietf:params:jmap:emailpush</tt> capability.</t>
+<t>If the <tt>urn:ietf:params:jmap:mail</tt> capability is not supported for the account, "totalEmails" is the number of messages in the mailbox and "unreadEmails" is the number of messages without the \Seen flag, as returned by the MESSAGES and UNSEEN items of the IMAP STATUS command <xref target="RFC9051" /> respectively. IMAP has no concept of threads, so servers without support for <tt>urn:ietf:params:jmap:mail</tt> will often not support "totalThreads" or "unreadThreads".</t></dd>
+
+<dt><strong>urgency</strong>: <tt>String</tt> (default: "normal")</dt>
+<dd><t>The urgency with which to send push notifications containing an EmailCount object on its own when sending over Web Push <xref target="RFC8030" />. The value <bcp14>MUST</bcp14> be an <tt>urgency-option</tt>, as defined in <xref target="RFC8030" section="5.3" />. Clients <bcp14>SHOULD NOT</bcp14> use "high", as the count may change frequently. An EmailCount object sent in an EmailPush object is sent with the urgency of the EmailPushConfig.</t></dd>
+</dl>
+
+<t>When creating or updating a PushSubscription, the server <bcp14>MUST</bcp14> reject the change with an "invalidProperties" SetError, including "emailCount" in the "properties" list, if any of the following are true:</t>
+
+<ul spacing="normal">
+<li>The change includes "emailCount" and a key in the "emailCount" map is not the id of an account with support for the <tt>urn:ietf:params:jmap:emailpush</tt> capability, or the "countProperties" property of the capability for that account is the empty array.</li>
+<li>The "mailboxId" of an EmailCountConfig is not the id of a mailbox in the account that the user has access to.</li>
+<li>The "property" of an EmailCountConfig is not one of the count properties supported by the server for that account.</li>
+<li>The "urgency" of an EmailCountConfig is not a valid <tt>urgency-option</tt>.</li>
+<li>The "emailCount" property is not null and the "keys" property of the PushSubscription is null. In this case, the "properties" list also includes "keys".</li>
+</ul>
+
+<t>In addition to "emailCount", the "properties" list <bcp14>MUST</bcp14> include the path to each invalid value: "emailCount/{accountId}" if the account id is not valid, or "emailCount/{accountId}/mailboxId", "emailCount/{accountId}/property", or "emailCount/{accountId}/urgency" if that property of the EmailCountConfig for that account is not valid.</t>
+</section>
 </section>
 
 <section anchor="example">
@@ -221,13 +290,14 @@
 {
   "urn:ietf:params:jmap:emailpush": {
     "filterConditions": [ "inMailbox", "hasKeyword", "notKeyword" ],
-    "maxFilterDepth": 1
+    "maxFilterDepth": 1,
+    "countProperties": [ "totalEmails", "unreadEmails" ]
   }
 }
 </sourcecode>
 </figure>
 
-<t>The user has asked the client to notify them of any message delivered to the inbox, plus any message delivered to another mailbox that has the <tt>$notify</tt> keyword <xref target="RFC9979" /> set. The client discovers the mailbox id of the inbox over IMAP using ObjectID, then creates a push subscription by making the following API request:</t>
+<t>The user has asked the client to notify them of any message delivered to the inbox, plus any message delivered to another mailbox that has the <tt>$notify</tt> keyword <xref target="RFC9979" /> set. The client also wants to show the number of unread emails in the inbox as a badge on its app icon. The client discovers the mailbox id of the inbox over IMAP using ObjectID, then creates a push subscription by making the following API request:</t>
 
 <figure>
 <name>A JMAP Request</name>
@@ -261,6 +331,13 @@
             },
             "properties": ["id", "from", "subject"]
           }
+        },
+        "emailCount": {
+          "A1412": {
+            "mailboxId": "674cc240-95db-49ce-a8a2-054f4f733095",
+            "property": "unreadEmails",
+            "urgency": "low"
+          }
         }
       }
     }
@@ -269,7 +346,7 @@
 </sourcecode>
 </figure>
 
-<t>The server creates the push subscription and immediately pushes a PushVerification object to the client. The client updates the PushSubscription object with this value to validate it as per <xref target="RFC8620" section="7.2.2" />. With this done, the server will now push an EmailPush object whenever a new message arrives that is delivered to the mailbox with id "674cc240-95db-49ce-a8a2-054f4f733095", or has the "$notify" keyword. As the "types" property is the empty array, the server will not push any StateChange objects. For example, a message arrives and the server pushes the following:</t>
+<t>The server creates the push subscription and immediately pushes a PushVerification object to the client. The client updates the PushSubscription object with this value to validate it as per <xref target="RFC8620" section="7.2.2" />. With this done, the server will now push an EmailPush object whenever a new message arrives that is delivered to the mailbox with id "674cc240-95db-49ce-a8a2-054f4f733095", or has the "$notify" keyword. It will also push an EmailCount object whenever the number of unread emails in the inbox changes; the first is sent as soon as the subscription is verified. As the "types" property is the empty array, the server will not push any StateChange objects. For example, a message arrives in the inbox and the server pushes the following:</t>
 
 <figure>
 <name>An EmailPush object</name>
@@ -282,10 +359,32 @@
     "from": [{ "name": "John Smith", "email": "john@example.com" }],
     "subject": "Surprise birthday party for Jane tonight"
   }],
-  "state": null
+  "state": null,
+  "emailCount": {
+    "@type": "EmailCount",
+    "accountId": "A1412",
+    "count": 3,
+    "updated": "2026-11-15T09:12:44Z"
+  }
 }
 </sourcecode>
 </figure>
+
+<t>The client shows a notification for the new message and sets the badge on its app icon to 3. Later, the user reads the message and one other on a different device. The server waits a few seconds to see if there are further changes, then pushes the following:</t>
+
+<figure>
+<name>An EmailCount object</name>
+<sourcecode type="json">
+{
+  "@type": "EmailCount",
+  "accountId": "A1412",
+  "count": 1,
+  "updated": "2026-11-15T09:30:07Z"
+}
+</sourcecode>
+</figure>
+
+<t>The client updates the badge on its app icon to 1.</t>
 
 </section>
 
@@ -294,6 +393,7 @@
 <t>All security considerations of JMAP <xref target="RFC8620" /> apply to this specification. Additional considerations are detailed below.</t>
 <t>With the push defined in JMAP Core, no user data travels over the push channel, only state strings. The EmailPush object on the other hand contains sensitive user data. As specified in <xref target="RFC8620" section="8.7" />, to ensure confidentiality and integrity of the user's data, the client <bcp14>MUST</bcp14> specify encryption keys when establishing the PushSubscription and ignore any push notification received that is not encrypted with those keys. To ensure this, the server rejects any attempt to set the "emailPush" property on a PushSubscription that does not have encryption keys (see <xref target="pushsubscription-object" />).</t>
 <t>Even when the push message is encrypted, the push service can observe the time at which each EmailPush object is sent and the size of the encrypted payload. This reveals when the user receives messages matching their filter, and may reveal information about the requested properties, such as the length of the subject. Servers <bcp14>MAY</bcp14> mitigate the latter by padding the payload, as supported by the content coding defined in <xref target="RFC8188" />.</t>
+<t>Similarly, the time at which each EmailCount object is sent reveals to the push service when the user's mailbox changes. This may include not only when messages arrive, but also when the user reads, moves, or deletes them, and so may indicate when the user is active.</t>
 </section>
 
 <section anchor="iana-considerations">
