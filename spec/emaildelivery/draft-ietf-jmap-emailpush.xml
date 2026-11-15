@@ -70,7 +70,13 @@
 <section anchor="urn-ietf-params-jmap-emailpush">
 <name>urn:ietf:params:jmap:emailpush</name>
 <t>The <tt>urn:ietf:params:jmap:emailpush</tt> capability adds support for the extensions to PushSubscription described in this document. The value of this property in the JMAP Session "capabilities" property is an empty object.</t>
-<t>Accounts for which email delivery push is supported <bcp14>MUST</bcp14> have this capability in the account's "accountCapabilities" property. The value is an empty object.</t>
+<t>Accounts for which email delivery push is supported <bcp14>MUST</bcp14> have this capability in the account's "accountCapabilities" property. The value is an object with the following properties:</t>
+<dl spacing="normal" newline="true">
+<dt><strong>filterConditions</strong>: <tt>String[]|null</tt></dt>
+<dd>The list of FilterCondition property names the server supports in the "filter" of an EmailPushConfig for this account (see <xref target="pushsubscription-object" />). If null, the server supports all FilterCondition properties defined in <xref target="RFC8621" section="4.4.1" />, plus any defined in other JMAP extensions that the server supports for the "Email/query" method in this account.</dd>
+<dt><strong>maxFilterDepth</strong>: <tt>UnsignedInt|null</tt></dt>
+<dd>The maximum depth of nested FilterOperator objects the server supports in the "filter" of an EmailPushConfig for this account. A filter that is a single FilterCondition has a depth of 0; a FilterOperator whose "conditions" are all FilterCondition objects has a depth of 1; each further level of nested FilterOperator adds 1 to the depth. This <bcp14>MUST</bcp14> be at least 1. If null, there is no limit on the depth.</dd>
+</dl>
 <t>Note, this capability may be supported in servers or accounts that do not support the <tt>urn:ietf:params:jmap:mail</tt> capability — in such cases, notification of new emails is supported but any further interaction will require use of a different protocol, such as IMAP <xref target="RFC9051" />.</t>
 </section>
 </section>
@@ -125,22 +131,11 @@
 <dt><strong>filter</strong>: <tt>FilterOperator|FilterCondition|null</tt> (default: null)</dt>
 <dd><t>A filter to apply to determine which new messages to push an EmailPush object for. The FilterCondition is as defined in <xref target="RFC8621" section="4.4.1" />. If null, all new messages delivered to the account are pushed.</t>
 <t>The filter is evaluated against the message as it is immediately after delivery, including any mailboxes and keywords assigned by delivery-time processing such as Sieve <xref target="RFC5228" />. Subsequent changes to the message, such as moving it to a different mailbox, do not cause an EmailPush object to be sent.</t>
-<t>The server <bcp14>MUST</bcp14> support FilterOperator objects with any of the "AND", "OR", and "NOT" operators. If the <tt>urn:ietf:params:jmap:mail</tt> capability is supported for an account, the server <bcp14>MUST</bcp14> support all the FilterCondition properties it supports for the "Email/query" method. Otherwise, it <bcp14>MUST</bcp14> support at least the following FilterCondition properties:</t>
+<t>The server <bcp14>MUST</bcp14> support FilterOperator objects with any of the "AND", "OR", and "NOT" operators, nested to at least the depth given by the "maxFilterDepth" property of the <tt>urn:ietf:params:jmap:emailpush</tt> account capability (see <xref target="urn-ietf-params-jmap-emailpush" />), and every FilterCondition property listed in the "filterConditions" property of that capability. If the <tt>urn:ietf:params:jmap:mail</tt> capability is supported for an account, the server <bcp14>MUST</bcp14> support all the FilterCondition properties, and all the nesting of FilterOperator objects, it supports for the "Email/query" method. Otherwise, it <bcp14>MUST</bcp14> support a FilterOperator at the top level of the filter (i.e., a "maxFilterDepth" of at least 1), but there are no FilterCondition properties it is required to support, except as follows.</t>
 
-<ul spacing="compact">
-<li>hasKeyword</li>
-<li>notKeyword</li>
-<li>from</li>
-<li>to</li>
-<li>cc</li>
-<li>bcc</li>
-<li>subject</li>
-<li>header</li>
-<li>minSize</li>
-<li>maxSize</li>
-</ul>
+<t>If the <tt>urn:ietf:params:jmap:mail</tt> capability is not supported for an account but the server supports IMAP access to the same account with the ObjectID extension <xref target="RFC8474" />, the server <bcp14>MUST</bcp14> support the "inMailbox" FilterCondition property, using mailbox ids discovered via IMAP (the MAILBOXID values). If it supports the "inMailboxOtherThan" FilterCondition property, it <bcp14>MUST</bcp14> also accept these mailbox ids with it.</t>
 
-<t>If the <tt>urn:ietf:params:jmap:mail</tt> capability is not supported for an account, support for the "inMailbox" and "inMailboxOtherThan" filter conditions is <bcp14>OPTIONAL</bcp14>. However, if the server supports IMAP access to the same account with the ObjectID extension <xref target="RFC8474" />, it <bcp14>MUST</bcp14> support using mailbox ids discovered via IMAP with these filter conditions.</t>
+<t>This minimal set allows a server with an existing IMAP implementation to support this extension as a step towards full JMAP support. Clients <bcp14>MUST</bcp14> check the account capability before using any FilterCondition property, or nesting FilterOperator objects more than one level deep.</t>
 </dd>
 
 <dt><strong>properties</strong>: <tt>String[]</tt> (default: [])</dt>
@@ -178,6 +173,7 @@
 <ul spacing="normal">
 <li>The change includes "emailPush" and a key in the "emailPush" map is not the id of an account with support for the <tt>urn:ietf:params:jmap:emailpush</tt> capability.</li>
 <li>The "filter" of an EmailPushConfig contains a filter condition the server does not support.</li>
+<li>The "filter" of an EmailPushConfig has a depth greater than the "maxFilterDepth" of the <tt>urn:ietf:params:jmap:emailpush</tt> capability for that account.</li>
 <li>The "properties" of an EmailPushConfig contains a property the server does not support, including "bodyValues".</li>
 <li>The "urgency" of an EmailPushConfig is not a valid <tt>urgency-option</tt>.</li>
 <li>The "emailPush" property is not null and the "keys" property of the PushSubscription is null. In this case, the "properties" list also includes "keys".</li>
@@ -216,6 +212,20 @@
 </figure>
 
 <t>The server doesn't support <tt>urn:ietf:params:jmap:mail</tt> yet, so the client can't switch over to using JMAP fully instead of IMAP, but it does support <tt>urn:ietf:params:jmap:emailpush</tt>, so the client can now use JMAP to receive push notifications.</t>
+
+<t>The "accountCapabilities" property of the user's account in the Session object includes the following, so the client knows it may use the "hasKeyword" filter condition, combined with "inMailbox" in a single top-level FilterOperator:</t>
+
+<figure>
+<name>The "urn:ietf:params:jmap:emailpush" account capability</name>
+<sourcecode type="json">
+{
+  "urn:ietf:params:jmap:emailpush": {
+    "filterConditions": [ "inMailbox", "hasKeyword", "notKeyword" ],
+    "maxFilterDepth": 1
+  }
+}
+</sourcecode>
+</figure>
 
 <t>The user has asked the client to notify them of any message delivered to the inbox, plus any message delivered to another mailbox that has the <tt>$notify</tt> keyword <xref target="RFC9979" /> set. The client discovers the mailbox id of the inbox over IMAP using ObjectID, then creates a push subscription by making the following API request:</t>
 
