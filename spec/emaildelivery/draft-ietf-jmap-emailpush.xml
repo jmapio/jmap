@@ -16,7 +16,7 @@
         <uri>https://www.fastmail.com</uri>
     </address>
 </author>
-<date year="2026" month="November" day="4"></date>
+<date year="2026" month="November" day="15"></date>
 <area>Applications</area>
 <workgroup>JMAP</workgroup>
 <keyword>JMAP</keyword>
@@ -122,7 +122,7 @@
 <t>An <strong>EmailPushConfig</strong> object has the following properties:</t>
 
 <dl spacing="normal" newline="true">
-<dt><strong>filter</strong>: <tt>FilterOperator|FilterCondition|null</tt></dt>
+<dt><strong>filter</strong>: <tt>FilterOperator|FilterCondition|null</tt> (default: null)</dt>
 <dd><t>A filter to apply to determine which new messages to push an EmailPush object for. The FilterCondition is as defined in <xref target="RFC8621" section="4.4.1" />. If null, all new messages delivered to the account are pushed.</t>
 <t>The filter is evaluated against the message as it is immediately after delivery, including any mailboxes and keywords assigned by delivery-time processing such as Sieve <xref target="RFC5228" />. Subsequent changes to the message, such as moving it to a different mailbox, do not cause an EmailPush object to be sent.</t>
 <t>The server <bcp14>MUST</bcp14> support FilterOperator objects with any of the "AND", "OR", and "NOT" operators. If the <tt>urn:ietf:params:jmap:mail</tt> capability is supported for an account, the server <bcp14>MUST</bcp14> support all the FilterCondition properties it supports for the "Email/query" method. Otherwise, it <bcp14>MUST</bcp14> support at least the following FilterCondition properties:</t>
@@ -144,7 +144,7 @@
 </dd>
 
 <dt><strong>properties</strong>: <tt>String[]</tt> (default: [])</dt>
-<dd><t>The list of properties to include in the "emails" value of the EmailPush object, in priority order. This is the same as the properties argument in "Email/get", as defined in <xref target="RFC8621" section="4.2" />, except that the "bodyValues" property is not supported. If empty, each Email object in the EmailPush is an empty object: the client is notified that new messages have arrived, but no further information about them is included. Unlike "Email/get", the "id" property is not included unless it is listed.</t>
+<dd><t>The list of properties to include in the "emails" value of the EmailPush object, in priority order. This is the same as the properties argument in "Email/get", as defined in <xref target="RFC8621" section="4.2" />, except that the "bodyValues" property, and any property defined in another JMAP extension that "Email/get" returns only when given additional arguments, are not supported. If empty, each Email object in the EmailPush is an empty object: the client is notified that new messages have arrived, but no further information about them is included. Unlike "Email/get", the "id" property is not included unless it is listed.</t>
 
 <t>If the <tt>urn:ietf:params:jmap:mail</tt> capability is supported, the server <bcp14>MUST</bcp14> support all the properties it supports for the "Email/get" method. Otherwise, it <bcp14>MUST</bcp14> support the following properties:</t>
 
