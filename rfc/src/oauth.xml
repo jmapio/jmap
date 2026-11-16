@@ -274,13 +274,14 @@ This MUST include "S256".</t>
   defined by this specification.</dd>
 </dl>
 <t>For compatibility with servers implementing OpenID Connect <xref target="OpenID.Core" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also register for this scope.</t>
-<t>If the server indicated in its metadata that it supports DPoP <xref target="RFC9449" /> and the client instance is intending to authenticate all requests using DPoP, the client instance SHOULD also include the following property:</t>
+<t>If the server indicated in its metadata that it supports DPoP <xref target="RFC9449" /> and the client instance is intending to authenticate all requests using DPoP, the client instance SHOULD also include the following property, with the value <tt>true</tt>:</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>dpop_bound_access_tokens</tt></dt>
-<dd>true</dd>
+<dd><t>A boolean, as defined in <xref target="RFC9449" section="5.2" />. If the property is omitted, the value is <tt>false</tt>.</t>
+<t>If the value is <tt>true</tt>, the server MUST require every token request for the issued client id to include a DPoP proof, and MUST issue only DPoP-bound access tokens, as specified in <xref target="RFC9449" section="5.2" />.</t>
+<t>DPoP is only defined for HTTP, so a client instance that uses non-HTTP protocols such as IMAP, POP, or SMTP MUST NOT set this property to <tt>true</tt>. See <xref target="dpop-non-http" /> for how such a client instance can still make use of DPoP.</t></dd>
 </dl>
-<t>If set, the server MUST require every token request for the issued client id to include a DPoP proof, and MUST issue only DPoP-bound access tokens, as specified in <xref target="RFC9449" section="5.2" />. DPoP is only defined for HTTP, so a client instance that uses non-HTTP protocols such as IMAP, POP, or SMTP MUST NOT set this property. See <xref target="dpop-non-http" /> for how such a client instance can still make use of DPoP.</t>
 </section>
 
 <section anchor="redirect-uri-requirements"><name>Redirect URI Requirements</name>
