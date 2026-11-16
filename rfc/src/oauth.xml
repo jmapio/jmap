@@ -599,7 +599,7 @@ object with the following properties:</t>
 <section anchor="scope-naming">
 <name>Scope Naming Conventions</name>
 
-<t>Scope names in this registry are case sensitive. Names MUST NOT match other registered names in a case-insensitive manner unless the designated experts state that there is a compelling reason to allow an exception.</t>
+<t>Each scope value can be registered only once. Scope names in this registry are case sensitive, but a name MUST NOT match another registered name in a case-insensitive manner unless the designated experts state that there is a compelling reason to allow an exception. These rules apply to all registrations, whether the value is a URN or an unstructured string.</t>
 
 <t>A newly defined scope registered in this registry MUST be a URN in the <tt>urn:ietf:params:oauth:scope:</tt> sub-namespace of the OAuth URN namespace <xref target="RFC6755" />, of the form <tt>urn:ietf:params:oauth:scope:&lt;name&gt;</tt>, for example <tt>urn:ietf:params:oauth:scope:mail</tt>. The <tt>&lt;name&gt;</tt> component SHOULD be a short, lowercase, descriptive identifier for the class of data or resources to which the scope grants access. Using this namespace guarantees the value cannot collide with scope strings defined elsewhere, and makes clear to implementers that the value has a standardised meaning. Any such URN MUST also be registered in the IANA "OAuth URI" registry <xref target="IANA.OAuth.Parameters" /> established by <xref target="RFC6755" />, referencing the same specification document(s).</t>
 
@@ -607,7 +607,6 @@ object with the following properties:</t>
 <ul>
 <li>The scope value is already defined by an existing, publicly available and stable specification outside of the IETF's control, or is already in widespread deployment with a single well-understood meaning.</li>
 <li>The purpose of the registration is to allow profiles referencing this registry to interoperate with that existing usage. Assigning a new URN for the same purpose would therefore harm interoperability rather than help it.</li>
-<li>The value does not conflict with any existing registration in this registry.</li>
 </ul>
 <t>Unstructured strings MUST NOT be registered for newly defined scopes. Where a specification wishes to register a scope with an unstructured name, the designated experts MUST verify that the referenced specification defines the value with the meaning given in the registration request.</t>
 </section>
