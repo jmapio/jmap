@@ -551,6 +551,7 @@ object with the following properties:</t>
 <section anchor="scopes"><name>Scopes</name>
 <t>To work interoperably, clients and servers must use a common set of scopes for access. This document creates a new IANA registry for such scopes (see <xref target="scopes-registry" />), and registers scopes to cover IMAP, SMTP, POP, CardDAV, CalDAV, and JMAP.</t>
 <t>Registration of a scope in that registry does not by itself impose any requirement on OAuth implementations in general (see <xref target="scopes-registry" />). This profile, however, does require support: a server implementing this profile MUST support each of the scopes registered by this document (<xref target="initial-registry-contents" />) whose definition covers a protocol or type of data that the server offers. For example, a server that offers IMAP and SMTP MUST support <tt>urn:ietf:params:oauth:scope:mail</tt>, and a server that offers CalDAV MUST support <tt>urn:ietf:params:oauth:scope:calendars</tt>. Supporting a scope means advertising it in the <tt>scopes_supported</tt> metadata property, accepting it in registration and authorization requests, and granting the access described in its registration when it is authorized.</t>
+<t>The scopes registered by this document grant access to a type of data, such as the user's email, and not to particular protocols. A client granted a scope may use any of the protocols listed for it that the server supports, whether or not the user has used that protocol before. Which of these protocols a client actually uses is a matter between the client and the user, and is not part of authorization. Separate scopes for individual protocols are not defined, because the protocols covered by each scope give access to the same data, so restricting a token to one of them would not meaningfully limit what the client can access.</t>
 <t>Servers MAY additionally support other scopes, for example finer-grained or vendor-specific scopes, but clients following this profile can only rely on the registered scopes being available.</t>
 </section>
 
@@ -664,7 +665,7 @@ object with the following properties:</t>
 <dt>Scope Name:</dt> <dd><tt>urn:ietf:params:oauth:scope:mail</tt></dd>
 <dt>Description:</dt>
 <dd>
-  <t>Requests access for a client to manage the user's email. This MUST include full access via all of the following protocols that the server supports:</t>
+  <t>Requests access for a client to manage the user's email. This MUST include full access via all of the following protocols that the server supports, regardless of which of them the client actually uses (see <xref target="scopes" />):</t>
   <ul>
     <li>IMAP <xref target="RFC9051" /></li>
     <li>POP <xref target="RFC1939" /></li>
