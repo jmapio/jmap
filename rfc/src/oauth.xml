@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rfc version="3" ipr="trust200902" docName="draft-ietf-mailmaint-oauth-public-06" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
+<rfc version="3" ipr="trust200902" updates="8620" docName="draft-ietf-mailmaint-oauth-public-06" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
 
 <front>
 <title abbrev="OAuth for Native Clients">OAuth Profile for Native Clients of Open Protocols</title><seriesInfo value="draft-ietf-mailmaint-oauth-public-06" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
@@ -34,7 +34,7 @@
 <keyword>CalDAV</keyword>
 
 <abstract>
-<t>This document specifies a profile of the OAuth authorization protocol to allow for interoperability between native clients and servers using open protocols, such as JMAP, IMAP, SMTP, POP, CalDAV, and CardDAV. The profile is restricted to native clients, that is, applications installed and run on the end user's device. It deliberately does not support web-based clients, which cannot complete the flow as specified.</t>
+<t>This document specifies a profile of the OAuth authorization protocol to allow for interoperability between native clients and servers using open protocols, such as JMAP, IMAP, SMTP, POP, CalDAV, and CardDAV. The profile is restricted to native clients, that is, applications installed and run on the end user's device. It deliberately does not support web-based clients, which cannot complete the flow as specified. This document updates RFC 8620 by adding a column for interoperable OAuth scopes to the JMAP Capabilities registry.</t>
 </abstract>
 
 </front>
@@ -237,7 +237,7 @@ This MUST include "S256".</t>
 
 <section anchor="registration-request"><name>Registration Request</name>
 <t>The client registration endpoint MUST accept registration requests that carry no initial access token or other form of authentication (open registration, see <xref target="RFC7591" section="3" />), since a client instance following this profile has no pre-existing relationship with the server.</t>
-<t>To register, the client instance sends an HTTP POST to the client registration endpoint (as found in the metadata) with a content type of "application/json", and a body consisting of a JSON document with the following properties:</t>
+<t>To register, the client instance sends an HTTP POST to the client registration endpoint (as found in the metadata) with a content type of "application/json", and a body consisting of a JSON document with the following properties. The <tt>client_uri</tt>, <tt>logo_uri</tt>, <tt>tos_uri</tt>, <tt>policy_uri</tt>, <tt>software_id</tt>, and <tt>software_version</tt> properties are OPTIONAL, but client instances SHOULD include them wherever the information is available. All other properties listed MUST be included.</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>redirect_uris</tt></dt>
@@ -417,7 +417,7 @@ This MUST include "S256".</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>code</tt></dt>
-<dd>The authorization code. This may be exchanged for the refresh token. This code MUST expire, and MUST remain valid for at least 10 minutes from authorization. It MUST NOT be used again once the client instance has successfully exchanged it for a refresh token. Doing so may cause the server to detect it as stolen and revoke all associated tokens.</dd>
+<dd>The authorization code. This may be exchanged for the refresh token. This code MUST expire, and MUST remain valid for at least 10 minutes from authorization. This allows the client instance to complete the exchange even on a poor network, or if the operating system suspends the client instance before it can make the token request. <xref target="RFC6749" section="4.1.2" /> recommends a maximum lifetime of 10 minutes; a server choosing a longer lifetime deviates from that recommendation. This is acceptable for this profile because the code can only be exchanged by the holder of the PKCE code verifier, and only once. It MUST NOT be used again once the client instance has successfully exchanged it for a refresh token. Doing so may cause the server to detect it as stolen and revoke all associated tokens.</dd>
 <dt><tt>state</tt></dt>
 <dd>The value of the state parameter that was passed in with the initial request.</dd>
 <dt><tt>iss</tt></dt>
@@ -790,7 +790,7 @@ object with the following properties:</t>
 <name>Update to the JMAP Capabilities Registry</name>
 
 <t>IANA is requested to update the "JMAP Capabilities" registry established in <xref target="RFC8620" /> to add a new column called "Interoperable OAuth Scopes". For each capability, this column shall contain a list of zero or more scopes registered in the Interoperable OAuth Scopes Registry. Authorization for any scope in the list will grant access to use that JMAP capability, if the capability is supported by the server.</t>
-<t>Some capabilities, such as <tt>urn:ietf:params:jmap:blob</tt> and <tt>urn:ietf:params:jmap:quota</tt>, are listed with more than one scope. These provide additional methods, for example for manipulating blobs or seeing quota usage, but do not by themselves grant access to any data. A client may only use them with data it can already access through the other capabilities granted by its authorized scopes. For example, a client authorized only for <tt>urn:ietf:params:oauth:scope:mail</tt> may use the blob capability to access blobs referenced by the user's email, but not blobs referenced by calendar data, as it has not been granted the calendars capability.</t>
+<t>The <tt>urn:ietf:params:jmap:blob</tt> and <tt>urn:ietf:params:jmap:quota</tt> capabilities are listed with more than one scope. These provide additional methods, for example for manipulating blobs or seeing quota usage, but do not by themselves grant access to any data. A client may only use them with data it can already access through the other capabilities granted by its authorized scopes. For example, a client authorized only for <tt>urn:ietf:params:oauth:scope:mail</tt> may use the blob capability to access blobs referenced by the user's email, but not blobs referenced by calendar data, as it has not been granted the calendars capability.</t>
 
 <t>Future registrations in the "JMAP Capabilities" registry SHOULD specify a value for the Interoperable OAuth Scopes column in addition to the fields established in the registration template by <xref target="RFC8620" section="9.4.5"/>. If omitted, registrations will be added with no value for this column (i.e., no interoperable scopes are available to grant access to this capability via OAuth).</t>
 
@@ -889,7 +889,12 @@ object with the following properties:</t>
 <references><name>Normative References</name>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.3986.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4791.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4918.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5397.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5890.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6352.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6638.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6749.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6750.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6755.xml"/>
@@ -902,6 +907,7 @@ object with the following properties:</t>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8414.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8620.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8707.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8887.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9207.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9449.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9525.xml"/>
@@ -995,19 +1001,13 @@ object with the following properties:</t>
 <references><name>Informative References</name>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.1939.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2384.xml"/>
-<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4791.xml"/>
-<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4918.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5092.xml"/>
-<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5397.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5804.xml"/>
-<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6352.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6409.xml"/>
-<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6638.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6819.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7009.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7595.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8314.xml"/>
-<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8887.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9051.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-mailmaint-pacc.xml"/>
 <reference anchor="IANA.OAuth.Parameters" target="https://www.iana.org/assignments/oauth-parameters">
