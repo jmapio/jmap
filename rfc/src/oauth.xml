@@ -2,7 +2,7 @@
 <rfc version="3" ipr="trust200902" docName="draft-ietf-mailmaint-oauth-public-06" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true" consensus="true">
 
 <front>
-<title abbrev="OAuth Public">OAuth Profile for Open Public Clients</title><seriesInfo value="draft-ietf-mailmaint-oauth-public-06" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
+<title abbrev="OAuth for Native Clients">OAuth Profile for Native Clients of Open Protocols</title><seriesInfo value="draft-ietf-mailmaint-oauth-public-06" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
 <author role="editor" initials="N.M." surname="Jenkins" fullname="Neil Jenkins">
   <organization>Fastmail</organization>
   <address>
@@ -49,6 +49,7 @@
 <t>This restriction is deliberate. The profile allows any client to register with any server without a pre-existing relationship (see <xref target="dynamic-client-registration" />), and there is no way for the server to verify any of the information supplied during that registration. For a native client, this does not introduce a new risk: a malicious application that the user has already installed and run could spoof the user's browser to phish their credentials, or install malware in unsandboxed environments, so allowing it to complete an OAuth flow makes the user no worse off. Indeed, it is more secure, as the alternative is a legitimate client storing the user's password.</t>
 <t>Just navigating to a web page, however, is a different security scenario. Allowing arbitrary web-based clients to seamlessly register and obtain authorization would make it substantially easier for phishing sites to gain access to a user's account, by sending the user through a legitimate OAuth flow at the real authorization server and then receiving the resulting tokens.</t>
 <t>The profile therefore enforces this restriction by limiting the redirect URIs that may be registered to loopback addresses and private-use URI schemes, which can only be received by software running on the user's device. See <xref target="dynamic-client-registration" /> for the specific requirements and <xref target="security-considerations" /> for further discussion.</t>
+<t>Native clients are public clients in OAuth terminology (<xref target="RFC6749" section="2.1" />): because the software is distributed to and runs on end users' devices, it cannot hold a client secret that is kept confidential from those users. "Public" refers only to this property; each client instance is typically used by a single user to access their own account.</t>
 </section>
 
 <section anchor="presumptions"><name>Presumptions</name>
@@ -68,7 +69,7 @@
 <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119" /> <xref target="RFC8174" /> when, and only when, they appear in all capitals, as shown here.</t>
 </section>
 
-<section anchor="the-open-public-client-oauth-profile"><name>The Open Public Client OAuth Profile</name>
+<section anchor="the-native-client-oauth-profile"><name>The Native Client OAuth Profile</name>
 
 <section anchor="overview"><name>Overview</name>
 <t>OAuth 2 <xref target="RFC6749" /> can be used in many different ways. This document specifies one particular set of options to ensure interoperability and security. Servers may implement more options, but MUST support the flow as described in this document for interoperability with clients. Similarly, clients may choose to support additional flows but there is no guarantee that this will be interoperable.</t>
@@ -228,7 +229,7 @@ This MUST include "S256".</t>
 <dt><tt>client_id</tt></dt>
 <dd>The OAuth 2.0 client identifier string, used in the authorization flow (see <xref target="authorization" />).</dd>
 </dl>
-<t>Clients following this profile are public clients (see <xref target="RFC6749" section="2.1" />): they register with a <tt>token_endpoint_auth_method</tt> of "none" and do not authenticate to the token endpoint, instead proving possession of the authorization code using PKCE. The server MUST NOT issue a client secret in the registration response, so the <tt>client_secret</tt> and <tt>client_secret_expires_at</tt> properties defined in <xref target="RFC7591" section="3.2.1" /> MUST NOT be present. A native client cannot keep a secret confidential, so a secret would offer no security benefit, and a client that expected to use one would not be interoperable with servers that correctly omit it. If a server nonetheless returns a <tt>client_secret</tt>, the client instance MUST ignore it and continue as a public client.</t>
+<t>Clients following this profile are public clients (see <xref target="native-clients-only" />): they register with a <tt>token_endpoint_auth_method</tt> of "none" and do not authenticate to the token endpoint, instead proving possession of the authorization code using PKCE. The server MUST NOT issue a client secret in the registration response, so the <tt>client_secret</tt> and <tt>client_secret_expires_at</tt> properties defined in <xref target="RFC7591" section="3.2.1" /> MUST NOT be present. A native client cannot keep a secret confidential, so a secret would offer no security benefit, and a client that expected to use one would not be interoperable with servers that correctly omit it. If a server nonetheless returns a <tt>client_secret</tt>, the client instance MUST ignore it and continue as a public client.</t>
 <t>If the registration fails, the server will respond with an HTTP 400 status code and a JSON body as described in <xref target="RFC7591" />, section 3.2.2.</t>
 </section>
 
