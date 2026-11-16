@@ -478,8 +478,9 @@ object with the following properties:</t>
 </section>
 
 <section anchor="getting-a-new-access-token"><name>Refreshing the Access Token</name>
+<t>The client instance obtains its first access token, together with its refresh token, by exchanging the authorization code as described in <xref target="obtaining-a-refresh-token" />. This section describes how it obtains every subsequent access token, using the refresh token. It does not apply to the first access token.</t>
 <t>Clients SHOULD keep using an access token they have been issued until it expires. The client instance knows when this will happen from the <tt>expires_in</tt> property returned with the token, and, while it has an active need for the token (for example, open connections it expects to re-establish), SHOULD proactively obtain a new access token shortly before the current one expires, rather than waiting for a request to fail. A client instance with no such need SHOULD NOT refresh merely to keep a token current. This is particularly important for stateful protocols such as IMAP and SMTP, where the token is needed at connection time and a round trip to the token endpoint would otherwise delay every reconnection. Clients MUST nonetheless be prepared for an access token to be rejected at any time (for HTTP-based protocols, with a <tt>401</tt> response), as the server may invalidate it early, and MUST handle this by obtaining a new one.</t>
-<t>When the access token expires, the client instance MUST get a new one by making another POST request to the authorization server token endpoint. The following parameters MUST be present, using the "application/x-www-form-urlencoded" format with a character encoding of UTF-8 in the HTTP request entity-body:</t>
+<t>To obtain a new access token, the client instance makes a POST request to the authorization server token endpoint. The following parameters MUST be present, using the "application/x-www-form-urlencoded" format with a character encoding of UTF-8 in the HTTP request entity-body:</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>client_id</tt></dt>
@@ -487,7 +488,7 @@ object with the following properties:</t>
 <dt><tt>grant_type</tt></dt>
 <dd>This MUST be "refresh_token".</dd>
 <dt><tt>refresh_token</tt></dt>
-<dd>The refresh token returned last time the client instance obtained a new access token.</dd>
+<dd>The most recent refresh token the client instance has received (see <xref target="refresh-token-rotation" />).</dd>
 <dt><tt>resource (optional)</tt></dt>
 <dd>One or more Resource Indicators restricting the access token to a subset of the authorized resources, with the same semantics as in <xref target="obtaining-a-refresh-token" />.</dd>
 </dl>
