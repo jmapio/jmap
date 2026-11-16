@@ -52,7 +52,7 @@
 <t>This profile applies only to native clients: applications that are installed and executed on the end user's device, as described in <xref target="RFC8252" />. Web-based clients, that is, clients that run in a web browser or on a web server, are out of scope for this document.</t>
 <t>This restriction is deliberate. The profile allows any client to register with any server without a pre-existing relationship (see <xref target="dynamic-client-registration" />), and there is no way for the server to verify any of the information supplied during that registration. For a native client, this does not introduce a new risk: a malicious application that the user has already installed and run could spoof the user's browser to phish their credentials, or install malware in unsandboxed environments, so allowing it to complete an OAuth flow makes the user no worse off. Indeed, it is more secure, as the alternative is a legitimate client storing the user's password.</t>
 <t>Just navigating to a web page, however, is a different security scenario. Allowing arbitrary web-based clients to seamlessly register and obtain authorization would make it substantially easier for phishing sites to gain access to a user's account, by sending the user through a legitimate OAuth flow at the real authorization server and then receiving the resulting tokens.</t>
-<t>The profile therefore enforces this restriction by limiting the redirect URIs that may be registered to loopback addresses and private-use URI schemes, which can only be received by software running on the user's device. See <xref target="redirect-uri-requirements" /> for the specific requirements and <xref target="security-considerations" /> for further discussion.</t>
+<t>The profile therefore enforces this restriction by limiting the redirect URIs that may be registered to loopback addresses (<xref target="RFC8252" section="7.3" />) and private-use URI schemes (<xref target="RFC8252" section="7.1" />), which can only be received by software running on the user's device. See <xref target="redirect-uri-requirements" /> for the specific requirements and <xref target="security-considerations" /> for further discussion.</t>
 <t>Native clients are public clients in OAuth terminology (<xref target="RFC6749" section="2.1" />): because the software is distributed to and runs on end users' devices, it cannot hold a client secret that is kept confidential from those users. "Public" refers only to this property; each client instance is typically used by a single user to access their own account.</t>
 </section>
 
@@ -292,7 +292,7 @@ This MUST include "S256".</t>
 <ul>
   <li><tt>http://127.0.0.1/</tt></li>
   <li><tt>http://[::1]/</tt></li>
-  <li>A private-use scheme in reverse domain notation, e.g., <tt>com.example:/</tt>. Such a scheme MUST have at least one dot in it.</li>
+  <li>A private-use URI scheme, as described in <xref target="RFC8252" section="7.1" />: a scheme that is not registered with IANA, and is instead named after a domain the client developer controls, written in reverse order, as recommended for private use by <xref target="RFC7595" section="3.8" />. For example, the developer of <tt>example.com</tt> could use the scheme <tt>com.example</tt>, giving a redirect URI such as <tt>com.example:/</tt>. Such a scheme MUST have at least one dot in it.</li>
 </ul></li>
 <li>The URI MUST NOT include two consecutive dots (e.g., <tt>/../</tt>).</li>
 <li>The URI MUST NOT include a fragment part (<tt>#</tt>).</li>
@@ -424,7 +424,7 @@ This MUST include "S256".</t>
 <li>The state returned matches exactly the state it sent, to verify that this
 request was indeed initiated by the client and not an attacker.</li>
 </ul>
-<t>If any verification fails, the client instance MUST abort the flow and not send the authorization code anywhere. It MUST inform the user of what went wrong and what they can do next. For a loopback redirect URI, this is done by returning an HTML page in response to the redirect request; for a private-use scheme URI the client instance is invoked directly and displays the message itself.</t>
+<t>If any verification fails, the client instance MUST abort the flow and not send the authorization code anywhere. It MUST inform the user of what went wrong and what they can do next. For a loopback redirect URI, this is done by returning an HTML page in response to the redirect request; for a private-use URI scheme the client instance is invoked directly and displays the message itself.</t>
 </section>
 </section>
 
@@ -445,7 +445,7 @@ access tokens by making a POST request to the token_endpoint URL. The following 
 <dd>The code returned via the redirect back from authorization.</dd>
 <dt><tt>code_verifier</tt></dt>
 <dd><t>The code_verifier generated for the authorization (the random string generated in the authorization step, as per <xref target="RFC7636" />).</t>
-<t>The server MUST reject a request that omits this parameter, or whose value does not verify against the <tt>code_challenge</tt> sent with the authorization request, as specified in <xref target="RFC7636" section="4.6" />. An authorization code issued to a client registered under this profile MUST NOT be exchangeable without it: PKCE is the only protection against an authorization code intercepted via a loopback or private-use scheme redirect.</t></dd>
+<t>The server MUST reject a request that omits this parameter, or whose value does not verify against the <tt>code_challenge</tt> sent with the authorization request, as specified in <xref target="RFC7636" section="4.6" />. An authorization code issued to a client registered under this profile MUST NOT be exchangeable without it: PKCE is the only protection against an authorization code intercepted via a loopback or private-use URI scheme redirect.</t></dd>
 <dt><tt>resource (optional)</tt></dt>
 <dd>One or more Resource Indicators, as described in <xref target="RFC8707" section="2.2" />, restricting the access token to a subset of the resources that were authorized. Each value MUST be one of the <tt>resource</tt> values sent in the authorization request. If omitted, the access token is issued for all of the authorized resources. See <xref target="dpop-non-http" /> for when a client instance needs to use this.</dd>
 </dl>
@@ -947,6 +947,7 @@ object with the following properties:</t>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6409.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6819.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7009.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7595.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8314.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9051.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-mailmaint-pacc.xml"/>
