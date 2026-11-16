@@ -44,57 +44,115 @@
 <section anchor="introduction"><name>Introduction</name>
 <t>This document pulls together several existing standards and uses them to specify a specific OAuth profile, allowing interoperable modern authentication for native clients of open protocols, such as JMAP, IMAP, SMTP, POP, CalDAV, and CardDAV. For these protocols, there are many servers and many clients with no pre-existing relationship, that need to be able to connect. At the moment, the only interoperable way to do so is with a basic username and password, which has many deficiencies from a security standpoint.</t>
 
-<section anchor="native-clients-only"><name>Applicability to Native Clients Only</name>
-<t>This profile applies only to native clients: applications that are installed and executed on the end user's device, as described in <xref target="RFC8252" />. Web-based clients, that is, clients that run in a web browser or on a web server, are out of scope for this document.</t>
-<t>This restriction is deliberate. The profile allows any client to register with any server without a pre-existing relationship (see <xref target="dynamic-client-registration" />), and there is no way for the server to verify any of the information supplied during that registration. For a native client, this does not introduce a new risk: a malicious application that the user has already installed and run could spoof the user's browser to phish their credentials, or install malware in unsandboxed environments, so allowing it to complete an OAuth flow makes the user no worse off. Indeed, it is more secure, as the alternative is a legitimate client storing the user's password.</t>
-<t>Just navigating to a web page, however, is a different security scenario. Allowing arbitrary web-based clients to seamlessly register and obtain authorization would make it substantially easier for phishing sites to gain access to a user's account, by sending the user through a legitimate OAuth flow at the real authorization server and then receiving the resulting tokens.</t>
-<t>The profile therefore enforces this restriction by limiting the redirect URIs that may be registered to loopback addresses and private-use URI schemes, which can only be received by software running on the user's device. See <xref target="dynamic-client-registration" /> for the specific requirements and <xref target="security-considerations" /> for further discussion.</t>
-<t>Native clients are public clients in OAuth terminology (<xref target="RFC6749" section="2.1" />): because the software is distributed to and runs on end users' devices, it cannot hold a client secret that is kept confidential from those users. "Public" refers only to this property; each client instance is typically used by a single user to access their own account.</t>
-</section>
-
-<section anchor="presumptions"><name>Presumptions</name>
-<t>This profile presumes a deployment has a set of one or more resource server endpoints (e.g., for JMAP/IMAP/SMTP/POP/CardDAV/CalDAV), and a common authorization server issuer identifier for all of them. For example, a deployment might have a JMAP session endpoint <tt>https://api.example.com/jmap/session</tt>, an IMAP endpoint <tt>imap.example.com</tt>, and an issuer identifier <tt>https://auth.example.com/acmeinc</tt>.</t>
-</section>
-
-<section anchor="getting-the-issuer-identifier"><name>Getting the Authorization Server Issuer Identifier</name>
-<t>The endpoints may be discovered via an autoconfiguration mechanism, such as <xref target="I-D.ietf-mailmaint-pacc" />, or via manual user input. Autoconfiguration may also include the issuer identifier. To allow OAuth configuration for manual input or when the issuer identifier is not included in the autoconfiguration data, HTTP endpoints that support this profile MUST support <xref target="RFC9728">Protected Resource Metadata</xref>, accessible via the <tt>oauth-protected-resource</tt> well-known path, as specified in <xref target="RFC9728" section="3" />. The <tt>authorization_servers</tt> property MUST be present in the resource metadata. Servers SHOULD list exactly one issuer identifier, that of the authorization server to be used with this profile; if more than one is listed, the client instance MUST use the first. HTTP requests made without valid authentication to the resource endpoints MUST indicate the protected resource metadata URL in the <tt>resource_metadata</tt> parameter of the <tt>WWW-Authenticate</tt> HTTP response header field, as described in <xref target="RFC9728" section="5.1" />.</t>
-<t>A client instance that needs the issuer identifier for an HTTP endpoint SHOULD obtain the metadata URL by making a request to the endpoint without credentials and reading the <tt>resource_metadata</tt> parameter from the <tt>WWW-Authenticate</tt> header field of the response. This works for endpoints whose own path is a well-known path, such as <tt>https://caldav.example.com/.well-known/caldav</tt>, and for endpoints that redirect during service discovery, as is common for CalDAV and CardDAV: the client instance follows the redirects as it normally would and reads the header field from the final response. If the header field is absent, the client instance MAY instead construct the metadata URL from the endpoint URL as described in <xref target="RFC9728" section="3.1" />. The client instance MUST NOT follow HTTP redirects when fetching the metadata document itself.</t>
-<t>In either case, the client instance MUST validate the metadata as required by <xref target="RFC9728" section="3.3" />: the <tt>resource</tt> property MUST be identical to the URL of the request that returned the <tt>WWW-Authenticate</tt> header field, or, for a constructed URL, to the endpoint URL into which the well-known path was inserted. If it is not, the metadata MUST NOT be used. This check ensures that a redirect or a misconfigured server cannot cause the client instance to use metadata that describes some other resource.</t>
-<t>Protected Resource Metadata is only available for HTTP-based endpoints. For IMAP, POP, and SMTP, the equivalent in-protocol mechanism is the <tt>openid-configuration</tt> field of the OAUTHBEARER failed-authentication response (<xref target="RFC7628" section="3.2.2" />). Servers offering these protocols under this profile MUST include this field in every failed OAUTHBEARER response, with the URL of the authorization server metadata document (in either of the forms described in <xref target="fetching-the-authorization-server-data" />). A client instance that has not obtained the issuer identifier from autoconfiguration or the user MAY discover it by connecting to the endpoint over TLS, attempting OAUTHBEARER authentication with a syntactically valid but deliberately invalid token, and reading this field from the response. The client instance MUST then fetch the document at that URL (without following redirects, as in <xref target="fetching-the-authorization-server-data" />), take its <tt>issuer</tt> property as the issuer identifier, and proceed as described in that section from the issuer identifier alone, discarding the document it fetched. This ensures the metadata used is subject to every check in this document, regardless of the URL from which the field pointed. As with autoconfiguration data and protected resource metadata, the URL is supplied by a server that may itself be counterfeit, and the protections of <xref target="permitted-resource-servers" /> apply.</t>
-</section>
-
-</section>
-
 <section anchor="notational-conventions"><name>Notational Conventions</name>
 <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119" /> <xref target="RFC8174" /> when, and only when, they appear in all capitals, as shown here.</t>
 </section>
 
-<section anchor="the-native-client-oauth-profile"><name>The Native Client OAuth Profile</name>
+<section anchor="native-clients-only"><name>Applicability to Native Clients Only</name>
+<t>This profile applies only to native clients: applications that are installed and executed on the end user's device, as described in <xref target="RFC8252" />. Web-based clients, that is, clients that run in a web browser or on a web server, are out of scope for this document.</t>
+<t>This restriction is deliberate. The profile allows any client to register with any server without a pre-existing relationship (see <xref target="dynamic-client-registration" />), and there is no way for the server to verify any of the information supplied during that registration. For a native client, this does not introduce a new risk: a malicious application that the user has already installed and run could spoof the user's browser to phish their credentials, or install malware in unsandboxed environments, so allowing it to complete an OAuth flow makes the user no worse off. Indeed, it is more secure, as the alternative is a legitimate client storing the user's password.</t>
+<t>Just navigating to a web page, however, is a different security scenario. Allowing arbitrary web-based clients to seamlessly register and obtain authorization would make it substantially easier for phishing sites to gain access to a user's account, by sending the user through a legitimate OAuth flow at the real authorization server and then receiving the resulting tokens.</t>
+<t>The profile therefore enforces this restriction by limiting the redirect URIs that may be registered to loopback addresses and private-use URI schemes, which can only be received by software running on the user's device. See <xref target="redirect-uri-requirements" /> for the specific requirements and <xref target="security-considerations" /> for further discussion.</t>
+<t>Native clients are public clients in OAuth terminology (<xref target="RFC6749" section="2.1" />): because the software is distributed to and runs on end users' devices, it cannot hold a client secret that is kept confidential from those users. "Public" refers only to this property; each client instance is typically used by a single user to access their own account.</t>
+</section>
 
-<section anchor="overview"><name>Overview</name>
+<section anchor="overview"><name>Protocol Overview</name>
 <t>OAuth 2 <xref target="RFC6749" /> can be used in many different ways. This document specifies one particular set of options to ensure interoperability and security. Servers may implement more options, but MUST support the flow as described in this document for interoperability with clients. Similarly, clients may choose to support additional flows but there is no guarantee that this will be interoperable.</t>
-<t>The general flow works like this:</t>
+<t anchor="presumptions">This profile presumes a deployment has a set of one or more resource server endpoints (e.g., for JMAP/IMAP/SMTP/POP/CardDAV/CalDAV), and a common authorization server issuer identifier for all of them. For example, a deployment might have a JMAP session endpoint <tt>https://api.example.com/jmap/session</tt>, an IMAP endpoint <tt>imap.example.com</tt>, and an issuer identifier <tt>https://auth.example.com/acmeinc</tt>.</t>
+<t>The protocol involves four parties: the client instance (a single installation of the client software on the user's device), the user-agent (normally the user's web browser), the authorization server, and the resource servers the client instance wishes to access. <xref target="fig-overview" /> shows the messages exchanged between them.</t>
 
-<ol spacing="compact">
-<li>The OAuth 2.0 Authorization Server Metadata <xref target="RFC8414" /> is fetched.</li>
-<li>The client instance registers with the authorization server to get a client id using the OAuth 2.0 Dynamic Client Registration Protocol <xref target="RFC7591" />.</li>
-<li>The client instance authorizes using the Authorization Code Grant flow (<xref target="RFC6749" section="4.1" />) with PKCE <xref target="RFC7636" /> and Issuer Identification <xref target="RFC9207" />. The client instance also includes Resource Indicators <xref target="RFC8707" /> in the authorization request. Server support for Resource Indicators is RECOMMENDED but not required: an authorization server that does not support them ignores the unrecognised parameters (as required by <xref target="RFC6749" section="3.1" />) and the flow proceeds without them; the client instance then relies on the rules in <xref target="permitted-resource-servers" /> to decide which resource servers it may send access tokens to. The consequences of this are discussed in <xref target="authorization" />, <xref target="permitted-resource-servers" />, and <xref target="security-considerations" />.</li>
-<li>The client instance gets an access token and refresh token, as per <xref target="RFC6749" section="5" />.</li>
+<figure anchor="fig-overview"><name>Protocol Overview</name>
+<artwork type="ascii-art"><![CDATA[
+  Client          User-Agent         Authorization         Resource
+ Instance          (Browser)            Server              Server
+     |                 |                   |                   |
+     | (1) Discover issuer (if needed)     |                   |
+     |-------------------------------------------------------->|
+     |<--------------------------------------------------------|
+     |                 |                   |                   |
+     | (2) Fetch metadata                  |                   |
+     |------------------------------------>|                   |
+     |<------------------------------------|                   |
+     |                 |                   |                   |
+     | (3) Register    |                   |                   |
+     |------------------------------------>|                   |
+     |<-- client_id -----------------------|                   |
+     |                 |                   |                   |
+     | (4) Open        |                   |                   |
+     | authorization   |                   |                   |
+     | request         |                   |                   |
+     |---------------->|                   |                   |
+     |                 |                   |                   |
+     |                 | (5) Authenticate  |                   |
+     |                 | and grant access  |                   |
+     |                 |------------------>|                   |
+     |                 |<------------------|                   |
+     |                 |                   |                   |
+     | (6) Redirect    |                   |                   |
+     | with code       |                   |                   |
+     |<----------------|                   |                   |
+     |                 |                   |                   |
+     | (7) Exchange code for tokens        |                   |
+     |------------------------------------>|                   |
+     |<-- access + refresh tokens ---------|                   |
+     |                 |                   |                   |
+     | (8) Access resources with access token                  |
+     |-------------------------------------------------------->|
+     |<--------------------------------------------------------|
+     |                 |                   |                   |
+     | (9) Refresh access token            |                   |
+     |--- refresh token ------------------>|                   |
+     |<-- new access token ----------------|                   |
+]]></artwork>
+</figure>
+
+<t>The steps are as follows:</t>
+
+<ol>
+<li>The client instance discovers the authorization server's issuer identifier, either from autoconfiguration or user input, or by querying a resource server (<xref target="getting-the-issuer-identifier" />).</li>
+<li>The OAuth 2.0 Authorization Server Metadata <xref target="RFC8414" /> is fetched (<xref target="fetching-the-authorization-server-data" />).</li>
+<li>The client instance registers with the authorization server to get a client id using the OAuth 2.0 Dynamic Client Registration Protocol <xref target="RFC7591" /> (<xref target="dynamic-client-registration" />).</li>
+<li>The client instance opens an authorization request in the user's browser (<xref target="authorization-request" /> and <xref target="user-agent-requirements" />). It authorizes using the Authorization Code Grant flow (<xref target="RFC6749" section="4.1" />) with PKCE <xref target="RFC7636" /> and Issuer Identification <xref target="RFC9207" />. The client instance also includes Resource Indicators <xref target="RFC8707" /> in the authorization request. Server support for Resource Indicators is RECOMMENDED but not required: an authorization server that does not support them ignores the unrecognised parameters (as required by <xref target="RFC6749" section="3.1" />) and the flow proceeds without them; the client instance then relies on the rules in <xref target="permitted-resource-servers" /> to decide which resource servers it may send access tokens to. The consequences of this are discussed in <xref target="resource-indicators" />, <xref target="permitted-resource-servers" />, and <xref target="security-considerations" />.</li>
+<li>The authorization server authenticates the user and asks them to grant access to the client (<xref target="authorization-processing" />).</li>
+<li>The authorization server redirects the user-agent back to the client instance with an authorization code, which the client instance verifies (<xref target="authorization-response" />).</li>
+<li>The client instance exchanges the authorization code for an access token and refresh token, as per <xref target="RFC6749" section="5" /> (<xref target="tokens" />).</li>
+<li>The access token is used as a Bearer token to authenticate requests to the resource servers, as per <xref target="RFC6750" /> for HTTP requests, or <xref target="RFC7628" /> for SASL authentication (<xref target="using-access-tokens" />).</li>
+<li>When the access token expires, a new one is requested using the refresh token, as per <xref target="RFC6749" section="6"/> (<xref target="getting-a-new-access-token" />).</li>
 </ol>
-<t>The access token can now be used as a Bearer token to authenticate requests to the application servers as per <xref target="RFC6750" /> for HTTP requests, or <xref target="RFC7628" /> for SASL authentication. When it expires, a new one can be requested using the refresh token as per <xref target="RFC6749" section="6"/>.</t>
 <t>The rest of this document describes in detail each of the above steps.</t>
 </section>
 
-<section anchor="fetching-the-authorization-server-data"><name>Fetching the Authorization Server Metadata</name>
-<t>The authorization server issuer identifier MUST be an HTTPS URL with no userinfo, query, or fragment component. If a path is present, it MUST NOT contain <tt>.</tt> or <tt>..</tt> segments, and MUST NOT use percent-encoding for unreserved characters (as defined in <xref target="RFC3986" section="2.3" />). If the issuer identifier does not conform to these requirements, the flow MUST be aborted. Note that <tt>https://auth.example.com</tt> and <tt>https://auth.example.com/</tt> are both permitted, but they are distinct issuer identifiers: clients do not normalize one to the other, and the <tt>issuer</tt> metadata property (see below) must match exactly whichever form was used. The authorization server metadata MUST first be fetched as specified in <xref target="RFC8414" section="3" /> by constructing a URL that places <tt>/.well-known/oauth-authorization-server</tt> after the host and before any path. For example, for an issuer identifier of <tt>https://auth.example.com/acmeinc</tt>, the authorization server metadata would be fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server/acmeinc</tt>.</t>
+</section>
+
+<section anchor="getting-the-issuer-identifier"><name>Discovering the Authorization Server</name>
+<t>The endpoints may be discovered via an autoconfiguration mechanism, such as <xref target="I-D.ietf-mailmaint-pacc" />, or via manual user input. Autoconfiguration may also include the issuer identifier.</t>
+
+<section anchor="issuer-discovery-http"><name>HTTP-Based Protocols</name>
+<t>To allow OAuth configuration for manual input or when the issuer identifier is not included in the autoconfiguration data, HTTP endpoints that support this profile MUST support <xref target="RFC9728">Protected Resource Metadata</xref>, accessible via the <tt>oauth-protected-resource</tt> well-known path, as specified in <xref target="RFC9728" section="3" />. The <tt>authorization_servers</tt> property MUST be present in the resource metadata. Servers SHOULD list exactly one issuer identifier, that of the authorization server to be used with this profile; if more than one is listed, the client instance MUST use the first. HTTP requests made without valid authentication to the resource endpoints MUST indicate the protected resource metadata URL in the <tt>resource_metadata</tt> parameter of the <tt>WWW-Authenticate</tt> HTTP response header field, as described in <xref target="RFC9728" section="5.1" />.</t>
+<t>A client instance that needs the issuer identifier for an HTTP endpoint SHOULD obtain the metadata URL by making a request to the endpoint without credentials and reading the <tt>resource_metadata</tt> parameter from the <tt>WWW-Authenticate</tt> header field of the response. This works for endpoints whose own path is a well-known path, such as <tt>https://caldav.example.com/.well-known/caldav</tt>, and for endpoints that redirect during service discovery, as is common for CalDAV and CardDAV: the client instance follows the redirects as it normally would and reads the header field from the final response. If the header field is absent, the client instance MAY instead construct the metadata URL from the endpoint URL as described in <xref target="RFC9728" section="3.1" />. The client instance MUST NOT follow HTTP redirects when fetching the metadata document itself.</t>
+<t>In either case, the client instance MUST validate the metadata as required by <xref target="RFC9728" section="3.3" />: the <tt>resource</tt> property MUST be identical to the URL of the request that returned the <tt>WWW-Authenticate</tt> header field, or, for a constructed URL, to the endpoint URL into which the well-known path was inserted. If it is not, the metadata MUST NOT be used. This check ensures that a redirect or a misconfigured server cannot cause the client instance to use metadata that describes some other resource.</t>
+</section>
+
+<section anchor="issuer-discovery-sasl"><name>IMAP, POP, and SMTP</name>
+<t>Protected Resource Metadata is only available for HTTP-based endpoints. For IMAP, POP, and SMTP, the equivalent in-protocol mechanism is the <tt>openid-configuration</tt> field of the OAUTHBEARER failed-authentication response (<xref target="RFC7628" section="3.2.2" />). Servers offering these protocols under this profile MUST include this field in every failed OAUTHBEARER response, with the URL of the authorization server metadata document (in either of the forms described in <xref target="metadata-fetching" />). A client instance that has not obtained the issuer identifier from autoconfiguration or the user MAY discover it by connecting to the endpoint over TLS, attempting OAUTHBEARER authentication with a syntactically valid but deliberately invalid token, and reading this field from the response. The client instance MUST then fetch the document at that URL (without following redirects, as in <xref target="metadata-fetching" />), take its <tt>issuer</tt> property as the issuer identifier, and proceed as described in that section from the issuer identifier alone, discarding the document it fetched. This ensures the metadata used is subject to every check in this document, regardless of the URL from which the field pointed. As with autoconfiguration data and protected resource metadata, the URL is supplied by a server that may itself be counterfeit, and the protections of <xref target="permitted-resource-servers" /> apply.</t>
+</section>
+</section>
+
+<section anchor="fetching-the-authorization-server-data"><name>Authorization Server Metadata</name>
+
+<section anchor="metadata-fetching"><name>Fetching the Metadata</name>
+<t>The authorization server issuer identifier MUST be an HTTPS URL with no userinfo, query, or fragment component. If a path is present, it MUST NOT contain <tt>.</tt> or <tt>..</tt> segments, and MUST NOT use percent-encoding for unreserved characters (as defined in <xref target="RFC3986" section="2.3" />). If the issuer identifier does not conform to these requirements, the flow MUST be aborted. Note that <tt>https://auth.example.com</tt> and <tt>https://auth.example.com/</tt> are both permitted, but they are distinct issuer identifiers: clients do not normalize one to the other, and the <tt>issuer</tt> metadata property (see <xref target="metadata-required-properties" />) must match exactly whichever form was used. The authorization server metadata MUST first be fetched as specified in <xref target="RFC8414" section="3" /> by constructing a URL that places <tt>/.well-known/oauth-authorization-server</tt> after the host and before any path. For example, for an issuer identifier of <tt>https://auth.example.com/acmeinc</tt>, the authorization server metadata would be fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server/acmeinc</tt>.</t>
 <t>If this request does not result in a successful response (a 200 OK HTTP status code with an "application/json" content type), the client MUST also try the OpenID Connect Discovery <xref target="OpenID.Discovery" /> metadata path. This is constructed by appending <tt>/.well-known/openid-configuration</tt> to the issuer identifier after stripping any trailing slash. For example, for an issuer identifier of <tt>https://auth.example.com/acmeinc</tt>, this would be <tt>https://auth.example.com/acmeinc/.well-known/openid-configuration</tt>. This fallback is necessary for compatibility with existing deployments that only serve metadata at the OpenID Connect path. See <xref target="security-considerations" /> for a discussion of the security implications of this fallback.</t>
 <t>A successful response is indicated by a 200 OK HTTP status code. The response MUST have an "application/json" content type. If neither metadata path results in a successful response, the flow MUST be aborted. Clients MUST NOT follow HTTP redirects when fetching the metadata; a redirect MUST be treated the same as an error response.</t>
+</section>
+
+<section anchor="metadata-required-properties"><name>Required Properties</name>
 <t>The authorization server metadata is a JSON document with properties as specified in <xref target="RFC8414" />. It MUST include the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>issuer</tt></dt>
 <dd><t>The authorization server's issuer identifier. This MUST be identical to the issuer identifier from which this metadata URL was derived — not the URL from which it was fetched. For example, if the issuer identifier is <tt>https://auth.example.com/acmeinc</tt>, the issuer property MUST be <tt>https://auth.example.com/acmeinc</tt>, regardless of whether the metadata was fetched from <tt>https://auth.example.com/.well-known/oauth-authorization-server/acmeinc</tt> or <tt>https://auth.example.com/acmeinc/.well-known/openid-configuration</tt>. If not, the flow MUST be aborted.</t>
-<t>This MUST be verified again during the authorization flow (see <xref target="authorization" />, or <xref target="RFC9207" /> for more details), to protect against mix-up attacks.</t>
+<t>This MUST be verified again during the authorization flow (see <xref target="authorization-response" />, or <xref target="RFC9207" /> for more details), to protect against mix-up attacks.</t>
 </dd>
 <dt><tt>registration_endpoint</tt></dt>
 <dd><t>The URL the client instance will use to register, to get a client id it needs for authorization (see <xref target="dynamic-client-registration" />).</t>
@@ -103,7 +161,7 @@
 <dd><t>The URL the client instance will use to start the authorization process (see <xref target="authorization" />) once it has registered.</t>
 </dd>
 <dt><tt>token_endpoint</tt></dt>
-<dd><t>The URL the client instance will use to get refresh and access tokens after successful authorization (see <xref target="obtaining-a-refresh-token" />).</t>
+<dd><t>The URL the client instance will use to get refresh and access tokens after successful authorization (see <xref target="tokens" />).</t>
 </dd>
 <dt><tt>scopes_supported</tt></dt>
 <dd><t>An array of supported scopes on the server (see <xref target="scopes" />).</t>
@@ -126,20 +184,31 @@ This MUST include "S256".</t>
 <dd><t>This MUST have the boolean value true.</t>
 </dd>
 </dl>
+</section>
+
+<section anchor="metadata-optional-properties"><name>Conditional and Optional Properties</name>
+<t>This section describes metadata properties that are required only in some circumstances, or are optional.</t>
+
+<section anchor="metadata-protected-resources"><name>Protected Resources</name>
 <t>Servers MUST include the following property if any resource server accessed via this profile does not share the registrable domain of the issuer identifier (see <xref target="permitted-resource-servers" />), or if they require Resource Indicators <xref target="RFC8707" /> (that is, they will not issue a usable access token unless the authorization request includes <tt>resource</tt> parameters). All other servers that support Resource Indicators SHOULD include it:</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>protected_resources</tt></dt>
-<dd><t>A JSON array of strings, as defined in <xref target="RFC9728" section="4" />, listing all of the resource indicator values that may be used with this authorization server for resources accessed via this profile. Clients use this list to determine the <tt>resource</tt> values to send in the authorization request (see <xref target="authorization" />). For HTTP-based protocols, each entry is an <tt>https</tt> URL with no query or fragment part that identifies a resource server, or a path within one, for example <tt>https://api.example.com</tt> or <tt>https://caldav.example.com/dav</tt>. Entries are matched against resource URLs as described in <xref target="authorization" />. For non-HTTP protocols, each entry is a hostname with no scheme or port, for example <tt>imap.example.com</tt>. <xref target="RFC9728" section="4" /> defines the entries of this array as resource identifiers, which <xref target="RFC9728" section="1.2" /> restricts to <tt>https</tt> URLs; this profile deviates from that restriction for non-HTTP protocols, for the reasons given in <xref target="authorization" />.</t>
+<dd><t>A JSON array of strings, as defined in <xref target="RFC9728" section="4" />, listing all of the resource indicator values that may be used with this authorization server for resources accessed via this profile. Clients use this list to determine the <tt>resource</tt> values to send in the authorization request (see <xref target="resource-indicators" />). For HTTP-based protocols, each entry is an <tt>https</tt> URL with no query or fragment part that identifies a resource server, or a path within one, for example <tt>https://api.example.com</tt> or <tt>https://caldav.example.com/dav</tt>. Entries are matched against resource URLs as described in <xref target="resource-indicators" />. For non-HTTP protocols, each entry is a hostname with no scheme or port, for example <tt>imap.example.com</tt>. <xref target="RFC9728" section="4" /> defines the entries of this array as resource identifiers, which <xref target="RFC9728" section="1.2" /> restricts to <tt>https</tt> URLs; this profile deviates from that restriction for non-HTTP protocols, for the reasons given in <xref target="resource-indicators" />.</t>
 <t><xref target="RFC9728" /> permits an authorization server to omit some of its protected resources from this list. This profile is stricter: if the property is present, it MUST be complete with respect to the resource endpoints that may be accessed using this profile, since a client can only send resource indicators for endpoints that it can match against the list.</t></dd>
 </dl>
-<t>The metadata MAY include other properties, or other values for multi-valued properties, however clients are not required to understand or use any of them for interoperability.</t>
+</section>
+
+<section anchor="metadata-dpop"><name>DPoP</name>
 <t>It is RECOMMENDED servers support DPoP (<xref target="RFC9449" />) to allow sender-constrained refresh and access tokens for HTTP-based protocols. Servers that support DPoP MUST include the following property:</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>dpop_signing_alg_values_supported</tt></dt>
 <dd>A JSON array containing a list of the JWS alg values (from the <xref target="IANA.JOSE.ALGS" /> registry) supported by the authorization server for DPoP proof JWTs, as defined in <xref target="RFC9449" />, Section 5.1.</dd>
 </dl>
+</section>
+
+<section anchor="metadata-revocation"><name>Token Revocation</name>
 <t>Also of possible interest to client/server implementers following this document:</t>
 
 <dl spacing="normal" newline="true">
@@ -148,31 +217,25 @@ This MUST include "S256".</t>
 <dt><tt>revocation_endpoint_auth_methods_supported</tt></dt>
 <dd>If a revocation_endpoint is included, this property MUST be included, and is an array of strings that MUST include "none".</dd>
 </dl>
+</section>
+</section>
+
+<section anchor="metadata-validation"><name>Validating the Metadata</name>
 <t>Clients MUST verify the required properties are present and conform to the requirements of this document. Clients MUST also verify that the <tt>registration_endpoint</tt>, <tt>authorization_endpoint</tt>, <tt>token_endpoint</tt>, and, if present, <tt>revocation_endpoint</tt> are URLs with the <tt>https</tt> scheme, as the client instance will send authorization codes and refresh tokens to them; if any is not, the client MUST abort the flow. If the required properties are not present or do not conform, the server is not using OAuth in conformance with this document and no compatibility may be presumed. It is RECOMMENDED clients abort the flow in such a case.</t>
+<t>The metadata MAY include other properties, or other values for multi-valued properties, however clients are not required to understand or use any of them for interoperability.</t>
+</section>
 </section>
 
 <section anchor="dynamic-client-registration">
 <name>Dynamic Client Registration</name>
 
+<section anchor="registration-request"><name>Registration Request</name>
 <t>The client registration endpoint MUST accept registration requests that carry no initial access token or other form of authentication (open registration, see <xref target="RFC7591" section="3" />), since a client instance following this profile has no pre-existing relationship with the server.</t>
 <t>To register, the client instance sends an HTTP POST to the client registration endpoint (as found in the metadata) with a content type of "application/json", and a body consisting of a JSON document with the following properties:</t>
 
 <dl spacing="normal" newline="true">
 <dt><tt>redirect_uris</tt></dt>
-<dd><t>An array of URIs the client instance may use to receive back information at the end of the authorization flow. Each URI MUST satisfy all of these conditions:</t>
-
-<ul spacing="compact">
-<li><t>The URI MUST start with one of the following:</t>
-<ul>
-  <li><tt>http://127.0.0.1/</tt></li>
-  <li><tt>http://[::1]/</tt></li>
-  <li>A private-use scheme in reverse domain notation, e.g., <tt>com.example:/</tt>. Such a scheme MUST have at least one dot in it.</li>
-</ul></li>
-<li>The URI MUST NOT include two consecutive dots (e.g., <tt>/../</tt>).</li>
-<li>The URI MUST NOT include a fragment part (<tt>#</tt>).</li>
-</ul>
-<t>The URI may include a path and query parameters.</t>
-<t>Claimed "https" scheme redirect URIs (<xref target="RFC8252" section="7.2" />) are deliberately not permitted, even though they are otherwise the most secure option for native clients. An authorization server cannot distinguish a claimed https URI from an ordinary web URL, so permitting them would permit web-based clients to complete the flow. See <xref target="native-clients-only" /> and <xref target="security-considerations" />.</t></dd>
+<dd>An array of URIs the client instance may use to receive back information at the end of the authorization flow. Each URI MUST satisfy the requirements in <xref target="redirect-uri-requirements" />.</dd>
 <dt><tt>token_endpoint_auth_method</tt></dt>
 <dd>This MUST be "none".</dd>
 <dt><tt>grant_types</tt></dt>
@@ -180,8 +243,7 @@ This MUST include "S256".</t>
 <dt><tt>response_types</tt></dt>
 <dd>This is an array of strings that MUST include "code".</dd>
 <dt><tt>scope</tt></dt>
-<dd><t>A string containing a space-separated list of scope values the client may request access for. (Note! This is not a JSON array.)</t>
-<t>For compatibility with servers implementing OpenID Connect <xref target="OpenID.Core" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also register for this scope.</t></dd>
+<dd><t>A string containing a space-separated list of scope values the client may request access for. (Note! This is not a JSON array.)</t></dd>
 <dt><tt>client_name</tt></dt>
 <dd>The name of the client software to be presented to the end-user during authorization.</dd>
 <dt><tt>client_uri</tt></dt>
@@ -211,6 +273,7 @@ This MUST include "S256".</t>
   using string equality matching and no other comparison semantics are
   defined by this specification.</dd>
 </dl>
+<t>For compatibility with servers implementing OpenID Connect <xref target="OpenID.Core" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also register for this scope.</t>
 <t>If the server indicated in its metadata that it supports DPoP <xref target="RFC9449" /> and the client instance is intending to authenticate all requests using DPoP, the client instance SHOULD also include the following property:</t>
 
 <dl spacing="normal" newline="true">
@@ -218,11 +281,33 @@ This MUST include "S256".</t>
 <dd>true</dd>
 </dl>
 <t>If set, the server MUST require every token request for the issued client id to include a DPoP proof, and MUST issue only DPoP-bound access tokens, as specified in <xref target="RFC9449" section="5.2" />. DPoP is only defined for HTTP, so a client instance that uses non-HTTP protocols such as IMAP, POP, or SMTP MUST NOT set this property. See <xref target="dpop-non-http" /> for how such a client instance can still make use of DPoP.</t>
+</section>
+
+<section anchor="redirect-uri-requirements"><name>Redirect URI Requirements</name>
+<t>Each redirect URI registered by the client instance MUST satisfy all of these conditions:</t>
+
+<ul spacing="compact">
+<li><t>The URI MUST start with one of the following:</t>
+<ul>
+  <li><tt>http://127.0.0.1/</tt></li>
+  <li><tt>http://[::1]/</tt></li>
+  <li>A private-use scheme in reverse domain notation, e.g., <tt>com.example:/</tt>. Such a scheme MUST have at least one dot in it.</li>
+</ul></li>
+<li>The URI MUST NOT include two consecutive dots (e.g., <tt>/../</tt>).</li>
+<li>The URI MUST NOT include a fragment part (<tt>#</tt>).</li>
+</ul>
+<t>The URI may include a path and query parameters.</t>
+<t>Claimed "https" scheme redirect URIs (<xref target="RFC8252" section="7.2" />) are deliberately not permitted, even though they are otherwise the most secure option for native clients. An authorization server cannot distinguish a claimed https URI from an ordinary web URL, so permitting them would permit web-based clients to complete the flow. See <xref target="native-clients-only" /> and <xref target="security-considerations" />.</t>
+<t>The redirect URI restrictions MUST be enforced: a registration request containing a redirect URI that does not satisfy them MUST be rejected with an <tt>invalid_redirect_uri</tt> error (<xref target="RFC7591" section="3.2.2" />). These ensure the OAuth flow can only be completed by native clients — not web clients — as discussed in <xref target="native-clients-only" />. Since a malicious native client could present the user with a custom browser to phish credentials anyway, the lack of verification of client registration details does not provide additional danger beyond existing threats. Allowing seamless dynamic registration for web-based clients, however, unfortunately makes it much easier for a phishing site to gain access to an account, by sending the user through the OAuth flow.</t>
+</section>
+
+<section anchor="registration-processing"><name>Server Processing</name>
 <t>The server will check that all required properties are present and have valid values. Any unknown properties supplied by the client instance MUST just be ignored. The authorization server MAY replace any of the client's requested metadata values submitted during the registration and substitute them with suitable values.</t>
-<t>The client instance MUST use the values returned in the registration response (see below) in preference to those it requested, in particular for the <tt>redirect_uris</tt>, <tt>scope</tt>, and <tt>dpop_bound_access_tokens</tt> properties. If the returned <tt>redirect_uris</tt> or <tt>scope</tt> omit a value the client instance requires, it MUST abort the flow and inform the user. If the server has omitted <tt>dpop_bound_access_tokens</tt> or returned it as false, for example because it returns a static client id to all requests, the client instance MUST NOT assume that access tokens will be DPoP-bound and MUST check the <tt>token_type</tt> of each token response (see <xref target="dpop-non-http" />).</t>
 <t>If there is an exact match for all properties except for software_version, an existing registration may be returned. Otherwise, servers SHOULD create a new registration and client id.</t>
 <t>There is no way to verify the authenticity of the information supplied by the client, however the general case of accurate information is still useful to the server, for example to be able to contact client authors to help debug issues if aberrant behaviour is observed. Servers MAY choose to ignore all of the information instead and just return a static client id to all requests.</t>
-<t>The redirect URI restrictions MUST be enforced: a registration request containing a redirect URI that does not satisfy them MUST be rejected with an <tt>invalid_redirect_uri</tt> error (<xref target="RFC7591" section="3.2.2" />). These ensure the OAuth flow can only be completed by native clients — not web clients — as discussed in <xref target="native-clients-only" />. Since a malicious native client could present the user with a custom browser to phish credentials anyway, the lack of verification of client registration details does not provide additional danger beyond existing threats. Allowing seamless dynamic registration for web-based clients, however, unfortunately makes it much easier for a phishing site to gain access to an account, by sending the user through the OAuth flow.</t>
+</section>
+
+<section anchor="registration-response"><name>Registration Response</name>
 <t>If successful, the server responds with an HTTP 201 Created status code and a body of type "application/json", with the content being a JSON object containing all the properties submitted during registration (with their values as set by the server, if overwritten), plus the following property:</t>
 
 <dl spacing="normal" newline="true">
@@ -230,10 +315,28 @@ This MUST include "S256".</t>
 <dd>The OAuth 2.0 client identifier string, used in the authorization flow (see <xref target="authorization" />).</dd>
 </dl>
 <t>Clients following this profile are public clients (see <xref target="native-clients-only" />): they register with a <tt>token_endpoint_auth_method</tt> of "none" and do not authenticate to the token endpoint, instead proving possession of the authorization code using PKCE. The server MUST NOT issue a client secret in the registration response, so the <tt>client_secret</tt> and <tt>client_secret_expires_at</tt> properties defined in <xref target="RFC7591" section="3.2.1" /> MUST NOT be present. A native client cannot keep a secret confidential, so a secret would offer no security benefit, and a client that expected to use one would not be interoperable with servers that correctly omit it. If a server nonetheless returns a <tt>client_secret</tt>, the client instance MUST ignore it and continue as a public client.</t>
+<t>The client instance MUST use the values returned in the registration response in preference to those it requested, in particular for the <tt>redirect_uris</tt>, <tt>scope</tt>, and <tt>dpop_bound_access_tokens</tt> properties. If the returned <tt>redirect_uris</tt> or <tt>scope</tt> omit a value the client instance requires, it MUST abort the flow and inform the user. If the server has omitted <tt>dpop_bound_access_tokens</tt> or returned it as false, for example because it returns a static client id to all requests, the client instance MUST NOT assume that access tokens will be DPoP-bound and MUST check the <tt>token_type</tt> of each token response (see <xref target="dpop-non-http" />).</t>
 <t>If the registration fails, the server will respond with an HTTP 400 status code and a JSON body as described in <xref target="RFC7591" />, section 3.2.2.</t>
 </section>
 
+<section anchor="dynamic-client-registration-considerations">
+<name>Client Id Validity</name>
+<t>The client id MUST remain valid for as long as there is a valid refresh token associated with that client id.</t>
+<t>To ensure a good user experience, the client id assigned upon dynamic registration SHOULD be valid for use in the authorization flow (<xref target="authorization"/>) for at least one hour after issuance.</t>
+<t>Clients MUST associate a client id with each refresh token it has. If the refresh token is invalidated and the client instance has to reauthenticate, it MUST submit the dynamic client registration (<xref target="dynamic-client-registration" />) again and use the client id returned, which MAY be different than the previous client id. A client instance that receives an <tt>invalid_client</tt> error from the token endpoint MUST likewise treat the client id as no longer valid and re-register before obtaining new authorization.</t>
+<t>Servers that wish to store client registration information MUST be careful of resource exhaustion attacks. A RECOMMENDED approach is to:</t>
+<ul>
+  <li>Normalize and securely hash the submitted registration data.</li>
+  <li>Check if this hash already exists in the database, and if so return the existing client id issued for this registration.</li>
+  <li>Otherwise, keep the registration in temporary storage and only insert it into the database upon successful authorization. Creating a new client id in the temporary storage can be rate limited, for example by IP.</li>
+  <li>Remove any client registrations from the database whenever there are no valid refresh tokens associated with that client id.</li>
+</ul>
+</section>
+</section>
+
 <section anchor="authorization"><name>Authorization</name>
+
+<section anchor="authorization-request"><name>Authorization Request</name>
 <t>Clients construct an authorization request URL by taking the <tt>authorization_endpoint</tt> from the authorization server metadata and adding the following additional query parameters:</t>
 
 <dl spacing="normal" newline="true">
@@ -245,8 +348,7 @@ This MUST include "S256".</t>
 <dt><tt>response_type</tt></dt>
 <dd>This MUST be "code".</dd>
 <dt><tt>scope</tt></dt>
-<dd><t>A space delimited set of scopes the client instance would like access to. This MUST be a subset of the scopes registered for this client id.</t>
-<t>For compatibility with servers implementing OpenID Connect <xref target="OpenID.Core" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also request this scope. Section 11 of <xref target="OpenID.Core" /> further requires the <tt>prompt</tt> parameter to have the value <tt>consent</tt> when <tt>offline_access</tt> is requested, unless other conditions permitting offline access are in place, and some deployments will not issue a refresh token without it. A client instance requesting <tt>offline_access</tt> SHOULD therefore also include a <tt>prompt</tt> parameter with the value <tt>consent</tt> (see Section 3.1.2.1 of <xref target="OpenID.Core" />).</t></dd>
+<dd><t>A space delimited set of scopes the client instance would like access to. This MUST be a subset of the scopes registered for this client id.</t></dd>
 <dt><tt>code_challenge</tt></dt>
 <dd><t>A PKCE code challenge as per <xref target="RFC7636" />, using SHA 256. To generate a challenge, first generate a code_verifier: a high-entropy cryptographic random string using the unreserved characters <tt>[A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"</tt> from Section 2.3 of <xref target="RFC3986" />, with a minimum length of 43 characters and a maximum length of 128 characters.</t>
 <t>The code_challenge is then <tt>BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))</tt>.</t></dd>
@@ -254,12 +356,24 @@ This MUST include "S256".</t>
 <dd>This MUST be "S256".</dd>
 <dt><tt>resource</tt></dt>
 <dd><t>A Resource Indicator <xref target="RFC8707" /> for a resource endpoint (as obtained from autoconfiguration or user input) that the client instance wishes to access after successful authorization. The client instance MUST include a <tt>resource</tt> parameter for each endpoint it intends to use, so if it wishes to use multiple protocols it will include multiple <tt>resource</tt> query parameters. If two endpoints result in the same value, the value MUST only be included once.</t>
-<t>The value for each endpoint is determined as follows. First, the client instance determines the endpoint's resource URL:</t>
+<t>The value for each endpoint is determined as described in <xref target="resource-indicators" />.</t></dd>
+<dt><tt>state</tt></dt>
+<dd>An opaque value used by the client instance to verify that an authorization response is due to a request that the client instance initiated. The authorization server will include this value when redirecting the user-agent back to the client instance.  Client instances MUST generate a state with a unique, unguessable random string when initiating an authorization request.</dd>
+<dt><tt>login_hint (optional)</tt></dt>
+<dd>The username the user originally asked to log in with, as defined in Section 3.1.2.1 of <xref target="OpenID.Core" />. The server can prefill this in a login form. Note, the user may choose to log in with a different username; the client instance learns which username was actually authenticated from the <tt>username</tt> property of the token response (see <xref target="token-response" />).</dd>
+</dl>
+<t>For compatibility with servers implementing OpenID Connect <xref target="OpenID.Core" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also request this scope. Section 11 of <xref target="OpenID.Core" /> further requires the <tt>prompt</tt> parameter to have the value <tt>consent</tt> when <tt>offline_access</tt> is requested, unless other conditions permitting offline access are in place, and some deployments will not issue a refresh token without it. A client instance requesting <tt>offline_access</tt> SHOULD therefore also include a <tt>prompt</tt> parameter with the value <tt>consent</tt> (see Section 3.1.2.1 of <xref target="OpenID.Core" />).</t>
+
+<t>The client instance MAY include additional request parameters defined by other OAuth extensions, for example the <tt>prompt</tt> or <tt>ui_locales</tt> parameters defined by OpenID Connect Core <xref target="OpenID.Core" />. This does not permit alternative or additional values for the parameters defined above; in particular, it does not relax the <tt>redirect_uri</tt> matching rules, and a request whose defined parameters do not conform MUST be rejected regardless of any other parameters present. The authorization server MUST ignore any request parameter it does not recognise, as required by <xref target="RFC6749" section="3.1" />, and clients MUST NOT depend on such parameters being understood for interoperability. Ignoring unrecognised parameters is safe because they cannot affect the processing of the parameters defined by this document, and it allows this profile to coexist with other OAuth extensions that both the client and server happen to support.</t>
+</section>
+
+<section anchor="resource-indicators"><name>Determining Resource Indicator Values</name>
+<t>The client instance determines the <tt>resource</tt> value for each endpoint (see <xref target="authorization-request" />) as follows. First, the client instance determines the endpoint's resource URL:</t>
 <ul spacing="compact">
 <li>For HTTP-based protocols, such as JMAP, CalDAV, and CardDAV, this is the endpoint URL, for example <tt>https://api.example.com/jmap/session</tt> or <tt>https://caldav.example.com/.well-known/caldav</tt>.</li>
 <li>For non-HTTP protocols, such as IMAP, POP, and SMTP, this is the hostname of the server with no scheme or port, for example <tt>imap.example.com</tt>.</li>
 </ul>
-<t>Then, if the authorization server metadata includes the <tt>protected_resources</tt> property (see <xref target="fetching-the-authorization-server-data" />), the client instance MUST use as the <tt>resource</tt> value the entry in that array that matches the resource URL. An entry matches an HTTP resource URL if all of the following hold:</t>
+<t>Then, if the authorization server metadata includes the <tt>protected_resources</tt> property (see <xref target="metadata-protected-resources" />), the client instance MUST use as the <tt>resource</tt> value the entry in that array that matches the resource URL. An entry matches an HTTP resource URL if all of the following hold:</t>
 <ul spacing="compact">
 <li>The schemes are identical.</li>
 <li>The hosts are identical when compared case-insensitively, after conversion of any internationalized host names to A-labels <xref target="RFC5890" />.</li>
@@ -272,27 +386,26 @@ This MUST include "S256".</t>
 <t>If the metadata does not include the <tt>protected_resources</tt> property, the client instance MUST use the resource URL itself as the <tt>resource</tt> value. In this case the client instance MUST also apply the registrable domain rule in <xref target="permitted-resource-servers" /> before sending access tokens to the endpoint.</t>
 <t>Note that in this case the <tt>resource</tt> value names a specific endpoint URL, while <xref target="permitted-resource-servers" /> permits the client instance to send the resulting access token to any host within the registrable domain of the issuer identifier, for example one reached by following an HTTP redirect during CalDAV or CardDAV service discovery. An authorization server that supports Resource Indicators and issues audience-restricted access tokens (see <xref target="RFC9700" section="4.10.2" />) may therefore issue a token that the redirect target rejects, even though the client instance has behaved correctly. Servers that support Resource Indicators SHOULD avoid this by publishing <tt>protected_resources</tt>, so that the client instance sends a value that covers every host the token may legitimately be presented to; failing that, they MUST ensure a token issued for an endpoint URL is accepted by any resource server to which that endpoint redirects the client.</t>
 <t>Note that <xref target="RFC8707" section="2" /> requires the <tt>resource</tt> value to be an absolute URI, and <xref target="RFC9728" section="4" /> likewise requires entries of <tt>protected_resources</tt> to be <tt>https</tt> URLs. This profile deviates from both requirements for non-HTTP protocols, where the value is a bare hostname. Endpoints for these protocols are not naturally identified by a URI, and the hostname is what the client instance MUST present in the <tt>host</tt> attribute of the OAUTHBEARER SASL exchange <xref target="RFC7628" /> (see <xref target="using-the-access-token" />). Servers implementing this profile MUST accept a bare hostname as a <tt>resource</tt> value for such endpoints.</t>
-<t>Server support for Resource Indicators is RECOMMENDED; servers that do not support them will ignore these parameters and the flow will still succeed. Servers that do support Resource Indicators MUST verify that all requested <tt>resource</tt> values are permitted locations to send access tokens to (i.e., they are the real resource endpoints associated with this authorization server, or entries in the server's <tt>protected_resources</tt> list), and MUST reject the request with an <tt>invalid_target</tt> error, as defined in <xref target="RFC8707" section="2" />, if any are not.</t></dd>
-<dt><tt>state</tt></dt>
-<dd>An opaque value used by the client instance to verify that an authorization response is due to a request that the client instance initiated. The authorization server will include this value when redirecting the user-agent back to the client instance.  Client instances MUST generate a state with a unique, unguessable random string when initiating an authorization request.</dd>
-<dt><tt>login_hint (optional)</tt></dt>
-<dd>The username the user originally asked to log in with, as defined in Section 3.1.2.1 of <xref target="OpenID.Core" />. The server can prefill this in a login form. Note, the user may choose to log in with a different username; the client instance learns which username was actually authenticated from the <tt>username</tt> property of the token response (see <xref target="obtaining-a-refresh-token" />).</dd>
-</dl>
+<t>Server support for Resource Indicators is RECOMMENDED; servers that do not support them will ignore these parameters and the flow will still succeed. Servers that do support Resource Indicators MUST verify that all requested <tt>resource</tt> values are permitted locations to send access tokens to (i.e., they are the real resource endpoints associated with this authorization server, or entries in the server's <tt>protected_resources</tt> list), and MUST reject the request with an <tt>invalid_target</tt> error, as defined in <xref target="RFC8707" section="2" />, if any are not.</t>
+</section>
 
+<section anchor="user-agent-requirements"><name>User-Agent Requirements</name>
 <t>After constructing the authorization request URL, the client instance MUST use platform-specific APIs to open it in an external user-agent. It MUST NOT use an embedded user-agent (such as a web view) within the application, as required by <xref target="RFC8252" section="8.12" />. Typically, the external user-agent used is the default browser, that is, the application configured for handling "http" and "https" scheme URIs on the system. See <xref target="RFC8252" section="6"/> for a discussion of best practices and alternatives, such as in-app browser tabs, which are external user-agents that render within the application while retaining the security properties of the browser. The client instance MUST use a user-agent that supports session cookies, JavaScript, and the Web Authentication API <xref target="WebAuthn" />, so that authorization servers can rely on these being available.</t>
 
 <t>Embedded user-agents are prohibited because they undermine much of the security benefit of this profile. An embedded user-agent is under the control of the client application, which can therefore observe and modify everything the user enters, including their password and any second factor, and the user has no way to verify which site they are actually entering their credentials into. An external user-agent, by contrast, shares the user's existing authentication state and credential stores with the rest of the system. This allows single sign-on, password managers, and origin-bound authenticators such as passkeys <xref target="WebAuthn" /> to work, and allows the browser's built-in phishing protections to apply. Users are also better able to recognise and reason about a login page shown in their familiar browser than one shown inside an arbitrary application.</t>
 
 <t>This restriction is a requirement on clients and is not reliably enforceable by the authorization server, as an embedded user-agent may be indistinguishable from an external one. Servers MAY use heuristics (for example, the <tt>User-Agent</tt> header field) to detect and refuse authorization from known embedded user-agents, as suggested in <xref target="RFC8252" section="8.12" />, but the security of this profile does not depend on them doing so. As discussed in <xref target="security-considerations" />, a malicious native application could already present the user with a fake browser, so this profile does not attempt to defend against a malicious client; the requirement ensures that well-behaved clients provide the security properties users expect.</t>
+</section>
 
-<t>The authorization server MUST verify that all of the parameters defined above are present and conform to the restrictions in this document. A request in which any parameter is included more than once MUST be rejected, with the exception of the <tt>resource</tt> parameter, which may be repeated as described above.</t>
-
-<t>The client instance MAY include additional request parameters defined by other OAuth extensions, for example the <tt>prompt</tt> or <tt>ui_locales</tt> parameters defined by OpenID Connect Core <xref target="OpenID.Core" />. This does not permit alternative or additional values for the parameters defined above; in particular, it does not relax the <tt>redirect_uri</tt> matching rules, and a request whose defined parameters do not conform MUST be rejected regardless of any other parameters present. The authorization server MUST ignore any request parameter it does not recognise, as required by <xref target="RFC6749" section="3.1" />, and clients MUST NOT depend on such parameters being understood for interoperability. Ignoring unrecognised parameters is safe because they cannot affect the processing of the parameters defined by this document, and it allows this profile to coexist with other OAuth extensions that both the client and server happen to support.</t>
+<section anchor="authorization-processing"><name>Server Processing</name>
+<t>The authorization server MUST verify that all of the parameters defined in <xref target="authorization-request" /> are present and conform to the restrictions in this document. A request in which any parameter is included more than once MUST be rejected, with the exception of the <tt>resource</tt> parameter, which may be repeated as described in that section.</t>
 
 <t>If verified, the authorization server will authenticate the user and ask them if they wish to grant authorization to the client.</t>
 
-<t> If the request fails due to a missing, invalid, or mismatching redirection URI, or if the client identifier is missing or invalid, the authorization server SHOULD inform the user of the error and MUST NOT automatically redirect the user-agent to the invalid redirection URI. If the authorization request fails for any other reason, the client instance will receive an error response via the redirect_uri. This MUST include an error query parameter with an appropriate error code, as defined in <xref target="RFC6749" section="4.1.2.1"/>. The error response also includes the <tt>state</tt> parameter and, as required by <xref target="RFC9207" section="2" />, the <tt>iss</tt> parameter. The client instance MUST verify both as described below before acting on the error, and MUST ignore an error response whose <tt>state</tt> does not match a request it has outstanding.</t>
+<t>If the request fails due to a missing, invalid, or mismatching redirection URI, or if the client identifier is missing or invalid, the authorization server SHOULD inform the user of the error and MUST NOT automatically redirect the user-agent to the invalid redirection URI. If the authorization request fails for any other reason, the client instance will receive an error response via the redirect_uri. This MUST include an error query parameter with an appropriate error code, as defined in <xref target="RFC6749" section="4.1.2.1"/>. The error response also includes the <tt>state</tt> parameter and, as required by <xref target="RFC9207" section="2" />, the <tt>iss</tt> parameter. The client instance MUST verify both as described in <xref target="authorization-response" /> before acting on the error, and MUST ignore an error response whose <tt>state</tt> does not match a request it has outstanding.</t>
+</section>
 
+<section anchor="authorization-response"><name>Authorization Response</name>
 <t>If authorization is successful, the client instance will receive a response via the redirect_uri, which will include the following query parameters:</t>
 
 <dl spacing="normal" newline="true">
@@ -312,8 +425,11 @@ request was indeed initiated by the client and not an attacker.</li>
 </ul>
 <t>If any verification fails, the client instance MUST abort the flow and not send the authorization code anywhere. It MUST inform the user of what went wrong and what they can do next. For a loopback redirect URI, this is done by returning an HTML page in response to the redirect request; for a private-use scheme URI the client instance is invoked directly and displays the message itself.</t>
 </section>
+</section>
 
-<section anchor="obtaining-a-refresh-token"><name>Obtaining a Refresh Token</name>
+<section anchor="tokens"><name>Obtaining Tokens</name>
+
+<section anchor="obtaining-a-refresh-token"><name>Exchanging the Authorization Code</name>
 <t>Following authorization, the client instance will obtain initial refresh and
 access tokens by making a POST request to the token_endpoint URL. The following parameters MUST be present, using the "application/x-www-form-urlencoded" format with a character encoding of UTF-8 in the HTTP request entity-body:</t>
 
@@ -333,6 +449,9 @@ access tokens by making a POST request to the token_endpoint URL. The following 
 <dd>One or more Resource Indicators, as described in <xref target="RFC8707" section="2.2" />, restricting the access token to a subset of the resources that were authorized. Each value MUST be one of the <tt>resource</tt> values sent in the authorization request. If omitted, the access token is issued for all of the authorized resources. See <xref target="dpop-non-http" /> for when a client instance needs to use this.</dd>
 </dl>
 <t>The client instance MAY include additional parameters defined by other OAuth extensions. The server MUST ignore any parameter it does not recognise, as required by <xref target="RFC6749" section="3.2" />, and clients MUST NOT depend on such parameters being understood for interoperability. If using DPoP, the client instance MUST also set a DPoP header in accordance with <xref target="RFC9449" section="5" />. A client instance using DPoP MUST support the authorization server-provided nonce (<xref target="RFC9449" section="8" />) and resource server-provided nonce (<xref target="RFC9449" section="9" />) mechanisms, retrying a request that fails with a <tt>use_dpop_nonce</tt> error using the nonce supplied, as servers MAY require a nonce in every proof.</t>
+</section>
+
+<section anchor="token-response"><name>Token Response</name>
 <t>The server will verify the parameters and if successful, return a <tt>200 OK</tt> response with a content type of application/json. The body will be a JSON
 object with the following properties:</t>
 
@@ -349,52 +468,15 @@ object with the following properties:</t>
 <dt><tt>refresh_token</tt></dt>
 <dd>The refresh token to use next time the client instance needs to get a new access token. Servers MUST include this property in the response to an authorization code grant; a client instance following this profile cannot function without it. For its presence in the response to a refresh token grant, see <xref target="getting-a-new-access-token" />.</dd>
 <dt><tt>username</tt></dt>
-<dd><t>The username of the account that was authenticated and granted this authorization, in the form the user would enter it to log in to this deployment (typically the user's email address). Servers MUST include this property in every token response, and the value MUST be the same in every token response issued under the same authorization.</t>
-<t>The user may have started the flow by giving the client instance one username (which the client instance may have passed as the <tt>login_hint</tt>, see <xref target="authorization" />) and then authenticated at the authorization server as a different user. Without this property the client instance has no interoperable way to discover this, and may label the account, or associate the tokens with a local account, incorrectly. The client instance MUST use this value, rather than the username originally supplied by the user, as the identity of the account the tokens belong to. If it differs from the username the user supplied, the client instance SHOULD make this visible to the user.</t>
-<t>OpenID Connect <xref target="OpenID.Core" /> can convey the authenticated user's identity in an ID Token, but this profile does not require OpenID Connect support, and the <tt>sub</tt> claim it guarantees is an opaque identifier rather than a username the user would recognise. This document therefore registers "token response" as an additional usage location for the existing <tt>username</tt> parameter (see <xref target="oauth-parameters-registry-update" />).</t></dd>
+<dd><t>The username of the account that was authenticated and granted this authorization, in the form the user would enter it to log in to this deployment (typically the user's email address). Servers MUST include this property in every token response, and the value MUST be the same in every token response issued under the same authorization.</t></dd>
 </dl>
+<t>The user may have started the flow by giving the client instance one username (which the client instance may have passed as the <tt>login_hint</tt>, see <xref target="authorization-request" />) and then authenticated at the authorization server as a different user. Without the <tt>username</tt> property in the token response, the client instance has no interoperable way to discover this, and may label the account, or associate the tokens with a local account, incorrectly. The client instance MUST use the <tt>username</tt> value, rather than the username originally supplied by the user, as the identity of the account the tokens belong to. If it differs from the username the user supplied, the client instance SHOULD make this visible to the user.</t>
+<t>OpenID Connect <xref target="OpenID.Core" /> can convey the authenticated user's identity in an ID Token, but this profile does not require OpenID Connect support, and the <tt>sub</tt> claim it guarantees is an opaque identifier rather than a username the user would recognise. This document therefore registers "token response" as an additional usage location for the existing <tt>username</tt> parameter (see <xref target="oauth-parameters-registry-update" />).</t>
 
 <t>If the request fails, the server MUST return an error response as described in <xref target="RFC6749" section="5.2"/>: a <tt>400 Bad Request</tt> status code (or <tt>401 Unauthorized</tt> for an <tt>invalid_client</tt> error) with a content type of application/json, and a JSON object body with the properties defined there. A client id that is no longer valid (see <xref target="dynamic-client-registration-considerations" />) is reported with the <tt>invalid_client</tt> error code. An authorization code or refresh token that is invalid, expired, or revoked is reported with the <tt>invalid_grant</tt> error code.</t>
 </section>
 
-<section anchor="permitted-resource-servers"><name>Permitted Resource Servers</name>
-<t>An access token obtained from an authorization server MUST only be sent to a resource server that the client instance has determined to be associated with that authorization server, as described in this section. This protects against a counterfeit resource server that has been named in autoconfiguration data or protected resource metadata under the attacker's control (see <xref target="RFC9700" section="4.9.1" /> and <xref target="security-considerations" />).</t>
-<t>The client instance MUST make this determination for every host to which it sends an access token. This includes any host reached by following an HTTP redirect, such as those commonly used in CalDAV and CardDAV service discovery: the determination is made against the URL actually being requested, not only the endpoint URL the client instance started from. A client instance MUST NOT send an access token to a host for which the determination fails. If the client instance cannot function without that resource server, it MUST abort and inform the user.</t>
-<t>The determination is made in one of two ways, depending on whether the authorization server metadata includes the <tt>protected_resources</tt> property (see <xref target="fetching-the-authorization-server-data" />):</t>
-<ul>
-<li>If the property is present, a resource server is permitted if and only if an entry in the list matches the request URL (for HTTP-based protocols) or the host name (for non-HTTP protocols), using the matching rules given for the <tt>resource</tt> parameter in <xref target="authorization" />.</li>
-<li>If the property is absent, a resource server is permitted if and only if its host name has the same registrable domain as the host of the authorization server issuer identifier. For HTTP-based protocols the host name is the host component of the request URL; for non-HTTP protocols it is the host name the client instance connects to.</li>
-</ul>
-<t>The registrable domain of a host name is its public suffix plus the DNS label immediately preceding that suffix, where the public suffix is determined using the Public Suffix List <xref target="PSL" />. For example, the registrable domain of <tt>imap.example.com</tt> is <tt>example.com</tt>, and the registrable domain of <tt>auth.example.co.uk</tt> is <tt>example.co.uk</tt>. Host names MUST be compared case-insensitively, and internationalized host names MUST be converted to A-labels <xref target="RFC5890" /> before comparison. A host that is an IP address literal, or that has no registrable domain (for example, a single-label host name, or a host name that is itself a public suffix), is never permitted under this rule.</t>
-<t>The registrable domain rule allows deployments that host their authorization server and resource servers within a single domain, for example <tt>auth.example.com</tt> and <tt>imap.example.com</tt>, to be secure without further configuration. Deployments whose resource servers are not all within the registrable domain of the issuer identifier, including providers that use a separate identity provider domain and multi-tenant authorization servers whose issuer identifier includes a path component, MUST publish <tt>protected_resources</tt> (see <xref target="fetching-the-authorization-server-data" />), as clients following this profile will otherwise refuse to use their resource servers.</t>
-</section>
-
-<section anchor="using-the-access-token"><name>Using the Access Token</name>
-<t>The client instance is now authenticated. It can connect to the resource servers permitted under <xref target="permitted-resource-servers" /> with the Bearer scheme <xref target="RFC6750" />. For HTTP-based protocols, this means setting an <tt>Authorization</tt> header with the value <tt>Bearer {access_token}</tt> (where <tt>{access_token}</tt> is replaced with the value of the access_token). If using DPoP, the client instance MUST also set a DPoP header in accordance with <xref target="RFC9449" section="7"/>.</t>
-<t>For protocols that use SASL authentication, such as IMAP, POP, and SMTP, the access token is used in accordance with the OAUTHBEARER mechanism defined in <xref target="RFC7628" />. Servers MUST NOT require the username associated with the resource (the "authzid") be included in the GS2 header. The client instance MUST include the <tt>host</tt> attribute in its initial client response (<xref target="RFC7628" section="3.1" />), set to the host name it connected to, and SHOULD include the <tt>port</tt> attribute. <xref target="RFC7628" /> makes these attributes optional for bearer tokens; this profile requires <tt>host</tt> because it is the value the client instance used as the Resource Indicator for the endpoint (see <xref target="authorization" />), which allows a server to check that the access token was issued for the host it is being presented to.</t>
-</section>
-
-<section anchor="dpop-non-http"><name>DPoP and Non-HTTP Protocols</name>
-<t>DPoP <xref target="RFC9449" /> is only defined for HTTP. The proof JWT (<xref target="RFC9449" section="4.2" />) is bound to the HTTP method and URI of the request it protects and is carried in an HTTP header field, and the OAUTHBEARER SASL mechanism <xref target="RFC7628" /> has no means of carrying such a proof. A DPoP-bound access token therefore cannot be used to authenticate to an IMAP, POP, or SMTP server. Sender-constraining access tokens for SASL-based protocols would require a new SASL mechanism, or an extension to OAUTHBEARER, together with a means for the resource server to verify the proof. That is out of scope for this document.</t>
-<t>A client instance that uses only HTTP-based protocols and wishes to use DPoP SHOULD register with <tt>dpop_bound_access_tokens</tt> set to true (see <xref target="dynamic-client-registration" />), include a DPoP proof in every token request, and use the resulting DPoP-bound access tokens as described in <xref target="RFC9449" section="7" />.</t>
-<t>A client instance that uses non-HTTP protocols, whether exclusively or alongside HTTP-based protocols, has two choices. The simplest is not to use DPoP at all, in which case all tokens are bearer tokens. Alternatively, it MAY use DPoP for the token endpoint and for HTTP-based resources while still obtaining bearer tokens for non-HTTP resources, as follows:</t>
-<ul>
-<li>The client instance MUST NOT set <tt>dpop_bound_access_tokens</tt> to true when registering, as the server would then be required to issue only DPoP-bound access tokens.</li>
-<li>The client instance includes a DPoP proof in every token request. As required by <xref target="RFC9449" section="5" />, the server binds the refresh token to the client instance's key, so the refresh token is sender-constrained even though some of the access tokens obtained with it are not.</li>
-<li>The client instance obtains separate access tokens for HTTP and non-HTTP resources by including <tt>resource</tt> parameters in the token request (see <xref target="obtaining-a-refresh-token" /> and <xref target="getting-a-new-access-token" />): one request listing only its HTTP-based resources, and a second listing only its non-HTTP resources (that is, hostnames, see <xref target="authorization" />). The initial token request exchanging the authorization code can be made for either set, and the other set is then obtained by a refresh request.</li>
-<li>When a token request includes a valid DPoP proof and every <tt>resource</tt> parameter is a hostname for a non-HTTP resource, a server that supports both DPoP and Resource Indicators MUST issue an access token that is not bound to the DPoP key, with a <tt>token_type</tt> of "Bearer". For any other token request that includes a DPoP proof, the server issues a DPoP-bound access token with a <tt>token_type</tt> of "DPoP", as normal. Servers that support DPoP SHOULD therefore also support Resource Indicators, so that client instances using non-HTTP protocols are not prevented from using DPoP.</li>
-<li>The client instance MUST check the <tt>token_type</tt> of each response and use the token accordingly: a "DPoP" token with the DPoP authentication scheme for HTTP requests, and a "Bearer" token with the Bearer scheme or OAUTHBEARER. If the client instance receives a "DPoP" token in response to a request that listed only non-HTTP resources, the server does not support this arrangement (for example, because it does not support Resource Indicators and ignored the parameters). The client instance MUST NOT attempt to use that token with a non-HTTP server, and MUST obtain a new authorization without using DPoP if it is to continue.</li>
-</ul>
-<t>A client instance can avoid the last failure case in most deployments by only attempting this arrangement when the authorization server metadata includes <tt>protected_resources</tt>, which indicates the server acts on Resource Indicators.</t>
-</section>
-
-<section anchor="scopes"><name>Scopes</name>
-<t>To work interoperably, clients and servers must use a common set of scopes for access. This document creates a new IANA registry for such scopes (see <xref target="scopes-registry" />), and registers scopes to cover IMAP, SMTP, POP, CardDAV, CalDAV, and JMAP.</t>
-<t>Registration of a scope in that registry does not by itself impose any requirement on OAuth implementations in general (see <xref target="scopes-registry" />). This profile, however, does require support: a server implementing this profile MUST support each of the scopes registered by this document (<xref target="initial-registry-contents" />) whose definition covers a protocol or type of data that the server offers. For example, a server that offers IMAP and SMTP MUST support <tt>urn:ietf:params:oauth:scope:mail</tt>, and a server that offers CalDAV MUST support <tt>urn:ietf:params:oauth:scope:calendars</tt>. Supporting a scope means advertising it in the <tt>scopes_supported</tt> metadata property, accepting it in registration and authorization requests, and granting the access described in its registration when it is authorized.</t>
-<t>Servers MAY additionally support other scopes, for example finer-grained or vendor-specific scopes, but clients following this profile can only rely on the registered scopes being available.</t>
-</section>
-
-<section anchor="getting-a-new-access-token"><name>Getting a New Access Token</name>
+<section anchor="getting-a-new-access-token"><name>Refreshing the Access Token</name>
 <t>Clients SHOULD keep using an access token they have been issued until it expires. The client instance knows when this will happen from the <tt>expires_in</tt> property returned with the token, and, while it has an active need for the token (for example, open connections it expects to re-establish), SHOULD proactively obtain a new access token shortly before the current one expires, rather than waiting for a request to fail. A client instance with no such need SHOULD NOT refresh merely to keep a token current. This is particularly important for stateful protocols such as IMAP and SMTP, where the token is needed at connection time and a round trip to the token endpoint would otherwise delay every reconnection. Clients MUST nonetheless be prepared for an access token to be rejected at any time (for HTTP-based protocols, with a <tt>401</tt> response), as the server may invalidate it early, and MUST handle this by obtaining a new one.</t>
 <t>When the access token expires, the client instance MUST get a new one by making another POST request to the authorization server token endpoint. The following parameters MUST be present, using the "application/x-www-form-urlencoded" format with a character encoding of UTF-8 in the HTTP request entity-body:</t>
 
@@ -408,8 +490,10 @@ object with the following properties:</t>
 <dt><tt>resource (optional)</tt></dt>
 <dd>One or more Resource Indicators restricting the access token to a subset of the authorized resources, with the same semantics as in <xref target="obtaining-a-refresh-token" />.</dd>
 </dl>
-<t>The success and failures responses are identical to those documented in
-"Obtaining a refresh token" (<xref target="obtaining-a-refresh-token" />).</t>
+<t>The success and failure responses are identical to those documented in <xref target="token-response" />.</t>
+</section>
+
+<section anchor="refresh-token-rotation"><name>Refresh Token Rotation and Replay Protection</name>
 <t>Because clients following this profile are public clients, the server MUST protect against refresh token replay using one of the two methods required by <xref target="RFC9700" section="4.14.2" />. If the refresh token is sender-constrained, because the client instance presented a DPoP proof when it was issued and the server bound it to the client instance's key (<xref target="RFC9449" section="5" />), the server MAY omit the <tt>refresh_token</tt> property from the response or return the same refresh token, in which case the client instance continues to use the refresh token it holds. Otherwise, the server MUST return a new refresh token in the response (refresh token rotation). In either case, the client instance MUST replace its previous refresh token with the one returned if one is returned and it differs, and MUST persist the new refresh token before making any use of the access token returned alongside it.</t>
 <t>When the server issues a new refresh token, it MUST NOT invalidate the previous refresh token immediately. Instead, the previous refresh token MUST remain valid until the server first sees either the new refresh token or the new access token issued in the same response being used. The response may not reach the client instance: the connection may drop, or the client may crash before it can persist the new token. In either case the client instance will legitimately retry with the refresh token it still holds, and the flow must succeed. A request presenting the previous refresh token during this window MUST be answered with the same new refresh token that was issued in the original response, together with either the same access token (with <tt>expires_in</tt> adjusted for the time elapsed) or a freshly issued one. The server MUST NOT issue a further new refresh token in response to the previous one. If it did, an attacker who had obtained a copy of the previous refresh token and used it during the window would obtain a refresh token chain of their own, independent of the client instance's, and the detection described below would never catch it. Returning the same new refresh token instead means the attacker and the legitimate client instance hold the same token, and the next rotation reveals the duplicate. Once the new refresh token or the new access token has been used, however, the server knows the client instance received the response, so any subsequent use of the previous refresh token can only come from a copy that has been leaked or stolen. Note that an authorization server may not observe access token use at all, for example when access tokens are self-contained and validated locally by the resource server, or are presented to a separate IMAP or SMTP server. Use of the new refresh token is therefore the trigger that every server can rely upon; use of the new access token allows a server that does observe it to close the window sooner. At that point the server MUST treat the previous refresh token as invalid, and SHOULD revoke the entire authorization, including the current refresh token and all associated access tokens, as a protection against leaked refresh tokens.</t>
 <t>This deviates from <xref target="RFC9700" section="4.14.2" />, which invalidates the previous refresh token as soon as the new one is issued. The deviation is limited to the window between issuance and the client instance's first use of the new tokens, during which the previous token can obtain nothing beyond what the response already granted, and is necessary to allow a client instance that did not receive the response to recover without user interaction.</t>
@@ -417,7 +501,7 @@ object with the following properties:</t>
 <t>If a user has multiple devices with the same client software installed, each instance of the client MUST obtain separate authorization. A refresh token MUST NOT be shared between devices.</t>
 </section>
 
-<section anchor="token-expiry-times"><name>Token Expiry Times</name>
+<section anchor="token-expiry-times"><name>Token Lifetimes and Revocation</name>
 <t>Access tokens MUST have a lifetime of at least 10 minutes, and SHOULD have a lifetime of at least 1 hour.</t>
 <t>The hard minimum exists so that a client instance can rely on an access token it has just obtained surviving a single operation, especially in the face of poor network conditions where it may have to retry several times before it can connect to the resource server. It also bounds the rate at which a client instance must contact the token endpoint, making the client more efficient with its network usage.</t>
 <t>The recommended lifetime of one hour further reduces load on the token endpoint and, more importantly, loosens the coupling between the authorization server and the resource servers: with hour-long tokens a brief outage of the authorization server, or a period on a network where it is unreachable, is invisible to the user. The trade-off is that a longer lifetime extends the window during which a leaked bearer token can be misused. Servers that consider this window too long are encouraged to support DPoP (<xref target="RFC9449" />), which prevents a stolen access token from being used by anyone other than the client instance it was issued to, rather than to shorten the lifetime below one hour.</t>
@@ -426,20 +510,46 @@ object with the following properties:</t>
 <t>When the server revokes a refresh token (for example, because the user has revoked the client's authorization, or because the token has been detected as leaked), it MUST close any existing stateful connections that were authenticated using access tokens issued under that refresh token.</t>
 <t>A client instance cannot detect that its refresh token has been revoked until it next attempts to use it. Once a client instance does detect revocation (by receiving an <tt>invalid_grant</tt> error from the token endpoint, or an <tt>invalid_client</tt> error indicating that the client id is no longer valid, see <xref target="dynamic-client-registration-considerations" />), it MUST discard the refresh token and any associated access tokens, MUST close any stateful connections it still has open that were authenticated with them, and MUST obtain new authorization before reconnecting (see <xref target="dynamic-client-registration-considerations" />).</t>
 </section>
-
-<section anchor="dynamic-client-registration-considerations">
-<name>Client Id Validity</name>
-<t>The client id MUST remain valid for as long as there is a valid refresh token associated with that client id.</t>
-<t>To ensure a good user experience, the client id assigned upon dynamic registration SHOULD be valid for use in the authorization flow (<xref target="authorization"/>) for at least one hour after issuance.</t>
-<t>Clients MUST associate a client id with each refresh token it has. If the refresh token is invalidated and the client instance has to reauthenticate, it MUST submit the dynamic client registration (<xref target="dynamic-client-registration" />) again and use the client id returned, which MAY be different than the previous client id. A client instance that receives an <tt>invalid_client</tt> error from the token endpoint MUST likewise treat the client id as no longer valid and re-register before obtaining new authorization.</t>
-<t>Servers that wish to store client registration information MUST be careful of resource exhaustion attacks. A RECOMMENDED approach is to:</t>
-<ul>
-  <li>Normalize and securely hash the submitted registration data.</li>
-  <li>Check if this hash already exists in the database, and if so return the existing client id issued for this registration.</li>
-  <li>Otherwise, keep the registration in temporary storage and only insert it into the database upon successful authorization. Creating a new client id in the temporary storage can be rate limited, for example by IP.</li>
-  <li>Remove any client registrations from the database whenever there are no valid refresh tokens associated with that client id.</li>
-</ul>
 </section>
+
+<section anchor="using-access-tokens"><name>Using Access Tokens</name>
+
+<section anchor="permitted-resource-servers"><name>Permitted Resource Servers</name>
+<t>An access token obtained from an authorization server MUST only be sent to a resource server that the client instance has determined to be associated with that authorization server, as described in this section. This protects against a counterfeit resource server that has been named in autoconfiguration data or protected resource metadata under the attacker's control (see <xref target="RFC9700" section="4.9.1" /> and <xref target="security-considerations" />).</t>
+<t>The client instance MUST make this determination for every host to which it sends an access token. This includes any host reached by following an HTTP redirect, such as those commonly used in CalDAV and CardDAV service discovery: the determination is made against the URL actually being requested, not only the endpoint URL the client instance started from. A client instance MUST NOT send an access token to a host for which the determination fails. If the client instance cannot function without that resource server, it MUST abort and inform the user.</t>
+<t>The determination is made in one of two ways, depending on whether the authorization server metadata includes the <tt>protected_resources</tt> property (see <xref target="metadata-protected-resources" />):</t>
+<ul>
+<li>If the property is present, a resource server is permitted if and only if an entry in the list matches the request URL (for HTTP-based protocols) or the host name (for non-HTTP protocols), using the matching rules given in <xref target="resource-indicators" />.</li>
+<li>If the property is absent, a resource server is permitted if and only if its host name has the same registrable domain as the host of the authorization server issuer identifier. For HTTP-based protocols the host name is the host component of the request URL; for non-HTTP protocols it is the host name the client instance connects to.</li>
+</ul>
+<t>The registrable domain of a host name is its public suffix plus the DNS label immediately preceding that suffix, where the public suffix is determined using the Public Suffix List <xref target="PSL" />. For example, the registrable domain of <tt>imap.example.com</tt> is <tt>example.com</tt>, and the registrable domain of <tt>auth.example.co.uk</tt> is <tt>example.co.uk</tt>. Host names MUST be compared case-insensitively, and internationalized host names MUST be converted to A-labels <xref target="RFC5890" /> before comparison. A host that is an IP address literal, or that has no registrable domain (for example, a single-label host name, or a host name that is itself a public suffix), is never permitted under this rule.</t>
+<t>The registrable domain rule allows deployments that host their authorization server and resource servers within a single domain, for example <tt>auth.example.com</tt> and <tt>imap.example.com</tt>, to be secure without further configuration. Deployments whose resource servers are not all within the registrable domain of the issuer identifier, including providers that use a separate identity provider domain and multi-tenant authorization servers whose issuer identifier includes a path component, MUST publish <tt>protected_resources</tt> (see <xref target="metadata-protected-resources" />), as clients following this profile will otherwise refuse to use their resource servers.</t>
+</section>
+
+<section anchor="using-the-access-token"><name>Authenticating to Resource Servers</name>
+<t>The client instance is now authenticated. It can connect to the resource servers permitted under <xref target="permitted-resource-servers" /> with the Bearer scheme <xref target="RFC6750" />. For HTTP-based protocols, this means setting an <tt>Authorization</tt> header with the value <tt>Bearer {access_token}</tt> (where <tt>{access_token}</tt> is replaced with the value of the access_token). If using DPoP, the client instance MUST also set a DPoP header in accordance with <xref target="RFC9449" section="7"/>.</t>
+<t>For protocols that use SASL authentication, such as IMAP, POP, and SMTP, the access token is used in accordance with the OAUTHBEARER mechanism defined in <xref target="RFC7628" />. Servers MUST NOT require the username associated with the resource (the "authzid") be included in the GS2 header. The client instance MUST include the <tt>host</tt> attribute in its initial client response (<xref target="RFC7628" section="3.1" />), set to the host name it connected to, and SHOULD include the <tt>port</tt> attribute. <xref target="RFC7628" /> makes these attributes optional for bearer tokens; this profile requires <tt>host</tt> because it is the value the client instance used as the Resource Indicator for the endpoint (see <xref target="resource-indicators" />), which allows a server to check that the access token was issued for the host it is being presented to.</t>
+</section>
+
+<section anchor="dpop-non-http"><name>DPoP and Non-HTTP Protocols</name>
+<t>DPoP <xref target="RFC9449" /> is only defined for HTTP. The proof JWT (<xref target="RFC9449" section="4.2" />) is bound to the HTTP method and URI of the request it protects and is carried in an HTTP header field, and the OAUTHBEARER SASL mechanism <xref target="RFC7628" /> has no means of carrying such a proof. A DPoP-bound access token therefore cannot be used to authenticate to an IMAP, POP, or SMTP server. Sender-constraining access tokens for SASL-based protocols would require a new SASL mechanism, or an extension to OAUTHBEARER, together with a means for the resource server to verify the proof. That is out of scope for this document.</t>
+<t>A client instance that uses only HTTP-based protocols and wishes to use DPoP SHOULD register with <tt>dpop_bound_access_tokens</tt> set to true (see <xref target="registration-request" />), include a DPoP proof in every token request, and use the resulting DPoP-bound access tokens as described in <xref target="RFC9449" section="7" />.</t>
+<t>A client instance that uses non-HTTP protocols, whether exclusively or alongside HTTP-based protocols, has two choices. The simplest is not to use DPoP at all, in which case all tokens are bearer tokens. Alternatively, it MAY use DPoP for the token endpoint and for HTTP-based resources while still obtaining bearer tokens for non-HTTP resources, as follows:</t>
+<ul>
+<li>The client instance MUST NOT set <tt>dpop_bound_access_tokens</tt> to true when registering, as the server would then be required to issue only DPoP-bound access tokens.</li>
+<li>The client instance includes a DPoP proof in every token request. As required by <xref target="RFC9449" section="5" />, the server binds the refresh token to the client instance's key, so the refresh token is sender-constrained even though some of the access tokens obtained with it are not.</li>
+<li>The client instance obtains separate access tokens for HTTP and non-HTTP resources by including <tt>resource</tt> parameters in the token request (see <xref target="obtaining-a-refresh-token" /> and <xref target="getting-a-new-access-token" />): one request listing only its HTTP-based resources, and a second listing only its non-HTTP resources (that is, hostnames, see <xref target="resource-indicators" />). The initial token request exchanging the authorization code can be made for either set, and the other set is then obtained by a refresh request.</li>
+<li>When a token request includes a valid DPoP proof and every <tt>resource</tt> parameter is a hostname for a non-HTTP resource, a server that supports both DPoP and Resource Indicators MUST issue an access token that is not bound to the DPoP key, with a <tt>token_type</tt> of "Bearer". For any other token request that includes a DPoP proof, the server issues a DPoP-bound access token with a <tt>token_type</tt> of "DPoP", as normal. Servers that support DPoP SHOULD therefore also support Resource Indicators, so that client instances using non-HTTP protocols are not prevented from using DPoP.</li>
+<li>The client instance MUST check the <tt>token_type</tt> of each response and use the token accordingly: a "DPoP" token with the DPoP authentication scheme for HTTP requests, and a "Bearer" token with the Bearer scheme or OAUTHBEARER. If the client instance receives a "DPoP" token in response to a request that listed only non-HTTP resources, the server does not support this arrangement (for example, because it does not support Resource Indicators and ignored the parameters). The client instance MUST NOT attempt to use that token with a non-HTTP server, and MUST obtain a new authorization without using DPoP if it is to continue.</li>
+</ul>
+<t>A client instance can avoid the last failure case in most deployments by only attempting this arrangement when the authorization server metadata includes <tt>protected_resources</tt>, which indicates the server acts on Resource Indicators.</t>
+</section>
+</section>
+
+<section anchor="scopes"><name>Scopes</name>
+<t>To work interoperably, clients and servers must use a common set of scopes for access. This document creates a new IANA registry for such scopes (see <xref target="scopes-registry" />), and registers scopes to cover IMAP, SMTP, POP, CardDAV, CalDAV, and JMAP.</t>
+<t>Registration of a scope in that registry does not by itself impose any requirement on OAuth implementations in general (see <xref target="scopes-registry" />). This profile, however, does require support: a server implementing this profile MUST support each of the scopes registered by this document (<xref target="initial-registry-contents" />) whose definition covers a protocol or type of data that the server offers. For example, a server that offers IMAP and SMTP MUST support <tt>urn:ietf:params:oauth:scope:mail</tt>, and a server that offers CalDAV MUST support <tt>urn:ietf:params:oauth:scope:calendars</tt>. Supporting a scope means advertising it in the <tt>scopes_supported</tt> metadata property, accepting it in registration and authorization requests, and granting the access described in its registration when it is authorized.</t>
+<t>Servers MAY additionally support other scopes, for example finer-grained or vendor-specific scopes, but clients following this profile can only rely on the registered scopes being available.</t>
 </section>
 
 <section anchor="security-considerations"><name>Security Considerations</name>
@@ -447,7 +557,7 @@ object with the following properties:</t>
 <t>Implementers are encouraged to read all of the above documents for a more thorough consideration of the specific threats and mitigations with OAuth.</t>
 <t>The choices made for this profile are intended to mitigate as far as possible the inherent risks that come from allowing arbitrary clients to talk to arbitrary servers.</t>
 <t>The key restriction of this profile is that the redirect_uri MUST be something only a native client can access. If the user has downloaded and run a malicious native app, it could already undetectably spoof the user's browser to phish them, or in unsandboxed environments install malware, so supporting the OAuth flow from an unknown client is not increasing risks. Indeed, it is more secure than the current alternative, which is legitimate clients storing the user's password. This is also why claimed "https" scheme redirect URIs (<xref target="RFC8252" section="7.2" />) are excluded: although they are the most secure redirect option on platforms that support them, an authorization server has no way to tell one from an ordinary web URL, and permitting them would permit web-based clients.</t>
-<t>Access tokens, refresh tokens, and authorization codes are bearer credentials: anyone who obtains one can use it. Clients MUST only send them over connections secured with TLS, and MUST verify the server's certificate as described in <xref target="RFC9525" />. This applies to the token endpoint, to HTTP-based resource servers as required by <xref target="RFC6750" section="5.3" />, and to protocols using SASL: for IMAP, POP, and SMTP, the client MUST negotiate TLS (either Implicit TLS or STARTTLS, see <xref target="RFC8314" />) before sending the OAUTHBEARER authentication exchange. Servers MUST NOT accept access tokens over connections that are not protected by TLS. The one exception is the redirect back to a loopback redirect URI (<xref target="dynamic-client-registration" />), which uses the "http" scheme. This carries only the authorization code, and the connection never leaves the user's device. The code is additionally protected by PKCE, so it is useless to anyone other than the client instance that holds the corresponding code verifier.</t>
+<t>Access tokens, refresh tokens, and authorization codes are bearer credentials: anyone who obtains one can use it. Clients MUST only send them over connections secured with TLS, and MUST verify the server's certificate as described in <xref target="RFC9525" />. This applies to the token endpoint, to HTTP-based resource servers as required by <xref target="RFC6750" section="5.3" />, and to protocols using SASL: for IMAP, POP, and SMTP, the client MUST negotiate TLS (either Implicit TLS or STARTTLS, see <xref target="RFC8314" />) before sending the OAUTHBEARER authentication exchange. Servers MUST NOT accept access tokens over connections that are not protected by TLS. The one exception is the redirect back to a loopback redirect URI (<xref target="redirect-uri-requirements" />), which uses the "http" scheme. This carries only the authorization code, and the connection never leaves the user's device. The code is additionally protected by PKCE, so it is useless to anyone other than the client instance that holds the corresponding code verifier.</t>
 <t>The dynamic registration part of this document is not a security component, as there is no way to verify any of the data. The data in the registration may be shown to the user as part of the authorization flow, which may help with phishing, but as noted above the redirect_uri can only be used by a native app, which could already phish the user. However, the registration gives the server more information to detect suspicious behaviour, which can help it to detect compromised users and devices more easily.</t>
 <t>All metadata supplied in a dynamic client registration is attacker-controlled from the authorization server's point of view. The <tt>client_name</tt>, <tt>client_uri</tt>, <tt>logo_uri</tt>, <tt>tos_uri</tt>, and <tt>policy_uri</tt> values MAY be shown to the user, but the authorization server MUST treat them as untrusted content. It MUST escape them appropriately when rendering them, and MUST NOT fetch <tt>logo_uri</tt> or any other supplied URL from the server side without the protections appropriate to fetching an untrusted URL, since such a fetch can otherwise be used to reach resources on the server's internal network. Any such URL may also point at malicious content, as discussed in <xref target="RFC7591" section="5" />. A logo loaded by the user's browser additionally discloses the user's IP address, and the fact that an authorization is taking place, to whoever controls the URL. Because the identity of the client cannot be verified, the authorization server SHOULD make clear on the consent page that the client is unverified, SHOULD display the requested scopes in plain language, and MUST NOT present the registration metadata in a way that suggests it has been vetted. Servers that prefer not to display unverified metadata MAY show only the requested scopes and a generic description of the client.</t>
 <t>Refresh tokens are long-lived credentials, and DPoP private keys are equivalent in value to the tokens they protect. Client instances SHOULD store both using the most secure storage the platform provides, such as an operating system keychain or keystore, with hardware-backed storage where available, and MUST NOT write them to logs or, where the platform offers protected storage, to storage accessible to other applications. Access tokens SHOULD be handled the same way, but MAY be held only in memory. When the user removes an account from the client, or the client is being uninstalled, the client instance SHOULD revoke its refresh token via the <tt>revocation_endpoint</tt> if the server advertises one, so that the server can discard the authorization rather than waiting for the token to expire through inactivity.</t>
@@ -590,9 +700,9 @@ object with the following properties:</t>
 <dt>Parameter name:</dt> <dd><tt>username</tt></dd>
 <dt>Parameter usage location:</dt> <dd>token request, token response</dd>
 <dt>Change controller:</dt> <dd>IETF</dd>
-<dt>Specification document(s):</dt> <dd><xref target="RFC6749" section="4.3.2" />; <xref target="obtaining-a-refresh-token" /> of this document</dd>
+<dt>Specification document(s):</dt> <dd><xref target="RFC6749" section="4.3.2" />; <xref target="token-response" /> of this document</dd>
 </dl>
-<t>The use of the <tt>username</tt> parameter in a token response is defined in <xref target="obtaining-a-refresh-token" />. Its use in a token request, defined by <xref target="RFC6749" section="4.3.2" />, is unchanged.</t>
+<t>The use of the <tt>username</tt> parameter in a token response is defined in <xref target="token-response" />. Its use in a token request, defined by <xref target="RFC6749" section="4.3.2" />, is unchanged.</t>
 </section>
 
 <section anchor="oauth-uri-registrations">
