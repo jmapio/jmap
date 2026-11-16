@@ -192,7 +192,7 @@ This MUST include "S256".</t>
 <section anchor="metadata-protected-resources"><name>Protected Resources</name>
 <t>Servers MUST include the following property if either of these conditions applies:</t>
 <ul spacing="compact">
-<li>Any resource server accessed via this profile does not share the registrable domain of the issuer identifier (see <xref target="permitted-resource-servers" />).</li>
+<li>Any resource server accessed via this profile, other than one reached only through a service-supplied endpoint URL (see <xref target="service-supplied-endpoints" />), does not share the registrable domain of the issuer identifier (see <xref target="permitted-resource-servers" />).</li>
 <li>The server requires Resource Indicators <xref target="RFC8707" />, that is, it will not issue a usable access token unless the authorization request includes <tt>resource</tt> parameters.</li>
 </ul>
 <t>All other servers that support Resource Indicators SHOULD include it:</t>
@@ -200,7 +200,7 @@ This MUST include "S256".</t>
 <dl spacing="normal" newline="true">
 <dt><tt>protected_resources</tt></dt>
 <dd><t>A JSON array of strings, as defined in <xref target="RFC9728" section="4" />, listing all of the resource indicator values that may be used with this authorization server for resources accessed via this profile. Clients use this list to determine the <tt>resource</tt> values to send in the authorization request (see <xref target="resource-indicators" />). For HTTP-based protocols, each entry is an <tt>https</tt> URL with no query or fragment part that identifies a resource server, or a path within one, for example <tt>https://api.example.com</tt> or <tt>https://caldav.example.com/dav</tt>. Entries are matched against resource locations as described in <xref target="resource-indicators" />. For non-HTTP protocols, each entry is a hostname with no scheme or port, for example <tt>imap.example.com</tt>. <xref target="RFC9728" section="4" /> defines the entries of this array as resource identifiers, which <xref target="RFC9728" section="1.2" /> restricts to <tt>https</tt> URLs. This profile deviates from that restriction for non-HTTP protocols, for the reasons given in <xref target="resource-indicators" />.</t>
-<t><xref target="RFC9728" /> permits an authorization server to omit some of its protected resources from this list. This profile is stricter: if the property is present, it MUST include an entry matching every resource endpoint that may be accessed using this profile. This is because a client can only send resource indicators for endpoints that it can match against the list.</t></dd>
+<t><xref target="RFC9728" /> permits an authorization server to omit some of its protected resources from this list. This profile is stricter: if the property is present, it MUST include an entry matching every resource endpoint that may be accessed using this profile, other than those reached only through service-supplied endpoint URLs (see <xref target="service-supplied-endpoints" />). This is because a client can only send resource indicators for endpoints that it can match against the list.</t></dd>
 </dl>
 </section>
 
@@ -538,13 +538,37 @@ object with the following properties:</t>
 <section anchor="permitted-resource-servers"><name>Permitted Resource Servers</name>
 <t>An access token obtained from an authorization server MUST only be sent to a resource server that the client instance has determined to be associated with that authorization server, as described in this section. This protects against a counterfeit resource server that has been named in autoconfiguration data or protected resource metadata under the attacker's control (see <xref target="RFC9700" section="4.9.1" /> and <xref target="security-considerations" />).</t>
 <t>The client instance MUST make this determination for every host to which it sends an access token. This includes any host reached by following an HTTP redirect, such as those commonly used in CalDAV and CardDAV service discovery: the determination is made against the URL actually being requested, not only the endpoint URL the client instance started from. A client instance MUST NOT send an access token to a host for which the determination fails. If the client instance cannot function without that resource server, it MUST abort and inform the user.</t>
-<t>The determination is made in one of two ways, depending on whether the authorization server metadata includes the <tt>protected_resources</tt> property (see <xref target="metadata-protected-resources" />):</t>
+<t>A resource server is permitted if and only if at least one of the following applies:</t>
 <ul>
-<li>If the property is present, a resource server is permitted if and only if an entry in the list matches the request URL (for HTTP-based protocols) or the host name (for non-HTTP protocols), using the matching rules given in <xref target="resource-indicators" />.</li>
-<li>If the property is absent, a resource server is permitted if and only if its host name has the same registrable domain as the host of the authorization server issuer identifier. For HTTP-based protocols the host name is the host component of the request URL; for non-HTTP protocols it is the host name the client instance connects to.</li>
+<li>The authorization server metadata includes the <tt>protected_resources</tt> property (see <xref target="metadata-protected-resources" />), and an entry in the list matches the request URL (for HTTP-based protocols) or the host name (for non-HTTP protocols), using the matching rules given in <xref target="resource-indicators" />.</li>
+<li>The authorization server metadata does not include the <tt>protected_resources</tt> property, and the resource server's host name has the same registrable domain as the host of the authorization server issuer identifier. For HTTP-based protocols the host name is the host component of the request URL; for non-HTTP protocols it is the host name the client instance connects to.</li>
+<li>The request URL is a service-supplied endpoint URL, as described in <xref target="service-supplied-endpoints" />.</li>
 </ul>
 <t>The registrable domain of a host name is its public suffix plus the DNS label immediately preceding that suffix, where the public suffix is determined using the Public Suffix List <xref target="PSL" />. For example, the registrable domain of <tt>imap.example.com</tt> is <tt>example.com</tt>, and the registrable domain of <tt>auth.example.co.uk</tt> is <tt>example.co.uk</tt>. Host names MUST be compared case-insensitively, and internationalized host names MUST be converted to A-labels <xref target="RFC5890" /> before comparison. A host that is an IP address literal, or that has no registrable domain (for example, a single-label host name, or a host name that is itself a public suffix), is never permitted under this rule.</t>
-<t>The registrable domain rule allows deployments that host their authorization server and resource servers within a single domain, for example <tt>auth.example.com</tt> and <tt>imap.example.com</tt>, to be secure without further configuration. Some deployments have resource servers that are not all within the registrable domain of the issuer identifier. These include providers that use a separate identity provider domain, and multi-tenant authorization servers whose issuer identifier includes a path component. Such deployments MUST publish <tt>protected_resources</tt> (see <xref target="metadata-protected-resources" />), as clients following this profile will otherwise refuse to use their resource servers.</t>
+<t>The registrable domain rule allows deployments that host their authorization server and resource servers within a single domain, for example <tt>auth.example.com</tt> and <tt>imap.example.com</tt>, to be secure without further configuration. Some deployments have resource servers that are not all within the registrable domain of the issuer identifier. These include providers that use a separate identity provider domain, and multi-tenant authorization servers whose issuer identifier includes a path component. Such deployments MUST publish <tt>protected_resources</tt> (see <xref target="metadata-protected-resources" />), as clients following this profile will otherwise refuse to use their resource servers. This does not apply to resource servers that clients reach only through service-supplied endpoint URLs (see <xref target="service-supplied-endpoints" />).</t>
+</section>
+
+<section anchor="service-supplied-endpoints"><name>Service-Supplied Endpoints</name>
+<t>Some protocols allow a resource server to tell the client where other endpoints of the same service are located, and these may be on hosts that are not otherwise permitted. For example, a JMAP Session object may give an <tt>apiUrl</tt> on a different domain to the session resource, to allow load balancing or regional deployment. Requiring every such host to be listed in <tt>protected_resources</tt> in advance would be impractical.</t>
+<t>A URL is a service-supplied endpoint URL if all of the following apply:</t>
+<ul>
+<li>The client instance obtained it from one of the fields listed below, in a response to a request that was authenticated with an access token issued by this authorization server.</li>
+<li>That request was made to a resource server permitted under <xref target="permitted-resource-servers" />. This includes a resource server that is permitted because its URL is itself a service-supplied endpoint URL.</li>
+<li>The URL uses the <tt>https</tt> scheme, or the <tt>wss</tt> scheme for a WebSocket endpoint.</li>
+</ul>
+<t>The fields are:</t>
+<ul>
+<li><t>For JMAP <xref target="RFC8620" />: the <tt>apiUrl</tt>, <tt>downloadUrl</tt>, <tt>uploadUrl</tt>, and <tt>eventSourceUrl</tt> properties of the Session object. Also, any URL in the Session object that the specification of a JMAP capability defines as an endpoint of the service that the client authenticates to, such as the <tt>url</tt> property of the <tt>urn:ietf:params:jmap:websocket</tt> capability <xref target="RFC8887" />.</t>
+<t>The <tt>downloadUrl</tt>, <tt>uploadUrl</tt>, and <tt>eventSourceUrl</tt> properties are URI templates. The determination is made against the expanded URL. If the host or port component of the template contains a template expression, the URL is not a service-supplied endpoint URL.</t></li>
+<li><t>For CalDAV <xref target="RFC4791" /> and CardDAV <xref target="RFC6352" />: the <tt>DAV:current-user-principal</tt> property <xref target="RFC5397" />, the <tt>CALDAV:calendar-home-set</tt> and <tt>CARDDAV:addressbook-home-set</tt> properties, and the <tt>CALDAV:schedule-inbox-URL</tt> and <tt>CALDAV:schedule-outbox-URL</tt> properties <xref target="RFC6638" />.</t>
+<t>Also, the <tt>DAV:href</tt> values in a multistatus response <xref target="RFC4918" /> to a request on a calendar home or address book home identified in this way, or on a collection within one, that identify collections or resources within that home.</t></li>
+</ul>
+<t>Other specifications MAY define further fields as service-supplied endpoint URLs, for the protocols they define or extend. A field qualifies only if the specification defines it as identifying an endpoint of the same service, for the same account, which the client authenticates to with the same credentials.</t>
+<t>No other URL is a service-supplied endpoint URL, even if it was obtained in an authenticated response from a permitted resource server. A response from a legitimate server can contain URLs that point to third parties. For example, the <tt>source</tt> property of a subscribed calendar, as returned by some CalDAV servers, identifies an external calendar feed. A client instance MUST NOT send an access token to such a URL unless the URL is permitted on its own under <xref target="permitted-resource-servers" />. Implementations that attach credentials to every request made on behalf of an account need to take particular care here: whether to include an access token has to be decided for each request, based on its URL.</t>
+<t>A redirect from a service-supplied endpoint URL does not extend this permission to the redirect target. As for any other redirect, the client instance makes the determination again for the target URL, which is permitted only if it matches an entry in <tt>protected_resources</tt> or, where that property is absent, shares the registrable domain of the issuer identifier.</t>
+<t>Permission based on a field lasts only while the client instance continues to use the value it obtained. If the value changes, for example because the client instance fetches the JMAP Session object again, the new value replaces the old one.</t>
+<t>Deployments MUST ensure that an access token accepted by a resource server is also accepted at every service-supplied endpoint URL obtained from that resource server's responses. In particular, an authorization server that issues audience-restricted access tokens (see <xref target="RFC9700" section="4.10.2" />) needs to take these endpoints into account.</t>
+<t>This does not weaken the protection described in <xref target="permitted-resource-servers" />. That protection prevents an attacker who controls autoconfiguration data or protected resource metadata from naming a counterfeit resource server. A resource server that has already been determined to be associated with the authorization server already receives the access token, so trusting it to name other endpoints of the same service gives it no further access. An attacker who does not control such a server cannot alter its responses, which are protected by TLS.</t>
 </section>
 
 <section anchor="using-the-access-token"><name>Authenticating to Resource Servers</name>
@@ -962,14 +986,18 @@ object with the following properties:</t>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.1939.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2384.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4791.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4918.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5092.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5397.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5804.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6352.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6409.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6638.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.6819.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7009.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7595.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8314.xml"/>
+<xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.8887.xml"/>
 <xi:include href="https://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.9051.xml"/>
 <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-mailmaint-pacc.xml"/>
 <reference anchor="IANA.OAuth.Parameters" target="https://www.iana.org/assignments/oauth-parameters">
