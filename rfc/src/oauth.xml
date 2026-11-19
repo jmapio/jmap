@@ -368,7 +368,7 @@ This MUST include "S256".</t>
 <dt><tt>state</tt></dt>
 <dd>An opaque value used by the client instance to verify that an authorization response is due to a request that the client instance initiated. The authorization server will include this value when redirecting the user-agent back to the client instance.  Client instances MUST generate a state with a unique, unguessable random string when initiating an authorization request.</dd>
 <dt><tt>login_hint (optional)</tt></dt>
-<dd>The username the user originally asked to log in with, as defined in Section 3.1.2.1 of <xref target="OpenID.Core" />. The server can prefill this in a login form. Note, the user may choose to log in with a different username; the client instance learns which username was actually authenticated from the <tt>username</tt> property of the token response (see <xref target="token-response" />).</dd>
+<dd>The username the user originally asked to log in with, as defined in Section 3.1.2.1 of <xref target="OpenID.Core" />. The server can prefill this in a login form. Note, the user may choose to log in with a different username.</dd>
 </dl>
 <t>For compatibility with servers implementing OpenID Connect Core <xref target="OpenID.Core" />, if the server advertised the <tt>offline_access</tt> scope in the "scopes_supported" property of the authorization server metadata, the client instance MUST also request this scope. Section 11 of <xref target="OpenID.Core" /> further requires the <tt>prompt</tt> parameter to have the value <tt>consent</tt> when <tt>offline_access</tt> is requested, unless other conditions permitting offline access are in place, and some deployments will not issue a refresh token without it. A client instance requesting <tt>offline_access</tt> SHOULD therefore also include a <tt>prompt</tt> parameter with the value <tt>consent</tt> (see Section 3.1.2.1 of <xref target="OpenID.Core" />).</t>
 
@@ -475,12 +475,7 @@ object with the following properties:</t>
 <t>Note that this may be different from the set of scopes requested. Servers MAY allow users to choose to authorize only a subset of the requested scopes. Clients MUST check that the set of scopes granted is sufficient for their needs.</t></dd>
 <dt><tt>refresh_token</tt></dt>
 <dd>The refresh token to use next time the client instance needs to get a new access token. Servers MUST include this property in the response to an authorization code grant; a client instance following this profile cannot function without it. For its presence in the response to a refresh token grant, see <xref target="refresh-token-rotation" />.</dd>
-<dt><tt>username</tt></dt>
-<dd><t>The username of the account that was authenticated and granted this authorization, in the form the user would enter it to log in to this deployment (typically the user's email address). Servers MUST include this property in every token response. The value is normally the same in every token response issued under the same authorization, but it MAY change if the account's username changes, for example because the user has renamed the account.</t></dd>
 </dl>
-<t>The user may have started the flow by giving the client instance one username (which the client instance may have passed as the <tt>login_hint</tt>, see <xref target="authorization-request" />) and then authenticated at the authorization server as a different user. Without the <tt>username</tt> property in the token response, the client instance has no interoperable way to discover this, and may label the account, or associate the tokens with a local account, incorrectly. The client instance MUST use the <tt>username</tt> value, together with the issuer identifier, rather than the username originally supplied by the user, as the identity of the account the tokens belong to. Tokens from one authorization server MUST NOT be associated with an account established with a different issuer, even if the usernames are the same. If it differs from the username the user supplied, the client instance SHOULD make this visible to the user.</t>
-<t>An authorization is bound to the account that granted it, so every token issued under it is for that account, whatever <tt>username</tt> a later token response contains. If a refresh response contains a <tt>username</tt> that differs from the one the client instance holds for the authorization, the account's username has changed. The client instance MUST continue to treat the tokens as belonging to the same account, and MUST NOT treat it as a different account, for example by discarding or resynchronizing local data. It SHOULD update the username it stores and displays for the account to the new value.</t>
-<t>OpenID Connect Core <xref target="OpenID.Core" /> can convey the authenticated user's identity in an ID Token, but this profile does not require OpenID Connect support, and the <tt>sub</tt> claim it guarantees is an opaque identifier rather than a username the user would recognize. This document therefore registers "token response" as an additional usage location for the existing <tt>username</tt> parameter (see <xref target="oauth-parameters-registry-update" />).</t>
 
 <t>If the request fails, the server MUST return an error response as described in <xref target="RFC6749" section="5.2"/>. This MUST have a <tt>400 Bad Request</tt> status code, including for an <tt>invalid_client</tt> error: as clients following this profile do not authenticate to the token endpoint, the <tt>401 Unauthorized</tt> status code that <xref target="RFC6749" section="5.2"/> permits for that error does not apply. The response has a content type of application/json, and a JSON object body with the properties defined there. A client id that is no longer valid (see <xref target="dynamic-client-registration-considerations" />) is reported with the <tt>invalid_client</tt> error code. An authorization code or refresh token that is invalid, expired, or revoked is reported with the <tt>invalid_grant</tt> error code.</t>
 </section>
@@ -756,16 +751,8 @@ object with the following properties:</t>
 </section>
 
 <section anchor="oauth-parameters-registry-update">
-<name>Update to the OAuth Parameters Registry</name>
-<t>IANA is requested to update the registration of the <tt>username</tt> parameter in the "OAuth Parameters" registry <xref target="IANA.OAuth.Parameters" /> established by <xref target="RFC6749" section="11.2" />, adding "token response" to its parameter usage location and adding this document to its specification document(s). The updated registration is as follows:</t>
-<dl newline="false" spacing="compact">
-<dt>Parameter name:</dt> <dd><tt>username</tt></dd>
-<dt>Parameter usage location:</dt> <dd>token request, token response</dd>
-<dt>Change controller:</dt> <dd>IETF</dd>
-<dt>Specification document(s):</dt> <dd><xref target="RFC6749" section="4.3.2" />; <xref target="token-response" /> of this document</dd>
-</dl>
-<t>The use of the <tt>username</tt> parameter in a token response is defined in <xref target="token-response" />. Its use in a token request, defined by <xref target="RFC6749" section="4.3.2" />, is unchanged.</t>
-<t>IANA is also requested to register the following parameter in the "OAuth Parameters" registry:</t>
+<name>OAuth Parameters Registration</name>
+<t>IANA is requested to register the following parameter in the "OAuth Parameters" registry <xref target="IANA.OAuth.Parameters" /> established by <xref target="RFC6749" section="11.2" />:</t>
 <dl newline="false" spacing="compact">
 <dt>Parameter name:</dt> <dd><tt>refresh_key</tt></dd>
 <dt>Parameter usage location:</dt> <dd>token request</dd>
